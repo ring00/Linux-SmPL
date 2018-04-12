@@ -1,0 +1,568 @@
+From 56550d94cbaeaa195cb98c95d012b301cbd65a8d Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Fri, 21 Dec 2012 15:09:25 -0800
+Subject: [PATCH] Drivers: gpu: remove __dev* attributes.
+
+CONFIG_HOTPLUG is going away as an option.  As a result, the __dev*
+markings need to be removed.
+
+This change removes the use of __devinit, __devexit_p, and __devexit
+from these drivers.
+
+Based on patches originally written by Bill Pemberton, but redone by me
+in order to handle some of the coding style issues better, by hand.
+
+Cc: Bill Pemberton <wfp5p@virginia.edu>
+Cc: David Airlie <airlied@linux.ie>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/gpu/drm/ast/ast_drv.c               |  3 +--
+ drivers/gpu/drm/cirrus/cirrus_drv.c         |  4 ++--
+ drivers/gpu/drm/exynos/exynos_ddc.c         |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_drv.c     |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_fimc.c    |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c    |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c     |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_gsc.c     |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_hdmi.c    |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_ipp.c     |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_rotator.c |  6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_vidi.c    |  6 +++---
+ drivers/gpu/drm/exynos/exynos_hdmi.c        |  8 ++++----
+ drivers/gpu/drm/exynos/exynos_hdmiphy.c     |  2 +-
+ drivers/gpu/drm/exynos/exynos_mixer.c       | 12 ++++++------
+ drivers/gpu/drm/gma500/tc35876x-dsi-lvds.c  |  4 ++--
+ drivers/gpu/drm/i915/i915_drv.c             |  3 +--
+ drivers/gpu/drm/mgag200/mgag200_drv.c       |  3 +--
+ drivers/gpu/drm/nouveau/nouveau_drm.c       |  4 ++--
+ drivers/gpu/drm/radeon/radeon_drv.c         |  4 ++--
+ drivers/gpu/drm/shmobile/shmob_drm_drv.c    | 10 +++++-----
+ 21 files changed, 53 insertions(+), 56 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_drv.c b/drivers/gpu/drm/ast/ast_drv.c
+index 31123b6a0be5..2d2c2f8d6dc6 100644
+--- a/drivers/gpu/drm/ast/ast_drv.c
++++ b/drivers/gpu/drm/ast/ast_drv.c
+@@ -60,8 +60,7 @@ static DEFINE_PCI_DEVICE_TABLE(pciidlist) = {
+ 
+ MODULE_DEVICE_TABLE(pci, pciidlist);
+ 
+-static int __devinit
+-ast_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int ast_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	return drm_get_pci_dev(pdev, ent, &driver);
+ }
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.c b/drivers/gpu/drm/cirrus/cirrus_drv.c
+index dcd1a8c029eb..8ecb601152ef 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.c
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.c
+@@ -56,8 +56,8 @@ static int cirrus_kick_out_firmware_fb(struct pci_dev *pdev)
+ 	return 0;
+ }
+ 
+-static int __devinit
+-cirrus_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int cirrus_pci_probe(struct pci_dev *pdev,
++			    const struct pci_device_id *ent)
+ {
+ 	int ret;
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_ddc.c b/drivers/gpu/drm/exynos/exynos_ddc.c
+index bef43e0342a6..4e9b5ba8edff 100644
+--- a/drivers/gpu/drm/exynos/exynos_ddc.c
++++ b/drivers/gpu/drm/exynos/exynos_ddc.c
+@@ -66,6 +66,6 @@ struct i2c_driver ddc_driver = {
+ 	},
+ 	.id_table	= ddc_idtable,
+ 	.probe		= s5p_ddc_probe,
+-	.remove		= __devexit_p(s5p_ddc_remove),
++	.remove		= s5p_ddc_remove,
+ 	.command		= NULL,
+ };
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_drv.c b/drivers/gpu/drm/exynos/exynos_drm_drv.c
+index e0a8e8024b01..1713e53d4751 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_drv.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_drv.c
+@@ -325,7 +325,7 @@ static int exynos_drm_platform_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver exynos_drm_platform_driver = {
+ 	.probe		= exynos_drm_platform_probe,
+-	.remove		= __devexit_p(exynos_drm_platform_remove),
++	.remove		= exynos_drm_platform_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "exynos-drm",
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimc.c b/drivers/gpu/drm/exynos/exynos_drm_fimc.c
+index 61ea24296b52..d9963171fd0b 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimc.c
+@@ -1714,7 +1714,7 @@ static void fimc_ippdrv_stop(struct device *dev, enum drm_exynos_ipp_cmd cmd)
+ 	fimc_write(cfg, EXYNOS_CIGCTRL);
+ }
+ 
+-static int __devinit fimc_probe(struct platform_device *pdev)
++static int fimc_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct fimc_context *ctx;
+@@ -1891,7 +1891,7 @@ static int __devinit fimc_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit fimc_remove(struct platform_device *pdev)
++static int fimc_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct fimc_context *ctx = get_fimc_context(dev);
+@@ -1990,7 +1990,7 @@ static const struct dev_pm_ops fimc_pm_ops = {
+ 
+ struct platform_driver fimc_driver = {
+ 	.probe		= fimc_probe,
+-	.remove		= __devexit_p(fimc_remove),
++	.remove		= fimc_remove,
+ 	.id_table	= fimc_driver_ids,
+ 	.driver		= {
+ 		.name	= "exynos-drm-fimc",
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index bf0d9baca2bc..3ac911894dc7 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -898,7 +898,7 @@ static int fimd_activate(struct fimd_context *ctx, bool enable)
+ 	return 0;
+ }
+ 
+-static int __devinit fimd_probe(struct platform_device *pdev)
++static int fimd_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct fimd_context *ctx;
+@@ -997,7 +997,7 @@ static int __devinit fimd_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit fimd_remove(struct platform_device *pdev)
++static int fimd_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct fimd_context *ctx = platform_get_drvdata(pdev);
+@@ -1105,7 +1105,7 @@ static const struct dev_pm_ops fimd_pm_ops = {
+ 
+ struct platform_driver fimd_driver = {
+ 	.probe		= fimd_probe,
+-	.remove		= __devexit_p(fimd_remove),
++	.remove		= fimd_remove,
+ 	.id_table       = fimd_driver_ids,
+ 	.driver		= {
+ 		.name	= "exynos4-fb",
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+index 6ffa0763c078..36c3905536a6 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -1090,7 +1090,7 @@ static void g2d_close(struct drm_device *drm_dev, struct device *dev,
+ 	kfree(file_priv->g2d_priv);
+ }
+ 
+-static int __devinit g2d_probe(struct platform_device *pdev)
++static int g2d_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct resource *res;
+@@ -1188,7 +1188,7 @@ static int __devinit g2d_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit g2d_remove(struct platform_device *pdev)
++static int g2d_remove(struct platform_device *pdev)
+ {
+ 	struct g2d_data *g2d = platform_get_drvdata(pdev);
+ 
+@@ -1242,7 +1242,7 @@ static SIMPLE_DEV_PM_OPS(g2d_pm_ops, g2d_suspend, g2d_resume);
+ 
+ struct platform_driver g2d_driver = {
+ 	.probe		= g2d_probe,
+-	.remove		= __devexit_p(g2d_remove),
++	.remove		= g2d_remove,
+ 	.driver		= {
+ 		.name	= "s5p-g2d",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_gsc.c b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
+index 5639353d47b9..4b0e8589bd19 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_gsc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_gsc.c
+@@ -1683,7 +1683,7 @@ static void gsc_ippdrv_stop(struct device *dev, enum drm_exynos_ipp_cmd cmd)
+ 	gsc_write(cfg, GSC_ENABLE);
+ }
+ 
+-static int __devinit gsc_probe(struct platform_device *pdev)
++static int gsc_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct gsc_context *ctx;
+@@ -1784,7 +1784,7 @@ static int __devinit gsc_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit gsc_remove(struct platform_device *pdev)
++static int gsc_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct gsc_context *ctx = get_gsc_context(dev);
+@@ -1860,7 +1860,7 @@ static const struct dev_pm_ops gsc_pm_ops = {
+ 
+ struct platform_driver gsc_driver = {
+ 	.probe		= gsc_probe,
+-	.remove		= __devexit_p(gsc_remove),
++	.remove		= gsc_remove,
+ 	.driver		= {
+ 		.name	= "exynos-drm-gsc",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+index 55793c46e3c2..850e9950b7da 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+@@ -385,7 +385,7 @@ static void hdmi_subdrv_remove(struct drm_device *drm_dev, struct device *dev)
+ 		mixer_ops->iommu_on(ctx->mixer_ctx->ctx, false);
+ }
+ 
+-static int __devinit exynos_drm_hdmi_probe(struct platform_device *pdev)
++static int exynos_drm_hdmi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct exynos_drm_subdrv *subdrv;
+@@ -413,7 +413,7 @@ static int __devinit exynos_drm_hdmi_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit exynos_drm_hdmi_remove(struct platform_device *pdev)
++static int exynos_drm_hdmi_remove(struct platform_device *pdev)
+ {
+ 	struct drm_hdmi_context *ctx = platform_get_drvdata(pdev);
+ 
+@@ -426,7 +426,7 @@ static int __devexit exynos_drm_hdmi_remove(struct platform_device *pdev)
+ 
+ struct platform_driver exynos_drm_common_hdmi_driver = {
+ 	.probe		= exynos_drm_hdmi_probe,
+-	.remove		= __devexit_p(exynos_drm_hdmi_remove),
++	.remove		= exynos_drm_hdmi_remove,
+ 	.driver		= {
+ 		.name	= "exynos-drm-hdmi",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_ipp.c b/drivers/gpu/drm/exynos/exynos_drm_ipp.c
+index 49eebe948ed2..c1f12301224c 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_ipp.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_ipp.c
+@@ -1888,7 +1888,7 @@ static void ipp_subdrv_close(struct drm_device *drm_dev, struct device *dev,
+ 	return;
+ }
+ 
+-static int __devinit ipp_probe(struct platform_device *pdev)
++static int ipp_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct ipp_context *ctx;
+@@ -1963,7 +1963,7 @@ static int __devinit ipp_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit ipp_remove(struct platform_device *pdev)
++static int ipp_remove(struct platform_device *pdev)
+ {
+ 	struct ipp_context *ctx = platform_get_drvdata(pdev);
+ 
+@@ -2050,7 +2050,7 @@ static const struct dev_pm_ops ipp_pm_ops = {
+ 
+ struct platform_driver ipp_driver = {
+ 	.probe		= ipp_probe,
+-	.remove		= __devexit_p(ipp_remove),
++	.remove		= ipp_remove,
+ 	.driver		= {
+ 		.name	= "exynos-drm-ipp",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_rotator.c b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
+index 1c2366083c70..c748850737a1 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_rotator.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_rotator.c
+@@ -638,7 +638,7 @@ static int rotator_ippdrv_start(struct device *dev, enum drm_exynos_ipp_cmd cmd)
+ 	return 0;
+ }
+ 
+-static int __devinit rotator_probe(struct platform_device *pdev)
++static int rotator_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct rot_context *rot;
+@@ -730,7 +730,7 @@ static int __devinit rotator_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit rotator_remove(struct platform_device *pdev)
++static int rotator_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct rot_context *rot = dev_get_drvdata(dev);
+@@ -845,7 +845,7 @@ static const struct dev_pm_ops rotator_pm_ops = {
+ 
+ struct platform_driver rotator_driver = {
+ 	.probe		= rotator_probe,
+-	.remove		= __devexit_p(rotator_remove),
++	.remove		= rotator_remove,
+ 	.id_table	= rotator_driver_ids,
+ 	.driver		= {
+ 		.name	= "exynos-rot",
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_vidi.c b/drivers/gpu/drm/exynos/exynos_drm_vidi.c
+index 99bfc38dfaa2..a5c5a179e3b6 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_vidi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_vidi.c
+@@ -609,7 +609,7 @@ int vidi_connection_ioctl(struct drm_device *drm_dev, void *data,
+ 	return 0;
+ }
+ 
+-static int __devinit vidi_probe(struct platform_device *pdev)
++static int vidi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct vidi_context *ctx;
+@@ -645,7 +645,7 @@ static int __devinit vidi_probe(struct platform_device *pdev)
+ 	return 0;
+ }
+ 
+-static int __devexit vidi_remove(struct platform_device *pdev)
++static int vidi_remove(struct platform_device *pdev)
+ {
+ 	struct vidi_context *ctx = platform_get_drvdata(pdev);
+ 
+@@ -683,7 +683,7 @@ static const struct dev_pm_ops vidi_pm_ops = {
+ 
+ struct platform_driver vidi_driver = {
+ 	.probe		= vidi_probe,
+-	.remove		= __devexit_p(vidi_remove),
++	.remove		= vidi_remove,
+ 	.driver		= {
+ 		.name	= "exynos-drm-vidi",
+ 		.owner	= THIS_MODULE,
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index 2c46b6c0b82c..41ff79d8ac8e 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -2305,7 +2305,7 @@ static irqreturn_t hdmi_internal_irq_thread(int irq, void *arg)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int __devinit hdmi_resources_init(struct hdmi_context *hdata)
++static int hdmi_resources_init(struct hdmi_context *hdata)
+ {
+ 	struct device *dev = hdata->dev;
+ 	struct hdmi_resources *res = &hdata->res;
+@@ -2451,7 +2451,7 @@ static struct of_device_id hdmi_match_types[] = {
+ };
+ #endif
+ 
+-static int __devinit hdmi_probe(struct platform_device *pdev)
++static int hdmi_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct exynos_drm_hdmi_context *drm_hdmi_ctx;
+@@ -2607,7 +2607,7 @@ static int __devinit hdmi_probe(struct platform_device *pdev)
+ 	return ret;
+ }
+ 
+-static int __devexit hdmi_remove(struct platform_device *pdev)
++static int hdmi_remove(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct exynos_drm_hdmi_context *ctx = platform_get_drvdata(pdev);
+@@ -2708,7 +2708,7 @@ static const struct dev_pm_ops hdmi_pm_ops = {
+ 
+ struct platform_driver hdmi_driver = {
+ 	.probe		= hdmi_probe,
+-	.remove		= __devexit_p(hdmi_remove),
++	.remove		= hdmi_remove,
+ 	.id_table = hdmi_driver_types,
+ 	.driver		= {
+ 		.name	= "exynos-hdmi",
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmiphy.c b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
+index 6206056f4a33..ea49d132ecf6 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmiphy.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
+@@ -64,7 +64,7 @@ struct i2c_driver hdmiphy_driver = {
+ 	},
+ 	.id_table = hdmiphy_id,
+ 	.probe		= hdmiphy_probe,
+-	.remove		= __devexit_p(hdmiphy_remove),
++	.remove		= hdmiphy_remove,
+ 	.command		= NULL,
+ };
+ EXPORT_SYMBOL(hdmiphy_driver);
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index 21db89530fc7..3f68b34fa127 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -1029,8 +1029,8 @@ static irqreturn_t mixer_irq_handler(int irq, void *arg)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int __devinit mixer_resources_init(struct exynos_drm_hdmi_context *ctx,
+-				 struct platform_device *pdev)
++static int mixer_resources_init(struct exynos_drm_hdmi_context *ctx,
++				struct platform_device *pdev)
+ {
+ 	struct mixer_context *mixer_ctx = ctx->ctx;
+ 	struct device *dev = &pdev->dev;
+@@ -1081,8 +1081,8 @@ static int __devinit mixer_resources_init(struct exynos_drm_hdmi_context *ctx,
+ 	return 0;
+ }
+ 
+-static int __devinit vp_resources_init(struct exynos_drm_hdmi_context *ctx,
+-				 struct platform_device *pdev)
++static int vp_resources_init(struct exynos_drm_hdmi_context *ctx,
++			     struct platform_device *pdev)
+ {
+ 	struct mixer_context *mixer_ctx = ctx->ctx;
+ 	struct device *dev = &pdev->dev;
+@@ -1155,7 +1155,7 @@ static struct of_device_id mixer_match_types[] = {
+ 	}
+ };
+ 
+-static int __devinit mixer_probe(struct platform_device *pdev)
++static int mixer_probe(struct platform_device *pdev)
+ {
+ 	struct device *dev = &pdev->dev;
+ 	struct exynos_drm_hdmi_context *drm_hdmi_ctx;
+@@ -1316,6 +1316,6 @@ struct platform_driver mixer_driver = {
+ 		.of_match_table = mixer_match_types,
+ 	},
+ 	.probe = mixer_probe,
+-	.remove = __devexit_p(mixer_remove),
++	.remove = mixer_remove,
+ 	.id_table	= mixer_driver_types,
+ };
+diff --git a/drivers/gpu/drm/gma500/tc35876x-dsi-lvds.c b/drivers/gpu/drm/gma500/tc35876x-dsi-lvds.c
+index 4a07ab596174..771ff66711af 100644
+--- a/drivers/gpu/drm/gma500/tc35876x-dsi-lvds.c
++++ b/drivers/gpu/drm/gma500/tc35876x-dsi-lvds.c
+@@ -700,7 +700,7 @@ static struct i2c_driver tc35876x_bridge_i2c_driver = {
+ 	},
+ 	.id_table = tc35876x_bridge_id,
+ 	.probe = tc35876x_bridge_probe,
+-	.remove = __devexit_p(tc35876x_bridge_remove),
++	.remove = tc35876x_bridge_remove,
+ };
+ 
+ /* LCD panel I2C */
+@@ -741,7 +741,7 @@ static struct i2c_driver cmi_lcd_i2c_driver = {
+ 	},
+ 	.id_table = cmi_lcd_i2c_id,
+ 	.probe = cmi_lcd_i2c_probe,
+-	.remove = __devexit_p(cmi_lcd_i2c_remove),
++	.remove = cmi_lcd_i2c_remove,
+ };
+ 
+ /* HACK to create I2C device while it's not created by platform code */
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index 530db83ef320..117265840b1f 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -877,8 +877,7 @@ int i915_reset(struct drm_device *dev)
+ 	return 0;
+ }
+ 
+-static int __devinit
+-i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int i915_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	struct intel_device_info *intel_info =
+ 		(struct intel_device_info *) ent->driver_data;
+diff --git a/drivers/gpu/drm/mgag200/mgag200_drv.c b/drivers/gpu/drm/mgag200/mgag200_drv.c
+index 1e910117b0a2..122b571ccc7c 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_drv.c
++++ b/drivers/gpu/drm/mgag200/mgag200_drv.c
+@@ -60,8 +60,7 @@ static void mgag200_kick_out_firmware_fb(struct pci_dev *pdev)
+ }
+ 
+ 
+-static int __devinit
+-mga_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int mga_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
+ {
+ 	mgag200_kick_out_firmware_fb(pdev);
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
+index 01c403ddb99b..180a45e3b525 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
+@@ -189,8 +189,8 @@ nouveau_accel_init(struct nouveau_drm *drm)
+ 	nouveau_bo_move_init(drm);
+ }
+ 
+-static int __devinit
+-nouveau_drm_probe(struct pci_dev *pdev, const struct pci_device_id *pent)
++static int nouveau_drm_probe(struct pci_dev *pdev,
++			     const struct pci_device_id *pent)
+ {
+ 	struct nouveau_device *device;
+ 	struct apertures_struct *aper;
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index ff7593498a74..dff6cf77f953 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -306,8 +306,8 @@ static int radeon_kick_out_firmware_fb(struct pci_dev *pdev)
+ 	return 0;
+ }
+ 
+-static int __devinit
+-radeon_pci_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
++static int radeon_pci_probe(struct pci_dev *pdev,
++			    const struct pci_device_id *ent)
+ {
+ 	int ret;
+ 
+diff --git a/drivers/gpu/drm/shmobile/shmob_drm_drv.c b/drivers/gpu/drm/shmobile/shmob_drm_drv.c
+index 1c350fc4e449..d1d5306ebf24 100644
+--- a/drivers/gpu/drm/shmobile/shmob_drm_drv.c
++++ b/drivers/gpu/drm/shmobile/shmob_drm_drv.c
+@@ -33,7 +33,7 @@
+  * Hardware initialization
+  */
+ 
+-static int __devinit shmob_drm_init_interface(struct shmob_drm_device *sdev)
++static int shmob_drm_init_interface(struct shmob_drm_device *sdev)
+ {
+ 	static const u32 ldmt1r[] = {
+ 		[SHMOB_DRM_IFACE_RGB8] = LDMT1R_MIFTYP_RGB8,
+@@ -67,7 +67,7 @@ static int __devinit shmob_drm_init_interface(struct shmob_drm_device *sdev)
+ 	return 0;
+ }
+ 
+-static int __devinit shmob_drm_setup_clocks(struct shmob_drm_device *sdev,
++static int shmob_drm_setup_clocks(struct shmob_drm_device *sdev,
+ 					    enum shmob_drm_clk_source clksrc)
+ {
+ 	struct clk *clk;
+@@ -330,12 +330,12 @@ static const struct dev_pm_ops shmob_drm_pm_ops = {
+  * Platform driver
+  */
+ 
+-static int __devinit shmob_drm_probe(struct platform_device *pdev)
++static int shmob_drm_probe(struct platform_device *pdev)
+ {
+ 	return drm_platform_init(&shmob_drm_driver, pdev);
+ }
+ 
+-static int __devexit shmob_drm_remove(struct platform_device *pdev)
++static int shmob_drm_remove(struct platform_device *pdev)
+ {
+ 	drm_platform_exit(&shmob_drm_driver, pdev);
+ 
+@@ -344,7 +344,7 @@ static int __devexit shmob_drm_remove(struct platform_device *pdev)
+ 
+ static struct platform_driver shmob_drm_platform_driver = {
+ 	.probe		= shmob_drm_probe,
+-	.remove		= __devexit_p(shmob_drm_remove),
++	.remove		= shmob_drm_remove,
+ 	.driver		= {
+ 		.owner	= THIS_MODULE,
+ 		.name	= "shmob-drm",
+-- 
+2.17.0
+

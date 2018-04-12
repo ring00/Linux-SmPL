@@ -1,0 +1,2520 @@
+From 3f07c0144132e4f59d88055ac8ff3e691a5fa2b8 Mon Sep 17 00:00:00 2001
+From: Ingo Molnar <mingo@kernel.org>
+Date: Wed, 8 Feb 2017 18:51:30 +0100
+Subject: [PATCH] sched/headers: Prepare for new header dependencies before
+ moving code to <linux/sched/signal.h>
+
+We are going to split <linux/sched/signal.h> out of <linux/sched.h>, which
+will have to be picked up from other headers and a couple of .c files.
+
+Create a trivial placeholder <linux/sched/signal.h> file that just
+maps to <linux/sched.h> to make this patch obviously correct and
+bisectable.
+
+Include the new header in the files that are going to need it.
+
+Acked-by: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Mike Galbraith <efault@gmx.de>
+Cc: Peter Zijlstra <peterz@infradead.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: linux-kernel@vger.kernel.org
+Signed-off-by: Ingo Molnar <mingo@kernel.org>
+---
+ arch/alpha/kernel/osf_sys.c                                 | 2 +-
+ arch/alpha/kernel/signal.c                                  | 2 +-
+ arch/alpha/kernel/traps.c                                   | 2 +-
+ arch/alpha/mm/fault.c                                       | 2 +-
+ arch/arc/kernel/traps.c                                     | 2 +-
+ arch/arc/mm/fault.c                                         | 2 +-
+ arch/arm/kernel/ptrace.c                                    | 2 +-
+ arch/arm/kernel/traps.c                                     | 2 +-
+ arch/arm/mm/alignment.c                                     | 2 +-
+ arch/arm/mm/fault.c                                         | 2 +-
+ arch/arm/mm/init.c                                          | 1 +
+ arch/arm/mm/mmap.c                                          | 2 +-
+ arch/arm/vfp/vfpmodule.c                                    | 2 +-
+ arch/arm64/kernel/fpsimd.c                                  | 2 +-
+ arch/arm64/kernel/ptrace.c                                  | 2 +-
+ arch/arm64/kernel/traps.c                                   | 2 +-
+ arch/arm64/mm/fault.c                                       | 2 +-
+ arch/arm64/mm/mmap.c                                        | 2 +-
+ arch/avr32/kernel/traps.c                                   | 2 +-
+ arch/blackfin/kernel/trace.c                                | 2 +-
+ arch/blackfin/kernel/traps.c                                | 1 +
+ arch/cris/mm/fault.c                                        | 1 +
+ arch/frv/kernel/traps.c                                     | 2 +-
+ arch/h8300/kernel/ptrace_s.c                                | 2 +-
+ arch/hexagon/kernel/traps.c                                 | 2 +-
+ arch/hexagon/mm/vm_fault.c                                  | 1 +
+ arch/ia64/kernel/asm-offsets.c                              | 2 +-
+ arch/ia64/kernel/brl_emu.c                                  | 2 +-
+ arch/ia64/kernel/mca.c                                      | 2 +-
+ arch/ia64/kernel/traps.c                                    | 2 +-
+ arch/ia64/kernel/unaligned.c                                | 2 +-
+ arch/ia64/mm/fault.c                                        | 2 +-
+ arch/ia64/mm/init.c                                         | 1 +
+ arch/mips/kernel/branch.c                                   | 2 +-
+ arch/mips/kernel/signal_o32.c                               | 1 +
+ arch/mips/mm/mmap.c                                         | 2 +-
+ arch/mips/sgi-ip22/ip22-berr.c                              | 2 +-
+ arch/mips/sgi-ip22/ip22-reset.c                             | 2 +-
+ arch/mn10300/kernel/fpu.c                                   | 2 ++
+ arch/openrisc/mm/fault.c                                    | 2 +-
+ arch/parisc/kernel/sys_parisc.c                             | 1 +
+ arch/parisc/kernel/unaligned.c                              | 2 +-
+ arch/parisc/math-emu/driver.c                               | 3 ++-
+ arch/powerpc/kvm/book3s_64_vio.c                            | 1 +
+ arch/powerpc/mm/mmap.c                                      | 2 +-
+ arch/powerpc/mm/mmu_context_iommu.c                         | 2 +-
+ arch/powerpc/platforms/cell/spufs/fault.c                   | 2 +-
+ arch/powerpc/xmon/xmon.c                                    | 2 +-
+ arch/s390/kernel/nmi.c                                      | 3 +++
+ arch/s390/mm/mmap.c                                         | 1 +
+ arch/score/kernel/traps.c                                   | 2 +-
+ arch/sh/kernel/cpu/sh2a/fpu.c                               | 2 +-
+ arch/sh/kernel/hw_breakpoint.c                              | 1 +
+ arch/sh/kernel/traps.c                                      | 2 ++
+ arch/sh/math-emu/math.c                                     | 2 +-
+ arch/sh/mm/asids-debugfs.c                                  | 2 ++
+ arch/sh/mm/fault.c                                          | 1 +
+ arch/sparc/kernel/sys_sparc_32.c                            | 2 +-
+ arch/sparc/kernel/sys_sparc_64.c                            | 2 +-
+ arch/sparc/kernel/unaligned_32.c                            | 2 +-
+ arch/tile/mm/mmap.c                                         | 2 +-
+ arch/um/drivers/line.c                                      | 3 ++-
+ arch/um/kernel/reboot.c                                     | 2 +-
+ arch/um/kernel/skas/mmu.c                                   | 3 ++-
+ arch/um/kernel/tlb.c                                        | 3 ++-
+ arch/um/kernel/trap.c                                       | 2 +-
+ arch/unicore32/kernel/fpu-ucf64.c                           | 2 +-
+ arch/unicore32/kernel/traps.c                               | 1 +
+ arch/unicore32/mm/fault.c                                   | 2 +-
+ arch/x86/entry/vsyscall/vsyscall_64.c                       | 1 +
+ arch/x86/kernel/cpu/intel_rdt_rdtgroup.c                    | 2 +-
+ arch/x86/kvm/mmu.c                                          | 1 +
+ arch/x86/mm/mmap.c                                          | 2 +-
+ arch/xtensa/kernel/traps.c                                  | 2 +-
+ drivers/android/binder.c                                    | 2 +-
+ drivers/block/drbd/drbd_int.h                               | 2 +-
+ drivers/char/snsc_event.c                                   | 2 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_events.c                     | 2 +-
+ drivers/gpu/drm/drm_lock.c                                  | 2 ++
+ drivers/gpu/drm/ttm/ttm_lock.c                              | 2 +-
+ drivers/infiniband/core/umem.c                              | 2 +-
+ drivers/infiniband/hw/hfi1/user_pages.c                     | 2 +-
+ drivers/infiniband/hw/qib/qib_user_pages.c                  | 1 +
+ drivers/infiniband/hw/usnic/usnic_uiom.c                    | 2 +-
+ drivers/isdn/i4l/isdn_tty.c                                 | 1 +
+ drivers/isdn/mISDN/l1oip_core.c                             | 2 ++
+ drivers/md/md.c                                             | 1 +
+ drivers/md/raid1.c                                          | 3 +++
+ drivers/md/raid5.c                                          | 2 ++
+ drivers/misc/genwqe/card_dev.c                              | 2 +-
+ drivers/misc/mic/cosm/cosm_scif_server.c                    | 2 ++
+ drivers/misc/mic/cosm_client/cosm_scif_client.c             | 2 ++
+ drivers/misc/mic/scif/scif_rma.c                            | 1 +
+ drivers/net/slip/slip.c                                     | 2 +-
+ drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c     | 2 +-
+ drivers/parisc/power.c                                      | 2 +-
+ drivers/ps3/ps3-sys-manager.c                               | 1 +
+ drivers/s390/char/fs3270.c                                  | 1 +
+ drivers/s390/char/keyboard.c                                | 2 +-
+ drivers/scsi/bnx2fc/bnx2fc.h                                | 2 +-
+ drivers/scsi/bnx2i/bnx2i.h                                  | 2 +-
+ drivers/scsi/libiscsi.c                                     | 1 +
+ drivers/staging/android/lowmemorykiller.c                   | 2 +-
+ drivers/staging/lustre/lnet/libcfs/linux/linux-prim.c       | 2 +-
+ drivers/staging/rtl8188eu/include/osdep_service.h           | 2 +-
+ drivers/staging/rtl8712/osdep_service.h                     | 2 +-
+ drivers/staging/rtl8712/rtl8712_cmd.c                       | 1 +
+ .../staging/vc04_services/interface/vchiq_arm/vchiq_arm.c   | 1 +
+ .../staging/vc04_services/interface/vchiq_arm/vchiq_util.h  | 2 +-
+ drivers/target/iscsi/iscsi_target.c                         | 1 +
+ drivers/target/iscsi/iscsi_target_erl0.c                    | 2 ++
+ drivers/target/iscsi/iscsi_target_login.c                   | 1 +
+ drivers/target/iscsi/iscsi_target_nego.c                    | 1 +
+ drivers/tty/pty.c                                           | 2 +-
+ drivers/tty/sysrq.c                                         | 2 +-
+ drivers/tty/tty_io.c                                        | 2 +-
+ drivers/tty/vt/keyboard.c                                   | 2 +-
+ drivers/tty/vt/vt.c                                         | 2 +-
+ drivers/tty/vt/vt_ioctl.c                                   | 2 +-
+ drivers/usb/atm/usbatm.c                                    | 2 +-
+ drivers/usb/core/devio.c                                    | 1 +
+ drivers/usb/gadget/function/f_mass_storage.c                | 1 +
+ drivers/vfio/vfio_iommu_spapr_tce.c                         | 1 +
+ drivers/vfio/vfio_iommu_type1.c                             | 2 +-
+ drivers/w1/w1_family.c                                      | 2 +-
+ drivers/w1/w1_int.c                                         | 1 +
+ fs/attr.c                                                   | 1 +
+ fs/autofs4/waitq.c                                          | 1 +
+ fs/cifs/connect.c                                           | 1 +
+ fs/coda/upcall.c                                            | 2 +-
+ fs/coredump.c                                               | 2 +-
+ fs/exec.c                                                   | 1 +
+ fs/file.c                                                   | 2 +-
+ fs/fs_struct.c                                              | 2 +-
+ fs/jffs2/background.c                                       | 2 +-
+ fs/lockd/svc.c                                              | 2 +-
+ fs/ncpfs/inode.c                                            | 1 +
+ fs/ncpfs/sock.c                                             | 1 +
+ fs/nfs/callback.c                                           | 1 +
+ fs/nfsd/nfssvc.c                                            | 2 +-
+ fs/proc/fd.c                                                | 2 +-
+ fs/select.c                                                 | 4 ++--
+ include/linux/oom.h                                         | 2 +-
+ include/linux/ptrace.h                                      | 1 +
+ include/linux/sched/signal.h                                | 6 ++++++
+ include/linux/signalfd.h                                    | 2 +-
+ include/linux/taskstats_kern.h                              | 2 +-
+ ipc/mqueue.c                                                | 1 +
+ kernel/bpf/syscall.c                                        | 1 +
+ kernel/cpu.c                                                | 2 +-
+ kernel/debug/gdbstub.c                                      | 1 +
+ kernel/debug/kdb/kdb_bt.c                                   | 2 +-
+ kernel/hung_task.c                                          | 2 ++
+ kernel/rcu/update.c                                         | 2 +-
+ kernel/sched/sched.h                                        | 1 +
+ kernel/time/itimer.c                                        | 1 +
+ kernel/time/posix-cpu-timers.c                              | 2 +-
+ kernel/time/tick-sched.c                                    | 2 +-
+ kernel/tracepoint.c                                         | 2 +-
+ kernel/tsacct.c                                             | 2 +-
+ kernel/user_namespace.c                                     | 1 +
+ lib/is_single_threaded.c                                    | 3 +--
+ mm/filemap.c                                                | 1 +
+ mm/kmemleak.c                                               | 2 +-
+ mm/memory-failure.c                                         | 2 +-
+ mm/vmacache.c                                               | 2 +-
+ net/9p/client.c                                             | 2 +-
+ net/atm/common.c                                            | 2 +-
+ net/ax25/af_ax25.c                                          | 2 +-
+ net/caif/caif_socket.c                                      | 2 +-
+ net/core/stream.c                                           | 1 +
+ net/decnet/af_decnet.c                                      | 2 +-
+ net/irda/af_irda.c                                          | 1 +
+ net/netrom/af_netrom.c                                      | 2 +-
+ net/rose/af_rose.c                                          | 2 +-
+ net/sctp/socket.c                                           | 1 +
+ net/sunrpc/svc.c                                            | 2 +-
+ net/unix/af_unix.c                                          | 2 +-
+ net/x25/af_x25.c                                            | 2 +-
+ security/selinux/hooks.c                                    | 2 +-
+ 180 files changed, 204 insertions(+), 121 deletions(-)
+ create mode 100644 include/linux/sched/signal.h
+
+diff --git a/arch/alpha/kernel/osf_sys.c b/arch/alpha/kernel/osf_sys.c
+index 9d27a7d333dc..568ca29f2ad9 100644
+--- a/arch/alpha/kernel/osf_sys.c
++++ b/arch/alpha/kernel/osf_sys.c
+@@ -11,7 +11,7 @@
+  */
+ 
+ #include <linux/errno.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/smp.h>
+diff --git a/arch/alpha/kernel/signal.c b/arch/alpha/kernel/signal.c
+index 17308f925306..b8221f112eee 100644
+--- a/arch/alpha/kernel/signal.c
++++ b/arch/alpha/kernel/signal.c
+@@ -6,7 +6,7 @@
+  *  1997-11-02  Modified for POSIX.1b signals by Richard Henderson
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kernel.h>
+ #include <linux/signal.h>
+ #include <linux/errno.h>
+diff --git a/arch/alpha/kernel/traps.c b/arch/alpha/kernel/traps.c
+index af2994206b4b..6448ab00043d 100644
+--- a/arch/alpha/kernel/traps.c
++++ b/arch/alpha/kernel/traps.c
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/jiffies.h>
+ #include <linux/mm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/delay.h>
+ #include <linux/extable.h>
+diff --git a/arch/alpha/mm/fault.c b/arch/alpha/mm/fault.c
+index 47948b4dd157..c25e8827e7cd 100644
+--- a/arch/alpha/mm/fault.c
++++ b/arch/alpha/mm/fault.c
+@@ -4,7 +4,7 @@
+  *  Copyright (C) 1995  Linus Torvalds
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <asm/io.h>
+diff --git a/arch/arc/kernel/traps.c b/arch/arc/kernel/traps.c
+index c927aa84e652..ff83e78d0cfb 100644
+--- a/arch/arc/kernel/traps.c
++++ b/arch/arc/kernel/traps.c
+@@ -13,7 +13,7 @@
+  * Rahul Trivedi: Codito Technologies 2004
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kdebug.h>
+ #include <linux/uaccess.h>
+ #include <linux/ptrace.h>
+diff --git a/arch/arc/mm/fault.c b/arch/arc/mm/fault.c
+index e94e5aa33985..162c97528872 100644
+--- a/arch/arc/mm/fault.c
++++ b/arch/arc/mm/fault.c
+@@ -9,7 +9,7 @@
+ 
+ #include <linux/signal.h>
+ #include <linux/interrupt.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <linux/ptrace.h>
+ #include <linux/uaccess.h>
+diff --git a/arch/arm/kernel/ptrace.c b/arch/arm/kernel/ptrace.c
+index ae738a6319f6..46f7bab81c40 100644
+--- a/arch/arm/kernel/ptrace.c
++++ b/arch/arm/kernel/ptrace.c
+@@ -10,7 +10,7 @@
+  * published by the Free Software Foundation.
+  */
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ #include <linux/elf.h>
+ #include <linux/smp.h>
+diff --git a/arch/arm/kernel/traps.c b/arch/arm/kernel/traps.c
+index 9688ec0c6ef4..dc5f1a22b3c9 100644
+--- a/arch/arm/kernel/traps.c
++++ b/arch/arm/kernel/traps.c
+@@ -24,7 +24,7 @@
+ #include <linux/bug.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/irq.h>
+ 
+ #include <linux/atomic.h>
+diff --git a/arch/arm/mm/alignment.c b/arch/arm/mm/alignment.c
+index 7d5f4c736a16..d7fe2de9cc9e 100644
+--- a/arch/arm/mm/alignment.c
++++ b/arch/arm/mm/alignment.c
+@@ -19,7 +19,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ 
+ #include <asm/cp15.h>
+diff --git a/arch/arm/mm/fault.c b/arch/arm/mm/fault.c
+index c2b5b9892fd1..520c7778d330 100644
+--- a/arch/arm/mm/fault.c
++++ b/arch/arm/mm/fault.c
+@@ -16,7 +16,7 @@
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <linux/page-flags.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/highmem.h>
+ #include <linux/perf_event.h>
+ 
+diff --git a/arch/arm/mm/init.c b/arch/arm/mm/init.c
+index bf4d3bc41a7a..2a9040dcf47e 100644
+--- a/arch/arm/mm/init.c
++++ b/arch/arm/mm/init.c
+@@ -13,6 +13,7 @@
+ #include <linux/init.h>
+ #include <linux/bootmem.h>
+ #include <linux/mman.h>
++#include <linux/sched/signal.h>
+ #include <linux/export.h>
+ #include <linux/nodemask.h>
+ #include <linux/initrd.h>
+diff --git a/arch/arm/mm/mmap.c b/arch/arm/mm/mmap.c
+index 66353caa35b9..d448f9cd7715 100644
+--- a/arch/arm/mm/mmap.c
++++ b/arch/arm/mm/mmap.c
+@@ -5,7 +5,7 @@
+ #include <linux/mm.h>
+ #include <linux/mman.h>
+ #include <linux/shm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/io.h>
+ #include <linux/personality.h>
+ #include <linux/random.h>
+diff --git a/arch/arm/vfp/vfpmodule.c b/arch/arm/vfp/vfpmodule.c
+index 569d5a650a4a..a71a48e71fff 100644
+--- a/arch/arm/vfp/vfpmodule.c
++++ b/arch/arm/vfp/vfpmodule.c
+@@ -15,7 +15,7 @@
+ #include <linux/kernel.h>
+ #include <linux/notifier.h>
+ #include <linux/signal.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/smp.h>
+ #include <linux/init.h>
+ #include <linux/uaccess.h>
+diff --git a/arch/arm64/kernel/fpsimd.c b/arch/arm64/kernel/fpsimd.c
+index b883f1f75216..06da8ea16bbe 100644
+--- a/arch/arm64/kernel/fpsimd.c
++++ b/arch/arm64/kernel/fpsimd.c
+@@ -21,7 +21,7 @@
+ #include <linux/cpu_pm.h>
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/hardirq.h>
+ 
+diff --git a/arch/arm64/kernel/ptrace.c b/arch/arm64/kernel/ptrace.c
+index a22161ccf447..64fc32ea3422 100644
+--- a/arch/arm64/kernel/ptrace.c
++++ b/arch/arm64/kernel/ptrace.c
+@@ -22,7 +22,7 @@
+ #include <linux/audit.h>
+ #include <linux/compat.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ #include <linux/smp.h>
+ #include <linux/ptrace.h>
+diff --git a/arch/arm64/kernel/traps.c b/arch/arm64/kernel/traps.c
+index 7d47c2cdfd93..5b8779a849a2 100644
+--- a/arch/arm64/kernel/traps.c
++++ b/arch/arm64/kernel/traps.c
+@@ -29,7 +29,7 @@
+ #include <linux/kexec.h>
+ #include <linux/delay.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/syscalls.h>
+ 
+ #include <asm/atomic.h>
+diff --git a/arch/arm64/mm/fault.c b/arch/arm64/mm/fault.c
+index 81283851c9af..30dd60ab8a65 100644
+--- a/arch/arm64/mm/fault.c
++++ b/arch/arm64/mm/fault.c
+@@ -26,7 +26,7 @@
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <linux/page-flags.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/highmem.h>
+ #include <linux/perf_event.h>
+ #include <linux/preempt.h>
+diff --git a/arch/arm64/mm/mmap.c b/arch/arm64/mm/mmap.c
+index 01c171723bb3..1e0a2650c88b 100644
+--- a/arch/arm64/mm/mmap.c
++++ b/arch/arm64/mm/mmap.c
+@@ -22,7 +22,7 @@
+ #include <linux/mman.h>
+ #include <linux/export.h>
+ #include <linux/shm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/io.h>
+ #include <linux/personality.h>
+ #include <linux/random.h>
+diff --git a/arch/avr32/kernel/traps.c b/arch/avr32/kernel/traps.c
+index eb4a3fcfbaff..50b541325025 100644
+--- a/arch/avr32/kernel/traps.c
++++ b/arch/avr32/kernel/traps.c
+@@ -14,7 +14,7 @@
+ #include <linux/extable.h>
+ #include <linux/module.h>	/* print_modules */
+ #include <linux/notifier.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ 
+ #include <asm/addrspace.h>
+diff --git a/arch/blackfin/kernel/trace.c b/arch/blackfin/kernel/trace.c
+index 719dd796c12c..01e546ad2f7a 100644
+--- a/arch/blackfin/kernel/trace.c
++++ b/arch/blackfin/kernel/trace.c
+@@ -11,7 +11,7 @@
+ #include <linux/thread_info.h>
+ #include <linux/mm.h>
+ #include <linux/oom.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
+ #include <linux/kallsyms.h>
+diff --git a/arch/blackfin/kernel/traps.c b/arch/blackfin/kernel/traps.c
+index 1ed85ddadc0d..32676d7721b1 100644
+--- a/arch/blackfin/kernel/traps.c
++++ b/arch/blackfin/kernel/traps.c
+@@ -9,6 +9,7 @@
+ #include <linux/bug.h>
+ #include <linux/uaccess.h>
+ #include <linux/module.h>
++#include <linux/sched/signal.h>
+ #include <asm/traps.h>
+ #include <asm/cplb.h>
+ #include <asm/blackfin.h>
+diff --git a/arch/cris/mm/fault.c b/arch/cris/mm/fault.c
+index 94183d3639ef..1fca464f1b9e 100644
+--- a/arch/cris/mm/fault.c
++++ b/arch/cris/mm/fault.c
+@@ -8,6 +8,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/extable.h>
+ #include <linux/wait.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <arch/system.h>
+ 
+diff --git a/arch/frv/kernel/traps.c b/arch/frv/kernel/traps.c
+index 31221fb4348e..43c134d6081c 100644
+--- a/arch/frv/kernel/traps.c
++++ b/arch/frv/kernel/traps.c
+@@ -9,7 +9,7 @@
+  * 2 of the License, or (at your option) any later version.
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+diff --git a/arch/h8300/kernel/ptrace_s.c b/arch/h8300/kernel/ptrace_s.c
+index ef5a9c13e76d..c0af930052c0 100644
+--- a/arch/h8300/kernel/ptrace_s.c
++++ b/arch/h8300/kernel/ptrace_s.c
+@@ -10,7 +10,7 @@
+  */
+ 
+ #include <linux/linkage.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <asm/ptrace.h>
+ 
+diff --git a/arch/hexagon/kernel/traps.c b/arch/hexagon/kernel/traps.c
+index 110dab152f82..4496bcf605ef 100644
+--- a/arch/hexagon/kernel/traps.c
++++ b/arch/hexagon/kernel/traps.c
+@@ -19,7 +19,7 @@
+  */
+ 
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/module.h>
+ #include <linux/kallsyms.h>
+ #include <linux/kdebug.h>
+diff --git a/arch/hexagon/mm/vm_fault.c b/arch/hexagon/mm/vm_fault.c
+index 489875fd2be4..3eec33c5cfd7 100644
+--- a/arch/hexagon/mm/vm_fault.c
++++ b/arch/hexagon/mm/vm_fault.c
+@@ -28,6 +28,7 @@
+ #include <asm/traps.h>
+ #include <linux/uaccess.h>
+ #include <linux/mm.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/extable.h>
+ #include <linux/hardirq.h>
+diff --git a/arch/ia64/kernel/asm-offsets.c b/arch/ia64/kernel/asm-offsets.c
+index 60ef83e6db71..8786c8b4f187 100644
+--- a/arch/ia64/kernel/asm-offsets.c
++++ b/arch/ia64/kernel/asm-offsets.c
+@@ -6,7 +6,7 @@
+ 
+ #define ASM_OFFSETS_C 1
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/pid.h>
+ #include <linux/clocksource.h>
+ #include <linux/kbuild.h>
+diff --git a/arch/ia64/kernel/brl_emu.c b/arch/ia64/kernel/brl_emu.c
+index 8682df6263d6..987b11be0021 100644
+--- a/arch/ia64/kernel/brl_emu.c
++++ b/arch/ia64/kernel/brl_emu.c
+@@ -8,7 +8,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <asm/processor.h>
+ 
+diff --git a/arch/ia64/kernel/mca.c b/arch/ia64/kernel/mca.c
+index 9509cc73b9c6..5ac51069e453 100644
+--- a/arch/ia64/kernel/mca.c
++++ b/arch/ia64/kernel/mca.c
+@@ -72,7 +72,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/types.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/interrupt.h>
+ #include <linux/irq.h>
+ #include <linux/bootmem.h>
+diff --git a/arch/ia64/kernel/traps.c b/arch/ia64/kernel/traps.c
+index 8981ce98afb3..48ba46b025e1 100644
+--- a/arch/ia64/kernel/traps.c
++++ b/arch/ia64/kernel/traps.c
+@@ -9,7 +9,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/init.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/vt_kern.h>		/* For unblank_screen() */
+ #include <linux/export.h>
+diff --git a/arch/ia64/kernel/unaligned.c b/arch/ia64/kernel/unaligned.c
+index 99348d7f2255..a13680ca1e61 100644
+--- a/arch/ia64/kernel/unaligned.c
++++ b/arch/ia64/kernel/unaligned.c
+@@ -15,7 +15,7 @@
+  */
+ #include <linux/jiffies.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/extable.h>
+ #include <linux/ratelimit.h>
+diff --git a/arch/ia64/mm/fault.c b/arch/ia64/mm/fault.c
+index 7f2feb21753c..15f09cfff335 100644
+--- a/arch/ia64/mm/fault.c
++++ b/arch/ia64/mm/fault.c
+@@ -4,7 +4,7 @@
+  * Copyright (C) 1998-2002 Hewlett-Packard Co
+  *	David Mosberger-Tang <davidm@hpl.hp.com>
+  */
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/extable.h>
+diff --git a/arch/ia64/mm/init.c b/arch/ia64/mm/init.c
+index 06cdaef54b2e..8f3efa682ee8 100644
+--- a/arch/ia64/mm/init.c
++++ b/arch/ia64/mm/init.c
+@@ -12,6 +12,7 @@
+ #include <linux/elf.h>
+ #include <linux/memblock.h>
+ #include <linux/mm.h>
++#include <linux/sched/signal.h>
+ #include <linux/mmzone.h>
+ #include <linux/module.h>
+ #include <linux/personality.h>
+diff --git a/arch/mips/kernel/branch.c b/arch/mips/kernel/branch.c
+index ae037a304ee4..b11facd11c9d 100644
+--- a/arch/mips/kernel/branch.c
++++ b/arch/mips/kernel/branch.c
+@@ -7,7 +7,7 @@
+  * Copyright (C) 2001 MIPS Technologies, Inc.
+  */
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/export.h>
+ #include <asm/branch.h>
+diff --git a/arch/mips/kernel/signal_o32.c b/arch/mips/kernel/signal_o32.c
+index 5e169fc5ca5c..2b3572fb5f1b 100644
+--- a/arch/mips/kernel/signal_o32.c
++++ b/arch/mips/kernel/signal_o32.c
+@@ -11,6 +11,7 @@
+ #include <linux/compiler.h>
+ #include <linux/errno.h>
+ #include <linux/signal.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ 
+ #include <asm/abi.h>
+diff --git a/arch/mips/mm/mmap.c b/arch/mips/mm/mmap.c
+index d6d92c02308d..374d71e61ef6 100644
+--- a/arch/mips/mm/mmap.c
++++ b/arch/mips/mm/mmap.c
+@@ -13,7 +13,7 @@
+ #include <linux/export.h>
+ #include <linux/personality.h>
+ #include <linux/random.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ unsigned long shm_align_mask = PAGE_SIZE - 1;	/* Sane caches */
+ EXPORT_SYMBOL(shm_align_mask);
+diff --git a/arch/mips/sgi-ip22/ip22-berr.c b/arch/mips/sgi-ip22/ip22-berr.c
+index 3f6ccd53c15d..ff8e1935c873 100644
+--- a/arch/mips/sgi-ip22/ip22-berr.c
++++ b/arch/mips/sgi-ip22/ip22-berr.c
+@@ -6,7 +6,7 @@
+ 
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ #include <asm/addrspace.h>
+ #include <asm/traps.h>
+diff --git a/arch/mips/sgi-ip22/ip22-reset.c b/arch/mips/sgi-ip22/ip22-reset.c
+index a36f6b87548a..03a39ac5ead9 100644
+--- a/arch/mips/sgi-ip22/ip22-reset.c
++++ b/arch/mips/sgi-ip22/ip22-reset.c
+@@ -10,7 +10,7 @@
+ #include <linux/rtc/ds1286.h>
+ #include <linux/interrupt.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/notifier.h>
+ #include <linux/pm.h>
+ #include <linux/timer.h>
+diff --git a/arch/mn10300/kernel/fpu.c b/arch/mn10300/kernel/fpu.c
+index 2578b7ae7dd5..50ce7b447fed 100644
+--- a/arch/mn10300/kernel/fpu.c
++++ b/arch/mn10300/kernel/fpu.c
+@@ -9,6 +9,8 @@
+  * 2 of the Licence, or (at your option) any later version.
+  */
+ #include <linux/uaccess.h>
++#include <linux/sched/signal.h>
++
+ #include <asm/fpu.h>
+ #include <asm/elf.h>
+ #include <asm/exceptions.h>
+diff --git a/arch/openrisc/mm/fault.c b/arch/openrisc/mm/fault.c
+index 53592a639744..e310ab499385 100644
+--- a/arch/openrisc/mm/fault.c
++++ b/arch/openrisc/mm/fault.c
+@@ -18,7 +18,7 @@
+ #include <linux/mm.h>
+ #include <linux/interrupt.h>
+ #include <linux/extable.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ #include <linux/uaccess.h>
+ #include <asm/siginfo.h>
+diff --git a/arch/parisc/kernel/sys_parisc.c b/arch/parisc/kernel/sys_parisc.c
+index bf3294171230..ce07cd3f2507 100644
+--- a/arch/parisc/kernel/sys_parisc.c
++++ b/arch/parisc/kernel/sys_parisc.c
+@@ -30,6 +30,7 @@
+ #include <linux/linkage.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
++#include <linux/sched/signal.h>
+ #include <linux/shm.h>
+ #include <linux/syscalls.h>
+ #include <linux/utsname.h>
+diff --git a/arch/parisc/kernel/unaligned.c b/arch/parisc/kernel/unaligned.c
+index 0a21067ac0a3..a08ab481e556 100644
+--- a/arch/parisc/kernel/unaligned.c
++++ b/arch/parisc/kernel/unaligned.c
+@@ -23,7 +23,7 @@
+ #include <linux/jiffies.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/ratelimit.h>
+ #include <linux/uaccess.h>
+diff --git a/arch/parisc/math-emu/driver.c b/arch/parisc/math-emu/driver.c
+index 09ef4136c693..2fb59d2e2b29 100644
+--- a/arch/parisc/math-emu/driver.c
++++ b/arch/parisc/math-emu/driver.c
+@@ -27,7 +27,8 @@
+  *  Copyright (C) 2001	      Hewlett-Packard <bame@debian.org>
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
++
+ #include "float.h"
+ #include "math-emu.h"
+ 
+diff --git a/arch/powerpc/kvm/book3s_64_vio.c b/arch/powerpc/kvm/book3s_64_vio.c
+index ab9d14c0e460..3e26cd4979f9 100644
+--- a/arch/powerpc/kvm/book3s_64_vio.c
++++ b/arch/powerpc/kvm/book3s_64_vio.c
+@@ -24,6 +24,7 @@
+ #include <linux/highmem.h>
+ #include <linux/gfp.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/hugetlb.h>
+ #include <linux/list.h>
+ #include <linux/anon_inodes.h>
+diff --git a/arch/powerpc/mm/mmap.c b/arch/powerpc/mm/mmap.c
+index 2f1e44362198..8013861aeaa7 100644
+--- a/arch/powerpc/mm/mmap.c
++++ b/arch/powerpc/mm/mmap.c
+@@ -25,7 +25,7 @@
+ #include <linux/personality.h>
+ #include <linux/mm.h>
+ #include <linux/random.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/elf-randomize.h>
+ #include <linux/security.h>
+ #include <linux/mman.h>
+diff --git a/arch/powerpc/mm/mmu_context_iommu.c b/arch/powerpc/mm/mmu_context_iommu.c
+index 7de7124ac91b..497130c5c742 100644
+--- a/arch/powerpc/mm/mmu_context_iommu.c
++++ b/arch/powerpc/mm/mmu_context_iommu.c
+@@ -10,7 +10,7 @@
+  *
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/rculist.h>
+ #include <linux/vmalloc.h>
+diff --git a/arch/powerpc/platforms/cell/spufs/fault.c b/arch/powerpc/platforms/cell/spufs/fault.c
+index e29e4d5afa2d..870c0a82d560 100644
+--- a/arch/powerpc/platforms/cell/spufs/fault.c
++++ b/arch/powerpc/platforms/cell/spufs/fault.c
+@@ -19,7 +19,7 @@
+  * along with this program; if not, write to the Free Software
+  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
+  */
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ 
+ #include <asm/spu.h>
+diff --git a/arch/powerpc/xmon/xmon.c b/arch/powerpc/xmon/xmon.c
+index 26fa03fc9f3c..16321ad9e70c 100644
+--- a/arch/powerpc/xmon/xmon.c
++++ b/arch/powerpc/xmon/xmon.c
+@@ -13,7 +13,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/smp.h>
+ #include <linux/mm.h>
+ #include <linux/reboot.h>
+diff --git a/arch/s390/kernel/nmi.c b/arch/s390/kernel/nmi.c
+index 80c093e0c6f1..9bf8327154ee 100644
+--- a/arch/s390/kernel/nmi.c
++++ b/arch/s390/kernel/nmi.c
+@@ -13,6 +13,9 @@
+ #include <linux/errno.h>
+ #include <linux/hardirq.h>
+ #include <linux/time.h>
++#include <linux/module.h>
++#include <linux/sched/signal.h>
++
+ #include <linux/export.h>
+ #include <asm/lowcore.h>
+ #include <asm/smp.h>
+diff --git a/arch/s390/mm/mmap.c b/arch/s390/mm/mmap.c
+index 7ae1282d5be9..5ea09403bb87 100644
+--- a/arch/s390/mm/mmap.c
++++ b/arch/s390/mm/mmap.c
+@@ -26,6 +26,7 @@
+ #include <linux/personality.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
++#include <linux/sched/signal.h>
+ #include <linux/random.h>
+ #include <linux/compat.h>
+ #include <linux/security.h>
+diff --git a/arch/score/kernel/traps.c b/arch/score/kernel/traps.c
+index 569ac02f68df..fa624f30f783 100644
+--- a/arch/score/kernel/traps.c
++++ b/arch/score/kernel/traps.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include <linux/extable.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ #include <asm/cacheflush.h>
+ #include <asm/irq.h>
+diff --git a/arch/sh/kernel/cpu/sh2a/fpu.c b/arch/sh/kernel/cpu/sh2a/fpu.c
+index 98bbaa447c93..352f894bece1 100644
+--- a/arch/sh/kernel/cpu/sh2a/fpu.c
++++ b/arch/sh/kernel/cpu/sh2a/fpu.c
+@@ -9,7 +9,7 @@
+  *
+  * FIXME! These routines can be optimized in big endian case.
+  */
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <asm/processor.h>
+ #include <asm/io.h>
+diff --git a/arch/sh/kernel/hw_breakpoint.c b/arch/sh/kernel/hw_breakpoint.c
+index 2197fc584186..afe965712a69 100644
+--- a/arch/sh/kernel/hw_breakpoint.c
++++ b/arch/sh/kernel/hw_breakpoint.c
+@@ -11,6 +11,7 @@
+  */
+ #include <linux/init.h>
+ #include <linux/perf_event.h>
++#include <linux/sched/signal.h>
+ #include <linux/hw_breakpoint.h>
+ #include <linux/percpu.h>
+ #include <linux/kallsyms.h>
+diff --git a/arch/sh/kernel/traps.c b/arch/sh/kernel/traps.c
+index 9513fa7840aa..3036dee854d1 100644
+--- a/arch/sh/kernel/traps.c
++++ b/arch/sh/kernel/traps.c
+@@ -8,6 +8,8 @@
+ #include <linux/hardirq.h>
+ #include <linux/kernel.h>
+ #include <linux/kexec.h>
++#include <linux/sched/signal.h>
++
+ #include <linux/extable.h>
+ #include <linux/module.h>	/* print_modules */
+ #include <asm/unwinder.h>
+diff --git a/arch/sh/math-emu/math.c b/arch/sh/math-emu/math.c
+index 5078cb809750..c86f4360c6ce 100644
+--- a/arch/sh/math-emu/math.c
++++ b/arch/sh/math-emu/math.c
+@@ -10,7 +10,7 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/types.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/perf_event.h>
+ 
+diff --git a/arch/sh/mm/asids-debugfs.c b/arch/sh/mm/asids-debugfs.c
+index bf95fdaedd0c..110bd35165bf 100644
+--- a/arch/sh/mm/asids-debugfs.c
++++ b/arch/sh/mm/asids-debugfs.c
+@@ -20,6 +20,8 @@
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
+ #include <linux/spinlock.h>
++#include <linux/sched/signal.h>
++
+ #include <asm/processor.h>
+ #include <asm/mmu_context.h>
+ 
+diff --git a/arch/sh/mm/fault.c b/arch/sh/mm/fault.c
+index 9bf876780cef..6fd1bf7481c7 100644
+--- a/arch/sh/mm/fault.c
++++ b/arch/sh/mm/fault.c
+@@ -13,6 +13,7 @@
+  */
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
++#include <linux/sched/signal.h>
+ #include <linux/hardirq.h>
+ #include <linux/kprobes.h>
+ #include <linux/perf_event.h>
+diff --git a/arch/sparc/kernel/sys_sparc_32.c b/arch/sparc/kernel/sys_sparc_32.c
+index fb7b185ee941..ae49639a484e 100644
+--- a/arch/sparc/kernel/sys_sparc_32.c
++++ b/arch/sparc/kernel/sys_sparc_32.c
+@@ -7,7 +7,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/types.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ #include <linux/fs.h>
+ #include <linux/file.h>
+diff --git a/arch/sparc/kernel/sys_sparc_64.c b/arch/sparc/kernel/sys_sparc_64.c
+index 884c70331345..54d3999d8119 100644
+--- a/arch/sparc/kernel/sys_sparc_64.c
++++ b/arch/sparc/kernel/sys_sparc_64.c
+@@ -7,7 +7,7 @@
+ 
+ #include <linux/errno.h>
+ #include <linux/types.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/fs.h>
+ #include <linux/file.h>
+ #include <linux/mm.h>
+diff --git a/arch/sparc/kernel/unaligned_32.c b/arch/sparc/kernel/unaligned_32.c
+index d20d4e3fd129..8367dce5f41b 100644
+--- a/arch/sparc/kernel/unaligned_32.c
++++ b/arch/sparc/kernel/unaligned_32.c
+@@ -8,7 +8,7 @@
+ 
+ 
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ #include <asm/ptrace.h>
+ #include <asm/processor.h>
+diff --git a/arch/tile/mm/mmap.c b/arch/tile/mm/mmap.c
+index ef61c597898b..377e312dc27e 100644
+--- a/arch/tile/mm/mmap.c
++++ b/arch/tile/mm/mmap.c
+@@ -17,7 +17,7 @@
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/limits.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mman.h>
+ #include <linux/compat.h>
+ 
+diff --git a/arch/um/drivers/line.c b/arch/um/drivers/line.c
+index 62087028a9ce..366e57f5e8d6 100644
+--- a/arch/um/drivers/line.c
++++ b/arch/um/drivers/line.c
+@@ -5,8 +5,9 @@
+ 
+ #include <linux/irqreturn.h>
+ #include <linux/kd.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
++
+ #include "chan.h"
+ #include <irq_kern.h>
+ #include <irq_user.h>
+diff --git a/arch/um/kernel/reboot.c b/arch/um/kernel/reboot.c
+index b60a9f8cda75..79218106a033 100644
+--- a/arch/um/kernel/reboot.c
++++ b/arch/um/kernel/reboot.c
+@@ -3,7 +3,7 @@
+  * Licensed under the GPL
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+ #include <linux/oom.h>
+diff --git a/arch/um/kernel/skas/mmu.c b/arch/um/kernel/skas/mmu.c
+index 3943e9d7d13d..7a1f2a936fd1 100644
+--- a/arch/um/kernel/skas/mmu.c
++++ b/arch/um/kernel/skas/mmu.c
+@@ -5,8 +5,9 @@
+  */
+ 
+ #include <linux/mm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
++
+ #include <asm/pgalloc.h>
+ #include <asm/pgtable.h>
+ #include <asm/sections.h>
+diff --git a/arch/um/kernel/tlb.c b/arch/um/kernel/tlb.c
+index 3777b82759bd..37508b190106 100644
+--- a/arch/um/kernel/tlb.c
++++ b/arch/um/kernel/tlb.c
+@@ -5,7 +5,8 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
++
+ #include <asm/pgtable.h>
+ #include <asm/tlbflush.h>
+ #include <as-layout.h>
+diff --git a/arch/um/kernel/trap.c b/arch/um/kernel/trap.c
+index ad8f206ab5e8..9711ae4aaa6a 100644
+--- a/arch/um/kernel/trap.c
++++ b/arch/um/kernel/trap.c
+@@ -4,7 +4,7 @@
+  */
+ 
+ #include <linux/mm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/hardirq.h>
+ #include <linux/module.h>
+ #include <linux/uaccess.h>
+diff --git a/arch/unicore32/kernel/fpu-ucf64.c b/arch/unicore32/kernel/fpu-ucf64.c
+index a53343a90ca2..12c8c9527b8e 100644
+--- a/arch/unicore32/kernel/fpu-ucf64.c
++++ b/arch/unicore32/kernel/fpu-ucf64.c
+@@ -13,7 +13,7 @@
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/signal.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/init.h>
+ 
+ #include <asm/fpu-ucf64.h>
+diff --git a/arch/unicore32/kernel/traps.c b/arch/unicore32/kernel/traps.c
+index c54e32410ead..7f5e06f9a202 100644
+--- a/arch/unicore32/kernel/traps.c
++++ b/arch/unicore32/kernel/traps.c
+@@ -14,6 +14,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/signal.h>
++#include <linux/sched/signal.h>
+ #include <linux/spinlock.h>
+ #include <linux/personality.h>
+ #include <linux/kallsyms.h>
+diff --git a/arch/unicore32/mm/fault.c b/arch/unicore32/mm/fault.c
+index b656d216a8a8..bbefcc46a45e 100644
+--- a/arch/unicore32/mm/fault.c
++++ b/arch/unicore32/mm/fault.c
+@@ -17,7 +17,7 @@
+ #include <linux/kprobes.h>
+ #include <linux/uaccess.h>
+ #include <linux/page-flags.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/io.h>
+ 
+ #include <asm/pgtable.h>
+diff --git a/arch/x86/entry/vsyscall/vsyscall_64.c b/arch/x86/entry/vsyscall/vsyscall_64.c
+index 636c4b341f36..df91fb393a01 100644
+--- a/arch/x86/entry/vsyscall/vsyscall_64.c
++++ b/arch/x86/entry/vsyscall/vsyscall_64.c
+@@ -27,6 +27,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/timer.h>
++#include <linux/sched/signal.h>
+ #include <linux/syscalls.h>
+ #include <linux/ratelimit.h>
+ 
+diff --git a/arch/x86/kernel/cpu/intel_rdt_rdtgroup.c b/arch/x86/kernel/cpu/intel_rdt_rdtgroup.c
+index 8af04afdfcb9..d48af18e7baf 100644
+--- a/arch/x86/kernel/cpu/intel_rdt_rdtgroup.c
++++ b/arch/x86/kernel/cpu/intel_rdt_rdtgroup.c
+@@ -25,7 +25,7 @@
+ #include <linux/sysfs.h>
+ #include <linux/kernfs.h>
+ #include <linux/seq_file.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/cpu.h>
+ #include <linux/task_work.h>
+diff --git a/arch/x86/kvm/mmu.c b/arch/x86/kvm/mmu.c
+index 1cda35277278..ac7810513d0e 100644
+--- a/arch/x86/kvm/mmu.c
++++ b/arch/x86/kvm/mmu.c
+@@ -36,6 +36,7 @@
+ #include <linux/compiler.h>
+ #include <linux/srcu.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/hash.h>
+ #include <linux/kern_levels.h>
+diff --git a/arch/x86/mm/mmap.c b/arch/x86/mm/mmap.c
+index d2dc0438d654..5eabf34008f1 100644
+--- a/arch/x86/mm/mmap.c
++++ b/arch/x86/mm/mmap.c
+@@ -28,7 +28,7 @@
+ #include <linux/mm.h>
+ #include <linux/random.h>
+ #include <linux/limits.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <asm/elf.h>
+ 
+ struct va_alignment __read_mostly va_align = {
+diff --git a/arch/xtensa/kernel/traps.c b/arch/xtensa/kernel/traps.c
+index 282bf721a4d6..84abd66e680d 100644
+--- a/arch/xtensa/kernel/traps.c
++++ b/arch/xtensa/kernel/traps.c
+@@ -24,7 +24,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+ #include <linux/stringify.h>
+diff --git a/drivers/android/binder.c b/drivers/android/binder.c
+index e33e7fbe870b..aae4d8d4be36 100644
+--- a/drivers/android/binder.c
++++ b/drivers/android/binder.c
+@@ -31,7 +31,7 @@
+ #include <linux/poll.h>
+ #include <linux/debugfs.h>
+ #include <linux/rbtree.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/seq_file.h>
+ #include <linux/uaccess.h>
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index 4cb8f21ff4ef..724d1c50fc52 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -30,7 +30,7 @@
+ #include <linux/compiler.h>
+ #include <linux/types.h>
+ #include <linux/list.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/bitops.h>
+ #include <linux/slab.h>
+ #include <linux/ratelimit.h>
+diff --git a/drivers/char/snsc_event.c b/drivers/char/snsc_event.c
+index 59bcefd6ec7c..e452673dff66 100644
+--- a/drivers/char/snsc_event.c
++++ b/drivers/char/snsc_event.c
+@@ -16,7 +16,7 @@
+  */
+ 
+ #include <linux/interrupt.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <asm/byteorder.h>
+ #include <asm/sn/sn_sal.h>
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_events.c b/drivers/gpu/drm/amd/amdkfd/kfd_events.c
+index 6a3470f84998..d1ce83d73a87 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_events.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_events.c
+@@ -23,7 +23,7 @@
+ #include <linux/mm_types.h>
+ #include <linux/slab.h>
+ #include <linux/types.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/mm.h>
+ #include <linux/mman.h>
+diff --git a/drivers/gpu/drm/drm_lock.c b/drivers/gpu/drm/drm_lock.c
+index 32d43f86a8f2..96bb6badb818 100644
+--- a/drivers/gpu/drm/drm_lock.c
++++ b/drivers/gpu/drm/drm_lock.c
+@@ -34,6 +34,8 @@
+  */
+ 
+ #include <linux/export.h>
++#include <linux/sched/signal.h>
++
+ #include <drm/drmP.h>
+ #include "drm_legacy.h"
+ #include "drm_internal.h"
+diff --git a/drivers/gpu/drm/ttm/ttm_lock.c b/drivers/gpu/drm/ttm/ttm_lock.c
+index f154fb1929bd..913f4318cdc0 100644
+--- a/drivers/gpu/drm/ttm/ttm_lock.c
++++ b/drivers/gpu/drm/ttm/ttm_lock.c
+@@ -33,7 +33,7 @@
+ #include <linux/atomic.h>
+ #include <linux/errno.h>
+ #include <linux/wait.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/module.h>
+ 
+ #define TTM_WRITE_LOCK_PENDING    (1 << 0)
+diff --git a/drivers/infiniband/core/umem.c b/drivers/infiniband/core/umem.c
+index d525b1a2986a..27f155d2df8d 100644
+--- a/drivers/infiniband/core/umem.c
++++ b/drivers/infiniband/core/umem.c
+@@ -34,7 +34,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/export.h>
+ #include <linux/hugetlb.h>
+diff --git a/drivers/infiniband/hw/hfi1/user_pages.c b/drivers/infiniband/hw/hfi1/user_pages.c
+index 20f4ddcac3b0..68295a12b771 100644
+--- a/drivers/infiniband/hw/hfi1/user_pages.c
++++ b/drivers/infiniband/hw/hfi1/user_pages.c
+@@ -46,7 +46,7 @@
+  */
+ 
+ #include <linux/mm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/device.h>
+ #include <linux/module.h>
+ 
+diff --git a/drivers/infiniband/hw/qib/qib_user_pages.c b/drivers/infiniband/hw/qib/qib_user_pages.c
+index 75f08624ac05..ce83ba9a12ef 100644
+--- a/drivers/infiniband/hw/qib/qib_user_pages.c
++++ b/drivers/infiniband/hw/qib/qib_user_pages.c
+@@ -32,6 +32,7 @@
+  */
+ 
+ #include <linux/mm.h>
++#include <linux/sched/signal.h>
+ #include <linux/device.h>
+ 
+ #include "qib.h"
+diff --git a/drivers/infiniband/hw/usnic/usnic_uiom.c b/drivers/infiniband/hw/usnic/usnic_uiom.c
+index ba868be5af2e..c49db7c33979 100644
+--- a/drivers/infiniband/hw/usnic/usnic_uiom.c
++++ b/drivers/infiniband/hw/usnic/usnic_uiom.c
+@@ -34,7 +34,7 @@
+ 
+ #include <linux/mm.h>
+ #include <linux/dma-mapping.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/hugetlb.h>
+ #include <linux/iommu.h>
+diff --git a/drivers/isdn/i4l/isdn_tty.c b/drivers/isdn/i4l/isdn_tty.c
+index 63eaa0a9f8a1..1b169559a240 100644
+--- a/drivers/isdn/i4l/isdn_tty.c
++++ b/drivers/isdn/i4l/isdn_tty.c
+@@ -15,6 +15,7 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/mutex.h>
++#include <linux/sched/signal.h>
+ #include "isdn_common.h"
+ #include "isdn_tty.h"
+ #ifdef CONFIG_ISDN_AUDIO
+diff --git a/drivers/isdn/mISDN/l1oip_core.c b/drivers/isdn/mISDN/l1oip_core.c
+index 67c21876c35f..6ceca7db62ad 100644
+--- a/drivers/isdn/mISDN/l1oip_core.c
++++ b/drivers/isdn/mISDN/l1oip_core.c
+@@ -234,6 +234,8 @@
+ #include <linux/workqueue.h>
+ #include <linux/kthread.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
++
+ #include <net/sock.h>
+ #include "core.h"
+ #include "l1oip.h"
+diff --git a/drivers/md/md.c b/drivers/md/md.c
+index 985374f20e2e..548d1b8014f8 100644
+--- a/drivers/md/md.c
++++ b/drivers/md/md.c
+@@ -44,6 +44,7 @@
+ 
+ */
+ 
++#include <linux/sched/signal.h>
+ #include <linux/kthread.h>
+ #include <linux/blkdev.h>
+ #include <linux/badblocks.h>
+diff --git a/drivers/md/raid1.c b/drivers/md/raid1.c
+index 7453d94eeed7..fbc2d7851b49 100644
+--- a/drivers/md/raid1.c
++++ b/drivers/md/raid1.c
+@@ -37,7 +37,10 @@
+ #include <linux/module.h>
+ #include <linux/seq_file.h>
+ #include <linux/ratelimit.h>
++#include <linux/sched/signal.h>
++
+ #include <trace/events/block.h>
++
+ #include "md.h"
+ #include "raid1.h"
+ #include "bitmap.h"
+diff --git a/drivers/md/raid5.c b/drivers/md/raid5.c
+index 2ce23b01dbb2..4fb09b3fcb41 100644
+--- a/drivers/md/raid5.c
++++ b/drivers/md/raid5.c
+@@ -55,6 +55,8 @@
+ #include <linux/ratelimit.h>
+ #include <linux/nodemask.h>
+ #include <linux/flex_array.h>
++#include <linux/sched/signal.h>
++
+ #include <trace/events/block.h>
+ 
+ #include "md.h"
+diff --git a/drivers/misc/genwqe/card_dev.c b/drivers/misc/genwqe/card_dev.c
+index cb290b8ca0c8..dd4617764f14 100644
+--- a/drivers/misc/genwqe/card_dev.c
++++ b/drivers/misc/genwqe/card_dev.c
+@@ -29,7 +29,7 @@
+ #include <linux/pci.h>
+ #include <linux/string.h>
+ #include <linux/fs.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/wait.h>
+ #include <linux/delay.h>
+ #include <linux/atomic.h>
+diff --git a/drivers/misc/mic/cosm/cosm_scif_server.c b/drivers/misc/mic/cosm/cosm_scif_server.c
+index 5696df4326b5..85f7d09cc65f 100644
+--- a/drivers/misc/mic/cosm/cosm_scif_server.c
++++ b/drivers/misc/mic/cosm/cosm_scif_server.c
+@@ -19,6 +19,8 @@
+  *
+  */
+ #include <linux/kthread.h>
++#include <linux/sched/signal.h>
++
+ #include "cosm_main.h"
+ 
+ /*
+diff --git a/drivers/misc/mic/cosm_client/cosm_scif_client.c b/drivers/misc/mic/cosm_client/cosm_scif_client.c
+index 03e98bf1ac15..aa530fcceaa9 100644
+--- a/drivers/misc/mic/cosm_client/cosm_scif_client.c
++++ b/drivers/misc/mic/cosm_client/cosm_scif_client.c
+@@ -22,6 +22,8 @@
+ #include <linux/delay.h>
+ #include <linux/reboot.h>
+ #include <linux/kthread.h>
++#include <linux/sched/signal.h>
++
+ #include "../cosm/cosm_main.h"
+ 
+ #define COSM_SCIF_MAX_RETRIES 10
+diff --git a/drivers/misc/mic/scif/scif_rma.c b/drivers/misc/mic/scif/scif_rma.c
+index d0e9c60f944e..329727e00e97 100644
+--- a/drivers/misc/mic/scif/scif_rma.c
++++ b/drivers/misc/mic/scif/scif_rma.c
+@@ -18,6 +18,7 @@
+ #include <linux/dma_remapping.h>
+ #include <linux/pagemap.h>
+ #include <linux/sched/mm.h>
++#include <linux/sched/signal.h>
+ 
+ #include "scif_main.h"
+ #include "scif_map.h"
+diff --git a/drivers/net/slip/slip.c b/drivers/net/slip/slip.c
+index 08db4d687533..1da31dc47f86 100644
+--- a/drivers/net/slip/slip.c
++++ b/drivers/net/slip/slip.c
+@@ -66,7 +66,7 @@
+ 
+ #include <linux/uaccess.h>
+ #include <linux/bitops.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/string.h>
+ #include <linux/mm.h>
+ #include <linux/interrupt.h>
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+index c5744b45ec8f..65689469c5a1 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmfmac/sdio.c
+@@ -22,7 +22,7 @@
+ #include <linux/pci_ids.h>
+ #include <linux/netdevice.h>
+ #include <linux/interrupt.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mmc/sdio.h>
+ #include <linux/mmc/sdio_ids.h>
+ #include <linux/mmc/sdio_func.h>
+diff --git a/drivers/parisc/power.c b/drivers/parisc/power.c
+index ef31b77404ef..e2a3112f1c98 100644
+--- a/drivers/parisc/power.c
++++ b/drivers/parisc/power.c
+@@ -39,7 +39,7 @@
+ #include <linux/kernel.h>
+ #include <linux/notifier.h>
+ #include <linux/reboot.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kthread.h>
+ #include <linux/pm.h>
+ 
+diff --git a/drivers/ps3/ps3-sys-manager.c b/drivers/ps3/ps3-sys-manager.c
+index f2ab435954f6..73e496a72113 100644
+--- a/drivers/ps3/ps3-sys-manager.c
++++ b/drivers/ps3/ps3-sys-manager.c
+@@ -22,6 +22,7 @@
+ #include <linux/module.h>
+ #include <linux/workqueue.h>
+ #include <linux/reboot.h>
++#include <linux/sched/signal.h>
+ 
+ #include <asm/firmware.h>
+ #include <asm/lv1call.h>
+diff --git a/drivers/s390/char/fs3270.c b/drivers/s390/char/fs3270.c
+index 85eca1cef063..c4518168fd02 100644
+--- a/drivers/s390/char/fs3270.c
++++ b/drivers/s390/char/fs3270.c
+@@ -12,6 +12,7 @@
+ #include <linux/init.h>
+ #include <linux/interrupt.h>
+ #include <linux/compat.h>
++#include <linux/sched/signal.h>
+ #include <linux/module.h>
+ #include <linux/list.h>
+ #include <linux/slab.h>
+diff --git a/drivers/s390/char/keyboard.c b/drivers/s390/char/keyboard.c
+index 82c913318b73..ba0e4f93503d 100644
+--- a/drivers/s390/char/keyboard.c
++++ b/drivers/s390/char/keyboard.c
+@@ -7,7 +7,7 @@
+  */
+ 
+ #include <linux/module.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/sysrq.h>
+ 
+diff --git a/drivers/scsi/bnx2fc/bnx2fc.h b/drivers/scsi/bnx2fc/bnx2fc.h
+index fdd4eb4e41b2..4fc8ed5fe067 100644
+--- a/drivers/scsi/bnx2fc/bnx2fc.h
++++ b/drivers/scsi/bnx2fc/bnx2fc.h
+@@ -39,7 +39,7 @@
+ #include <linux/bitops.h>
+ #include <linux/log2.h>
+ #include <linux/interrupt.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/io.h>
+ 
+ #include <scsi/scsi.h>
+diff --git a/drivers/scsi/bnx2i/bnx2i.h b/drivers/scsi/bnx2i/bnx2i.h
+index ed7f3228e234..89ef1a1678d1 100644
+--- a/drivers/scsi/bnx2i/bnx2i.h
++++ b/drivers/scsi/bnx2i/bnx2i.h
+@@ -25,7 +25,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/in.h>
+ #include <linux/kfifo.h>
+ #include <linux/netdevice.h>
+diff --git a/drivers/scsi/libiscsi.c b/drivers/scsi/libiscsi.c
+index 834d1212b6d5..07c08ce68d70 100644
+--- a/drivers/scsi/libiscsi.c
++++ b/drivers/scsi/libiscsi.c
+@@ -26,6 +26,7 @@
+ #include <linux/delay.h>
+ #include <linux/log2.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/module.h>
+ #include <asm/unaligned.h>
+ #include <net/tcp.h>
+diff --git a/drivers/staging/android/lowmemorykiller.c b/drivers/staging/android/lowmemorykiller.c
+index ec3b66561412..054660049395 100644
+--- a/drivers/staging/android/lowmemorykiller.c
++++ b/drivers/staging/android/lowmemorykiller.c
+@@ -37,7 +37,7 @@
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+ #include <linux/oom.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/swap.h>
+ #include <linux/rcupdate.h>
+ #include <linux/profile.h>
+diff --git a/drivers/staging/lustre/lnet/libcfs/linux/linux-prim.c b/drivers/staging/lustre/lnet/libcfs/linux/linux-prim.c
+index cf902154f0aa..bcf9f3dd0310 100644
+--- a/drivers/staging/lustre/lnet/libcfs/linux/linux-prim.c
++++ b/drivers/staging/lustre/lnet/libcfs/linux/linux-prim.c
+@@ -34,7 +34,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/fs_struct.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ #include "../../../include/linux/libcfs/libcfs.h"
+ 
+diff --git a/drivers/staging/rtl8188eu/include/osdep_service.h b/drivers/staging/rtl8188eu/include/osdep_service.h
+index ee3f5ee06529..9e390648d93e 100644
+--- a/drivers/staging/rtl8188eu/include/osdep_service.h
++++ b/drivers/staging/rtl8188eu/include/osdep_service.h
+@@ -37,7 +37,7 @@
+ #include <linux/io.h>
+ #include <linux/mutex.h>
+ #include <linux/sem.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/etherdevice.h>
+ #include <linux/wireless.h>
+ #include <net/iw_handler.h>
+diff --git a/drivers/staging/rtl8712/osdep_service.h b/drivers/staging/rtl8712/osdep_service.h
+index b8a170978434..5d33020554cd 100644
+--- a/drivers/staging/rtl8712/osdep_service.h
++++ b/drivers/staging/rtl8712/osdep_service.h
+@@ -33,7 +33,7 @@
+ 
+ #include <linux/interrupt.h>
+ #include <linux/semaphore.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sem.h>
+ #include <linux/netdevice.h>
+ #include <linux/etherdevice.h>
+diff --git a/drivers/staging/rtl8712/rtl8712_cmd.c b/drivers/staging/rtl8712/rtl8712_cmd.c
+index f19b6b27aa71..5346c657485d 100644
+--- a/drivers/staging/rtl8712/rtl8712_cmd.c
++++ b/drivers/staging/rtl8712/rtl8712_cmd.c
+@@ -32,6 +32,7 @@
+ #include <linux/kernel.h>
+ #include <linux/errno.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/module.h>
+ #include <linux/kref.h>
+ #include <linux/netdevice.h>
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+index cb0b7ca36b1e..8a0d214f6e9b 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_arm.c
+@@ -34,6 +34,7 @@
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/sched/signal.h>
+ #include <linux/types.h>
+ #include <linux/errno.h>
+ #include <linux/cdev.h>
+diff --git a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_util.h b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_util.h
+index 4055d4bf9f74..e63964f5a18a 100644
+--- a/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_util.h
++++ b/drivers/staging/vc04_services/interface/vchiq_arm/vchiq_util.h
+@@ -47,7 +47,7 @@
+ #include <linux/types.h>
+ #include <linux/interrupt.h>
+ #include <linux/random.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/ctype.h>
+ #include <linux/uaccess.h>
+ #include <linux/time.h>  /* for time_t */
+diff --git a/drivers/target/iscsi/iscsi_target.c b/drivers/target/iscsi/iscsi_target.c
+index da2c73a255de..fa1d578d56bd 100644
+--- a/drivers/target/iscsi/iscsi_target.c
++++ b/drivers/target/iscsi/iscsi_target.c
+@@ -24,6 +24,7 @@
+ #include <linux/vmalloc.h>
+ #include <linux/idr.h>
+ #include <linux/delay.h>
++#include <linux/sched/signal.h>
+ #include <asm/unaligned.h>
+ #include <net/ipv6.h>
+ #include <scsi/scsi_proto.h>
+diff --git a/drivers/target/iscsi/iscsi_target_erl0.c b/drivers/target/iscsi/iscsi_target_erl0.c
+index b54e72c7ab0f..a4d5e6749932 100644
+--- a/drivers/target/iscsi/iscsi_target_erl0.c
++++ b/drivers/target/iscsi/iscsi_target_erl0.c
+@@ -17,6 +17,8 @@
+  * GNU General Public License for more details.
+  ******************************************************************************/
+ 
++#include <linux/sched/signal.h>
++
+ #include <scsi/iscsi_proto.h>
+ #include <target/target_core_base.h>
+ #include <target/target_core_fabric.h>
+diff --git a/drivers/target/iscsi/iscsi_target_login.c b/drivers/target/iscsi/iscsi_target_login.c
+index eab274d17b5c..b03cc03423c1 100644
+--- a/drivers/target/iscsi/iscsi_target_login.c
++++ b/drivers/target/iscsi/iscsi_target_login.c
+@@ -20,6 +20,7 @@
+ #include <linux/module.h>
+ #include <linux/string.h>
+ #include <linux/kthread.h>
++#include <linux/sched/signal.h>
+ #include <linux/idr.h>
+ #include <linux/tcp.h>        /* TCP_NODELAY */
+ #include <net/ipv6.h>         /* ipv6_addr_v4mapped() */
+diff --git a/drivers/target/iscsi/iscsi_target_nego.c b/drivers/target/iscsi/iscsi_target_nego.c
+index 46388c9e08da..29eb09e0cd15 100644
+--- a/drivers/target/iscsi/iscsi_target_nego.c
++++ b/drivers/target/iscsi/iscsi_target_nego.c
+@@ -19,6 +19,7 @@
+ #include <linux/ctype.h>
+ #include <linux/kthread.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <net/sock.h>
+ #include <scsi/iscsi_proto.h>
+ #include <target/target_core_base.h>
+diff --git a/drivers/tty/pty.c b/drivers/tty/pty.c
+index a23fa5ed1d67..66b59a15780d 100644
+--- a/drivers/tty/pty.c
++++ b/drivers/tty/pty.c
+@@ -12,7 +12,7 @@
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/fcntl.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/string.h>
+ #include <linux/major.h>
+ #include <linux/mm.h>
+diff --git a/drivers/tty/sysrq.c b/drivers/tty/sysrq.c
+index 71136742e606..65db0aeb3d80 100644
+--- a/drivers/tty/sysrq.c
++++ b/drivers/tty/sysrq.c
+@@ -14,7 +14,7 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/rt.h>
+ #include <linux/interrupt.h>
+ #include <linux/mm.h>
+diff --git a/drivers/tty/tty_io.c b/drivers/tty/tty_io.c
+index a1fd3f7d487a..985d33f0f315 100644
+--- a/drivers/tty/tty_io.c
++++ b/drivers/tty/tty_io.c
+@@ -69,7 +69,7 @@
+ #include <linux/errno.h>
+ #include <linux/signal.h>
+ #include <linux/fcntl.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/interrupt.h>
+ #include <linux/tty.h>
+ #include <linux/tty_driver.h>
+diff --git a/drivers/tty/vt/keyboard.c b/drivers/tty/vt/keyboard.c
+index 397e1509fe51..6b3a2c00974d 100644
+--- a/drivers/tty/vt/keyboard.c
++++ b/drivers/tty/vt/keyboard.c
+@@ -26,7 +26,7 @@
+ 
+ #include <linux/consolemap.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/mm.h>
+diff --git a/drivers/tty/vt/vt.c b/drivers/tty/vt/vt.c
+index 9d3ce505e7ab..5c4933bb4b53 100644
+--- a/drivers/tty/vt/vt.c
++++ b/drivers/tty/vt/vt.c
+@@ -72,7 +72,7 @@
+ 
+ #include <linux/module.h>
+ #include <linux/types.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/tty_flip.h>
+ #include <linux/kernel.h>
+diff --git a/drivers/tty/vt/vt_ioctl.c b/drivers/tty/vt/vt_ioctl.c
+index a56edf2d58eb..0cbfe1ff6f6c 100644
+--- a/drivers/tty/vt/vt_ioctl.c
++++ b/drivers/tty/vt/vt_ioctl.c
+@@ -10,7 +10,7 @@
+ 
+ #include <linux/types.h>
+ #include <linux/errno.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/tty.h>
+ #include <linux/timer.h>
+ #include <linux/kernel.h>
+diff --git a/drivers/usb/atm/usbatm.c b/drivers/usb/atm/usbatm.c
+index 5a59da0dc98a..3e80aa3b917a 100644
+--- a/drivers/usb/atm/usbatm.c
++++ b/drivers/usb/atm/usbatm.c
+@@ -74,7 +74,7 @@
+ #include <linux/moduleparam.h>
+ #include <linux/netdevice.h>
+ #include <linux/proc_fs.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/signal.h>
+ #include <linux/slab.h>
+ #include <linux/stat.h>
+diff --git a/drivers/usb/core/devio.c b/drivers/usb/core/devio.c
+index ca425e8099ea..cfc3cff6e8d5 100644
+--- a/drivers/usb/core/devio.c
++++ b/drivers/usb/core/devio.c
+@@ -36,6 +36,7 @@
+ 
+ #include <linux/fs.h>
+ #include <linux/mm.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/signal.h>
+ #include <linux/poll.h>
+diff --git a/drivers/usb/gadget/function/f_mass_storage.c b/drivers/usb/gadget/function/f_mass_storage.c
+index 8f3659b65f53..4c8aacc232c0 100644
+--- a/drivers/usb/gadget/function/f_mass_storage.c
++++ b/drivers/usb/gadget/function/f_mass_storage.c
+@@ -207,6 +207,7 @@
+ #include <linux/fs.h>
+ #include <linux/kref.h>
+ #include <linux/kthread.h>
++#include <linux/sched/signal.h>
+ #include <linux/limits.h>
+ #include <linux/rwsem.h>
+ #include <linux/slab.h>
+diff --git a/drivers/vfio/vfio_iommu_spapr_tce.c b/drivers/vfio/vfio_iommu_spapr_tce.c
+index 185d50ee1b12..cf3de91fbfe7 100644
+--- a/drivers/vfio/vfio_iommu_spapr_tce.c
++++ b/drivers/vfio/vfio_iommu_spapr_tce.c
+@@ -21,6 +21,7 @@
+ #include <linux/vfio.h>
+ #include <linux/vmalloc.h>
+ #include <linux/sched/mm.h>
++#include <linux/sched/signal.h>
+ 
+ #include <asm/iommu.h>
+ #include <asm/tce.h>
+diff --git a/drivers/vfio/vfio_iommu_type1.c b/drivers/vfio/vfio_iommu_type1.c
+index 7e94c7fc90ae..c26fa1f3ed86 100644
+--- a/drivers/vfio/vfio_iommu_type1.c
++++ b/drivers/vfio/vfio_iommu_type1.c
+@@ -31,7 +31,7 @@
+ #include <linux/module.h>
+ #include <linux/mm.h>
+ #include <linux/rbtree.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/slab.h>
+ #include <linux/uaccess.h>
+diff --git a/drivers/w1/w1_family.c b/drivers/w1/w1_family.c
+index df1c9bb90eb5..2096f460498f 100644
+--- a/drivers/w1/w1_family.c
++++ b/drivers/w1/w1_family.c
+@@ -14,7 +14,7 @@
+ 
+ #include <linux/spinlock.h>
+ #include <linux/list.h>
+-#include <linux/sched.h>	/* schedule_timeout() */
++#include <linux/sched/signal.h>
+ #include <linux/delay.h>
+ #include <linux/export.h>
+ 
+diff --git a/drivers/w1/w1_int.c b/drivers/w1/w1_int.c
+index 4ce1b66d5092..2cae7b29bb5f 100644
+--- a/drivers/w1/w1_int.c
++++ b/drivers/w1/w1_int.c
+@@ -17,6 +17,7 @@
+ #include <linux/delay.h>
+ #include <linux/kthread.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/export.h>
+ #include <linux/moduleparam.h>
+ 
+diff --git a/fs/attr.c b/fs/attr.c
+index c902b3d53508..135304146120 100644
+--- a/fs/attr.c
++++ b/fs/attr.c
+@@ -9,6 +9,7 @@
+ #include <linux/time.h>
+ #include <linux/mm.h>
+ #include <linux/string.h>
++#include <linux/sched/signal.h>
+ #include <linux/capability.h>
+ #include <linux/fsnotify.h>
+ #include <linux/fcntl.h>
+diff --git a/fs/autofs4/waitq.c b/fs/autofs4/waitq.c
+index 79fbd85db4ba..24a58bf9ca72 100644
+--- a/fs/autofs4/waitq.c
++++ b/fs/autofs4/waitq.c
+@@ -10,6 +10,7 @@
+ #include <linux/slab.h>
+ #include <linux/time.h>
+ #include <linux/signal.h>
++#include <linux/sched/signal.h>
+ #include <linux/file.h>
+ #include "autofs_i.h"
+ 
+diff --git a/fs/cifs/connect.c b/fs/cifs/connect.c
+index 777ad9f4fc3c..9bf25be05636 100644
+--- a/fs/cifs/connect.c
++++ b/fs/cifs/connect.c
+@@ -21,6 +21,7 @@
+ #include <linux/fs.h>
+ #include <linux/net.h>
+ #include <linux/string.h>
++#include <linux/sched/signal.h>
+ #include <linux/list.h>
+ #include <linux/wait.h>
+ #include <linux/slab.h>
+diff --git a/fs/coda/upcall.c b/fs/coda/upcall.c
+index f6c6c8adbc01..e82357c89979 100644
+--- a/fs/coda/upcall.c
++++ b/fs/coda/upcall.c
+@@ -15,7 +15,7 @@
+  */
+ 
+ #include <linux/signal.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/types.h>
+ #include <linux/kernel.h>
+ #include <linux/mm.h>
+diff --git a/fs/coredump.c b/fs/coredump.c
+index 23a539b29225..c74ab43b8383 100644
+--- a/fs/coredump.c
++++ b/fs/coredump.c
+@@ -17,6 +17,7 @@
+ #include <linux/binfmts.h>
+ #include <linux/coredump.h>
+ #include <linux/sched/coredump.h>
++#include <linux/sched/signal.h>
+ #include <linux/utsname.h>
+ #include <linux/pid_namespace.h>
+ #include <linux/module.h>
+@@ -34,7 +35,6 @@
+ #include <linux/pipe_fs_i.h>
+ #include <linux/oom.h>
+ #include <linux/compat.h>
+-#include <linux/sched.h>
+ #include <linux/fs.h>
+ #include <linux/path.h>
+ #include <linux/timekeeping.h>
+diff --git a/fs/exec.c b/fs/exec.c
+index 9c80d011594e..aa228b98ad5b 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -34,6 +34,7 @@
+ #include <linux/init.h>
+ #include <linux/sched/mm.h>
+ #include <linux/sched/coredump.h>
++#include <linux/sched/signal.h>
+ #include <linux/pagemap.h>
+ #include <linux/perf_event.h>
+ #include <linux/highmem.h>
+diff --git a/fs/file.c b/fs/file.c
+index 69d6990e3021..ad6f094f2eff 100644
+--- a/fs/file.c
++++ b/fs/file.c
+@@ -12,7 +12,7 @@
+ #include <linux/mm.h>
+ #include <linux/mmzone.h>
+ #include <linux/time.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ #include <linux/vmalloc.h>
+ #include <linux/file.h>
+diff --git a/fs/fs_struct.c b/fs/fs_struct.c
+index 7dca743b2ce1..543ed50f0387 100644
+--- a/fs/fs_struct.c
++++ b/fs/fs_struct.c
+@@ -1,5 +1,5 @@
+ #include <linux/export.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/fs.h>
+ #include <linux/path.h>
+ #include <linux/slab.h>
+diff --git a/fs/jffs2/background.c b/fs/jffs2/background.c
+index e5c1783ab64a..453a6a1fff34 100644
+--- a/fs/jffs2/background.c
++++ b/fs/jffs2/background.c
+@@ -16,7 +16,7 @@
+ #include <linux/jffs2.h>
+ #include <linux/mtd/mtd.h>
+ #include <linux/completion.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/freezer.h>
+ #include <linux/kthread.h>
+ #include "nodelist.h"
+diff --git a/fs/lockd/svc.c b/fs/lockd/svc.c
+index 7e4ea3b9f472..e7c8b9c76e48 100644
+--- a/fs/lockd/svc.c
++++ b/fs/lockd/svc.c
+@@ -17,7 +17,7 @@
+ #include <linux/sysctl.h>
+ #include <linux/moduleparam.h>
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <linux/in.h>
+ #include <linux/uio.h>
+diff --git a/fs/ncpfs/inode.c b/fs/ncpfs/inode.c
+index 7eb89c23c847..d5606099712a 100644
+--- a/fs/ncpfs/inode.c
++++ b/fs/ncpfs/inode.c
+@@ -30,6 +30,7 @@
+ #include <linux/vfs.h>
+ #include <linux/mount.h>
+ #include <linux/seq_file.h>
++#include <linux/sched/signal.h>
+ #include <linux/namei.h>
+ 
+ #include <net/sock.h>
+diff --git a/fs/ncpfs/sock.c b/fs/ncpfs/sock.c
+index 97b111d79489..bdea177aa405 100644
+--- a/fs/ncpfs/sock.c
++++ b/fs/ncpfs/sock.c
+@@ -16,6 +16,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/stat.h>
+ #include <linux/string.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/in.h>
+ #include <linux/net.h>
+diff --git a/fs/nfs/callback.c b/fs/nfs/callback.c
+index 484bebc20bca..bb79972dc638 100644
+--- a/fs/nfs/callback.c
++++ b/fs/nfs/callback.c
+@@ -9,6 +9,7 @@
+ #include <linux/completion.h>
+ #include <linux/ip.h>
+ #include <linux/module.h>
++#include <linux/sched/signal.h>
+ #include <linux/sunrpc/svc.h>
+ #include <linux/sunrpc/svcsock.h>
+ #include <linux/nfs_fs.h>
+diff --git a/fs/nfsd/nfssvc.c b/fs/nfsd/nfssvc.c
+index efd66da99201..786a4a2cb2d7 100644
+--- a/fs/nfsd/nfssvc.c
++++ b/fs/nfsd/nfssvc.c
+@@ -6,7 +6,7 @@
+  * Copyright (C) 1995, 1996, 1997 Olaf Kirch <okir@monad.swb.de>
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/freezer.h>
+ #include <linux/module.h>
+ #include <linux/fs_struct.h>
+diff --git a/fs/proc/fd.c b/fs/proc/fd.c
+index 00ce1531b2f5..c330495c3115 100644
+--- a/fs/proc/fd.c
++++ b/fs/proc/fd.c
+@@ -1,4 +1,4 @@
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <linux/dcache.h>
+ #include <linux/path.h>
+diff --git a/fs/select.c b/fs/select.c
+index 305c0daf5d67..e2112270d75a 100644
+--- a/fs/select.c
++++ b/fs/select.c
+@@ -15,7 +15,8 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
++#include <linux/sched/rt.h>
+ #include <linux/syscalls.h>
+ #include <linux/export.h>
+ #include <linux/slab.h>
+@@ -26,7 +27,6 @@
+ #include <linux/fs.h>
+ #include <linux/rcupdate.h>
+ #include <linux/hrtimer.h>
+-#include <linux/sched/rt.h>
+ #include <linux/freezer.h>
+ #include <net/busy_poll.h>
+ #include <linux/vmalloc.h>
+diff --git a/include/linux/oom.h b/include/linux/oom.h
+index b4e36e92bc87..8a266e2be5a6 100644
+--- a/include/linux/oom.h
++++ b/include/linux/oom.h
+@@ -2,7 +2,7 @@
+ #define __INCLUDE_LINUX_OOM_H
+ 
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/types.h>
+ #include <linux/nodemask.h>
+ #include <uapi/linux/oom.h>
+diff --git a/include/linux/ptrace.h b/include/linux/ptrace.h
+index e0e539321ab9..422bc2e4cb6a 100644
+--- a/include/linux/ptrace.h
++++ b/include/linux/ptrace.h
+@@ -3,6 +3,7 @@
+ 
+ #include <linux/compiler.h>		/* For unlikely.  */
+ #include <linux/sched.h>		/* For struct task_struct.  */
++#include <linux/sched/signal.h>		/* For send_sig(), same_thread_group(), etc. */
+ #include <linux/err.h>			/* for IS_ERR_VALUE */
+ #include <linux/bug.h>			/* For BUG_ON.  */
+ #include <linux/pid_namespace.h>	/* For task_active_pid_ns.  */
+diff --git a/include/linux/sched/signal.h b/include/linux/sched/signal.h
+new file mode 100644
+index 000000000000..da69cd05cd68
+--- /dev/null
++++ b/include/linux/sched/signal.h
+@@ -0,0 +1,6 @@
++#ifndef _LINUX_SCHED_SIGNAL_H
++#define _LINUX_SCHED_SIGNAL_H
++
++#include <linux/sched.h>
++
++#endif /* _LINUX_SCHED_SIGNAL_H */
+diff --git a/include/linux/signalfd.h b/include/linux/signalfd.h
+index eadbe227c256..4985048640a7 100644
+--- a/include/linux/signalfd.h
++++ b/include/linux/signalfd.h
+@@ -8,7 +8,7 @@
+ #define _LINUX_SIGNALFD_H
+ 
+ #include <uapi/linux/signalfd.h>
+-
++#include <linux/sched/signal.h>
+ 
+ #ifdef CONFIG_SIGNALFD
+ 
+diff --git a/include/linux/taskstats_kern.h b/include/linux/taskstats_kern.h
+index 58de6edf751f..e2a5daf8d14f 100644
+--- a/include/linux/taskstats_kern.h
++++ b/include/linux/taskstats_kern.h
+@@ -8,7 +8,7 @@
+ #define _LINUX_TASKSTATS_KERN_H
+ 
+ #include <linux/taskstats.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/slab.h>
+ 
+ #ifdef CONFIG_TASKSTATS
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index 40e448de8a7e..4f7241fbeff3 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -36,6 +36,7 @@
+ #include <linux/user_namespace.h>
+ #include <linux/slab.h>
+ #include <linux/sched/wake_q.h>
++#include <linux/sched/signal.h>
+ 
+ #include <net/sock.h>
+ #include "util.h"
+diff --git a/kernel/bpf/syscall.c b/kernel/bpf/syscall.c
+index 461eb1e66a0f..7af0dcc5d755 100644
+--- a/kernel/bpf/syscall.c
++++ b/kernel/bpf/syscall.c
+@@ -13,6 +13,7 @@
+ #include <linux/bpf_trace.h>
+ #include <linux/syscalls.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/vmalloc.h>
+ #include <linux/mmzone.h>
+ #include <linux/anon_inodes.h>
+diff --git a/kernel/cpu.c b/kernel/cpu.c
+index 0a5f630f5c54..0aae3183b029 100644
+--- a/kernel/cpu.c
++++ b/kernel/cpu.c
+@@ -7,7 +7,7 @@
+ #include <linux/smp.h>
+ #include <linux/init.h>
+ #include <linux/notifier.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/unistd.h>
+ #include <linux/cpu.h>
+ #include <linux/oom.h>
+diff --git a/kernel/debug/gdbstub.c b/kernel/debug/gdbstub.c
+index 19d9a578c753..7510dc687c0d 100644
+--- a/kernel/debug/gdbstub.c
++++ b/kernel/debug/gdbstub.c
+@@ -29,6 +29,7 @@
+  */
+ 
+ #include <linux/kernel.h>
++#include <linux/sched/signal.h>
+ #include <linux/kgdb.h>
+ #include <linux/kdb.h>
+ #include <linux/serial_core.h>
+diff --git a/kernel/debug/kdb/kdb_bt.c b/kernel/debug/kdb/kdb_bt.c
+index fe15fff5df53..9b976a42376d 100644
+--- a/kernel/debug/kdb/kdb_bt.c
++++ b/kernel/debug/kdb/kdb_bt.c
+@@ -12,7 +12,7 @@
+ #include <linux/ctype.h>
+ #include <linux/string.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/kdb.h>
+ #include <linux/nmi.h>
+ #include "kdb_private.h"
+diff --git a/kernel/hung_task.c b/kernel/hung_task.c
+index 40c07e4fa116..129247e56902 100644
+--- a/kernel/hung_task.c
++++ b/kernel/hung_task.c
+@@ -16,6 +16,8 @@
+ #include <linux/export.h>
+ #include <linux/sysctl.h>
+ #include <linux/utsname.h>
++#include <linux/sched/signal.h>
++
+ #include <trace/events/sched.h>
+ 
+ /*
+diff --git a/kernel/rcu/update.c b/kernel/rcu/update.c
+index a0e90e0afc75..da128deb10ec 100644
+--- a/kernel/rcu/update.c
++++ b/kernel/rcu/update.c
+@@ -36,7 +36,7 @@
+ #include <linux/spinlock.h>
+ #include <linux/smp.h>
+ #include <linux/interrupt.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/atomic.h>
+ #include <linux/bitops.h>
+ #include <linux/percpu.h>
+diff --git a/kernel/sched/sched.h b/kernel/sched/sched.h
+index e2307a6c29f1..641249471952 100644
+--- a/kernel/sched/sched.h
++++ b/kernel/sched/sched.h
+@@ -5,6 +5,7 @@
+ #include <linux/sched/rt.h>
+ #include <linux/sched/clock.h>
+ #include <linux/sched/wake_q.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/u64_stats_sync.h>
+ #include <linux/sched/deadline.h>
+diff --git a/kernel/time/itimer.c b/kernel/time/itimer.c
+index a95f13c31464..f6b961c5e58c 100644
+--- a/kernel/time/itimer.c
++++ b/kernel/time/itimer.c
+@@ -10,6 +10,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/syscalls.h>
+ #include <linux/time.h>
++#include <linux/sched/signal.h>
+ #include <linux/posix-timers.h>
+ #include <linux/hrtimer.h>
+ #include <trace/events/timer.h>
+diff --git a/kernel/time/posix-cpu-timers.c b/kernel/time/posix-cpu-timers.c
+index b4377a5e4269..a2475a9f57d8 100644
+--- a/kernel/time/posix-cpu-timers.c
++++ b/kernel/time/posix-cpu-timers.c
+@@ -2,7 +2,7 @@
+  * Implement CPU time clocks for the POSIX clock interface.
+  */
+ 
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/posix-timers.h>
+ #include <linux/errno.h>
+ #include <linux/math64.h>
+diff --git a/kernel/time/tick-sched.c b/kernel/time/tick-sched.c
+index 4fee1c3abd0b..0f411a4690a0 100644
+--- a/kernel/time/tick-sched.c
++++ b/kernel/time/tick-sched.c
+@@ -18,7 +18,7 @@
+ #include <linux/kernel_stat.h>
+ #include <linux/percpu.h>
+ #include <linux/profile.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/clock.h>
+ #include <linux/module.h>
+ #include <linux/irq_work.h>
+diff --git a/kernel/tracepoint.c b/kernel/tracepoint.c
+index 1f9a31f934a4..9f6984d52fec 100644
+--- a/kernel/tracepoint.c
++++ b/kernel/tracepoint.c
+@@ -24,7 +24,7 @@
+ #include <linux/tracepoint.h>
+ #include <linux/err.h>
+ #include <linux/slab.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/static_key.h>
+ 
+ extern struct tracepoint * const __start___tracepoints_ptrs[];
+diff --git a/kernel/tsacct.c b/kernel/tsacct.c
+index 571a2d3821d8..d9a03b80b75d 100644
+--- a/kernel/tsacct.c
++++ b/kernel/tsacct.c
+@@ -17,7 +17,7 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/sched/mm.h>
+ #include <linux/tsacct_kern.h>
+ #include <linux/acct.h>
+diff --git a/kernel/user_namespace.c b/kernel/user_namespace.c
+index 86b7854fec8e..2f735cbe05e8 100644
+--- a/kernel/user_namespace.c
++++ b/kernel/user_namespace.c
+@@ -8,6 +8,7 @@
+ #include <linux/export.h>
+ #include <linux/nsproxy.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/user_namespace.h>
+ #include <linux/proc_ns.h>
+ #include <linux/highuid.h>
+diff --git a/lib/is_single_threaded.c b/lib/is_single_threaded.c
+index 391fd23976a2..9745cfffcb69 100644
+--- a/lib/is_single_threaded.c
++++ b/lib/is_single_threaded.c
+@@ -9,8 +9,7 @@
+  * as published by the Free Software Foundation; either version
+  * 2 of the Licence, or (at your option) any later version.
+  */
+-
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ 
+ /*
+  * Returns true if the task does not share ->mm with another thread/process.
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 1944c631e3e6..1694623a6289 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -13,6 +13,7 @@
+ #include <linux/compiler.h>
+ #include <linux/dax.h>
+ #include <linux/fs.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/capability.h>
+ #include <linux/kernel_stat.h>
+diff --git a/mm/kmemleak.c b/mm/kmemleak.c
+index da3436953022..2df6d3687b2a 100644
+--- a/mm/kmemleak.c
++++ b/mm/kmemleak.c
+@@ -73,7 +73,7 @@
+ #include <linux/init.h>
+ #include <linux/kernel.h>
+ #include <linux/list.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/jiffies.h>
+ #include <linux/delay.h>
+ #include <linux/export.h>
+diff --git a/mm/memory-failure.c b/mm/memory-failure.c
+index 3d0f2fd4bf73..b74984db386e 100644
+--- a/mm/memory-failure.c
++++ b/mm/memory-failure.c
+@@ -40,7 +40,7 @@
+ #include <linux/mm.h>
+ #include <linux/page-flags.h>
+ #include <linux/kernel-page-flags.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/ksm.h>
+ #include <linux/rmap.h>
+ #include <linux/export.h>
+diff --git a/mm/vmacache.c b/mm/vmacache.c
+index 7c233f8e20ee..4355d34c68a6 100644
+--- a/mm/vmacache.c
++++ b/mm/vmacache.c
+@@ -1,7 +1,7 @@
+ /*
+  * Copyright (C) 2014 Davidlohr Bueso.
+  */
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/mm.h>
+ #include <linux/vmacache.h>
+ 
+diff --git a/net/9p/client.c b/net/9p/client.c
+index 3fc94a49ccd5..25cfd8a4bc36 100644
+--- a/net/9p/client.c
++++ b/net/9p/client.c
+@@ -32,7 +32,7 @@
+ #include <linux/idr.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/uaccess.h>
+ #include <linux/uio.h>
+ #include <net/9p/9p.h>
+diff --git a/net/atm/common.c b/net/atm/common.c
+index a3ca922d307b..9613381f5db0 100644
+--- a/net/atm/common.c
++++ b/net/atm/common.c
+@@ -13,7 +13,7 @@
+ #include <linux/errno.h>	/* error codes */
+ #include <linux/capability.h>
+ #include <linux/mm.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/time.h>		/* struct timeval */
+ #include <linux/skbuff.h>
+ #include <linux/bitops.h>
+diff --git a/net/ax25/af_ax25.c b/net/ax25/af_ax25.c
+index 90fcf5fc2e0a..a8e42cedf1db 100644
+--- a/net/ax25/af_ax25.c
++++ b/net/ax25/af_ax25.c
+@@ -20,7 +20,7 @@
+ #include <linux/socket.h>
+ #include <linux/in.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/sockios.h>
+diff --git a/net/caif/caif_socket.c b/net/caif/caif_socket.c
+index 92cbbd2afddb..adcad344c843 100644
+--- a/net/caif/caif_socket.c
++++ b/net/caif/caif_socket.c
+@@ -9,7 +9,7 @@
+ #include <linux/fs.h>
+ #include <linux/init.h>
+ #include <linux/module.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/spinlock.h>
+ #include <linux/mutex.h>
+ #include <linux/list.h>
+diff --git a/net/core/stream.c b/net/core/stream.c
+index f575bcf64af2..20231dbb1da0 100644
+--- a/net/core/stream.c
++++ b/net/core/stream.c
+@@ -13,6 +13,7 @@
+  */
+ 
+ #include <linux/module.h>
++#include <linux/sched/signal.h>
+ #include <linux/net.h>
+ #include <linux/signal.h>
+ #include <linux/tcp.h>
+diff --git a/net/decnet/af_decnet.c b/net/decnet/af_decnet.c
+index a90ed67027b0..e6e79eda9763 100644
+--- a/net/decnet/af_decnet.c
++++ b/net/decnet/af_decnet.c
+@@ -106,7 +106,7 @@ Version 0.0.6    2.1.110   07-aug-98   Eduardo Marcelo Serrat
+ #include <linux/socket.h>
+ #include <linux/in.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/sockios.h>
+diff --git a/net/irda/af_irda.c b/net/irda/af_irda.c
+index ab254041dab7..81adc29a448d 100644
+--- a/net/irda/af_irda.c
++++ b/net/irda/af_irda.c
+@@ -46,6 +46,7 @@
+ #include <linux/socket.h>
+ #include <linux/sockios.h>
+ #include <linux/slab.h>
++#include <linux/sched/signal.h>
+ #include <linux/init.h>
+ #include <linux/net.h>
+ #include <linux/irda.h>
+diff --git a/net/netrom/af_netrom.c b/net/netrom/af_netrom.c
+index ed212ffc1d9d..4bbf4526b885 100644
+--- a/net/netrom/af_netrom.c
++++ b/net/netrom/af_netrom.c
+@@ -17,7 +17,7 @@
+ #include <linux/in.h>
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/sockios.h>
+diff --git a/net/rose/af_rose.c b/net/rose/af_rose.c
+index 9ad301c46b88..b8a1df2c9785 100644
+--- a/net/rose/af_rose.c
++++ b/net/rose/af_rose.c
+@@ -20,7 +20,7 @@
+ #include <linux/in.h>
+ #include <linux/slab.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/spinlock.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+diff --git a/net/sctp/socket.c b/net/sctp/socket.c
+index 465a9c8464f9..6f0a9be50f50 100644
+--- a/net/sctp/socket.c
++++ b/net/sctp/socket.c
+@@ -57,6 +57,7 @@
+ #include <linux/kernel.h>
+ #include <linux/wait.h>
+ #include <linux/time.h>
++#include <linux/sched/signal.h>
+ #include <linux/ip.h>
+ #include <linux/capability.h>
+ #include <linux/fcntl.h>
+diff --git a/net/sunrpc/svc.c b/net/sunrpc/svc.c
+index b94efd93d3e4..a08aeb56b8e4 100644
+--- a/net/sunrpc/svc.c
++++ b/net/sunrpc/svc.c
+@@ -11,7 +11,7 @@
+  */
+ 
+ #include <linux/linkage.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <linux/net.h>
+ #include <linux/in.h>
+diff --git a/net/unix/af_unix.c b/net/unix/af_unix.c
+index e2d18b9f910f..ee37b390260a 100644
+--- a/net/unix/af_unix.c
++++ b/net/unix/af_unix.c
+@@ -85,7 +85,7 @@
+ #include <linux/module.h>
+ #include <linux/kernel.h>
+ #include <linux/signal.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/errno.h>
+ #include <linux/string.h>
+ #include <linux/stat.h>
+diff --git a/net/x25/af_x25.c b/net/x25/af_x25.c
+index 079c883aa96e..fd28a49dbe8f 100644
+--- a/net/x25/af_x25.c
++++ b/net/x25/af_x25.c
+@@ -41,7 +41,7 @@
+ #include <linux/capability.h>
+ #include <linux/errno.h>
+ #include <linux/kernel.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/timer.h>
+ #include <linux/string.h>
+ #include <linux/net.h>
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 9a8f12f8d5b7..b12f873f92ba 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -28,7 +28,7 @@
+ #include <linux/kernel.h>
+ #include <linux/tracehook.h>
+ #include <linux/errno.h>
+-#include <linux/sched.h>
++#include <linux/sched/signal.h>
+ #include <linux/lsm_hooks.h>
+ #include <linux/xattr.h>
+ #include <linux/capability.h>
+-- 
+2.17.0
+

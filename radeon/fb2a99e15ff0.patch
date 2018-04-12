@@ -1,0 +1,118 @@
+From fb2a99e15ff0d342de4ba58c84a791224a96a01a Mon Sep 17 00:00:00 2001
+From: Sascha Hauer <s.hauer@pengutronix.de>
+Date: Mon, 6 Feb 2012 10:58:19 +0100
+Subject: [PATCH] drm: do not set fb_info->pixmap fields
+
+The drm drivers set the fb_info->pixmap fields without setting
+fb_info->pixmap.addr. If this is not set the fb core will overwrite
+these all fb_info->pixmap fields anyway, so there is not much point
+in setting them in the first place.
+
+[airlied: dropped nvidiafb piece - not mine]
+
+Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/gma500/framebuffer.c    |  6 +-----
+ drivers/gpu/drm/i915/intel_fb.c         |  6 +-----
+ drivers/gpu/drm/nouveau/nouveau_fbcon.c |  6 +-----
+ drivers/gpu/drm/radeon/radeon_fb.c      |  6 +-----
+ drivers/gpu/drm/vmwgfx/vmwgfx_fb.c      | 14 +-------------
+ 5 files changed, 5 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/gpu/drm/gma500/framebuffer.c b/drivers/gpu/drm/gma500/framebuffer.c
+index 78733b5fd3fb..c1c4dc174fa2 100644
+--- a/drivers/gpu/drm/gma500/framebuffer.c
++++ b/drivers/gpu/drm/gma500/framebuffer.c
+@@ -507,11 +507,7 @@ static int psbfb_create(struct psb_fbdev *fbdev,
+ 	info->fix.mmio_start = pci_resource_start(dev->pdev, 0);
+ 	info->fix.mmio_len = pci_resource_len(dev->pdev, 0);
+ 
+-	info->pixmap.size = 64 * 1024;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
++	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
+ 
+ 	dev_info(dev->dev, "allocated %dx%d fb\n",
+ 					psbfb->base.width, psbfb->base.height);
+diff --git a/drivers/gpu/drm/i915/intel_fb.c b/drivers/gpu/drm/i915/intel_fb.c
+index 571375a3eef4..2d8766978388 100644
+--- a/drivers/gpu/drm/i915/intel_fb.c
++++ b/drivers/gpu/drm/i915/intel_fb.c
+@@ -152,11 +152,7 @@ static int intelfb_create(struct intel_fbdev *ifbdev,
+ 	drm_fb_helper_fill_fix(info, fb->pitches[0], fb->depth);
+ 	drm_fb_helper_fill_var(info, &ifbdev->helper, sizes->fb_width, sizes->fb_height);
+ 
+-	info->pixmap.size = 64*1024;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
++	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
+ 
+ 	DRM_DEBUG_KMS("allocated %dx%d fb: 0x%08x, bo %p\n",
+ 		      fb->width, fb->height,
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.c b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+index 9892218d7452..8113e9201ed9 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+@@ -381,11 +381,7 @@ nouveau_fbcon_create(struct nouveau_fbdev *nfbdev,
+ 		goto out_unref;
+ 	}
+ 
+-	info->pixmap.size = 64*1024;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
++	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
+ 
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index cf2bf35b56b8..a5692d5f415d 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -254,11 +254,7 @@ static int radeonfb_create(struct radeon_fbdev *rfbdev,
+ 	info->apertures->ranges[0].base = rdev->ddev->mode_config.fb_base;
+ 	info->apertures->ranges[0].size = rdev->mc.aper_size;
+ 
+-	info->pixmap.size = 64*1024;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
++	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
+ 
+ 	if (info->screen_base == NULL) {
+ 		ret = -ENOSPC;
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+index 34e51a1695b8..67f1d54b79b4 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+@@ -515,19 +515,7 @@ int vmw_fb_init(struct vmw_private *vmw_priv)
+ 	info->var.xres = initial_width;
+ 	info->var.yres = initial_height;
+ 
+-#if 0
+-	info->pixmap.size = 64*1024;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
+-#else
+-	info->pixmap.size = 0;
+-	info->pixmap.buf_align = 8;
+-	info->pixmap.access_align = 32;
+-	info->pixmap.flags = FB_PIXMAP_SYSTEM;
+-	info->pixmap.scan_align = 1;
+-#endif
++	/* Use default scratch pixmap (info->pixmap.flags = FB_PIXMAP_SYSTEM) */
+ 
+ 	info->apertures = alloc_apertures(1);
+ 	if (!info->apertures) {
+-- 
+2.17.0
+

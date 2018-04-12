@@ -1,0 +1,107 @@
+From 88932a7be27d892aef21ff05428a55fefa091716 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Date: Mon, 6 Jun 2016 10:17:53 +0200
+Subject: [PATCH] drm/ttm: add wait for idle in all drivers bo_move functions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Wait for idle before moving the BO in all drivers implementing
+an accelerated move function.
+
+This should keep the current behavior when removing the pre move wait.
+
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c | 4 ++++
+ drivers/gpu/drm/nouveau/nouveau_bo.c    | 4 ++++
+ drivers/gpu/drm/qxl/qxl_ttm.c           | 7 +++++++
+ drivers/gpu/drm/radeon/radeon_ttm.c     | 4 ++++
+ drivers/gpu/drm/virtio/virtgpu_ttm.c    | 6 ++++++
+ 5 files changed, 25 insertions(+)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+index 3b9053af4762..0a6a6320b40e 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -390,6 +390,10 @@ static int amdgpu_bo_move(struct ttm_buffer_object *bo,
+ 	struct ttm_mem_reg *old_mem = &bo->mem;
+ 	int r;
+ 
++	r = ttm_bo_wait(bo, interruptible, no_wait_gpu);
++	if (r)
++		return r;
++
+ 	/* Can't move a pinned BO */
+ 	abo = container_of(bo, struct amdgpu_bo, tbo);
+ 	if (WARN_ON_ONCE(abo->pin_count > 0))
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index 5e3f3e826476..a43f3095693b 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -1289,6 +1289,10 @@ nouveau_bo_move(struct ttm_buffer_object *bo, bool evict, bool intr,
+ 	struct nouveau_drm_tile *new_tile = NULL;
+ 	int ret = 0;
+ 
++	ret = ttm_bo_wait(bo, intr, no_wait_gpu);
++	if (ret)
++		return ret;
++
+ 	if (nvbo->pin_refcnt)
+ 		NV_WARN(drm, "Moving pinned object %p!\n", nvbo);
+ 
+diff --git a/drivers/gpu/drm/qxl/qxl_ttm.c b/drivers/gpu/drm/qxl/qxl_ttm.c
+index 0738d74c8d04..89e8be944330 100644
+--- a/drivers/gpu/drm/qxl/qxl_ttm.c
++++ b/drivers/gpu/drm/qxl/qxl_ttm.c
+@@ -350,6 +350,13 @@ static int qxl_bo_move(struct ttm_buffer_object *bo,
+ 		       struct ttm_mem_reg *new_mem)
+ {
+ 	struct ttm_mem_reg *old_mem = &bo->mem;
++	int ret;
++
++	ret = ttm_bo_wait(bo, interruptible, no_wait_gpu);
++	if (ret)
++		return ret;
++
++
+ 	if (old_mem->mem_type == TTM_PL_SYSTEM && bo->ttm == NULL) {
+ 		qxl_move_null(bo, new_mem);
+ 		return 0;
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index 590b0377fbe2..1cc4870b3de8 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -403,6 +403,10 @@ static int radeon_bo_move(struct ttm_buffer_object *bo,
+ 	struct ttm_mem_reg *old_mem = &bo->mem;
+ 	int r;
+ 
++	r = ttm_bo_wait(bo, interruptible, no_wait_gpu);
++	if (r)
++		return r;
++
+ 	/* Can't move a pinned BO */
+ 	rbo = container_of(bo, struct radeon_bo, tbo);
+ 	if (WARN_ON_ONCE(rbo->pin_count > 0))
+diff --git a/drivers/gpu/drm/virtio/virtgpu_ttm.c b/drivers/gpu/drm/virtio/virtgpu_ttm.c
+index a0580815629f..80482ac5f95d 100644
+--- a/drivers/gpu/drm/virtio/virtgpu_ttm.c
++++ b/drivers/gpu/drm/virtio/virtgpu_ttm.c
+@@ -375,6 +375,12 @@ static int virtio_gpu_bo_move(struct ttm_buffer_object *bo,
+ 			      bool no_wait_gpu,
+ 			      struct ttm_mem_reg *new_mem)
+ {
++	int ret;
++
++	ret = ttm_bo_wait(bo, interruptible, no_wait_gpu);
++	if (ret)
++		return ret;
++
+ 	virtio_gpu_move_null(bo, new_mem);
+ 	return 0;
+ }
+-- 
+2.17.0
+

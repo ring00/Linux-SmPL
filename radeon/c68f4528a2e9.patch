@@ -1,0 +1,149 @@
+From c68f4528a2e984d044a5f6ad1c5eca7bba9b3b4c Mon Sep 17 00:00:00 2001
+From: Oded Gabbay <oded.gabbay@gmail.com>
+Date: Sat, 13 Feb 2016 10:14:07 +0200
+Subject: [PATCH] drm/amdkfd: Track when module's init is complete
+
+Current dependencies between amdkfd and radeon/amdgpu force the loading
+of amdkfd _before_ radeon and/or amdgpu are loaded. When all these kernel
+drivers are built as modules, this ordering is enforced by the kernel
+built-in mechanism of loading dependent modules.
+
+However, there is no such mechanism in case where all these drivers are
+compiled inside the kernel image (not as modules). The current way to
+enforce loading of amdkfd before radeon/amdgpu, is to put amdkfd before
+radeon/amdgpu in the drm Makefile, but that method is way too fragile.
+
+In addition, there is no kernel mechanism to check whether a kernel
+driver that is built inside the kernel image, has already been loaded.
+
+To solve this, this patch adds to kfd_module.c a new static variable,
+amdkfd_init_completed, that is set to 1 only when amdkfd's
+module initialization function has been completed (successfully).
+
+kgd2kfd_init(), which is the initialization function of the
+kgd-->kfd interface, and which is the first function in amdkfd called by
+radeon/amdgpu, will return successfully only if amdkfd_init_completed is
+equal 1.
+
+If amdkfd_init_completed is not equal to 1, kgd2kfd_init() will
+return -EPROBE_DEFER to signal radeon/amdgpu they need to defer
+their loading until amdkfd is loaded.
+
+Signed-off-by: Oded Gabbay <oded.gabbay@gmail.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c      |  4 ++--
+ drivers/gpu/drm/amd/amdkfd/kfd_module.c         | 15 ++++++++++++---
+ drivers/gpu/drm/amd/include/kgd_kfd_interface.h |  2 +-
+ drivers/gpu/drm/radeon/radeon_kfd.c             |  4 ++--
+ 4 files changed, 17 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c
+index 84d68d658f8a..44ba8bed1b29 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c
+@@ -70,7 +70,7 @@ bool amdgpu_amdkfd_load_interface(struct amdgpu_device *rdev)
+ 		return false;
+ 	}
+ 
+-	if (!kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd)) {
++	if (kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		symbol_put(kgd2kfd_init);
+ 		kfd2kgd = NULL;
+ 		kgd2kfd = NULL;
+@@ -80,7 +80,7 @@ bool amdgpu_amdkfd_load_interface(struct amdgpu_device *rdev)
+ 
+ 	return true;
+ #elif defined(CONFIG_HSA_AMD)
+-	if (!kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) {
++	if (kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		kfd2kgd = NULL;
+ 		kgd2kfd = NULL;
+ 		return false;
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_module.c b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
+index ca8410e8683d..850a5623661f 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_module.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
+@@ -59,18 +59,23 @@ module_param(send_sigterm, int, 0444);
+ MODULE_PARM_DESC(send_sigterm,
+ 	"Send sigterm to HSA process on unhandled exception (0 = disable, 1 = enable)");
+ 
+-bool kgd2kfd_init(unsigned interface_version, const struct kgd2kfd_calls **g2f)
++static int amdkfd_init_completed;
++
++int kgd2kfd_init(unsigned interface_version, const struct kgd2kfd_calls **g2f)
+ {
++	if (!amdkfd_init_completed)
++		return -EPROBE_DEFER;
++
+ 	/*
+ 	 * Only one interface version is supported,
+ 	 * no kfd/kgd version skew allowed.
+ 	 */
+ 	if (interface_version != KFD_INTERFACE_VERSION)
+-		return false;
++		return -EINVAL;
+ 
+ 	*g2f = &kgd2kfd;
+ 
+-	return true;
++	return 0;
+ }
+ EXPORT_SYMBOL(kgd2kfd_init);
+ 
+@@ -111,6 +116,8 @@ static int __init kfd_module_init(void)
+ 
+ 	kfd_process_create_wq();
+ 
++	amdkfd_init_completed = 1;
++
+ 	dev_info(kfd_device, "Initialized module\n");
+ 
+ 	return 0;
+@@ -125,6 +132,8 @@ static int __init kfd_module_init(void)
+ 
+ static void __exit kfd_module_exit(void)
+ {
++	amdkfd_init_completed = 0;
++
+ 	kfd_process_destroy_wq();
+ 	kfd_topology_shutdown();
+ 	kfd_chardev_exit();
+diff --git a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+index 888250b33ea8..a09d9f352871 100644
+--- a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
++++ b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+@@ -221,7 +221,7 @@ struct kgd2kfd_calls {
+ 	int (*resume)(struct kfd_dev *kfd);
+ };
+ 
+-bool kgd2kfd_init(unsigned interface_version,
++int kgd2kfd_init(unsigned interface_version,
+ 		const struct kgd2kfd_calls **g2f);
+ 
+ #endif	/* KGD_KFD_INTERFACE_H_INCLUDED */
+diff --git a/drivers/gpu/drm/radeon/radeon_kfd.c b/drivers/gpu/drm/radeon/radeon_kfd.c
+index 9a4d69e59401..83c2704a7291 100644
+--- a/drivers/gpu/drm/radeon/radeon_kfd.c
++++ b/drivers/gpu/drm/radeon/radeon_kfd.c
+@@ -142,7 +142,7 @@ bool radeon_kfd_init(void)
+ 	if (kgd2kfd_init_p == NULL)
+ 		return false;
+ 
+-	if (!kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd)) {
++	if (kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		symbol_put(kgd2kfd_init);
+ 		kgd2kfd = NULL;
+ 
+@@ -151,7 +151,7 @@ bool radeon_kfd_init(void)
+ 
+ 	return true;
+ #elif defined(CONFIG_HSA_AMD)
+-	if (!kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) {
++	if (kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		kgd2kfd = NULL;
+ 
+ 		return false;
+-- 
+2.17.0
+

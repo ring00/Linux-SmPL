@@ -1,0 +1,306 @@
+From 2ba48ce513c4e545318d22b138861d5876edf906 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Thu, 9 Apr 2015 13:52:01 -0400
+Subject: [PATCH] mirror O_APPEND and O_DIRECT into iocb->ki_flags
+
+... avoiding write_iter/fcntl races.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/aio.c           |  2 +-
+ fs/btrfs/file.c    |  2 +-
+ fs/ceph/file.c     |  8 ++++----
+ fs/ext4/file.c     |  4 ++--
+ fs/fuse/file.c     |  2 +-
+ fs/gfs2/file.c     |  2 +-
+ fs/nfs/file.c      |  6 +++---
+ fs/ocfs2/file.c    | 10 +++++-----
+ fs/xfs/xfs_file.c  |  4 ++--
+ include/linux/fs.h | 15 +++++++++++++++
+ mm/filemap.c       |  6 +++---
+ 11 files changed, 38 insertions(+), 23 deletions(-)
+
+diff --git a/fs/aio.c b/fs/aio.c
+index 5785c4b58fea..e976185c8e5b 100644
+--- a/fs/aio.c
++++ b/fs/aio.c
+@@ -1502,7 +1502,7 @@ static int io_submit_one(struct kioctx *ctx, struct iocb __user *user_iocb,
+ 	}
+ 	req->common.ki_pos = iocb->aio_offset;
+ 	req->common.ki_complete = aio_complete;
+-	req->common.ki_flags = 0;
++	req->common.ki_flags = iocb_flags(req->common.ki_filp);
+ 
+ 	if (iocb->aio_flags & IOCB_FLAG_RESFD) {
+ 		/*
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index c64d11c41eeb..faa7d390841b 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1794,7 +1794,7 @@ static ssize_t btrfs_file_write_iter(struct kiocb *iocb,
+ 	if (sync)
+ 		atomic_inc(&BTRFS_I(inode)->sync_writers);
+ 
+-	if (file->f_flags & O_DIRECT) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		num_written = __btrfs_direct_write(iocb, from, pos);
+ 	} else {
+ 		num_written = __btrfs_buffered_write(file, from, pos);
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 3f0b9339d823..b9b8eb225f66 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -457,7 +457,7 @@ static ssize_t ceph_sync_read(struct kiocb *iocb, struct iov_iter *i,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	if (file->f_flags & O_DIRECT) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		while (iov_iter_count(i)) {
+ 			size_t start;
+ 			ssize_t n;
+@@ -828,7 +828,7 @@ static ssize_t ceph_read_iter(struct kiocb *iocb, struct iov_iter *to)
+ 		return ret;
+ 
+ 	if ((got & (CEPH_CAP_FILE_CACHE|CEPH_CAP_FILE_LAZYIO)) == 0 ||
+-	    (iocb->ki_filp->f_flags & O_DIRECT) ||
++	    (iocb->ki_flags & IOCB_DIRECT) ||
+ 	    (fi->flags & CEPH_F_SYNC)) {
+ 
+ 		dout("aio_sync_read %p %llx.%llx %llu~%u got cap refs on %s\n",
+@@ -995,12 +995,12 @@ static ssize_t ceph_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	     inode, ceph_vinop(inode), pos, count, ceph_cap_string(got));
+ 
+ 	if ((got & (CEPH_CAP_FILE_BUFFER|CEPH_CAP_FILE_LAZYIO)) == 0 ||
+-	    (file->f_flags & O_DIRECT) || (fi->flags & CEPH_F_SYNC)) {
++	    (iocb->ki_flags & IOCB_DIRECT) || (fi->flags & CEPH_F_SYNC)) {
+ 		struct iov_iter data;
+ 		mutex_unlock(&inode->i_mutex);
+ 		/* we might need to revert back to that point */
+ 		data = *from;
+-		if (file->f_flags & O_DIRECT)
++		if (iocb->ki_flags & IOCB_DIRECT)
+ 			written = ceph_sync_direct_write(iocb, &data, pos);
+ 		else
+ 			written = ceph_sync_write(iocb, &data, pos);
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index c10785f10d1d..53bbc0b1995f 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -95,7 +95,7 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct inode *inode = file_inode(iocb->ki_filp);
+ 	struct mutex *aio_mutex = NULL;
+ 	struct blk_plug plug;
+-	int o_direct = io_is_direct(file);
++	int o_direct = iocb->ki_flags & IOCB_DIRECT;
+ 	int overwrite = 0;
+ 	ssize_t ret;
+ 
+@@ -106,7 +106,7 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	if (o_direct &&
+ 	    ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS) &&
+ 	    !is_sync_kiocb(iocb) &&
+-	    (file->f_flags & O_APPEND ||
++	    (iocb->ki_flags & IOCB_APPEND ||
+ 	     ext4_unaligned_aio(inode, from, iocb->ki_pos))) {
+ 		aio_mutex = ext4_aio_mutex(inode);
+ 		mutex_lock(aio_mutex);
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index b86c8e08399a..5ef05b5c4cff 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1177,7 +1177,7 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	if (err)
+ 		goto out;
+ 
+-	if (file->f_flags & O_DIRECT) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		loff_t pos = iocb->ki_pos;
+ 		written = generic_file_direct_write(iocb, from, pos);
+ 		if (written < 0 || !iov_iter_count(from))
+diff --git a/fs/gfs2/file.c b/fs/gfs2/file.c
+index 614bb42cb7e1..08329afa1339 100644
+--- a/fs/gfs2/file.c
++++ b/fs/gfs2/file.c
+@@ -709,7 +709,7 @@ static ssize_t gfs2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	gfs2_size_hint(file, iocb->ki_pos, iov_iter_count(from));
+ 
+-	if (file->f_flags & O_APPEND) {
++	if (iocb->ki_flags & IOCB_APPEND) {
+ 		struct gfs2_holder gh;
+ 
+ 		ret = gfs2_glock_nq_init(ip->i_gl, LM_ST_SHARED, 0, &gh);
+diff --git a/fs/nfs/file.c b/fs/nfs/file.c
+index f6a3adedf027..14364dc001f7 100644
+--- a/fs/nfs/file.c
++++ b/fs/nfs/file.c
+@@ -170,7 +170,7 @@ nfs_file_read(struct kiocb *iocb, struct iov_iter *to)
+ 	struct inode *inode = file_inode(iocb->ki_filp);
+ 	ssize_t result;
+ 
+-	if (iocb->ki_filp->f_flags & O_DIRECT)
++	if (iocb->ki_flags & IOCB_DIRECT)
+ 		return nfs_file_direct_read(iocb, to, iocb->ki_pos);
+ 
+ 	dprintk("NFS: read(%pD2, %zu@%lu)\n",
+@@ -680,7 +680,7 @@ ssize_t nfs_file_write(struct kiocb *iocb, struct iov_iter *from)
+ 	if (result)
+ 		return result;
+ 
+-	if (file->f_flags & O_DIRECT)
++	if (iocb->ki_flags & IOCB_DIRECT)
+ 		return nfs_file_direct_write(iocb, from, pos);
+ 
+ 	dprintk("NFS: write(%pD2, %zu@%Ld)\n",
+@@ -692,7 +692,7 @@ ssize_t nfs_file_write(struct kiocb *iocb, struct iov_iter *from)
+ 	/*
+ 	 * O_APPEND implies that we must revalidate the file length.
+ 	 */
+-	if (file->f_flags & O_APPEND) {
++	if (iocb->ki_flags & IOCB_APPEND) {
+ 		result = nfs_revalidate_file_size(inode, file);
+ 		if (result)
+ 			goto out;
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index b93919f50f0f..cd37f6cd4d51 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2274,8 +2274,8 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 	if (count == 0)
+ 		return 0;
+ 
+-	appending = file->f_flags & O_APPEND ? 1 : 0;
+-	direct_io = file->f_flags & O_DIRECT ? 1 : 0;
++	appending = iocb->ki_flags & IOCB_APPEND ? 1 : 0;
++	direct_io = iocb->ki_flags & IOCB_DIRECT ? 1 : 0;
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 
+@@ -2429,7 +2429,7 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 
+ out_dio:
+ 	/* buffered aio wouldn't have proper lock coverage today */
+-	BUG_ON(ret == -EIOCBQUEUED && !(file->f_flags & O_DIRECT));
++	BUG_ON(ret == -EIOCBQUEUED && !(iocb->ki_flags & IOCB_DIRECT));
+ 
+ 	if (unlikely(written <= 0))
+ 		goto no_sync;
+@@ -2546,7 +2546,7 @@ static ssize_t ocfs2_file_read_iter(struct kiocb *iocb,
+ 	 * buffered reads protect themselves in ->readpage().  O_DIRECT reads
+ 	 * need locks to protect pending reads from racing with truncate.
+ 	 */
+-	if (filp->f_flags & O_DIRECT) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		have_alloc_sem = 1;
+ 		ocfs2_iocb_set_sem_locked(iocb);
+ 
+@@ -2580,7 +2580,7 @@ static ssize_t ocfs2_file_read_iter(struct kiocb *iocb,
+ 	trace_generic_file_aio_read_ret(ret);
+ 
+ 	/* buffered aio wouldn't have proper lock coverage today */
+-	BUG_ON(ret == -EIOCBQUEUED && !(filp->f_flags & O_DIRECT));
++	BUG_ON(ret == -EIOCBQUEUED && !(iocb->ki_flags & IOCB_DIRECT));
+ 
+ 	/* see ocfs2_file_write_iter */
+ 	if (ret == -EIOCBQUEUED || !ocfs2_iocb_is_rw_locked(iocb)) {
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 28d157807b42..1f12ad0a8585 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -279,7 +279,7 @@ xfs_file_read_iter(
+ 
+ 	XFS_STATS_INC(xs_read_calls);
+ 
+-	if (unlikely(file->f_flags & O_DIRECT))
++	if (unlikely(iocb->ki_flags & IOCB_DIRECT))
+ 		ioflags |= XFS_IO_ISDIRECT;
+ 	if (file->f_mode & FMODE_NOCMTIME)
+ 		ioflags |= XFS_IO_INVIS;
+@@ -804,7 +804,7 @@ xfs_file_write_iter(
+ 	if (XFS_FORCED_SHUTDOWN(ip->i_mount))
+ 		return -EIO;
+ 
+-	if (unlikely(file->f_flags & O_DIRECT))
++	if (unlikely(iocb->ki_flags & IOCB_DIRECT))
+ 		ret = xfs_file_dio_aio_write(iocb, from);
+ 	else
+ 		ret = xfs_file_buffered_aio_write(iocb, from);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index b4aa400ac723..b1d7db28c13c 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -315,6 +315,8 @@ struct address_space;
+ struct writeback_control;
+ 
+ #define IOCB_EVENTFD		(1 << 0)
++#define IOCB_APPEND		(1 << 1)
++#define IOCB_DIRECT		(1 << 2)
+ 
+ struct kiocb {
+ 	struct file		*ki_filp;
+@@ -329,10 +331,13 @@ static inline bool is_sync_kiocb(struct kiocb *kiocb)
+ 	return kiocb->ki_complete == NULL;
+ }
+ 
++static inline int iocb_flags(struct file *file);
++
+ static inline void init_sync_kiocb(struct kiocb *kiocb, struct file *filp)
+ {
+ 	*kiocb = (struct kiocb) {
+ 		.ki_filp = filp,
++		.ki_flags = iocb_flags(filp),
+ 	};
+ }
+ 
+@@ -2779,6 +2784,16 @@ static inline bool io_is_direct(struct file *filp)
+ 	return (filp->f_flags & O_DIRECT) || IS_DAX(file_inode(filp));
+ }
+ 
++static inline int iocb_flags(struct file *file)
++{
++	int res = 0;
++	if (file->f_flags & O_APPEND)
++		res |= IOCB_APPEND;
++	if (io_is_direct(file))
++		res |= IOCB_DIRECT;
++	return res;
++}
++
+ static inline ino_t parent_ino(struct dentry *dentry)
+ {
+ 	ino_t res;
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 243997a26e7c..405de370e657 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -1694,7 +1694,7 @@ generic_file_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 	loff_t *ppos = &iocb->ki_pos;
+ 	loff_t pos = *ppos;
+ 
+-	if (io_is_direct(file)) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		struct address_space *mapping = file->f_mapping;
+ 		struct inode *inode = mapping->host;
+ 		size_t count = iov_iter_count(iter);
+@@ -2271,7 +2271,7 @@ inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
+ 		return 0;
+ 
+ 	/* FIXME: this is for backwards compatibility with 2.4 */
+-	if (file->f_flags & O_APPEND)
++	if (iocb->ki_flags & IOCB_APPEND)
+ 		iocb->ki_pos = i_size_read(inode);
+ 
+ 	pos = iocb->ki_pos;
+@@ -2545,7 +2545,7 @@ ssize_t __generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	if (err)
+ 		goto out;
+ 
+-	if (io_is_direct(file)) {
++	if (iocb->ki_flags & IOCB_DIRECT) {
+ 		loff_t pos, endbyte;
+ 
+ 		written = generic_file_direct_write(iocb, from, iocb->ki_pos);
+-- 
+2.17.0
+

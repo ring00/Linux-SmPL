@@ -1,0 +1,236 @@
+From d3828147079551189e1350c6676cd961de904cf2 Mon Sep 17 00:00:00 2001
+From: Eric Engestrom <eric.engestrom@imgtec.com>
+Date: Mon, 15 Aug 2016 16:29:55 +0100
+Subject: [PATCH] drm: remove `const` attribute to hint at caller that they now
+ own the memory
+
+Signed-off-by: Eric Engestrom <eric.engestrom@imgtec.com>
+Reviewed-by: Jani Nikula <jani.nikula@intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/amd/amdgpu/dce_v10_0.c          | 2 +-
+ drivers/gpu/drm/amd/amdgpu/dce_v11_0.c          | 2 +-
+ drivers/gpu/drm/amd/amdgpu/dce_v8_0.c           | 2 +-
+ drivers/gpu/drm/drm_atomic.c                    | 2 +-
+ drivers/gpu/drm/drm_crtc.c                      | 8 ++++----
+ drivers/gpu/drm/drm_fourcc.c                    | 4 ++--
+ drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c | 2 +-
+ drivers/gpu/drm/i915/i915_debugfs.c             | 2 +-
+ drivers/gpu/drm/i915/intel_atomic_plane.c       | 2 +-
+ drivers/gpu/drm/i915/intel_display.c            | 4 ++--
+ drivers/gpu/drm/radeon/atombios_crtc.c          | 4 ++--
+ include/drm/drm_fourcc.h                        | 2 +-
+ 12 files changed, 18 insertions(+), 18 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+index 0bf895920fbc..741da36cd8b6 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+@@ -2071,7 +2071,7 @@ static int dce_v10_0_crtc_do_set_base(struct drm_crtc *crtc,
+ 	u32 tmp, viewport_w, viewport_h;
+ 	int r;
+ 	bool bypass_lut = false;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	/* no fb bound */
+ 	if (!atomic && !crtc->primary->fb) {
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+index 1558a974ad00..2282eb60aba6 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+@@ -2046,7 +2046,7 @@ static int dce_v11_0_crtc_do_set_base(struct drm_crtc *crtc,
+ 	u32 tmp, viewport_w, viewport_h;
+ 	int r;
+ 	bool bypass_lut = false;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	/* no fb bound */
+ 	if (!atomic && !crtc->primary->fb) {
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+index 71a037546dae..8b7ad345771f 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+@@ -1952,7 +1952,7 @@ static int dce_v8_0_crtc_do_set_base(struct drm_crtc *crtc,
+ 	u32 viewport_w, viewport_h;
+ 	int r;
+ 	bool bypass_lut = false;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	/* no fb bound */
+ 	if (!atomic && !crtc->primary->fb) {
+diff --git a/drivers/gpu/drm/drm_atomic.c b/drivers/gpu/drm/drm_atomic.c
+index 087391f08a69..5cb2e22d5d55 100644
+--- a/drivers/gpu/drm/drm_atomic.c
++++ b/drivers/gpu/drm/drm_atomic.c
+@@ -837,7 +837,7 @@ static int drm_atomic_plane_check(struct drm_plane *plane,
+ 	/* Check whether this plane supports the fb pixel format. */
+ 	ret = drm_plane_check_pixel_format(plane, state->fb->pixel_format);
+ 	if (ret) {
+-		const char *format_name = drm_get_format_name(state->fb->pixel_format);
++		char *format_name = drm_get_format_name(state->fb->pixel_format);
+ 		DRM_DEBUG_ATOMIC("Invalid pixel format %s\n", format_name);
+ 		kfree(format_name);
+ 		return ret;
+diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+index f4e3ebebe79a..93ea5ddd1e49 100644
+--- a/drivers/gpu/drm/drm_crtc.c
++++ b/drivers/gpu/drm/drm_crtc.c
+@@ -2592,7 +2592,7 @@ static int __setplane_internal(struct drm_plane *plane,
+ 	/* Check whether this plane supports the fb pixel format. */
+ 	ret = drm_plane_check_pixel_format(plane, fb->pixel_format);
+ 	if (ret) {
+-		const char *format_name = drm_get_format_name(fb->pixel_format);
++		char *format_name = drm_get_format_name(fb->pixel_format);
+ 		DRM_DEBUG_KMS("Invalid pixel format %s\n", format_name);
+ 		kfree(format_name);
+ 		goto out;
+@@ -2903,7 +2903,7 @@ int drm_mode_setcrtc(struct drm_device *dev, void *data,
+ 			ret = drm_plane_check_pixel_format(crtc->primary,
+ 							   fb->pixel_format);
+ 			if (ret) {
+-				const char *format_name = drm_get_format_name(fb->pixel_format);
++				char *format_name = drm_get_format_name(fb->pixel_format);
+ 				DRM_DEBUG_KMS("Invalid pixel format %s\n", format_name);
+ 				kfree(format_name);
+ 				goto out;
+@@ -3281,7 +3281,7 @@ int drm_mode_addfb(struct drm_device *dev,
+ static int format_check(const struct drm_mode_fb_cmd2 *r)
+ {
+ 	uint32_t format = r->pixel_format & ~DRM_FORMAT_BIG_ENDIAN;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	switch (format) {
+ 	case DRM_FORMAT_C8:
+@@ -3359,7 +3359,7 @@ static int framebuffer_check(const struct drm_mode_fb_cmd2 *r)
+ 
+ 	ret = format_check(r);
+ 	if (ret) {
+-		const char *format_name = drm_get_format_name(r->pixel_format);
++		char *format_name = drm_get_format_name(r->pixel_format);
+ 		DRM_DEBUG_KMS("bad framebuffer format %s\n", format_name);
+ 		kfree(format_name);
+ 		return ret;
+diff --git a/drivers/gpu/drm/drm_fourcc.c b/drivers/gpu/drm/drm_fourcc.c
+index d8f65c4fadf7..c81546c15c93 100644
+--- a/drivers/gpu/drm/drm_fourcc.c
++++ b/drivers/gpu/drm/drm_fourcc.c
+@@ -42,7 +42,7 @@ static char printable_char(int c)
+  * Note that the buffer returned by this function is owned by the caller
+  * and will need to be freed using kfree().
+  */
+-const char *drm_get_format_name(uint32_t format)
++char *drm_get_format_name(uint32_t format)
+ {
+ 	char *buf = kmalloc(32, GFP_KERNEL);
+ 
+@@ -71,7 +71,7 @@ EXPORT_SYMBOL(drm_get_format_name);
+ void drm_fb_get_bpp_depth(uint32_t format, unsigned int *depth,
+ 			  int *bpp)
+ {
+-	const char *format_name;
++	char *format_name;
+ 
+ 	switch (format) {
+ 	case DRM_FORMAT_C8:
+diff --git a/drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c b/drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+index ac7fa02b341f..eaa3df75fc5c 100644
+--- a/drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
++++ b/drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+@@ -608,7 +608,7 @@ static void ade_rdma_set(void __iomem *base, struct drm_framebuffer *fb,
+ 			 u32 ch, u32 y, u32 in_h, u32 fmt)
+ {
+ 	struct drm_gem_cma_object *obj = drm_fb_cma_get_gem_obj(fb, 0);
+-	const char *format_name;
++	char *format_name;
+ 	u32 reg_ctrl, reg_addr, reg_size, reg_stride, reg_space, reg_en;
+ 	u32 stride = fb->pitches[0];
+ 	u32 addr = (u32)obj->paddr + y * stride;
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 120869e7622d..64e41cf74d11 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -3113,7 +3113,7 @@ static void intel_plane_info(struct seq_file *m, struct intel_crtc *intel_crtc)
+ 	for_each_intel_plane_on_crtc(dev, intel_crtc, intel_plane) {
+ 		struct drm_plane_state *state;
+ 		struct drm_plane *plane = &intel_plane->base;
+-		const char *format_name;
++		char *format_name;
+ 
+ 		if (!plane->state) {
+ 			seq_puts(m, "plane->state is NULL!\n");
+diff --git a/drivers/gpu/drm/i915/intel_atomic_plane.c b/drivers/gpu/drm/i915/intel_atomic_plane.c
+index 98288d87c2ce..b82de3072d4f 100644
+--- a/drivers/gpu/drm/i915/intel_atomic_plane.c
++++ b/drivers/gpu/drm/i915/intel_atomic_plane.c
+@@ -143,7 +143,7 @@ static int intel_plane_atomic_check(struct drm_plane *plane,
+ 		crtc_state->base.enable ? crtc_state->pipe_src_h : 0;
+ 
+ 	if (state->fb && intel_rotation_90_or_270(state->rotation)) {
+-		const char *format_name;
++		char *format_name;
+ 		if (!(state->fb->modifier[0] == I915_FORMAT_MOD_Y_TILED ||
+ 			state->fb->modifier[0] == I915_FORMAT_MOD_Yf_TILED)) {
+ 			DRM_DEBUG_KMS("Y/Yf tiling required for 90/270!\n");
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index acc1ba36c5fa..3902e57d9df5 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -12258,7 +12258,7 @@ static void intel_dump_pipe_config(struct intel_crtc *crtc,
+ 
+ 	DRM_DEBUG_KMS("planes on this crtc\n");
+ 	list_for_each_entry(plane, &dev->mode_config.plane_list, head) {
+-		const char *format_name;
++		char *format_name;
+ 		intel_plane = to_intel_plane(plane);
+ 		if (intel_plane->pipe != crtc->pipe)
+ 			continue;
+@@ -14915,7 +14915,7 @@ static int intel_framebuffer_init(struct drm_device *dev,
+ 	unsigned int aligned_height;
+ 	int ret;
+ 	u32 pitch_limit, stride_alignment;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	WARN_ON(!mutex_is_locked(&dev->struct_mutex));
+ 
+diff --git a/drivers/gpu/drm/radeon/atombios_crtc.c b/drivers/gpu/drm/radeon/atombios_crtc.c
+index 981ca3f5842e..a89c4803aced 100644
+--- a/drivers/gpu/drm/radeon/atombios_crtc.c
++++ b/drivers/gpu/drm/radeon/atombios_crtc.c
+@@ -1154,7 +1154,7 @@ static int dce4_crtc_do_set_base(struct drm_crtc *crtc,
+ 	u32 tmp, viewport_w, viewport_h;
+ 	int r;
+ 	bool bypass_lut = false;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	/* no fb bound */
+ 	if (!atomic && !crtc->primary->fb) {
+@@ -1471,7 +1471,7 @@ static int avivo_crtc_do_set_base(struct drm_crtc *crtc,
+ 	u32 viewport_w, viewport_h;
+ 	int r;
+ 	bool bypass_lut = false;
+-	const char *format_name;
++	char *format_name;
+ 
+ 	/* no fb bound */
+ 	if (!atomic && !crtc->primary->fb) {
+diff --git a/include/drm/drm_fourcc.h b/include/drm/drm_fourcc.h
+index 030d22d3ed96..b106337de1bf 100644
+--- a/include/drm/drm_fourcc.h
++++ b/include/drm/drm_fourcc.h
+@@ -32,6 +32,6 @@ int drm_format_horz_chroma_subsampling(uint32_t format);
+ int drm_format_vert_chroma_subsampling(uint32_t format);
+ int drm_format_plane_width(int width, uint32_t format, int plane);
+ int drm_format_plane_height(int height, uint32_t format, int plane);
+-const char *drm_get_format_name(uint32_t format) __malloc;
++char *drm_get_format_name(uint32_t format) __malloc;
+ 
+ #endif /* __DRM_FOURCC_H__ */
+-- 
+2.17.0
+

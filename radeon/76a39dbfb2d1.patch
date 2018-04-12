@@ -1,0 +1,232 @@
+From 76a39dbfb2d1bc45219839e5a95d4ceaf6ca114f Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Sun, 20 Jan 2013 23:12:54 +0100
+Subject: [PATCH] drm/fb-helper: don't disable everything in initial_config
+
+This should be done in the drivers for two reasons:
+- it gets in the way of fastboot efforts
+- it links the fb helpers with the crtc helpers instead of going
+  through the real interface vfuncs, forcing i915 to fake all the
+  ->disable callbacks used by the crtc helper to avoid ugly Oopsen
+
+v2: Resolve conflicts since drivers still call
+drm_fb_helper_single_add_all_connectors.
+
+Reviewed-by: Rob Clark <robdclark@gmail.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/ast/ast_fb.c              | 5 +++++
+ drivers/gpu/drm/cirrus/cirrus_fbdev.c     | 4 ++++
+ drivers/gpu/drm/drm_fb_cma_helper.c       | 3 +++
+ drivers/gpu/drm/drm_fb_helper.c           | 3 ---
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c | 3 +++
+ drivers/gpu/drm/gma500/framebuffer.c      | 4 ++++
+ drivers/gpu/drm/i915/intel_fb.c           | 3 +++
+ drivers/gpu/drm/mgag200/mgag200_fb.c      | 5 +++++
+ drivers/gpu/drm/nouveau/nouveau_fbcon.c   | 3 +++
+ drivers/gpu/drm/radeon/radeon_fb.c        | 4 ++++
+ drivers/gpu/drm/udl/udl_fb.c              | 4 ++++
+ drivers/staging/omapdrm/omap_fbdev.c      | 4 ++++
+ 12 files changed, 42 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_fb.c b/drivers/gpu/drm/ast/ast_fb.c
+index 3e6584b940dc..81763cad9940 100644
+--- a/drivers/gpu/drm/ast/ast_fb.c
++++ b/drivers/gpu/drm/ast/ast_fb.c
+@@ -40,6 +40,7 @@
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ #include "ast_drv.h"
+ 
+ static void ast_dirty_update(struct ast_fbdev *afbdev,
+@@ -314,6 +315,10 @@ int ast_fbdev_init(struct drm_device *dev)
+ 	}
+ 
+ 	drm_fb_helper_single_add_all_connectors(&afbdev->helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	drm_fb_helper_initial_config(&afbdev->helper, 32);
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/cirrus/cirrus_fbdev.c b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+index 3daea0f638c3..b96605c6e1b6 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_fbdev.c
++++ b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+@@ -11,6 +11,7 @@
+ #include <linux/module.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include <linux/fb.h>
+ 
+@@ -291,6 +292,9 @@ int cirrus_fbdev_init(struct cirrus_device *cdev)
+ 		return ret;
+ 	}
+ 	drm_fb_helper_single_add_all_connectors(&gfbdev->helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(cdev->dev);
+ 	drm_fb_helper_initial_config(&gfbdev->helper, bpp_sel);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/drm_fb_cma_helper.c b/drivers/gpu/drm/drm_fb_cma_helper.c
+index 1b6ba2d4d60c..ef3d33a8a7e2 100644
+--- a/drivers/gpu/drm/drm_fb_cma_helper.c
++++ b/drivers/gpu/drm/drm_fb_cma_helper.c
+@@ -333,6 +333,9 @@ struct drm_fbdev_cma *drm_fbdev_cma_init(struct drm_device *dev,
+ 
+ 	}
+ 
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	ret = drm_fb_helper_initial_config(helper, preferred_bpp);
+ 	if (ret < 0) {
+ 		dev_err(dev->dev, "Failed to set inital hw configuration.\n");
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index f5d362680f2b..d841b68aaa3e 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -1360,9 +1360,6 @@ bool drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
+ 	struct drm_device *dev = fb_helper->dev;
+ 	int count = 0;
+ 
+-	/* disable all the possible outputs/crtcs before entering KMS mode */
+-	drm_helper_disable_unused_functions(fb_helper->dev);
+-
+ 	drm_fb_helper_parse_command_line(fb_helper);
+ 
+ 	count = drm_fb_helper_probe_connector_modes(fb_helper,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index 086d0f79785f..fe2a0f068af7 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -295,6 +295,9 @@ int exynos_drm_fbdev_init(struct drm_device *dev)
+ 
+ 	}
+ 
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	ret = drm_fb_helper_initial_config(helper, PREFERRED_BPP);
+ 	if (ret < 0) {
+ 		DRM_ERROR("failed to set up hw configuration.\n");
+diff --git a/drivers/gpu/drm/gma500/framebuffer.c b/drivers/gpu/drm/gma500/framebuffer.c
+index c1ef37e2efdf..fee3bf85af4a 100644
+--- a/drivers/gpu/drm/gma500/framebuffer.c
++++ b/drivers/gpu/drm/gma500/framebuffer.c
+@@ -616,6 +616,10 @@ int psb_fbdev_init(struct drm_device *dev)
+ 							INTELFB_CONN_LIMIT);
+ 
+ 	drm_fb_helper_single_add_all_connectors(&fbdev->psb_fb_helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	drm_fb_helper_initial_config(&fbdev->psb_fb_helper, 32);
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/i915/intel_fb.c b/drivers/gpu/drm/i915/intel_fb.c
+index 1c510da04d16..e67061249934 100644
+--- a/drivers/gpu/drm/i915/intel_fb.c
++++ b/drivers/gpu/drm/i915/intel_fb.c
+@@ -258,6 +258,9 @@ void intel_fbdev_initial_config(struct drm_device *dev)
+ {
+ 	drm_i915_private_t *dev_priv = dev->dev_private;
+ 
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	/* Due to peculiar init order wrt to hpd handling this is separate. */
+ 	drm_fb_helper_initial_config(&dev_priv->fbdev->helper, 32);
+ }
+diff --git a/drivers/gpu/drm/mgag200/mgag200_fb.c b/drivers/gpu/drm/mgag200/mgag200_fb.c
+index 5c69b432f99a..5bded5b74eaf 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_fb.c
++++ b/drivers/gpu/drm/mgag200/mgag200_fb.c
+@@ -13,6 +13,7 @@
+ #include <linux/module.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include <linux/fb.h>
+ 
+@@ -278,6 +279,10 @@ int mgag200_fbdev_init(struct mga_device *mdev)
+ 		return ret;
+ 	}
+ 	drm_fb_helper_single_add_all_connectors(&mfbdev->helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(mdev->dev);
++
+ 	drm_fb_helper_initial_config(&mfbdev->helper, 32);
+ 
+ 	return 0;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.c b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+index d4ecb4deb484..b1ebfe30f912 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+@@ -491,6 +491,9 @@ nouveau_fbcon_init(struct drm_device *dev)
+ 	else
+ 		preferred_bpp = 32;
+ 
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index 515e5ee1f9ee..b48d1c8cf9eb 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -379,6 +379,10 @@ int radeon_fbdev_init(struct radeon_device *rdev)
+ 	}
+ 
+ 	drm_fb_helper_single_add_all_connectors(&rfbdev->helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(rdev->ddev);
++
+ 	drm_fb_helper_initial_config(&rfbdev->helper, bpp_sel);
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
+index b9feec9d08d3..cf5d05a0d955 100644
+--- a/drivers/gpu/drm/udl/udl_fb.c
++++ b/drivers/gpu/drm/udl/udl_fb.c
+@@ -619,6 +619,10 @@ int udl_fbdev_init(struct drm_device *dev)
+ 	}
+ 
+ 	drm_fb_helper_single_add_all_connectors(&ufbdev->helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	drm_fb_helper_initial_config(&ufbdev->helper, bpp_sel);
+ 	return 0;
+ }
+diff --git a/drivers/staging/omapdrm/omap_fbdev.c b/drivers/staging/omapdrm/omap_fbdev.c
+index 2728e37e02be..7e66eb138315 100644
+--- a/drivers/staging/omapdrm/omap_fbdev.c
++++ b/drivers/staging/omapdrm/omap_fbdev.c
+@@ -369,6 +369,10 @@ struct drm_fb_helper *omap_fbdev_init(struct drm_device *dev)
+ 	}
+ 
+ 	drm_fb_helper_single_add_all_connectors(helper);
++
++	/* disable all the possible outputs/crtcs before entering KMS mode */
++	drm_helper_disable_unused_functions(dev);
++
+ 	drm_fb_helper_initial_config(helper, 32);
+ 
+ 	priv->fbdev = helper;
+-- 
+2.17.0
+

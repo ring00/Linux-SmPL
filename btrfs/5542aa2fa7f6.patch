@@ -1,0 +1,195 @@
+From 5542aa2fa7f6cddb03c4ac3135e390adffda98ca Mon Sep 17 00:00:00 2001
+From: "Eric W. Biederman" <ebiederm@xmission.com>
+Date: Thu, 13 Feb 2014 09:46:25 -0800
+Subject: [PATCH] vfs: Make d_invalidate return void
+
+Now that d_invalidate can no longer fail, stop returning a useless
+return code.  For the few callers that checked the return code update
+remove the handling of d_invalidate failure.
+
+Reviewed-by: Miklos Szeredi <miklos@szeredi.hu>
+Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/ioctl.c       |  5 +----
+ fs/cifs/readdir.c      |  6 +-----
+ fs/dcache.c            | 15 +++------------
+ fs/fuse/dir.c          |  4 +---
+ fs/namei.c             | 10 +++++-----
+ fs/nfs/dir.c           |  3 +--
+ include/linux/dcache.h |  2 +-
+ 7 files changed, 13 insertions(+), 32 deletions(-)
+
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 8a8e29878c34..996eb192fa77 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -2423,9 +2423,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 		goto out_dput;
+ 	}
+ 
+-	err = d_invalidate(dentry);
+-	if (err)
+-		goto out_unlock;
++	d_invalidate(dentry);
+ 
+ 	down_write(&root->fs_info->subvol_sem);
+ 
+@@ -2510,7 +2508,6 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 	btrfs_subvolume_release_metadata(root, &block_rsv, qgroup_reserved);
+ out_up_write:
+ 	up_write(&root->fs_info->subvol_sem);
+-out_unlock:
+ 	if (err) {
+ 		spin_lock(&dest->root_item_lock);
+ 		root_flags = btrfs_root_flags(&dest->root_item);
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index b334a89d6a66..d2141f101382 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -87,8 +87,6 @@ cifs_prime_dcache(struct dentry *parent, struct qstr *name,
+ 		return;
+ 
+ 	if (dentry) {
+-		int err;
+-
+ 		inode = dentry->d_inode;
+ 		if (inode) {
+ 			/*
+@@ -105,10 +103,8 @@ cifs_prime_dcache(struct dentry *parent, struct qstr *name,
+ 				goto out;
+ 			}
+ 		}
+-		err = d_invalidate(dentry);
++		d_invalidate(dentry);
+ 		dput(dentry);
+-		if (err)
+-			return;
+ 	}
+ 
+ 	/*
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 5e02b9eee6b1..70d102e70271 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1346,34 +1346,28 @@ static void check_and_drop(void *_data)
+  * d_invalidate - detach submounts, prune dcache, and drop
+  * @dentry: dentry to invalidate (aka detach, prune and drop)
+  *
+- * Try to invalidate the dentry if it turns out to be
+- * possible. If there are reasons not to delete it
+- * return -EBUSY. On success return 0.
+- *
+  * no dcache lock.
+  *
+  * The final d_drop is done as an atomic operation relative to
+  * rename_lock ensuring there are no races with d_set_mounted.  This
+  * ensures there are no unhashed dentries on the path to a mountpoint.
+  */
+-int d_invalidate(struct dentry *dentry)
++void d_invalidate(struct dentry *dentry)
+ {
+-	int ret = 0;
+-
+ 	/*
+ 	 * If it's already been dropped, return OK.
+ 	 */
+ 	spin_lock(&dentry->d_lock);
+ 	if (d_unhashed(dentry)) {
+ 		spin_unlock(&dentry->d_lock);
+-		return 0;
++		return;
+ 	}
+ 	spin_unlock(&dentry->d_lock);
+ 
+ 	/* Negative dentries can be dropped without further checks */
+ 	if (!dentry->d_inode) {
+ 		d_drop(dentry);
+-		goto out;
++		return;
+ 	}
+ 
+ 	for (;;) {
+@@ -1399,9 +1393,6 @@ int d_invalidate(struct dentry *dentry)
+ 
+ 		cond_resched();
+ 	}
+-
+-out:
+-	return ret;
+ }
+ EXPORT_SYMBOL(d_invalidate);
+ 
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 820efd74ca9f..dbab798f5caf 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -1286,9 +1286,7 @@ static int fuse_direntplus_link(struct file *file,
+ 			d_drop(dentry);
+ 		} else if (get_node_id(inode) != o->nodeid ||
+ 			   ((o->attr.mode ^ inode->i_mode) & S_IFMT)) {
+-			err = d_invalidate(dentry);
+-			if (err)
+-				goto out;
++			d_invalidate(dentry);
+ 		} else if (is_bad_inode(inode)) {
+ 			err = -EIO;
+ 			goto out;
+diff --git a/fs/namei.c b/fs/namei.c
+index 2ba10904dba0..d20d579a022e 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1306,7 +1306,8 @@ static struct dentry *lookup_dcache(struct qstr *name, struct dentry *dir,
+ 				if (error < 0) {
+ 					dput(dentry);
+ 					return ERR_PTR(error);
+-				} else if (!d_invalidate(dentry)) {
++				} else {
++					d_invalidate(dentry);
+ 					dput(dentry);
+ 					dentry = NULL;
+ 				}
+@@ -1435,10 +1436,9 @@ static int lookup_fast(struct nameidata *nd,
+ 			dput(dentry);
+ 			return status;
+ 		}
+-		if (!d_invalidate(dentry)) {
+-			dput(dentry);
+-			goto need_lookup;
+-		}
++		d_invalidate(dentry);
++		dput(dentry);
++		goto need_lookup;
+ 	}
+ 
+ 	path->mnt = mnt;
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index 8be6988a1c6c..06e8cfcbb670 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -486,8 +486,7 @@ void nfs_prime_dcache(struct dentry *parent, struct nfs_entry *entry)
+ 				nfs_setsecurity(dentry->d_inode, entry->fattr, entry->label);
+ 			goto out;
+ 		} else {
+-			if (d_invalidate(dentry) != 0)
+-				goto out;
++			d_invalidate(dentry);
+ 			dput(dentry);
+ 		}
+ 	}
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index 595af29ad145..81b03150f39a 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -254,7 +254,7 @@ extern struct dentry * d_obtain_root(struct inode *);
+ extern void shrink_dcache_sb(struct super_block *);
+ extern void shrink_dcache_parent(struct dentry *);
+ extern void shrink_dcache_for_umount(struct super_block *);
+-extern int d_invalidate(struct dentry *);
++extern void d_invalidate(struct dentry *);
+ 
+ /* only used at mount-time */
+ extern struct dentry * d_make_root(struct inode *);
+-- 
+2.17.0
+

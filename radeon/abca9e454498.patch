@@ -1,0 +1,144 @@
+From abca9e45449876ca4e66f7e31c850753cde344a5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Mon, 28 Oct 2013 20:50:48 +0200
+Subject: [PATCH] drm: Pass 'flags' from the caller to .get_scanout_position()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Preparation for moving the early vblank IRQ logic into
+radeon_get_crtc_scanoutpos().
+
+v2: Fix radeon_drv.c compile warning (Mario)
+
+Reviewed-by: mario.kleiner.de@gmail.com
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+---
+ drivers/gpu/drm/drm_irq.c               | 2 +-
+ drivers/gpu/drm/i915/i915_irq.c         | 3 ++-
+ drivers/gpu/drm/radeon/radeon_display.c | 7 ++++---
+ drivers/gpu/drm/radeon/radeon_drv.c     | 1 +
+ drivers/gpu/drm/radeon/radeon_mode.h    | 1 +
+ drivers/gpu/drm/radeon/radeon_pm.c      | 2 +-
+ include/drm/drmP.h                      | 2 ++
+ 7 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
+index 55239d285f25..e55619f49671 100644
+--- a/drivers/gpu/drm/drm_irq.c
++++ b/drivers/gpu/drm/drm_irq.c
+@@ -586,7 +586,7 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+ 		 * Get vertical and horizontal scanout position vpos, hpos,
+ 		 * and bounding timestamps stime, etime, pre/post query.
+ 		 */
+-		vbl_status = dev->driver->get_scanout_position(dev, crtc, &vpos,
++		vbl_status = dev->driver->get_scanout_position(dev, crtc, flags, &vpos,
+ 							       &hpos, &stime, &etime);
+ 
+ 		/*
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index eacbb2f9e091..fb4801c7d9e4 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -675,7 +675,8 @@ static bool intel_pipe_in_vblank_locked(struct drm_device *dev, enum pipe pipe)
+ }
+ 
+ static int i915_get_crtc_scanoutpos(struct drm_device *dev, int pipe,
+-			     int *vpos, int *hpos, ktime_t *stime, ktime_t *etime)
++				    unsigned int flags, int *vpos, int *hpos,
++				    ktime_t *stime, ktime_t *etime)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	struct drm_crtc *crtc = dev_priv->pipe_to_crtc_mapping[pipe];
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 7ea647b84733..567215be4728 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -306,7 +306,7 @@ void radeon_crtc_handle_flip(struct radeon_device *rdev, int crtc_id)
+ 	 * to complete in this vblank?
+ 	 */
+ 	if (update_pending &&
+-	    (DRM_SCANOUTPOS_VALID & radeon_get_crtc_scanoutpos(rdev->ddev, crtc_id,
++	    (DRM_SCANOUTPOS_VALID & radeon_get_crtc_scanoutpos(rdev->ddev, crtc_id, 0,
+ 							       &vpos, &hpos, NULL, NULL)) &&
+ 	    ((vpos >= (99 * rdev->mode_info.crtcs[crtc_id]->base.hwmode.crtc_vdisplay)/100) ||
+ 	     (vpos < 0 && !ASIC_IS_AVIVO(rdev)))) {
+@@ -1610,6 +1610,7 @@ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+  *
+  * \param dev Device to query.
+  * \param crtc Crtc to query.
++ * \param flags Flags from caller (DRM_CALLED_FROM_VBLIRQ or 0).
+  * \param *vpos Location where vertical scanout position should be stored.
+  * \param *hpos Location where horizontal scanout position should go.
+  * \param *stime Target location for timestamp taken immediately before
+@@ -1631,8 +1632,8 @@ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+  * unknown small number of scanlines wrt. real scanout position.
+  *
+  */
+-int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, int *vpos, int *hpos,
+-			       ktime_t *stime, ktime_t *etime)
++int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int flags,
++			       int *vpos, int *hpos, ktime_t *stime, ktime_t *etime)
+ {
+ 	u32 stat_crtc = 0, vbl = 0, position = 0;
+ 	int vbl_start, vbl_end, vtotal, ret = 0;
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index 67fadcf4590f..1235a78fbba1 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -109,6 +109,7 @@ int radeon_gem_object_open(struct drm_gem_object *obj,
+ void radeon_gem_object_close(struct drm_gem_object *obj,
+ 				struct drm_file *file_priv);
+ extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
++				      unsigned int flags,
+ 				      int *vpos, int *hpos, ktime_t *stime,
+ 				      ktime_t *etime);
+ extern const struct drm_ioctl_desc radeon_ioctls_kms[];
+diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
+index 28bba631b80c..b8e37a6d6f4e 100644
+--- a/drivers/gpu/drm/radeon/radeon_mode.h
++++ b/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -800,6 +800,7 @@ extern int radeon_crtc_cursor_move(struct drm_crtc *crtc,
+ 				   int x, int y);
+ 
+ extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
++				      unsigned int flags,
+ 				      int *vpos, int *hpos, ktime_t *stime,
+ 				      ktime_t *etime);
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_pm.c b/drivers/gpu/drm/radeon/radeon_pm.c
+index 0b24c4c7dcf9..eee1b6831b06 100644
+--- a/drivers/gpu/drm/radeon/radeon_pm.c
++++ b/drivers/gpu/drm/radeon/radeon_pm.c
+@@ -1482,7 +1482,7 @@ static bool radeon_pm_in_vbl(struct radeon_device *rdev)
+ 	 */
+ 	for (crtc = 0; (crtc < rdev->num_crtc) && in_vbl; crtc++) {
+ 		if (rdev->pm.active_crtcs & (1 << crtc)) {
+-			vbl_status = radeon_get_crtc_scanoutpos(rdev->ddev, crtc, &vpos, &hpos, NULL, NULL);
++			vbl_status = radeon_get_crtc_scanoutpos(rdev->ddev, crtc, 0, &vpos, &hpos, NULL, NULL);
+ 			if ((vbl_status & DRM_SCANOUTPOS_VALID) &&
+ 			    !(vbl_status & DRM_SCANOUTPOS_INVBL))
+ 				in_vbl = false;
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 3f57c77acef8..04086c5be930 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -845,6 +845,7 @@ struct drm_driver {
+ 	 *
+ 	 * \param dev  DRM device.
+ 	 * \param crtc Id of the crtc to query.
++	 * \param flags Flags from the caller (DRM_CALLED_FROM_VBLIRQ or 0).
+ 	 * \param *vpos Target location for current vertical scanout position.
+ 	 * \param *hpos Target location for current horizontal scanout position.
+ 	 * \param *stime Target location for timestamp taken immediately before
+@@ -867,6 +868,7 @@ struct drm_driver {
+ 	 *
+ 	 */
+ 	int (*get_scanout_position) (struct drm_device *dev, int crtc,
++				     unsigned int flags,
+ 				     int *vpos, int *hpos, ktime_t *stime,
+ 				     ktime_t *etime);
+ 
+-- 
+2.17.0
+

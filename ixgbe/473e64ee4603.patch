@@ -1,0 +1,83 @@
+From 473e64ee4603671efa1e0785418e56e9ffdfc47b Mon Sep 17 00:00:00 2001
+From: Ben Hutchings <bhutchings@solarflare.com>
+Date: Tue, 6 Sep 2011 13:52:47 +0000
+Subject: [PATCH] ethtool: Update ethtool_rxnfc::rule_cnt on return from
+ ETHTOOL_GRXCLSRLALL
+
+A user-space process must use ETHTOOL_GRXCLSRLCNT to find the number
+of classification rules, then allocate a buffer of the right size,
+then use ETHTOOL_GRXCLSRLALL to fill the buffer.  If some other
+process inserts or deletes a rule between those two operations,
+the user buffer might turn out to be the wrong size.
+
+If it's too small, the return value will be -EMSGSIZE.  But if it's
+too large, there is no indication of this.  Fix this by updating
+the rule_cnt field on return.
+
+Signed-off-by: Ben Hutchings <bhutchings@solarflare.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/freescale/gianfar_ethtool.c | 1 +
+ drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c | 2 ++
+ drivers/net/ethernet/sun/niu.c                   | 2 ++
+ include/linux/ethtool.h                          | 6 +++---
+ 4 files changed, 8 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/freescale/gianfar_ethtool.c b/drivers/net/ethernet/freescale/gianfar_ethtool.c
+index 42238301c425..f30b96fee840 100644
+--- a/drivers/net/ethernet/freescale/gianfar_ethtool.c
++++ b/drivers/net/ethernet/freescale/gianfar_ethtool.c
+@@ -1676,6 +1676,7 @@ static int gfar_get_cls_all(struct gfar_private *priv,
+ 	}
+ 
+ 	cmd->data = MAX_FILER_IDX;
++	cmd->rule_cnt = i;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+index c0003babc06b..b8410bcaa898 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+@@ -2283,6 +2283,8 @@ static int ixgbe_get_ethtool_fdir_all(struct ixgbe_adapter *adapter,
+ 		cnt++;
+ 	}
+ 
++	cmd->rule_cnt = cnt;
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/niu.c
+index 5e1e1d2748ae..d1338885dc8b 100644
+--- a/drivers/net/ethernet/sun/niu.c
++++ b/drivers/net/ethernet/sun/niu.c
+@@ -7299,6 +7299,8 @@ static int niu_get_ethtool_tcam_all(struct niu *np,
+ 	}
+ 	niu_unlock_parent(np, flags);
+ 
++	nfc->rule_cnt = cnt;
++
+ 	return ret;
+ }
+ 
+diff --git a/include/linux/ethtool.h b/include/linux/ethtool.h
+index 5d4a06accd82..45f00b61c096 100644
+--- a/include/linux/ethtool.h
++++ b/include/linux/ethtool.h
+@@ -496,9 +496,9 @@ struct ethtool_rx_flow_spec {
+  *
+  * For %ETHTOOL_GRXCLSRLALL, @rule_cnt specifies the array size of the
+  * user buffer for @rule_locs on entry.  On return, @data is the size
+- * of the rule table and @rule_locs contains the locations of the
+- * defined rules.  Drivers must use the second parameter to get_rxnfc()
+- * instead of @rule_locs.
++ * of the rule table, @rule_cnt is the number of defined rules, and
++ * @rule_locs contains the locations of the defined rules.  Drivers
++ * must use the second parameter to get_rxnfc() instead of @rule_locs.
+  *
+  * For %ETHTOOL_SRXCLSRLINS, @fs specifies the rule to add or update.
+  * @fs.@location specifies the location to use and must not be ignored.
+-- 
+2.17.0
+

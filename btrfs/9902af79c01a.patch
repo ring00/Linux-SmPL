@@ -1,0 +1,321 @@
+From 9902af79c01a8e39bb99b922fa3eef6d4ea23d69 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 15 Apr 2016 15:08:36 -0400
+Subject: [PATCH] parallel lookups: actual switch to rwsem
+
+ta-da!
+
+The main issue is the lack of down_write_killable(), so the places
+like readdir.c switched to plain inode_lock(); once killable
+variants of rwsem primitives appear, that'll be dealt with.
+
+lockdep side also might need more work
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/porting | 18 ++++++++++++++++++
+ fs/btrfs/ioctl.c                  | 18 +++++++++++-------
+ fs/configfs/inode.c               |  2 +-
+ fs/dcache.c                       |  9 +++++----
+ fs/gfs2/ops_fstype.c              |  2 +-
+ fs/inode.c                        | 12 ++++++------
+ fs/namei.c                        |  4 ++--
+ fs/ocfs2/inode.c                  |  2 +-
+ fs/overlayfs/readdir.c            |  4 +++-
+ fs/readdir.c                      |  7 ++++---
+ include/linux/fs.h                | 27 +++++++++++++++++++++------
+ 11 files changed, 73 insertions(+), 32 deletions(-)
+
+diff --git a/Documentation/filesystems/porting b/Documentation/filesystems/porting
+index 8810e2367fe6..1567a53857bd 100644
+--- a/Documentation/filesystems/porting
++++ b/Documentation/filesystems/porting
+@@ -539,3 +539,21 @@ in your dentry operations instead.
+ 	it's a symlink.  Checking ->i_mode is really needed now.  In-tree we had
+ 	to fix shmem_destroy_callback() that used to take that kind of shortcut;
+ 	watch out, since that shortcut is no longer valid.
++--
++[mandatory]
++	->i_mutex is replaced with ->i_rwsem now.  inode_lock() et.al. work as
++	they used to - they just take it exclusive.  However, ->lookup() may be
++	called with parent locked shared.  Its instances must not
++		* use d_instantiate) and d_rehash() separately - use d_add() or
++		  d_splice_alias() instead.
++		* use d_rehash() alone - call d_add(new_dentry, NULL) instead.
++		* in the unlikely case when (read-only) access to filesystem
++		  data structures needs exclusion for some reason, arrange it
++		  yourself.  None of the in-tree filesystems needed that.
++		* rely on ->d_parent and ->d_name not changing after dentry has
++		  been fed to d_add() or d_splice_alias().  Again, none of the
++		  in-tree instances relied upon that.
++	We are guaranteed that lookups of the same name in the same directory
++	will not happen in parallel ("same" in the sense of your ->d_compare()).
++	Lookups on different names in the same directory can and do happen in
++	parallel now.
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 5a23806ae418..0b8ba717175b 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -837,9 +837,11 @@ static noinline int btrfs_mksubvol(struct path *parent,
+ 	struct dentry *dentry;
+ 	int error;
+ 
+-	error = mutex_lock_killable_nested(&dir->i_mutex, I_MUTEX_PARENT);
+-	if (error == -EINTR)
+-		return error;
++	inode_lock_nested(dir, I_MUTEX_PARENT);
++	// XXX: should've been
++	// mutex_lock_killable_nested(&dir->i_mutex, I_MUTEX_PARENT);
++	// if (error == -EINTR)
++	//	return error;
+ 
+ 	dentry = lookup_one_len(name, parent->dentry, namelen);
+ 	error = PTR_ERR(dentry);
+@@ -2366,9 +2368,11 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 		goto out;
+ 
+ 
+-	err = mutex_lock_killable_nested(&dir->i_mutex, I_MUTEX_PARENT);
+-	if (err == -EINTR)
+-		goto out_drop_write;
++	inode_lock_nested(dir, I_MUTEX_PARENT);
++	// XXX: should've been
++	// err = mutex_lock_killable_nested(&dir->i_mutex, I_MUTEX_PARENT);
++	// if (err == -EINTR)
++	//	goto out_drop_write;
+ 	dentry = lookup_one_len(vol_args->name, parent, namelen);
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+@@ -2558,7 +2562,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 	dput(dentry);
+ out_unlock_dir:
+ 	inode_unlock(dir);
+-out_drop_write:
++//out_drop_write:
+ 	mnt_drop_write_file(file);
+ out:
+ 	kfree(vol_args);
+diff --git a/fs/configfs/inode.c b/fs/configfs/inode.c
+index 03d124ae27d7..0387968e6f47 100644
+--- a/fs/configfs/inode.c
++++ b/fs/configfs/inode.c
+@@ -156,7 +156,7 @@ static void configfs_set_inode_lock_class(struct configfs_dirent *sd,
+ 
+ 	if (depth > 0) {
+ 		if (depth <= ARRAY_SIZE(default_group_class)) {
+-			lockdep_set_class(&inode->i_mutex,
++			lockdep_set_class(&inode->i_rwsem,
+ 					  &default_group_class[depth - 1]);
+ 		} else {
+ 			/*
+diff --git a/fs/dcache.c b/fs/dcache.c
+index 59fcffcbf096..e49ba7d1b957 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -2932,7 +2932,8 @@ struct dentry *d_ancestor(struct dentry *p1, struct dentry *p2)
+ static int __d_unalias(struct inode *inode,
+ 		struct dentry *dentry, struct dentry *alias)
+ {
+-	struct mutex *m1 = NULL, *m2 = NULL;
++	struct mutex *m1 = NULL;
++	struct rw_semaphore *m2 = NULL;
+ 	int ret = -ESTALE;
+ 
+ 	/* If alias and dentry share a parent, then no extra locks required */
+@@ -2943,15 +2944,15 @@ static int __d_unalias(struct inode *inode,
+ 	if (!mutex_trylock(&dentry->d_sb->s_vfs_rename_mutex))
+ 		goto out_err;
+ 	m1 = &dentry->d_sb->s_vfs_rename_mutex;
+-	if (!inode_trylock(alias->d_parent->d_inode))
++	if (!inode_trylock_shared(alias->d_parent->d_inode))
+ 		goto out_err;
+-	m2 = &alias->d_parent->d_inode->i_mutex;
++	m2 = &alias->d_parent->d_inode->i_rwsem;
+ out_unalias:
+ 	__d_move(alias, dentry, false);
+ 	ret = 0;
+ out_err:
+ 	if (m2)
+-		mutex_unlock(m2);
++		up_read(m2);
+ 	if (m1)
+ 		mutex_unlock(m1);
+ 	return ret;
+diff --git a/fs/gfs2/ops_fstype.c b/fs/gfs2/ops_fstype.c
+index c09c63dcd7a2..45463600fb81 100644
+--- a/fs/gfs2/ops_fstype.c
++++ b/fs/gfs2/ops_fstype.c
+@@ -824,7 +824,7 @@ static int init_inodes(struct gfs2_sbd *sdp, int undo)
+ 	 * i_mutex on quota files is special. Since this inode is hidden system
+ 	 * file, we are safe to define locking ourselves.
+ 	 */
+-	lockdep_set_class(&sdp->sd_quota_inode->i_mutex,
++	lockdep_set_class(&sdp->sd_quota_inode->i_rwsem,
+ 			  &gfs2_quota_imutex_key);
+ 
+ 	error = gfs2_rindex_update(sdp);
+diff --git a/fs/inode.c b/fs/inode.c
+index 4b884f73214e..4ccbc21b30ce 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -166,8 +166,8 @@ int inode_init_always(struct super_block *sb, struct inode *inode)
+ 	spin_lock_init(&inode->i_lock);
+ 	lockdep_set_class(&inode->i_lock, &sb->s_type->i_lock_key);
+ 
+-	mutex_init(&inode->i_mutex);
+-	lockdep_set_class(&inode->i_mutex, &sb->s_type->i_mutex_key);
++	init_rwsem(&inode->i_rwsem);
++	lockdep_set_class(&inode->i_rwsem, &sb->s_type->i_mutex_key);
+ 
+ 	atomic_set(&inode->i_dio_count, 0);
+ 
+@@ -925,13 +925,13 @@ void lockdep_annotate_inode_mutex_key(struct inode *inode)
+ 		struct file_system_type *type = inode->i_sb->s_type;
+ 
+ 		/* Set new key only if filesystem hasn't already changed it */
+-		if (lockdep_match_class(&inode->i_mutex, &type->i_mutex_key)) {
++		if (lockdep_match_class(&inode->i_rwsem, &type->i_mutex_key)) {
+ 			/*
+ 			 * ensure nobody is actually holding i_mutex
+ 			 */
+-			mutex_destroy(&inode->i_mutex);
+-			mutex_init(&inode->i_mutex);
+-			lockdep_set_class(&inode->i_mutex,
++			// mutex_destroy(&inode->i_mutex);
++			init_rwsem(&inode->i_rwsem);
++			lockdep_set_class(&inode->i_rwsem,
+ 					  &type->i_mutex_dir_key);
+ 		}
+ 	}
+diff --git a/fs/namei.c b/fs/namei.c
+index 7babb5e5f276..8249852b5fc6 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1607,7 +1607,7 @@ static struct dentry *lookup_slow(const struct qstr *name,
+ 	struct inode *inode = dir->d_inode;
+ 	DECLARE_WAIT_QUEUE_HEAD_ONSTACK(wq);
+ 
+-	inode_lock(inode);
++	inode_lock_shared(inode);
+ 	/* Don't go there if it's already dead */
+ 	if (unlikely(IS_DEADDIR(inode)))
+ 		goto out;
+@@ -1638,7 +1638,7 @@ static struct dentry *lookup_slow(const struct qstr *name,
+ 		}
+ 	}
+ out:
+-	inode_unlock(inode);
++	inode_unlock_shared(inode);
+ 	return dentry;
+ }
+ 
+diff --git a/fs/ocfs2/inode.c b/fs/ocfs2/inode.c
+index 12f4a9e9800f..0748777f2e2a 100644
+--- a/fs/ocfs2/inode.c
++++ b/fs/ocfs2/inode.c
+@@ -262,7 +262,7 @@ static int ocfs2_init_locked_inode(struct inode *inode, void *opaque)
+ 	inode->i_ino = args->fi_ino;
+ 	OCFS2_I(inode)->ip_blkno = args->fi_blkno;
+ 	if (args->fi_sysfile_type != 0)
+-		lockdep_set_class(&inode->i_mutex,
++		lockdep_set_class(&inode->i_rwsem,
+ 			&ocfs2_sysfile_lock_key[args->fi_sysfile_type]);
+ 	if (args->fi_sysfile_type == USER_QUOTA_SYSTEM_INODE ||
+ 	    args->fi_sysfile_type == GROUP_QUOTA_SYSTEM_INODE ||
+diff --git a/fs/overlayfs/readdir.c b/fs/overlayfs/readdir.c
+index 6ec1e43a9a54..da186ee4f846 100644
+--- a/fs/overlayfs/readdir.c
++++ b/fs/overlayfs/readdir.c
+@@ -218,7 +218,9 @@ static int ovl_check_whiteouts(struct dentry *dir, struct ovl_readdir_data *rdd)
+ 	cap_raise(override_cred->cap_effective, CAP_DAC_OVERRIDE);
+ 	old_cred = override_creds(override_cred);
+ 
+-	err = mutex_lock_killable(&dir->d_inode->i_mutex);
++	inode_lock(dir->d_inode);
++	err = 0;
++	// XXX: err = mutex_lock_killable(&dir->d_inode->i_mutex);
+ 	if (!err) {
+ 		while (rdd->first_maybe_whiteout) {
+ 			p = rdd->first_maybe_whiteout;
+diff --git a/fs/readdir.c b/fs/readdir.c
+index e69ef3b79787..bf583e848a1a 100644
+--- a/fs/readdir.c
++++ b/fs/readdir.c
+@@ -32,9 +32,10 @@ int iterate_dir(struct file *file, struct dir_context *ctx)
+ 	if (res)
+ 		goto out;
+ 
+-	res = mutex_lock_killable(&inode->i_mutex);
+-	if (res)
+-		goto out;
++	inode_lock(inode);
++	// res = mutex_lock_killable(&inode->i_mutex);
++	// if (res)
++	//	goto out;
+ 
+ 	res = -ENOENT;
+ 	if (!IS_DEADDIR(inode)) {
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 00cecc5a2f75..3018f31f7aa0 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -647,7 +647,7 @@ struct inode {
+ 
+ 	/* Misc */
+ 	unsigned long		i_state;
+-	struct mutex		i_mutex;
++	struct rw_semaphore	i_rwsem;
+ 
+ 	unsigned long		dirtied_when;	/* jiffies of first dirtying */
+ 	unsigned long		dirtied_time_when;
+@@ -734,27 +734,42 @@ enum inode_i_mutex_lock_class
+ 
+ static inline void inode_lock(struct inode *inode)
+ {
+-	mutex_lock(&inode->i_mutex);
++	down_write(&inode->i_rwsem);
+ }
+ 
+ static inline void inode_unlock(struct inode *inode)
+ {
+-	mutex_unlock(&inode->i_mutex);
++	up_write(&inode->i_rwsem);
++}
++
++static inline void inode_lock_shared(struct inode *inode)
++{
++	down_read(&inode->i_rwsem);
++}
++
++static inline void inode_unlock_shared(struct inode *inode)
++{
++	up_read(&inode->i_rwsem);
+ }
+ 
+ static inline int inode_trylock(struct inode *inode)
+ {
+-	return mutex_trylock(&inode->i_mutex);
++	return down_write_trylock(&inode->i_rwsem);
++}
++
++static inline int inode_trylock_shared(struct inode *inode)
++{
++	return down_read_trylock(&inode->i_rwsem);
+ }
+ 
+ static inline int inode_is_locked(struct inode *inode)
+ {
+-	return mutex_is_locked(&inode->i_mutex);
++	return rwsem_is_locked(&inode->i_rwsem);
+ }
+ 
+ static inline void inode_lock_nested(struct inode *inode, unsigned subclass)
+ {
+-	mutex_lock_nested(&inode->i_mutex, subclass);
++	down_write_nested(&inode->i_rwsem, subclass);
+ }
+ 
+ void lock_two_nondirectories(struct inode *, struct inode*);
+-- 
+2.17.0
+

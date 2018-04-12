@@ -1,0 +1,155 @@
+From 5fa8e0a1c6a762857ae67d1628c58b9a02362003 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Thu, 21 May 2015 16:05:53 +0200
+Subject: [PATCH] fs: Rename file_remove_suid() to file_remove_privs()
+
+file_remove_suid() is a misnomer since it removes also file capabilities
+stored in xattrs and sets S_NOSEC flag. Also should_remove_suid() tells
+something else than whether file_remove_suid() call is necessary which
+leads to bugs.
+
+Signed-off-by: Jan Kara <jack@suse.cz>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/file.c    |  2 +-
+ fs/ceph/file.c     |  2 +-
+ fs/fuse/file.c     |  2 +-
+ fs/inode.c         | 13 ++++++++-----
+ fs/ntfs/file.c     |  2 +-
+ fs/xfs/xfs_file.c  |  2 +-
+ include/linux/fs.h |  2 +-
+ mm/filemap.c       |  2 +-
+ 8 files changed, 15 insertions(+), 12 deletions(-)
+
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index b072e17479aa..86f97282779a 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1748,7 +1748,7 @@ static ssize_t btrfs_file_write_iter(struct kiocb *iocb,
+ 	}
+ 
+ 	current->backing_dev_info = inode_to_bdi(inode);
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err) {
+ 		mutex_unlock(&inode->i_mutex);
+ 		goto out;
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 3b6b522b4b31..e55fe32c6224 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -959,7 +959,7 @@ static ssize_t ceph_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	pos = iocb->ki_pos;
+ 	count = iov_iter_count(from);
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 5ef05b5c4cff..1344647965dc 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1169,7 +1169,7 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	if (err <= 0)
+ 		goto out;
+ 
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 
+diff --git a/fs/inode.c b/fs/inode.c
+index 07f4cb5eab4b..849210c155dc 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1685,7 +1685,11 @@ static int __remove_suid(struct dentry *dentry, int kill)
+ 	return notify_change(dentry, &newattrs, NULL);
+ }
+ 
+-int file_remove_suid(struct file *file)
++/*
++ * Remove special file priviledges (suid, capabilities) when file is written
++ * to or truncated.
++ */
++int file_remove_privs(struct file *file)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = d_inode(dentry);
+@@ -1711,7 +1715,7 @@ int file_remove_suid(struct file *file)
+ 
+ 	return error;
+ }
+-EXPORT_SYMBOL(file_remove_suid);
++EXPORT_SYMBOL(file_remove_privs);
+ 
+ /**
+  *	file_update_time	-	update mtime and ctime time
+@@ -1966,9 +1970,8 @@ EXPORT_SYMBOL(inode_dio_wait);
+  * inode is being instantiated).  The reason for the cmpxchg() loop
+  * --- which wouldn't be necessary if all code paths which modify
+  * i_flags actually followed this rule, is that there is at least one
+- * code path which doesn't today --- for example,
+- * __generic_file_aio_write() calls file_remove_suid() without holding
+- * i_mutex --- so we use cmpxchg() out of an abundance of caution.
++ * code path which doesn't today so we use cmpxchg() out of an abundance
++ * of caution.
+  *
+  * In the long run, i_mutex is overkill, and we should probably look
+  * at using the i_lock spinlock to protect i_flags, and then make sure
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index 7bb487e663b4..182bb93aa79c 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -382,7 +382,7 @@ static ssize_t ntfs_prepare_file_for_write(struct kiocb *iocb,
+ 	base_ni = ni;
+ 	if (NInoAttr(ni))
+ 		base_ni = ni->ext.base_ntfs_ino;
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (unlikely(err))
+ 		goto out;
+ 	/*
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 8121e75352ee..f3e4fbb59985 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -623,7 +623,7 @@ xfs_file_aio_write_checks(
+ 	 * setgid bits if the process is not being run by root.  This keeps
+ 	 * people from modifying setuid and setgid binaries.
+ 	 */
+-	return file_remove_suid(file);
++	return file_remove_privs(file);
+ }
+ 
+ /*
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 2c135ad741a9..641e68d850cf 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2553,7 +2553,7 @@ extern struct inode *new_inode_pseudo(struct super_block *sb);
+ extern struct inode *new_inode(struct super_block *sb);
+ extern void free_inode_nonrcu(struct inode *inode);
+ extern int should_remove_suid(struct dentry *);
+-extern int file_remove_suid(struct file *);
++extern int file_remove_privs(struct file *);
+ 
+ extern void __insert_inode_hash(struct inode *, unsigned long hashval);
+ static inline void insert_inode_hash(struct inode *inode)
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 6bf5e42d560a..f851e36802d5 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -2536,7 +2536,7 @@ ssize_t __generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	/* We can write back this queue in page reclaim */
+ 	current->backing_dev_info = inode_to_bdi(inode);
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 
+-- 
+2.17.0
+

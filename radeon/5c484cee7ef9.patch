@@ -1,0 +1,334 @@
+From 5c484cee7ef9c4fd29fa0ba09640d55960977145 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 24 May 2017 16:51:39 +0200
+Subject: [PATCH] drm: Remove drm_driver->set_busid hook
+
+The only special-case is pci devices, and we can easily handle this in
+the core. Do so and drop a pile of boilerplate from drivers.
+
+Acked-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Link: http://patchwork.freedesktop.org/patch/msgid/20170524145212.27837-5-daniel.vetter@ffwll.ch
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c | 1 -
+ drivers/gpu/drm/ast/ast_drv.c           | 1 -
+ drivers/gpu/drm/bochs/bochs_drv.c       | 1 -
+ drivers/gpu/drm/cirrus/cirrus_drv.c     | 1 -
+ drivers/gpu/drm/drm_internal.h          | 1 +
+ drivers/gpu/drm/drm_ioctl.c             | 4 ++--
+ drivers/gpu/drm/drm_pci.c               | 1 -
+ drivers/gpu/drm/gma500/psb_drv.c        | 1 -
+ drivers/gpu/drm/i810/i810_drv.c         | 1 -
+ drivers/gpu/drm/i915/i915_drv.c         | 1 -
+ drivers/gpu/drm/mga/mga_drv.c           | 1 -
+ drivers/gpu/drm/mgag200/mgag200_drv.c   | 1 -
+ drivers/gpu/drm/nouveau/nouveau_drm.c   | 1 -
+ drivers/gpu/drm/qxl/qxl_drv.c           | 2 --
+ drivers/gpu/drm/r128/r128_drv.c         | 1 -
+ drivers/gpu/drm/radeon/radeon_drv.c     | 1 -
+ drivers/gpu/drm/savage/savage_drv.c     | 1 -
+ drivers/gpu/drm/sis/sis_drv.c           | 1 -
+ drivers/gpu/drm/tdfx/tdfx_drv.c         | 1 -
+ drivers/gpu/drm/via/via_drv.c           | 1 -
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.c     | 1 -
+ include/drm/drm_drv.h                   | 2 --
+ include/drm/drm_pci.h                   | 7 -------
+ 23 files changed, 3 insertions(+), 31 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+index 31eddd85eb40..e7a4bce6358d 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+@@ -734,7 +734,6 @@ static struct drm_driver kms_driver = {
+ 	.open = amdgpu_driver_open_kms,
+ 	.postclose = amdgpu_driver_postclose_kms,
+ 	.lastclose = amdgpu_driver_lastclose_kms,
+-	.set_busid = drm_pci_set_busid,
+ 	.unload = amdgpu_driver_unload_kms,
+ 	.get_vblank_counter = amdgpu_get_vblank_counter_kms,
+ 	.enable_vblank = amdgpu_enable_vblank_kms,
+diff --git a/drivers/gpu/drm/ast/ast_drv.c b/drivers/gpu/drm/ast/ast_drv.c
+index fd7c9eec92e4..f6794745a024 100644
+--- a/drivers/gpu/drm/ast/ast_drv.c
++++ b/drivers/gpu/drm/ast/ast_drv.c
+@@ -197,7 +197,6 @@ static struct drm_driver driver = {
+ 
+ 	.load = ast_driver_load,
+ 	.unload = ast_driver_unload,
+-	.set_busid = drm_pci_set_busid,
+ 
+ 	.fops = &ast_fops,
+ 	.name = DRIVER_NAME,
+diff --git a/drivers/gpu/drm/bochs/bochs_drv.c b/drivers/gpu/drm/bochs/bochs_drv.c
+index aa342515ddf4..8fccd3cf000d 100644
+--- a/drivers/gpu/drm/bochs/bochs_drv.c
++++ b/drivers/gpu/drm/bochs/bochs_drv.c
+@@ -84,7 +84,6 @@ static struct drm_driver bochs_driver = {
+ 	.driver_features	= DRIVER_GEM | DRIVER_MODESET,
+ 	.load			= bochs_load,
+ 	.unload			= bochs_unload,
+-	.set_busid		= drm_pci_set_busid,
+ 	.fops			= &bochs_fops,
+ 	.name			= "bochs-drm",
+ 	.desc			= "bochs dispi vga interface (qemu stdvga)",
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.c b/drivers/gpu/drm/cirrus/cirrus_drv.c
+index d893ea21a359..c48b9eb76712 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.c
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.c
+@@ -132,7 +132,6 @@ static struct drm_driver driver = {
+ 	.driver_features = DRIVER_MODESET | DRIVER_GEM,
+ 	.load = cirrus_driver_load,
+ 	.unload = cirrus_driver_unload,
+-	.set_busid = drm_pci_set_busid,
+ 	.fops = &cirrus_driver_fops,
+ 	.name = DRIVER_NAME,
+ 	.desc = DRIVER_DESC,
+diff --git a/drivers/gpu/drm/drm_internal.h b/drivers/gpu/drm/drm_internal.h
+index 5cf9e03b5457..116de27cf8f3 100644
+--- a/drivers/gpu/drm/drm_internal.h
++++ b/drivers/gpu/drm/drm_internal.h
+@@ -32,6 +32,7 @@ void drm_lastclose(struct drm_device *dev);
+ int drm_irq_by_busid(struct drm_device *dev, void *data,
+ 		     struct drm_file *file_priv);
+ void drm_pci_agp_destroy(struct drm_device *dev);
++int drm_pci_set_busid(struct drm_device *dev, struct drm_master *master);
+ 
+ /* drm_prime.c */
+ int drm_prime_handle_to_fd_ioctl(struct drm_device *dev, void *data,
+diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
+index c8547d223e85..aa49a2241404 100644
+--- a/drivers/gpu/drm/drm_ioctl.c
++++ b/drivers/gpu/drm/drm_ioctl.c
+@@ -143,8 +143,8 @@ static int drm_set_busid(struct drm_device *dev, struct drm_file *file_priv)
+ 	if (master->unique != NULL)
+ 		drm_unset_busid(dev, master);
+ 
+-	if (dev->driver->set_busid) {
+-		ret = dev->driver->set_busid(dev, master);
++	if (dev_is_pci(dev->dev)) {
++		ret = drm_pci_set_busid(dev, master);
+ 		if (ret) {
+ 			drm_unset_busid(dev, master);
+ 			return ret;
+diff --git a/drivers/gpu/drm/drm_pci.c b/drivers/gpu/drm/drm_pci.c
+index 1eb4fc3eee20..ad31d95e77c9 100644
+--- a/drivers/gpu/drm/drm_pci.c
++++ b/drivers/gpu/drm/drm_pci.c
+@@ -149,7 +149,6 @@ int drm_pci_set_busid(struct drm_device *dev, struct drm_master *master)
+ 	master->unique_len = strlen(master->unique);
+ 	return 0;
+ }
+-EXPORT_SYMBOL(drm_pci_set_busid);
+ 
+ static int drm_pci_irq_by_busid(struct drm_device *dev, struct drm_irq_busid *p)
+ {
+diff --git a/drivers/gpu/drm/gma500/psb_drv.c b/drivers/gpu/drm/gma500/psb_drv.c
+index 1f9b35afefee..37d4c36c80f2 100644
+--- a/drivers/gpu/drm/gma500/psb_drv.c
++++ b/drivers/gpu/drm/gma500/psb_drv.c
+@@ -480,7 +480,6 @@ static struct drm_driver driver = {
+ 	.load = psb_driver_load,
+ 	.unload = psb_driver_unload,
+ 	.lastclose = psb_driver_lastclose,
+-	.set_busid = drm_pci_set_busid,
+ 
+ 	.num_ioctls = ARRAY_SIZE(psb_ioctls),
+ 	.irq_preinstall = psb_irq_preinstall,
+diff --git a/drivers/gpu/drm/i810/i810_drv.c b/drivers/gpu/drm/i810/i810_drv.c
+index 37fd0906f807..e1c35c710e24 100644
+--- a/drivers/gpu/drm/i810/i810_drv.c
++++ b/drivers/gpu/drm/i810/i810_drv.c
+@@ -59,7 +59,6 @@ static struct drm_driver driver = {
+ 	.load = i810_driver_load,
+ 	.lastclose = i810_driver_lastclose,
+ 	.preclose = i810_driver_preclose,
+-	.set_busid = drm_pci_set_busid,
+ 	.dma_quiescent = i810_driver_dma_quiescent,
+ 	.ioctls = i810_ioctls,
+ 	.fops = &i810_driver_fops,
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index 3036d4835b0f..6033355d9469 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -2622,7 +2622,6 @@ static struct drm_driver driver = {
+ 	.open = i915_driver_open,
+ 	.lastclose = i915_driver_lastclose,
+ 	.postclose = i915_driver_postclose,
+-	.set_busid = drm_pci_set_busid,
+ 
+ 	.gem_close_object = i915_gem_close_object,
+ 	.gem_free_object_unlocked = i915_gem_free_object,
+diff --git a/drivers/gpu/drm/mga/mga_drv.c b/drivers/gpu/drm/mga/mga_drv.c
+index 63ba0699d107..2a36ec611a44 100644
+--- a/drivers/gpu/drm/mga/mga_drv.c
++++ b/drivers/gpu/drm/mga/mga_drv.c
+@@ -62,7 +62,6 @@ static struct drm_driver driver = {
+ 	.load = mga_driver_load,
+ 	.unload = mga_driver_unload,
+ 	.lastclose = mga_driver_lastclose,
+-	.set_busid = drm_pci_set_busid,
+ 	.dma_quiescent = mga_driver_dma_quiescent,
+ 	.get_vblank_counter = mga_get_vblank_counter,
+ 	.enable_vblank = mga_enable_vblank,
+diff --git a/drivers/gpu/drm/mgag200/mgag200_drv.c b/drivers/gpu/drm/mgag200/mgag200_drv.c
+index 9ac007880328..53a5982a04c7 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_drv.c
++++ b/drivers/gpu/drm/mgag200/mgag200_drv.c
+@@ -91,7 +91,6 @@ static struct drm_driver driver = {
+ 	.driver_features = DRIVER_GEM | DRIVER_MODESET,
+ 	.load = mgag200_driver_load,
+ 	.unload = mgag200_driver_unload,
+-	.set_busid = drm_pci_set_busid,
+ 	.fops = &mgag200_driver_fops,
+ 	.name = DRIVER_NAME,
+ 	.desc = DRIVER_DESC,
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drm.c b/drivers/gpu/drm/nouveau/nouveau_drm.c
+index c3dc75fee700..3e1a8da9b20f 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_drm.c
+@@ -1102,7 +1102,6 @@ static int __init
+ nouveau_drm_init(void)
+ {
+ 	driver_pci = driver_stub;
+-	driver_pci.set_busid = drm_pci_set_busid;
+ 	driver_platform = driver_stub;
+ 
+ 	nouveau_display_options();
+diff --git a/drivers/gpu/drm/qxl/qxl_drv.c b/drivers/gpu/drm/qxl/qxl_drv.c
+index c2fc201d9e1b..bb2d8da7e553 100644
+--- a/drivers/gpu/drm/qxl/qxl_drv.c
++++ b/drivers/gpu/drm/qxl/qxl_drv.c
+@@ -262,8 +262,6 @@ static struct drm_driver qxl_driver = {
+ 			   DRIVER_HAVE_IRQ | DRIVER_IRQ_SHARED |
+ 			   DRIVER_ATOMIC,
+ 
+-	.set_busid = drm_pci_set_busid,
+-
+ 	.dumb_create = qxl_mode_dumb_create,
+ 	.dumb_map_offset = qxl_mode_dumb_mmap,
+ 	.dumb_destroy = drm_gem_dumb_destroy,
+diff --git a/drivers/gpu/drm/r128/r128_drv.c b/drivers/gpu/drm/r128/r128_drv.c
+index a982be57d1ef..1d43c434328d 100644
+--- a/drivers/gpu/drm/r128/r128_drv.c
++++ b/drivers/gpu/drm/r128/r128_drv.c
+@@ -62,7 +62,6 @@ static struct drm_driver driver = {
+ 	.load = r128_driver_load,
+ 	.preclose = r128_driver_preclose,
+ 	.lastclose = r128_driver_lastclose,
+-	.set_busid = drm_pci_set_busid,
+ 	.get_vblank_counter = r128_get_vblank_counter,
+ 	.enable_vblank = r128_enable_vblank,
+ 	.disable_vblank = r128_disable_vblank,
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index 6f906abd612b..dd5e86dafb29 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -545,7 +545,6 @@ static struct drm_driver kms_driver = {
+ 	.open = radeon_driver_open_kms,
+ 	.postclose = radeon_driver_postclose_kms,
+ 	.lastclose = radeon_driver_lastclose_kms,
+-	.set_busid = drm_pci_set_busid,
+ 	.unload = radeon_driver_unload_kms,
+ 	.get_vblank_counter = radeon_get_vblank_counter_kms,
+ 	.enable_vblank = radeon_enable_vblank_kms,
+diff --git a/drivers/gpu/drm/savage/savage_drv.c b/drivers/gpu/drm/savage/savage_drv.c
+index 78c6d8e9b42c..2a08da09dbcf 100644
+--- a/drivers/gpu/drm/savage/savage_drv.c
++++ b/drivers/gpu/drm/savage/savage_drv.c
+@@ -55,7 +55,6 @@ static struct drm_driver driver = {
+ 	.preclose = savage_reclaim_buffers,
+ 	.lastclose = savage_driver_lastclose,
+ 	.unload = savage_driver_unload,
+-	.set_busid = drm_pci_set_busid,
+ 	.ioctls = savage_ioctls,
+ 	.dma_ioctl = savage_bci_buffers,
+ 	.fops = &savage_driver_fops,
+diff --git a/drivers/gpu/drm/sis/sis_drv.c b/drivers/gpu/drm/sis/sis_drv.c
+index 7f05da13ea5e..cdaced381f5d 100644
+--- a/drivers/gpu/drm/sis/sis_drv.c
++++ b/drivers/gpu/drm/sis/sis_drv.c
+@@ -104,7 +104,6 @@ static struct drm_driver driver = {
+ 	.open = sis_driver_open,
+ 	.preclose = sis_reclaim_buffers_locked,
+ 	.postclose = sis_driver_postclose,
+-	.set_busid = drm_pci_set_busid,
+ 	.dma_quiescent = sis_idle,
+ 	.lastclose = sis_lastclose,
+ 	.ioctls = sis_ioctls,
+diff --git a/drivers/gpu/drm/tdfx/tdfx_drv.c b/drivers/gpu/drm/tdfx/tdfx_drv.c
+index c54138c3a376..acd5f8162bb6 100644
+--- a/drivers/gpu/drm/tdfx/tdfx_drv.c
++++ b/drivers/gpu/drm/tdfx/tdfx_drv.c
+@@ -55,7 +55,6 @@ static const struct file_operations tdfx_driver_fops = {
+ 
+ static struct drm_driver driver = {
+ 	.driver_features = DRIVER_LEGACY,
+-	.set_busid = drm_pci_set_busid,
+ 	.fops = &tdfx_driver_fops,
+ 	.name = DRIVER_NAME,
+ 	.desc = DRIVER_DESC,
+diff --git a/drivers/gpu/drm/via/via_drv.c b/drivers/gpu/drm/via/via_drv.c
+index 9e0e5392b6ec..0ca4e0489c0b 100644
+--- a/drivers/gpu/drm/via/via_drv.c
++++ b/drivers/gpu/drm/via/via_drv.c
+@@ -77,7 +77,6 @@ static struct drm_driver driver = {
+ 	.open = via_driver_open,
+ 	.preclose = via_reclaim_buffers_locked,
+ 	.postclose = via_driver_postclose,
+-	.set_busid = drm_pci_set_busid,
+ 	.context_dtor = via_final_context,
+ 	.get_vblank_counter = via_get_vblank_counter,
+ 	.enable_vblank = via_enable_vblank,
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+index 4a641555b960..63218033b0be 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+@@ -1531,7 +1531,6 @@ static struct drm_driver driver = {
+ 	.master_drop = vmw_master_drop,
+ 	.open = vmw_driver_open,
+ 	.postclose = vmw_postclose,
+-	.set_busid = drm_pci_set_busid,
+ 
+ 	.dumb_create = vmw_dumb_create,
+ 	.dumb_map_offset = vmw_dumb_map_offset,
+diff --git a/include/drm/drm_drv.h b/include/drm/drm_drv.h
+index 18f3181674e8..e4de59bc52c8 100644
+--- a/include/drm/drm_drv.h
++++ b/include/drm/drm_drv.h
+@@ -172,8 +172,6 @@ struct drm_driver {
+ 	 */
+ 	void (*release) (struct drm_device *);
+ 
+-	int (*set_busid)(struct drm_device *dev, struct drm_master *master);
+-
+ 	/**
+ 	 * @get_vblank_counter:
+ 	 *
+diff --git a/include/drm/drm_pci.h b/include/drm/drm_pci.h
+index 4579fac1080c..961b16f9b553 100644
+--- a/include/drm/drm_pci.h
++++ b/include/drm/drm_pci.h
+@@ -49,7 +49,6 @@ void drm_pci_exit(struct drm_driver *driver, struct pci_driver *pdriver);
+ int drm_get_pci_dev(struct pci_dev *pdev,
+ 		    const struct pci_device_id *ent,
+ 		    struct drm_driver *driver);
+-int drm_pci_set_busid(struct drm_device *dev, struct drm_master *master);
+ #else
+ static inline int drm_get_pci_dev(struct pci_dev *pdev,
+ 				  const struct pci_device_id *ent,
+@@ -57,12 +56,6 @@ static inline int drm_get_pci_dev(struct pci_dev *pdev,
+ {
+ 	return -ENOSYS;
+ }
+-
+-static inline int drm_pci_set_busid(struct drm_device *dev,
+-				    struct drm_master *master)
+-{
+-	return -ENOSYS;
+-}
+ #endif
+ 
+ #define DRM_PCIE_SPEED_25 1
+-- 
+2.17.0
+

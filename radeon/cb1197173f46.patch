@@ -1,0 +1,146 @@
+From cb1197173f46003616bcacbe2fea55ec3dd90e91 Mon Sep 17 00:00:00 2001
+From: Lukas Wunner <lukas@wunner.de>
+Date: Sun, 1 Nov 2015 14:22:00 +0100
+Subject: [PATCH] drm: Remove unused fbdev_list members
+
+I noticed that intel_fbdev->our_mode is unused. Introduced by
+79e539453b34 ("DRM: i915: add mode setting support").
+
+Then I noticed that intel_fbdev->fbdev_list is unused as well.
+Introduced by 386516744ba4 ("drm/fb: fix fbdev object model +
+cleanup properly.") in i915, nouveau and radeon.
+
+Subsequently cargo culted to amdgpu, ast, cirrus, qxl, udl,
+virtio and mgag200.
+
+Already removed from the latter with cc59487a05b1 ("drm/mgag200:
+'fbdev_list' in 'struct mga_fbdev' is not used").
+
+Remove it from the others.
+
+Signed-off-by: Lukas Wunner <lukas@wunner.de>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c  | 1 -
+ drivers/gpu/drm/ast/ast_drv.h           | 1 -
+ drivers/gpu/drm/cirrus/cirrus_drv.h     | 1 -
+ drivers/gpu/drm/i915/intel_drv.h        | 2 --
+ drivers/gpu/drm/nouveau/nouveau_fbcon.h | 1 -
+ drivers/gpu/drm/qxl/qxl_fb.c            | 1 -
+ drivers/gpu/drm/radeon/radeon_fb.c      | 1 -
+ drivers/gpu/drm/udl/udl_fb.c            | 1 -
+ drivers/gpu/drm/virtio/virtgpu_fb.c     | 1 -
+ 9 files changed, 10 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+index 093a8c618931..6fcbbcc2e99e 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+@@ -45,7 +45,6 @@
+ struct amdgpu_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct amdgpu_framebuffer rfb;
+-	struct list_head fbdev_list;
+ 	struct amdgpu_device *adev;
+ };
+ 
+diff --git a/drivers/gpu/drm/ast/ast_drv.h b/drivers/gpu/drm/ast/ast_drv.h
+index 05f6522c0457..2e931eeba105 100644
+--- a/drivers/gpu/drm/ast/ast_drv.h
++++ b/drivers/gpu/drm/ast/ast_drv.h
+@@ -256,7 +256,6 @@ struct ast_framebuffer {
+ struct ast_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct ast_framebuffer afb;
+-	struct list_head fbdev_list;
+ 	void *sysram;
+ 	int size;
+ 	struct ttm_bo_kmap_obj mapping;
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.h b/drivers/gpu/drm/cirrus/cirrus_drv.h
+index 705061537a27..d772f7afafeb 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.h
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.h
+@@ -153,7 +153,6 @@ struct cirrus_device {
+ struct cirrus_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct cirrus_framebuffer gfb;
+-	struct list_head fbdev_list;
+ 	void *sysram;
+ 	int size;
+ 	int x1, y1, x2, y2; /* dirty rect */
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index 0598932ce623..d7926658b93d 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -123,8 +123,6 @@ struct intel_framebuffer {
+ struct intel_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct intel_framebuffer *fb;
+-	struct list_head fbdev_list;
+-	struct drm_display_mode *our_mode;
+ 	int preferred_bpp;
+ };
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.h b/drivers/gpu/drm/nouveau/nouveau_fbcon.h
+index 1e2e9e27a03b..ca77ad001978 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.h
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.h
+@@ -34,7 +34,6 @@
+ struct nouveau_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct nouveau_framebuffer nouveau_fb;
+-	struct list_head fbdev_list;
+ 	struct drm_device *dev;
+ 	unsigned int saved_flags;
+ 	struct nvif_object surf2d;
+diff --git a/drivers/gpu/drm/qxl/qxl_fb.c b/drivers/gpu/drm/qxl/qxl_fb.c
+index c4a552637c93..a97d16792bed 100644
+--- a/drivers/gpu/drm/qxl/qxl_fb.c
++++ b/drivers/gpu/drm/qxl/qxl_fb.c
+@@ -40,7 +40,6 @@
+ struct qxl_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct qxl_framebuffer	qfb;
+-	struct list_head	fbdev_list;
+ 	struct qxl_device	*qdev;
+ 
+ 	spinlock_t delayed_ops_lock;
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index 26da2f4d7b4f..adc44bbc81a9 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -44,7 +44,6 @@
+ struct radeon_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct radeon_framebuffer rfb;
+-	struct list_head fbdev_list;
+ 	struct radeon_device *rdev;
+ };
+ 
+diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
+index 62c7b1dafaa4..b9df46efb622 100644
+--- a/drivers/gpu/drm/udl/udl_fb.c
++++ b/drivers/gpu/drm/udl/udl_fb.c
+@@ -33,7 +33,6 @@ module_param(fb_defio, int, S_IWUSR | S_IRUSR | S_IWGRP | S_IRGRP);
+ struct udl_fbdev {
+ 	struct drm_fb_helper helper;
+ 	struct udl_framebuffer ufb;
+-	struct list_head fbdev_list;
+ 	int fb_count;
+ };
+ 
+diff --git a/drivers/gpu/drm/virtio/virtgpu_fb.c b/drivers/gpu/drm/virtio/virtgpu_fb.c
+index 6a81e084593b..2242a80866a9 100644
+--- a/drivers/gpu/drm/virtio/virtgpu_fb.c
++++ b/drivers/gpu/drm/virtio/virtgpu_fb.c
+@@ -32,7 +32,6 @@
+ struct virtio_gpu_fbdev {
+ 	struct drm_fb_helper           helper;
+ 	struct virtio_gpu_framebuffer  vgfb;
+-	struct list_head	       fbdev_list;
+ 	struct virtio_gpu_device       *vgdev;
+ 	struct delayed_work            work;
+ };
+-- 
+2.17.0
+

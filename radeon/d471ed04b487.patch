@@ -1,0 +1,241 @@
+From d471ed04b487c6e66a406bf3763efbfed56baa5b Mon Sep 17 00:00:00 2001
+From: Jani Nikula <jani.nikula@intel.com>
+Date: Wed, 1 Nov 2017 16:21:02 +0200
+Subject: [PATCH] drm/drivers: drop redundant drm_edid_to_eld() calls
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+drm_add_edid_modes() now fills in the ELD automatically, so the calls to
+drm_edid_to_eld() are redundant. Remove them.
+
+All the other places are obvious, but nv50 has detached
+drm_edid_to_eld() from the drm_add_edid_modes() call.
+
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Archit Taneja <architt@codeaurora.org>
+Cc: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Russell King <linux@armlinux.org.uk>
+Cc: CK Hu <ck.hu@mediatek.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Mark Yao <mark.yao@rock-chips.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: Vincent Abriou <vincent.abriou@st.com>
+Cc: Thierry Reding <thierry.reding@gmail.com>
+Cc: Eric Anholt <eric@anholt.net>
+Acked-by: Eric Anholt <eric@anholt.net>
+Acked-by: Archit Taneja <architt@codeaurora.org>
+Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Acked-by: Thierry Reding <treding@nvidia.com>
+Signed-off-by: Jani Nikula <jani.nikula@intel.com>
+Link: https://patchwork.freedesktop.org/patch/msgid/0959ca02b983afc9e74dd9acd190ba6e25f21678.1509545641.git.jani.nikula@intel.com
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_connectors.c | 1 -
+ drivers/gpu/drm/bridge/analogix-anx78xx.c      | 2 --
+ drivers/gpu/drm/bridge/synopsys/dw-hdmi.c      | 2 --
+ drivers/gpu/drm/i2c/tda998x_drv.c              | 1 -
+ drivers/gpu/drm/i915/intel_dp.c                | 1 -
+ drivers/gpu/drm/i915/intel_modes.c             | 1 -
+ drivers/gpu/drm/mediatek/mtk_hdmi.c            | 1 -
+ drivers/gpu/drm/nouveau/nv50_display.c         | 5 +----
+ drivers/gpu/drm/radeon/radeon_connectors.c     | 1 -
+ drivers/gpu/drm/radeon/radeon_dp_mst.c         | 1 -
+ drivers/gpu/drm/rockchip/cdn-dp-core.c         | 4 +---
+ drivers/gpu/drm/sti/sti_hdmi.c                 | 1 -
+ drivers/gpu/drm/tegra/output.c                 | 1 -
+ drivers/gpu/drm/vc4/vc4_hdmi.c                 | 1 -
+ 14 files changed, 2 insertions(+), 21 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_connectors.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_connectors.c
+index f51b41f094ef..126be9e0f05f 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_connectors.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_connectors.c
+@@ -358,7 +358,6 @@ static int amdgpu_connector_ddc_get_modes(struct drm_connector *connector)
+ 	if (amdgpu_connector->edid) {
+ 		drm_mode_connector_update_edid_property(connector, amdgpu_connector->edid);
+ 		ret = drm_add_edid_modes(connector, amdgpu_connector->edid);
+-		drm_edid_to_eld(connector, amdgpu_connector->edid);
+ 		return ret;
+ 	}
+ 	drm_mode_connector_update_edid_property(connector, NULL);
+diff --git a/drivers/gpu/drm/bridge/analogix-anx78xx.c b/drivers/gpu/drm/bridge/analogix-anx78xx.c
+index 9385eb0b1ee4..ed12a7ddd64a 100644
+--- a/drivers/gpu/drm/bridge/analogix-anx78xx.c
++++ b/drivers/gpu/drm/bridge/analogix-anx78xx.c
+@@ -977,8 +977,6 @@ static int anx78xx_get_modes(struct drm_connector *connector)
+ 	}
+ 
+ 	num_modes = drm_add_edid_modes(connector, anx78xx->edid);
+-	/* Store the ELD */
+-	drm_edid_to_eld(connector, anx78xx->edid);
+ 
+ unlock:
+ 	mutex_unlock(&anx78xx->lock);
+diff --git a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+index bf14214fa464..a64ce7112288 100644
+--- a/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
++++ b/drivers/gpu/drm/bridge/synopsys/dw-hdmi.c
+@@ -1910,8 +1910,6 @@ static int dw_hdmi_connector_get_modes(struct drm_connector *connector)
+ 		drm_mode_connector_update_edid_property(connector, edid);
+ 		cec_notifier_set_phys_addr_from_edid(hdmi->cec_notifier, edid);
+ 		ret = drm_add_edid_modes(connector, edid);
+-		/* Store the ELD */
+-		drm_edid_to_eld(connector, edid);
+ 		kfree(edid);
+ 	} else {
+ 		dev_dbg(hdmi->dev, "failed to get edid\n");
+diff --git a/drivers/gpu/drm/i2c/tda998x_drv.c b/drivers/gpu/drm/i2c/tda998x_drv.c
+index 4d1f45acf2cd..60981505763c 100644
+--- a/drivers/gpu/drm/i2c/tda998x_drv.c
++++ b/drivers/gpu/drm/i2c/tda998x_drv.c
+@@ -1100,7 +1100,6 @@ static int tda998x_connector_get_modes(struct drm_connector *connector)
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
+ 	n = drm_add_edid_modes(connector, edid);
+-	drm_edid_to_eld(connector, edid);
+ 
+ 	kfree(edid);
+ 
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 887953c0f495..6fce08209b4f 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -5865,7 +5865,6 @@ static bool intel_edp_init_connector(struct intel_dp *intel_dp,
+ 		if (drm_add_edid_modes(connector, edid)) {
+ 			drm_mode_connector_update_edid_property(connector,
+ 								edid);
+-			drm_edid_to_eld(connector, edid);
+ 		} else {
+ 			kfree(edid);
+ 			edid = ERR_PTR(-EINVAL);
+diff --git a/drivers/gpu/drm/i915/intel_modes.c b/drivers/gpu/drm/i915/intel_modes.c
+index 951e834dd274..b39846613e3c 100644
+--- a/drivers/gpu/drm/i915/intel_modes.c
++++ b/drivers/gpu/drm/i915/intel_modes.c
+@@ -42,7 +42,6 @@ int intel_connector_update_modes(struct drm_connector *connector,
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
+ 	ret = drm_add_edid_modes(connector, edid);
+-	drm_edid_to_eld(connector, edid);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/gpu/drm/mediatek/mtk_hdmi.c b/drivers/gpu/drm/mediatek/mtk_hdmi.c
+index 3ff502771ba2..b78791061983 100644
+--- a/drivers/gpu/drm/mediatek/mtk_hdmi.c
++++ b/drivers/gpu/drm/mediatek/mtk_hdmi.c
+@@ -1222,7 +1222,6 @@ static int mtk_hdmi_conn_get_modes(struct drm_connector *conn)
+ 	drm_mode_connector_update_edid_property(conn, edid);
+ 
+ 	ret = drm_add_edid_modes(conn, edid);
+-	drm_edid_to_eld(conn, edid);
+ 	kfree(edid);
+ 	return ret;
+ }
+diff --git a/drivers/gpu/drm/nouveau/nv50_display.c b/drivers/gpu/drm/nouveau/nv50_display.c
+index 2dbf62a2ac41..d8ddb7396721 100644
+--- a/drivers/gpu/drm/nouveau/nv50_display.c
++++ b/drivers/gpu/drm/nouveau/nv50_display.c
+@@ -2688,7 +2688,6 @@ nv50_audio_enable(struct drm_encoder *encoder, struct drm_display_mode *mode)
+ 	if (!drm_detect_monitor_audio(nv_connector->edid))
+ 		return;
+ 
+-	drm_edid_to_eld(&nv_connector->base, nv_connector->edid);
+ 	memcpy(args.data, nv_connector->base.eld, sizeof(args.data));
+ 
+ 	nvif_mthd(disp->disp, 0, &args,
+@@ -3064,10 +3063,8 @@ nv50_mstc_get_modes(struct drm_connector *connector)
+ 
+ 	mstc->edid = drm_dp_mst_get_edid(&mstc->connector, mstc->port->mgr, mstc->port);
+ 	drm_mode_connector_update_edid_property(&mstc->connector, mstc->edid);
+-	if (mstc->edid) {
++	if (mstc->edid)
+ 		ret = drm_add_edid_modes(&mstc->connector, mstc->edid);
+-		drm_edid_to_eld(&mstc->connector, mstc->edid);
+-	}
+ 
+ 	if (!mstc->connector.display_info.bpc)
+ 		mstc->connector.display_info.bpc = 8;
+diff --git a/drivers/gpu/drm/radeon/radeon_connectors.c b/drivers/gpu/drm/radeon/radeon_connectors.c
+index 2f642cbefd8e..9e45127329d7 100644
+--- a/drivers/gpu/drm/radeon/radeon_connectors.c
++++ b/drivers/gpu/drm/radeon/radeon_connectors.c
+@@ -392,7 +392,6 @@ static int radeon_ddc_get_modes(struct drm_connector *connector)
+ 	if (radeon_connector->edid) {
+ 		drm_mode_connector_update_edid_property(connector, radeon_connector->edid);
+ 		ret = drm_add_edid_modes(connector, radeon_connector->edid);
+-		drm_edid_to_eld(connector, radeon_connector->edid);
+ 		return ret;
+ 	}
+ 	drm_mode_connector_update_edid_property(connector, NULL);
+diff --git a/drivers/gpu/drm/radeon/radeon_dp_mst.c b/drivers/gpu/drm/radeon/radeon_dp_mst.c
+index ebdf1b859cb6..1768926d2ebc 100644
+--- a/drivers/gpu/drm/radeon/radeon_dp_mst.c
++++ b/drivers/gpu/drm/radeon/radeon_dp_mst.c
+@@ -196,7 +196,6 @@ static int radeon_dp_mst_get_ddc_modes(struct drm_connector *connector)
+ 	if (radeon_connector->edid) {
+ 		drm_mode_connector_update_edid_property(&radeon_connector->base, radeon_connector->edid);
+ 		ret = drm_add_edid_modes(&radeon_connector->base, radeon_connector->edid);
+-		drm_edid_to_eld(&radeon_connector->base, radeon_connector->edid);
+ 		return ret;
+ 	}
+ 	drm_mode_connector_update_edid_property(&radeon_connector->base, NULL);
+diff --git a/drivers/gpu/drm/rockchip/cdn-dp-core.c b/drivers/gpu/drm/rockchip/cdn-dp-core.c
+index 275844d0d0ec..ec999d9f15f6 100644
+--- a/drivers/gpu/drm/rockchip/cdn-dp-core.c
++++ b/drivers/gpu/drm/rockchip/cdn-dp-core.c
+@@ -276,11 +276,9 @@ static int cdn_dp_connector_get_modes(struct drm_connector *connector)
+ 
+ 		dp->sink_has_audio = drm_detect_monitor_audio(edid);
+ 		ret = drm_add_edid_modes(connector, edid);
+-		if (ret) {
++		if (ret)
+ 			drm_mode_connector_update_edid_property(connector,
+ 								edid);
+-			drm_edid_to_eld(connector, edid);
+-		}
+ 	}
+ 	mutex_unlock(&dp->lock);
+ 
+diff --git a/drivers/gpu/drm/sti/sti_hdmi.c b/drivers/gpu/drm/sti/sti_hdmi.c
+index 30f02d2fdd03..d1902750a85d 100644
+--- a/drivers/gpu/drm/sti/sti_hdmi.c
++++ b/drivers/gpu/drm/sti/sti_hdmi.c
+@@ -976,7 +976,6 @@ static int sti_hdmi_connector_get_modes(struct drm_connector *connector)
+ 
+ 	count = drm_add_edid_modes(connector, edid);
+ 	drm_mode_connector_update_edid_property(connector, edid);
+-	drm_edid_to_eld(connector, edid);
+ 
+ 	kfree(edid);
+ 	return count;
+diff --git a/drivers/gpu/drm/tegra/output.c b/drivers/gpu/drm/tegra/output.c
+index 595d1ec3e02e..1480f6aaffe4 100644
+--- a/drivers/gpu/drm/tegra/output.c
++++ b/drivers/gpu/drm/tegra/output.c
+@@ -36,7 +36,6 @@ int tegra_output_connector_get_modes(struct drm_connector *connector)
+ 
+ 	if (edid) {
+ 		err = drm_add_edid_modes(connector, edid);
+-		drm_edid_to_eld(connector, edid);
+ 		kfree(edid);
+ 	}
+ 
+diff --git a/drivers/gpu/drm/vc4/vc4_hdmi.c b/drivers/gpu/drm/vc4/vc4_hdmi.c
+index fa37a1c07cf6..9a9a6b4acccf 100644
+--- a/drivers/gpu/drm/vc4/vc4_hdmi.c
++++ b/drivers/gpu/drm/vc4/vc4_hdmi.c
+@@ -287,7 +287,6 @@ static int vc4_hdmi_connector_get_modes(struct drm_connector *connector)
+ 
+ 	drm_mode_connector_update_edid_property(connector, edid);
+ 	ret = drm_add_edid_modes(connector, edid);
+-	drm_edid_to_eld(connector, edid);
+ 	kfree(edid);
+ 
+ 	return ret;
+-- 
+2.17.0
+

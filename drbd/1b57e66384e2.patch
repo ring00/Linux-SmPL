@@ -1,0 +1,50 @@
+From 1b57e66384e2d21150301e68078526fac5680a16 Mon Sep 17 00:00:00 2001
+From: Lars Ellenberg <lars.ellenberg@linbit.com>
+Date: Tue, 14 Jun 2016 00:26:39 +0200
+Subject: [PATCH] drbd: correctly handle failed crypto_alloc_hash
+
+crypto_alloc_hash returns an ERR_PTR(), not NULL.
+
+Also reset peer_integrity_tfm to NULL, to not call crypto_free_hash()
+on an errno in the cleanup path.
+
+Reported-by: Insu Yun <wuninsu@gmail.com>
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+Signed-off-by: Jens Axboe <axboe@fb.com>
+---
+ drivers/block/drbd/drbd_receiver.c | 3 ++-
+ include/linux/drbd.h               | 2 +-
+ 2 files changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_receiver.c b/drivers/block/drbd/drbd_receiver.c
+index 0d74602feca0..df45713dfbe8 100644
+--- a/drivers/block/drbd/drbd_receiver.c
++++ b/drivers/block/drbd/drbd_receiver.c
+@@ -3681,7 +3681,8 @@ static int receive_protocol(struct drbd_connection *connection, struct packet_in
+ 		 */
+ 
+ 		peer_integrity_tfm = crypto_alloc_ahash(integrity_alg, 0, CRYPTO_ALG_ASYNC);
+-		if (!peer_integrity_tfm) {
++		if (IS_ERR(peer_integrity_tfm)) {
++			peer_integrity_tfm = NULL;
+ 			drbd_err(connection, "peer data-integrity-alg %s not supported\n",
+ 				 integrity_alg);
+ 			goto disconnect;
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 2b26156365ec..002611c85318 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -51,7 +51,7 @@
+ #endif
+ 
+ extern const char *drbd_buildtag(void);
+-#define REL_VERSION "8.4.6"
++#define REL_VERSION "8.4.7"
+ #define API_VERSION 1
+ #define PRO_VERSION_MIN 86
+ #define PRO_VERSION_MAX 101
+-- 
+2.17.0
+

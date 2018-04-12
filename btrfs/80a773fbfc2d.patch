@@ -1,0 +1,55 @@
+From 80a773fbfc2d6b5b2478377e8ac271d495f55e73 Mon Sep 17 00:00:00 2001
+From: David Sterba <dsterba@suse.cz>
+Date: Wed, 7 May 2014 18:17:06 +0200
+Subject: [PATCH] btrfs: retrieve more info from FS_INFO ioctl
+
+Provide the basic information about filesystem through the ioctl:
+* b-tree node size (same as leaf size)
+* sector size
+* expected alignment of CLONE_RANGE and EXTENT_SAME ioctl arguments
+
+Backward compatibility: if the values are 0, kernel does not provide
+this information, the applications should ignore them.
+
+Signed-off-by: David Sterba <dsterba@suse.cz>
+Signed-off-by: Chris Mason <clm@fb.com>
+---
+ fs/btrfs/ioctl.c           | 4 ++++
+ include/uapi/linux/btrfs.h | 6 +++++-
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 2f6d7b13b5bd..c6c8e3560e73 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -2574,6 +2574,10 @@ static long btrfs_ioctl_fs_info(struct btrfs_root *root, void __user *arg)
+ 	}
+ 	mutex_unlock(&fs_devices->device_list_mutex);
+ 
++	fi_args->nodesize = root->fs_info->super_copy->nodesize;
++	fi_args->sectorsize = root->fs_info->super_copy->sectorsize;
++	fi_args->clone_alignment = root->fs_info->super_copy->sectorsize;
++
+ 	if (copy_to_user(arg, fi_args, sizeof(*fi_args)))
+ 		ret = -EFAULT;
+ 
+diff --git a/include/uapi/linux/btrfs.h b/include/uapi/linux/btrfs.h
+index 901a3c563f60..7554fd381a56 100644
+--- a/include/uapi/linux/btrfs.h
++++ b/include/uapi/linux/btrfs.h
+@@ -181,7 +181,11 @@ struct btrfs_ioctl_fs_info_args {
+ 	__u64 max_id;				/* out */
+ 	__u64 num_devices;			/* out */
+ 	__u8 fsid[BTRFS_FSID_SIZE];		/* out */
+-	__u64 reserved[124];			/* pad to 1k */
++	__u32 nodesize;				/* out */
++	__u32 sectorsize;			/* out */
++	__u32 clone_alignment;			/* out */
++	__u32 reserved32;
++	__u64 reserved[122];			/* pad to 1k */
+ };
+ 
+ struct btrfs_ioctl_feature_flags {
+-- 
+2.17.0
+

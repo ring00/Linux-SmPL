@@ -1,0 +1,1336 @@
+From 43829731dd372d04d6706c51052b9dabab9ca356 Mon Sep 17 00:00:00 2001
+From: Tejun Heo <tj@kernel.org>
+Date: Mon, 20 Aug 2012 14:51:24 -0700
+Subject: [PATCH] workqueue: deprecate flush[_delayed]_work_sync()
+
+flush[_delayed]_work_sync() are now spurious.  Mark them deprecated
+and convert all users to flush[_delayed]_work().
+
+If you're cc'd and wondering what's going on: Now all workqueues are
+non-reentrant and the regular flushes guarantee that the work item is
+not pending or running on any CPU on return, so there's no reason to
+use the sync flushes at all and they're going away.
+
+This patch doesn't make any functional difference.
+
+Signed-off-by: Tejun Heo <tj@kernel.org>
+Cc: Russell King <linux@arm.linux.org.uk>
+Cc: Paul Mundt <lethal@linux-sh.org>
+Cc: Ian Campbell <ian.campbell@citrix.com>
+Cc: Jens Axboe <axboe@kernel.dk>
+Cc: Mattia Dongili <malattia@linux.it>
+Cc: Kent Yoder <key@linux.vnet.ibm.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Jiri Kosina <jkosina@suse.cz>
+Cc: Karsten Keil <isdn@linux-pingi.de>
+Cc: Bryan Wu <bryan.wu@canonical.com>
+Cc: Benjamin Herrenschmidt <benh@kernel.crashing.org>
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: "David S. Miller" <davem@davemloft.net>
+Cc: linux-wireless@vger.kernel.org
+Cc: Anton Vorontsov <cbou@mail.ru>
+Cc: Sangbeom Kim <sbkim73@samsung.com>
+Cc: "James E.J. Bottomley" <James.Bottomley@HansenPartnership.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: Eric Van Hensbergen <ericvh@gmail.com>
+Cc: Takashi Iwai <tiwai@suse.de>
+Cc: Steven Whitehouse <swhiteho@redhat.com>
+Cc: Petr Vandrovec <petr@vandrovec.name>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Cc: Christoph Hellwig <hch@infradead.org>
+Cc: Avi Kivity <avi@redhat.com>
+---
+ arch/arm/mach-pxa/sharpsl_pm.c                  |  4 ++--
+ arch/arm/plat-omap/mailbox.c                    |  2 +-
+ arch/sh/drivers/push-switch.c                   |  2 +-
+ drivers/block/xen-blkfront.c                    |  4 ++--
+ drivers/cdrom/gdrom.c                           |  2 +-
+ drivers/char/sonypi.c                           |  2 +-
+ drivers/char/tpm/tpm.c                          |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_gpio.c          |  2 +-
+ drivers/gpu/drm/radeon/radeon_irq_kms.c         |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_fb.c              |  2 +-
+ drivers/hid/hid-picolcd.c                       |  2 +-
+ drivers/input/touchscreen/wm831x-ts.c           |  2 +-
+ drivers/isdn/mISDN/hwchannel.c                  |  4 ++--
+ drivers/leds/leds-lm3533.c                      |  6 +++---
+ drivers/leds/leds-lp8788.c                      |  2 +-
+ drivers/leds/leds-wm8350.c                      |  2 +-
+ drivers/macintosh/ams/ams-core.c                |  2 +-
+ drivers/md/dm-mpath.c                           |  2 +-
+ drivers/md/dm-raid1.c                           |  2 +-
+ drivers/md/dm-stripe.c                          |  2 +-
+ drivers/media/dvb/dvb-core/dvb_net.c            |  4 ++--
+ drivers/media/dvb/mantis/mantis_evm.c           |  2 +-
+ drivers/media/dvb/mantis/mantis_uart.c          |  2 +-
+ drivers/media/video/bt8xx/bttv-driver.c         |  2 +-
+ drivers/media/video/cx18/cx18-driver.c          |  2 +-
+ drivers/media/video/cx231xx/cx231xx-cards.c     |  2 +-
+ drivers/media/video/cx23885/cx23885-input.c     |  6 +++---
+ drivers/media/video/cx88/cx88-mpeg.c            |  2 +-
+ drivers/media/video/em28xx/em28xx-cards.c       |  2 +-
+ drivers/media/video/omap24xxcam.c               |  6 +++---
+ drivers/media/video/saa7134/saa7134-core.c      |  2 +-
+ drivers/media/video/saa7134/saa7134-empress.c   |  2 +-
+ drivers/media/video/tm6000/tm6000-cards.c       |  2 +-
+ drivers/mfd/menelaus.c                          |  4 ++--
+ drivers/misc/ioc4.c                             |  2 +-
+ drivers/mtd/mtdoops.c                           |  4 ++--
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c |  2 +-
+ drivers/net/ethernet/neterion/vxge/vxge-main.c  |  2 +-
+ drivers/net/ethernet/sun/cassini.c              |  2 +-
+ drivers/net/ethernet/sun/niu.c                  |  2 +-
+ drivers/net/wireless/hostap/hostap_ap.c         |  4 ++--
+ drivers/net/wireless/hostap/hostap_hw.c         | 10 +++++-----
+ drivers/power/collie_battery.c                  |  2 +-
+ drivers/power/tosa_battery.c                    |  2 +-
+ drivers/power/wm97xx_battery.c                  |  2 +-
+ drivers/power/z2_battery.c                      |  2 +-
+ drivers/regulator/core.c                        |  2 +-
+ drivers/scsi/arcmsr/arcmsr_hba.c                |  4 ++--
+ drivers/scsi/ipr.c                              |  2 +-
+ drivers/scsi/pmcraid.c                          |  2 +-
+ drivers/scsi/qla2xxx/qla_target.c               |  2 +-
+ drivers/tty/hvc/hvsi.c                          |  2 +-
+ drivers/tty/ipwireless/hardware.c               |  2 +-
+ drivers/tty/ipwireless/network.c                |  4 ++--
+ drivers/tty/serial/kgdboc.c                     |  2 +-
+ drivers/tty/serial/omap-serial.c                |  2 +-
+ drivers/tty/tty_ldisc.c                         |  6 +++---
+ drivers/usb/atm/speedtch.c                      |  2 +-
+ drivers/usb/atm/ueagle-atm.c                    |  2 +-
+ drivers/usb/gadget/u_ether.c                    |  2 +-
+ drivers/usb/host/ohci-hcd.c                     |  2 +-
+ drivers/usb/otg/isp1301_omap.c                  |  2 +-
+ fs/affs/super.c                                 |  2 +-
+ fs/gfs2/lock_dlm.c                              |  2 +-
+ fs/gfs2/super.c                                 |  2 +-
+ fs/hfs/inode.c                                  |  2 +-
+ fs/ncpfs/inode.c                                |  6 +++---
+ fs/ocfs2/cluster/quorum.c                       |  2 +-
+ fs/xfs/xfs_super.c                              |  2 +-
+ fs/xfs/xfs_sync.c                               |  2 +-
+ include/linux/workqueue.h                       |  4 ++--
+ net/9p/trans_fd.c                               |  2 +-
+ net/dsa/dsa.c                                   |  2 +-
+ sound/i2c/other/ak4113.c                        |  2 +-
+ sound/i2c/other/ak4114.c                        |  2 +-
+ sound/pci/oxygen/oxygen_lib.c                   |  8 ++++----
+ sound/soc/codecs/wm8350.c                       |  2 +-
+ sound/soc/codecs/wm8753.c                       |  2 +-
+ sound/soc/soc-core.c                            |  6 +++---
+ virt/kvm/eventfd.c                              |  2 +-
+ 81 files changed, 111 insertions(+), 111 deletions(-)
+
+diff --git a/arch/arm/mach-pxa/sharpsl_pm.c b/arch/arm/mach-pxa/sharpsl_pm.c
+index bdf4cb88ca0a..7875ad6456bd 100644
+--- a/arch/arm/mach-pxa/sharpsl_pm.c
++++ b/arch/arm/mach-pxa/sharpsl_pm.c
+@@ -579,8 +579,8 @@ static int sharpsl_ac_check(void)
+ static int sharpsl_pm_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+ 	sharpsl_pm.flags |= SHARPSL_SUSPENDED;
+-	flush_delayed_work_sync(&toggle_charger);
+-	flush_delayed_work_sync(&sharpsl_bat);
++	flush_delayed_work(&toggle_charger);
++	flush_delayed_work(&sharpsl_bat);
+ 
+ 	if (sharpsl_pm.charge_mode == CHRG_ON)
+ 		sharpsl_pm.flags |= SHARPSL_DO_OFFLINE_CHRG;
+diff --git a/arch/arm/plat-omap/mailbox.c b/arch/arm/plat-omap/mailbox.c
+index 5e13c3884aa4..42377ef9ea3d 100644
+--- a/arch/arm/plat-omap/mailbox.c
++++ b/arch/arm/plat-omap/mailbox.c
+@@ -310,7 +310,7 @@ static void omap_mbox_fini(struct omap_mbox *mbox)
+ 		omap_mbox_disable_irq(mbox, IRQ_RX);
+ 		free_irq(mbox->irq, mbox);
+ 		tasklet_kill(&mbox->txq->tasklet);
+-		flush_work_sync(&mbox->rxq->work);
++		flush_work(&mbox->rxq->work);
+ 		mbox_queue_free(mbox->txq);
+ 		mbox_queue_free(mbox->rxq);
+ 	}
+diff --git a/arch/sh/drivers/push-switch.c b/arch/sh/drivers/push-switch.c
+index 637b79b09657..5bfb341cc5c4 100644
+--- a/arch/sh/drivers/push-switch.c
++++ b/arch/sh/drivers/push-switch.c
+@@ -107,7 +107,7 @@ static int switch_drv_remove(struct platform_device *pdev)
+ 		device_remove_file(&pdev->dev, &dev_attr_switch);
+ 
+ 	platform_set_drvdata(pdev, NULL);
+-	flush_work_sync(&psw->work);
++	flush_work(&psw->work);
+ 	del_timer_sync(&psw->debounce);
+ 	free_irq(irq, pdev);
+ 
+diff --git a/drivers/block/xen-blkfront.c b/drivers/block/xen-blkfront.c
+index 2c2d2e5c1597..007db8986e84 100644
+--- a/drivers/block/xen-blkfront.c
++++ b/drivers/block/xen-blkfront.c
+@@ -670,7 +670,7 @@ static void xlvbd_release_gendisk(struct blkfront_info *info)
+ 	spin_unlock_irqrestore(&info->io_lock, flags);
+ 
+ 	/* Flush gnttab callback work. Must be done with no locks held. */
+-	flush_work_sync(&info->work);
++	flush_work(&info->work);
+ 
+ 	del_gendisk(info->gd);
+ 
+@@ -719,7 +719,7 @@ static void blkif_free(struct blkfront_info *info, int suspend)
+ 	spin_unlock_irq(&info->io_lock);
+ 
+ 	/* Flush gnttab callback work. Must be done with no locks held. */
+-	flush_work_sync(&info->work);
++	flush_work(&info->work);
+ 
+ 	/* Free resources associated with old device channel. */
+ 	if (info->ring_ref != GRANT_INVALID_REF) {
+diff --git a/drivers/cdrom/gdrom.c b/drivers/cdrom/gdrom.c
+index 3ceaf006e7f0..75d485afe56c 100644
+--- a/drivers/cdrom/gdrom.c
++++ b/drivers/cdrom/gdrom.c
+@@ -840,7 +840,7 @@ static int __devinit probe_gdrom(struct platform_device *devptr)
+ 
+ static int __devexit remove_gdrom(struct platform_device *devptr)
+ {
+-	flush_work_sync(&work);
++	flush_work(&work);
+ 	blk_cleanup_queue(gd.gdrom_rq);
+ 	free_irq(HW_EVENT_GDROM_CMD, &gd);
+ 	free_irq(HW_EVENT_GDROM_DMA, &gd);
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index f87780502b41..320debbe32fa 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -1433,7 +1433,7 @@ static int __devexit sonypi_remove(struct platform_device *dev)
+ 	sonypi_disable();
+ 
+ 	synchronize_irq(sonypi_device.irq);
+-	flush_work_sync(&sonypi_device.input_work);
++	flush_work(&sonypi_device.input_work);
+ 
+ 	if (useinput) {
+ 		input_unregister_device(sonypi_device.input_key_dev);
+diff --git a/drivers/char/tpm/tpm.c b/drivers/char/tpm/tpm.c
+index 817f0ee202b6..3af9f4d1a23f 100644
+--- a/drivers/char/tpm/tpm.c
++++ b/drivers/char/tpm/tpm.c
+@@ -1172,7 +1172,7 @@ int tpm_release(struct inode *inode, struct file *file)
+ 	struct tpm_chip *chip = file->private_data;
+ 
+ 	del_singleshot_timer_sync(&chip->user_read_timer);
+-	flush_work_sync(&chip->work);
++	flush_work(&chip->work);
+ 	file->private_data = NULL;
+ 	atomic_set(&chip->data_pending, 0);
+ 	kfree(chip->data_buffer);
+@@ -1225,7 +1225,7 @@ ssize_t tpm_read(struct file *file, char __user *buf,
+ 	int rc;
+ 
+ 	del_singleshot_timer_sync(&chip->user_read_timer);
+-	flush_work_sync(&chip->work);
++	flush_work(&chip->work);
+ 	ret_size = atomic_read(&chip->data_pending);
+ 	atomic_set(&chip->data_pending, 0);
+ 	if (ret_size > 0) {	/* relay data */
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+index d2d88f22a037..a40808e51338 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -908,7 +908,7 @@ static int g2d_suspend(struct device *dev)
+ 		/* FIXME: good range? */
+ 		usleep_range(500, 1000);
+ 
+-	flush_work_sync(&g2d->runqueue_work);
++	flush_work(&g2d->runqueue_work);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gpio.c b/drivers/gpu/drm/nouveau/nouveau_gpio.c
+index 82c19e82ff02..0fe4e17c461d 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gpio.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gpio.c
+@@ -302,7 +302,7 @@ nouveau_gpio_isr_del(struct drm_device *dev, int idx, u8 tag, u8 line,
+ 		spin_unlock_irqrestore(&pgpio->lock, flags);
+ 
+ 		list_for_each_entry_safe(isr, tmp, &tofree, head) {
+-			flush_work_sync(&isr->work);
++			flush_work(&isr->work);
+ 			kfree(isr);
+ 		}
+ 	}
+diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+index afaa1727abd2..50b596ec7b7e 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+@@ -277,7 +277,7 @@ void radeon_irq_kms_fini(struct radeon_device *rdev)
+ 		if (rdev->msi_enabled)
+ 			pci_disable_msi(rdev->pdev);
+ 	}
+-	flush_work_sync(&rdev->hotplug_work);
++	flush_work(&rdev->hotplug_work);
+ }
+ 
+ /**
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+index 3c447bf317cb..a32f2e96dd02 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+@@ -594,7 +594,7 @@ int vmw_fb_off(struct vmw_private *vmw_priv)
+ 	par->dirty.active = false;
+ 	spin_unlock_irqrestore(&par->dirty.lock, flags);
+ 
+-	flush_delayed_work_sync(&info->deferred_work);
++	flush_delayed_work(&info->deferred_work);
+ 
+ 	par->bo_ptr = NULL;
+ 	ttm_bo_kunmap(&par->map);
+diff --git a/drivers/hid/hid-picolcd.c b/drivers/hid/hid-picolcd.c
+index 27c8ebdfad01..3e90dee30ff6 100644
+--- a/drivers/hid/hid-picolcd.c
++++ b/drivers/hid/hid-picolcd.c
+@@ -2737,7 +2737,7 @@ static void __exit picolcd_exit(void)
+ {
+ 	hid_unregister_driver(&picolcd_driver);
+ #ifdef CONFIG_HID_PICOLCD_FB
+-	flush_work_sync(&picolcd_fb_cleanup);
++	flush_work(&picolcd_fb_cleanup);
+ 	WARN_ON(fb_pending);
+ #endif
+ }
+diff --git a/drivers/input/touchscreen/wm831x-ts.c b/drivers/input/touchscreen/wm831x-ts.c
+index e83410721e38..52abb98a8ae5 100644
+--- a/drivers/input/touchscreen/wm831x-ts.c
++++ b/drivers/input/touchscreen/wm831x-ts.c
+@@ -221,7 +221,7 @@ static void wm831x_ts_input_close(struct input_dev *idev)
+ 	synchronize_irq(wm831x_ts->pd_irq);
+ 
+ 	/* Make sure the IRQ completion work is quiesced */
+-	flush_work_sync(&wm831x_ts->pd_data_work);
++	flush_work(&wm831x_ts->pd_data_work);
+ 
+ 	/* If we ended up with the pen down then make sure we revert back
+ 	 * to pen detection state for the next time we start up.
+diff --git a/drivers/isdn/mISDN/hwchannel.c b/drivers/isdn/mISDN/hwchannel.c
+index ef34fd40867c..4b85f7279f18 100644
+--- a/drivers/isdn/mISDN/hwchannel.c
++++ b/drivers/isdn/mISDN/hwchannel.c
+@@ -116,7 +116,7 @@ mISDN_freedchannel(struct dchannel *ch)
+ 	}
+ 	skb_queue_purge(&ch->squeue);
+ 	skb_queue_purge(&ch->rqueue);
+-	flush_work_sync(&ch->workq);
++	flush_work(&ch->workq);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(mISDN_freedchannel);
+@@ -157,7 +157,7 @@ mISDN_freebchannel(struct bchannel *ch)
+ 	mISDN_clear_bchannel(ch);
+ 	skb_queue_purge(&ch->rqueue);
+ 	ch->rcount = 0;
+-	flush_work_sync(&ch->workq);
++	flush_work(&ch->workq);
+ 	return 0;
+ }
+ EXPORT_SYMBOL(mISDN_freebchannel);
+diff --git a/drivers/leds/leds-lm3533.c b/drivers/leds/leds-lm3533.c
+index f56b6e7ffdac..f6837b99908c 100644
+--- a/drivers/leds/leds-lm3533.c
++++ b/drivers/leds/leds-lm3533.c
+@@ -737,7 +737,7 @@ static int __devinit lm3533_led_probe(struct platform_device *pdev)
+ 	sysfs_remove_group(&led->cdev.dev->kobj, &lm3533_led_attribute_group);
+ err_unregister:
+ 	led_classdev_unregister(&led->cdev);
+-	flush_work_sync(&led->work);
++	flush_work(&led->work);
+ 
+ 	return ret;
+ }
+@@ -751,7 +751,7 @@ static int __devexit lm3533_led_remove(struct platform_device *pdev)
+ 	lm3533_ctrlbank_disable(&led->cb);
+ 	sysfs_remove_group(&led->cdev.dev->kobj, &lm3533_led_attribute_group);
+ 	led_classdev_unregister(&led->cdev);
+-	flush_work_sync(&led->work);
++	flush_work(&led->work);
+ 
+ 	return 0;
+ }
+@@ -765,7 +765,7 @@ static void lm3533_led_shutdown(struct platform_device *pdev)
+ 
+ 	lm3533_ctrlbank_disable(&led->cb);
+ 	lm3533_led_set(&led->cdev, LED_OFF);		/* disable blink */
+-	flush_work_sync(&led->work);
++	flush_work(&led->work);
+ }
+ 
+ static struct platform_driver lm3533_led_driver = {
+diff --git a/drivers/leds/leds-lp8788.c b/drivers/leds/leds-lp8788.c
+index 53bd136f1ef0..cb76bc46a021 100644
+--- a/drivers/leds/leds-lp8788.c
++++ b/drivers/leds/leds-lp8788.c
+@@ -172,7 +172,7 @@ static int __devexit lp8788_led_remove(struct platform_device *pdev)
+ 	struct lp8788_led *led = platform_get_drvdata(pdev);
+ 
+ 	led_classdev_unregister(&led->led_dev);
+-	flush_work_sync(&led->work);
++	flush_work(&led->work);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/leds/leds-wm8350.c b/drivers/leds/leds-wm8350.c
+index 918d4baff1c7..4c62113f7a77 100644
+--- a/drivers/leds/leds-wm8350.c
++++ b/drivers/leds/leds-wm8350.c
+@@ -275,7 +275,7 @@ static int wm8350_led_remove(struct platform_device *pdev)
+ 	struct wm8350_led *led = platform_get_drvdata(pdev);
+ 
+ 	led_classdev_unregister(&led->cdev);
+-	flush_work_sync(&led->work);
++	flush_work(&led->work);
+ 	wm8350_led_disable(led);
+ 	regulator_put(led->dcdc);
+ 	regulator_put(led->isink);
+diff --git a/drivers/macintosh/ams/ams-core.c b/drivers/macintosh/ams/ams-core.c
+index 5c6a2d876562..36a4fdddd64a 100644
+--- a/drivers/macintosh/ams/ams-core.c
++++ b/drivers/macintosh/ams/ams-core.c
+@@ -226,7 +226,7 @@ void ams_sensor_detach(void)
+ 	 * We do this after ams_info.exit(), because an interrupt might
+ 	 * have arrived before disabling them.
+ 	 */
+-	flush_work_sync(&ams_info.worker);
++	flush_work(&ams_info.worker);
+ 
+ 	/* Remove device */
+ 	of_device_unregister(ams_info.of_dev);
+diff --git a/drivers/md/dm-mpath.c b/drivers/md/dm-mpath.c
+index d8abb90a6c2f..bb18eafcc85a 100644
+--- a/drivers/md/dm-mpath.c
++++ b/drivers/md/dm-mpath.c
+@@ -944,7 +944,7 @@ static void flush_multipath_work(struct multipath *m)
+ 	flush_workqueue(kmpath_handlerd);
+ 	multipath_wait_for_pg_init_completion(m);
+ 	flush_workqueue(kmultipathd);
+-	flush_work_sync(&m->trigger_event);
++	flush_work(&m->trigger_event);
+ }
+ 
+ static void multipath_dtr(struct dm_target *ti)
+diff --git a/drivers/md/dm-raid1.c b/drivers/md/dm-raid1.c
+index bc5ddba8045b..fd61f98ee1f6 100644
+--- a/drivers/md/dm-raid1.c
++++ b/drivers/md/dm-raid1.c
+@@ -1146,7 +1146,7 @@ static void mirror_dtr(struct dm_target *ti)
+ 
+ 	del_timer_sync(&ms->timer);
+ 	flush_workqueue(ms->kmirrord_wq);
+-	flush_work_sync(&ms->trigger_event);
++	flush_work(&ms->trigger_event);
+ 	dm_kcopyd_client_destroy(ms->kcopyd_client);
+ 	destroy_workqueue(ms->kmirrord_wq);
+ 	free_context(ms, ti, ms->nr_mirrors);
+diff --git a/drivers/md/dm-stripe.c b/drivers/md/dm-stripe.c
+index a087bf2a8d66..e2f876539743 100644
+--- a/drivers/md/dm-stripe.c
++++ b/drivers/md/dm-stripe.c
+@@ -199,7 +199,7 @@ static void stripe_dtr(struct dm_target *ti)
+ 	for (i = 0; i < sc->stripes; i++)
+ 		dm_put_device(ti, sc->stripe[i].dev);
+ 
+-	flush_work_sync(&sc->trigger_event);
++	flush_work(&sc->trigger_event);
+ 	kfree(sc);
+ }
+ 
+diff --git a/drivers/media/dvb/dvb-core/dvb_net.c b/drivers/media/dvb/dvb-core/dvb_net.c
+index 8766ce8c354d..c2117688aa23 100644
+--- a/drivers/media/dvb/dvb-core/dvb_net.c
++++ b/drivers/media/dvb/dvb-core/dvb_net.c
+@@ -1329,8 +1329,8 @@ static int dvb_net_remove_if(struct dvb_net *dvbnet, unsigned long num)
+ 		return -EBUSY;
+ 
+ 	dvb_net_stop(net);
+-	flush_work_sync(&priv->set_multicast_list_wq);
+-	flush_work_sync(&priv->restart_net_feed_wq);
++	flush_work(&priv->set_multicast_list_wq);
++	flush_work(&priv->restart_net_feed_wq);
+ 	printk("dvb_net: removed network interface %s\n", net->name);
+ 	unregister_netdev(net);
+ 	dvbnet->state[num]=0;
+diff --git a/drivers/media/dvb/mantis/mantis_evm.c b/drivers/media/dvb/mantis/mantis_evm.c
+index 71ce52875c38..909ff54868a3 100644
+--- a/drivers/media/dvb/mantis/mantis_evm.c
++++ b/drivers/media/dvb/mantis/mantis_evm.c
+@@ -111,7 +111,7 @@ void mantis_evmgr_exit(struct mantis_ca *ca)
+ 	struct mantis_pci *mantis = ca->ca_priv;
+ 
+ 	dprintk(MANTIS_DEBUG, 1, "Mantis Host I/F Event manager exiting");
+-	flush_work_sync(&ca->hif_evm_work);
++	flush_work(&ca->hif_evm_work);
+ 	mantis_hif_exit(ca);
+ 	mantis_pcmcia_exit(ca);
+ }
+diff --git a/drivers/media/dvb/mantis/mantis_uart.c b/drivers/media/dvb/mantis/mantis_uart.c
+index 18340dafa426..85e977861b4a 100644
+--- a/drivers/media/dvb/mantis/mantis_uart.c
++++ b/drivers/media/dvb/mantis/mantis_uart.c
+@@ -183,6 +183,6 @@ void mantis_uart_exit(struct mantis_pci *mantis)
+ {
+ 	/* disable interrupt */
+ 	mmwrite(mmread(MANTIS_UART_CTL) & 0xffef, MANTIS_UART_CTL);
+-	flush_work_sync(&mantis->uart_work);
++	flush_work(&mantis->uart_work);
+ }
+ EXPORT_SYMBOL_GPL(mantis_uart_exit);
+diff --git a/drivers/media/video/bt8xx/bttv-driver.c b/drivers/media/video/bt8xx/bttv-driver.c
+index b58ff87db771..2ce7179a3864 100644
+--- a/drivers/media/video/bt8xx/bttv-driver.c
++++ b/drivers/media/video/bt8xx/bttv-driver.c
+@@ -196,7 +196,7 @@ static void request_modules(struct bttv *dev)
+ 
+ static void flush_request_modules(struct bttv *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/media/video/cx18/cx18-driver.c b/drivers/media/video/cx18/cx18-driver.c
+index 7e5ffd6f5178..75c890907920 100644
+--- a/drivers/media/video/cx18/cx18-driver.c
++++ b/drivers/media/video/cx18/cx18-driver.c
+@@ -272,7 +272,7 @@ static void request_modules(struct cx18 *dev)
+ 
+ static void flush_request_modules(struct cx18 *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/media/video/cx231xx/cx231xx-cards.c b/drivers/media/video/cx231xx/cx231xx-cards.c
+index 02d4d36735d3..b84ebc54d91b 100644
+--- a/drivers/media/video/cx231xx/cx231xx-cards.c
++++ b/drivers/media/video/cx231xx/cx231xx-cards.c
+@@ -1002,7 +1002,7 @@ static void request_modules(struct cx231xx *dev)
+ 
+ static void flush_request_modules(struct cx231xx *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/media/video/cx23885/cx23885-input.c b/drivers/media/video/cx23885/cx23885-input.c
+index ce765e3f77bd..bcbf7faf1bab 100644
+--- a/drivers/media/video/cx23885/cx23885-input.c
++++ b/drivers/media/video/cx23885/cx23885-input.c
+@@ -231,9 +231,9 @@ static void cx23885_input_ir_stop(struct cx23885_dev *dev)
+ 		v4l2_subdev_call(dev->sd_ir, ir, rx_s_parameters, &params);
+ 		v4l2_subdev_call(dev->sd_ir, ir, rx_g_parameters, &params);
+ 	}
+-	flush_work_sync(&dev->cx25840_work);
+-	flush_work_sync(&dev->ir_rx_work);
+-	flush_work_sync(&dev->ir_tx_work);
++	flush_work(&dev->cx25840_work);
++	flush_work(&dev->ir_rx_work);
++	flush_work(&dev->ir_tx_work);
+ }
+ 
+ static void cx23885_input_ir_close(struct rc_dev *rc)
+diff --git a/drivers/media/video/cx88/cx88-mpeg.c b/drivers/media/video/cx88/cx88-mpeg.c
+index cd5386ee210c..c04fb618e10b 100644
+--- a/drivers/media/video/cx88/cx88-mpeg.c
++++ b/drivers/media/video/cx88/cx88-mpeg.c
+@@ -70,7 +70,7 @@ static void request_modules(struct cx8802_dev *dev)
+ 
+ static void flush_request_modules(struct cx8802_dev *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/media/video/em28xx/em28xx-cards.c b/drivers/media/video/em28xx/em28xx-cards.c
+index ca62b9981380..f7831e73f077 100644
+--- a/drivers/media/video/em28xx/em28xx-cards.c
++++ b/drivers/media/video/em28xx/em28xx-cards.c
+@@ -2900,7 +2900,7 @@ static void request_modules(struct em28xx *dev)
+ 
+ static void flush_request_modules(struct em28xx *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/media/video/omap24xxcam.c b/drivers/media/video/omap24xxcam.c
+index e5015b0d5508..8d7283bbd431 100644
+--- a/drivers/media/video/omap24xxcam.c
++++ b/drivers/media/video/omap24xxcam.c
+@@ -1198,7 +1198,7 @@ static int vidioc_streamoff(struct file *file, void *fh, enum v4l2_buf_type i)
+ 
+ 	atomic_inc(&cam->reset_disable);
+ 
+-	flush_work_sync(&cam->sensor_reset_work);
++	flush_work(&cam->sensor_reset_work);
+ 
+ 	rval = videobuf_streamoff(q);
+ 	if (!rval) {
+@@ -1512,7 +1512,7 @@ static int omap24xxcam_release(struct file *file)
+ 
+ 	atomic_inc(&cam->reset_disable);
+ 
+-	flush_work_sync(&cam->sensor_reset_work);
++	flush_work(&cam->sensor_reset_work);
+ 
+ 	/* stop streaming capture */
+ 	videobuf_streamoff(&fh->vbq);
+@@ -1536,7 +1536,7 @@ static int omap24xxcam_release(struct file *file)
+ 	 * not be scheduled anymore since streaming is already
+ 	 * disabled.)
+ 	 */
+-	flush_work_sync(&cam->sensor_reset_work);
++	flush_work(&cam->sensor_reset_work);
+ 
+ 	mutex_lock(&cam->mutex);
+ 	if (atomic_dec_return(&cam->users) == 0) {
+diff --git a/drivers/media/video/saa7134/saa7134-core.c b/drivers/media/video/saa7134/saa7134-core.c
+index 5fbb4e49495c..f2b37e05b964 100644
+--- a/drivers/media/video/saa7134/saa7134-core.c
++++ b/drivers/media/video/saa7134/saa7134-core.c
+@@ -170,7 +170,7 @@ static void request_submodules(struct saa7134_dev *dev)
+ 
+ static void flush_request_submodules(struct saa7134_dev *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ 
+ #else
+diff --git a/drivers/media/video/saa7134/saa7134-empress.c b/drivers/media/video/saa7134/saa7134-empress.c
+index dde361a9194e..4df79c656909 100644
+--- a/drivers/media/video/saa7134/saa7134-empress.c
++++ b/drivers/media/video/saa7134/saa7134-empress.c
+@@ -556,7 +556,7 @@ static int empress_fini(struct saa7134_dev *dev)
+ 
+ 	if (NULL == dev->empress_dev)
+ 		return 0;
+-	flush_work_sync(&dev->empress_workqueue);
++	flush_work(&dev->empress_workqueue);
+ 	video_unregister_device(dev->empress_dev);
+ 	dev->empress_dev = NULL;
+ 	return 0;
+diff --git a/drivers/media/video/tm6000/tm6000-cards.c b/drivers/media/video/tm6000/tm6000-cards.c
+index 034659b13174..307d8c5fb7cd 100644
+--- a/drivers/media/video/tm6000/tm6000-cards.c
++++ b/drivers/media/video/tm6000/tm6000-cards.c
+@@ -1074,7 +1074,7 @@ static void request_modules(struct tm6000_core *dev)
+ 
+ static void flush_request_modules(struct tm6000_core *dev)
+ {
+-	flush_work_sync(&dev->request_module_wk);
++	flush_work(&dev->request_module_wk);
+ }
+ #else
+ #define request_modules(dev)
+diff --git a/drivers/mfd/menelaus.c b/drivers/mfd/menelaus.c
+index cb4910ac4d12..55d589981412 100644
+--- a/drivers/mfd/menelaus.c
++++ b/drivers/mfd/menelaus.c
+@@ -1259,7 +1259,7 @@ static int menelaus_probe(struct i2c_client *client,
+ 	return 0;
+ fail2:
+ 	free_irq(client->irq, menelaus);
+-	flush_work_sync(&menelaus->work);
++	flush_work(&menelaus->work);
+ fail1:
+ 	kfree(menelaus);
+ 	return err;
+@@ -1270,7 +1270,7 @@ static int __exit menelaus_remove(struct i2c_client *client)
+ 	struct menelaus_chip	*menelaus = i2c_get_clientdata(client);
+ 
+ 	free_irq(client->irq, menelaus);
+-	flush_work_sync(&menelaus->work);
++	flush_work(&menelaus->work);
+ 	kfree(menelaus);
+ 	the_menelaus = NULL;
+ 	return 0;
+diff --git a/drivers/misc/ioc4.c b/drivers/misc/ioc4.c
+index df03dd3bd0e2..6a7710603a90 100644
+--- a/drivers/misc/ioc4.c
++++ b/drivers/misc/ioc4.c
+@@ -487,7 +487,7 @@ static void __exit
+ ioc4_exit(void)
+ {
+ 	/* Ensure ioc4_load_modules() has completed before exiting */
+-	flush_work_sync(&ioc4_load_modules_work);
++	flush_work(&ioc4_load_modules_work);
+ 	pci_unregister_driver(&ioc4_driver);
+ }
+ 
+diff --git a/drivers/mtd/mtdoops.c b/drivers/mtd/mtdoops.c
+index 551e316e4454..438737a1f59a 100644
+--- a/drivers/mtd/mtdoops.c
++++ b/drivers/mtd/mtdoops.c
+@@ -387,8 +387,8 @@ static void mtdoops_notify_remove(struct mtd_info *mtd)
+ 		printk(KERN_WARNING "mtdoops: could not unregister kmsg_dumper\n");
+ 
+ 	cxt->mtd = NULL;
+-	flush_work_sync(&cxt->work_erase);
+-	flush_work_sync(&cxt->work_write);
++	flush_work(&cxt->work_erase);
++	flush_work(&cxt->work_write);
+ }
+ 
+ 
+diff --git a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c b/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+index 6505070abcfa..089ed134369b 100644
+--- a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
++++ b/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+@@ -1394,7 +1394,7 @@ static int offload_close(struct t3cdev *tdev)
+ 	sysfs_remove_group(&tdev->lldev->dev.kobj, &offload_attr_group);
+ 
+ 	/* Flush work scheduled while releasing TIDs */
+-	flush_work_sync(&td->tid_release_task);
++	flush_work(&td->tid_release_task);
+ 
+ 	tdev->lldev = NULL;
+ 	cxgb3_set_dummy_ops(tdev);
+diff --git a/drivers/net/ethernet/neterion/vxge/vxge-main.c b/drivers/net/ethernet/neterion/vxge/vxge-main.c
+index de2190443510..30ce10bc9149 100644
+--- a/drivers/net/ethernet/neterion/vxge/vxge-main.c
++++ b/drivers/net/ethernet/neterion/vxge/vxge-main.c
+@@ -3521,7 +3521,7 @@ static void vxge_device_unregister(struct __vxge_hw_device *hldev)
+ 
+ 	strncpy(buf, dev->name, IFNAMSIZ);
+ 
+-	flush_work_sync(&vdev->reset_task);
++	flush_work(&vdev->reset_task);
+ 
+ 	/* in 2.6 will call stop() if device is up */
+ 	unregister_netdev(dev);
+diff --git a/drivers/net/ethernet/sun/cassini.c b/drivers/net/ethernet/sun/cassini.c
+index ce4df61b4b56..c8251be104d6 100644
+--- a/drivers/net/ethernet/sun/cassini.c
++++ b/drivers/net/ethernet/sun/cassini.c
+@@ -3890,7 +3890,7 @@ static int cas_change_mtu(struct net_device *dev, int new_mtu)
+ 	schedule_work(&cp->reset_task);
+ #endif
+ 
+-	flush_work_sync(&cp->reset_task);
++	flush_work(&cp->reset_task);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/net/ethernet/sun/niu.c b/drivers/net/ethernet/sun/niu.c
+index c2a0fe393267..710f35395195 100644
+--- a/drivers/net/ethernet/sun/niu.c
++++ b/drivers/net/ethernet/sun/niu.c
+@@ -9932,7 +9932,7 @@ static int niu_suspend(struct pci_dev *pdev, pm_message_t state)
+ 	if (!netif_running(dev))
+ 		return 0;
+ 
+-	flush_work_sync(&np->reset_task);
++	flush_work(&np->reset_task);
+ 	niu_netif_stop(np);
+ 
+ 	del_timer_sync(&np->timer);
+diff --git a/drivers/net/wireless/hostap/hostap_ap.c b/drivers/net/wireless/hostap/hostap_ap.c
+index e1f410277242..c6ea995750db 100644
+--- a/drivers/net/wireless/hostap/hostap_ap.c
++++ b/drivers/net/wireless/hostap/hostap_ap.c
+@@ -860,10 +860,10 @@ void hostap_free_data(struct ap_data *ap)
+ 		return;
+ 	}
+ 
+-	flush_work_sync(&ap->add_sta_proc_queue);
++	flush_work(&ap->add_sta_proc_queue);
+ 
+ #ifndef PRISM2_NO_KERNEL_IEEE80211_MGMT
+-	flush_work_sync(&ap->wds_oper_queue);
++	flush_work(&ap->wds_oper_queue);
+ 	if (ap->crypt)
+ 		ap->crypt->deinit(ap->crypt_priv);
+ 	ap->crypt = ap->crypt_priv = NULL;
+diff --git a/drivers/net/wireless/hostap/hostap_hw.c b/drivers/net/wireless/hostap/hostap_hw.c
+index 50f87b60b0bd..8e7000fd4414 100644
+--- a/drivers/net/wireless/hostap/hostap_hw.c
++++ b/drivers/net/wireless/hostap/hostap_hw.c
+@@ -3311,13 +3311,13 @@ static void prism2_free_local_data(struct net_device *dev)
+ 
+ 	unregister_netdev(local->dev);
+ 
+-	flush_work_sync(&local->reset_queue);
+-	flush_work_sync(&local->set_multicast_list_queue);
+-	flush_work_sync(&local->set_tim_queue);
++	flush_work(&local->reset_queue);
++	flush_work(&local->set_multicast_list_queue);
++	flush_work(&local->set_tim_queue);
+ #ifndef PRISM2_NO_STATION_MODES
+-	flush_work_sync(&local->info_queue);
++	flush_work(&local->info_queue);
+ #endif
+-	flush_work_sync(&local->comms_qual_update);
++	flush_work(&local->comms_qual_update);
+ 
+ 	lib80211_crypt_info_free(&local->crypt_info);
+ 
+diff --git a/drivers/power/collie_battery.c b/drivers/power/collie_battery.c
+index 74c6b23aeabf..b19bfe400f8c 100644
+--- a/drivers/power/collie_battery.c
++++ b/drivers/power/collie_battery.c
+@@ -290,7 +290,7 @@ static struct gpio collie_batt_gpios[] = {
+ static int collie_bat_suspend(struct ucb1x00_dev *dev, pm_message_t state)
+ {
+ 	/* flush all pending status updates */
+-	flush_work_sync(&bat_work);
++	flush_work(&bat_work);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/power/tosa_battery.c b/drivers/power/tosa_battery.c
+index 28bbe7e094e3..51199b5ce221 100644
+--- a/drivers/power/tosa_battery.c
++++ b/drivers/power/tosa_battery.c
+@@ -327,7 +327,7 @@ static struct gpio tosa_bat_gpios[] = {
+ static int tosa_bat_suspend(struct platform_device *dev, pm_message_t state)
+ {
+ 	/* flush all pending status updates */
+-	flush_work_sync(&bat_work);
++	flush_work(&bat_work);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/power/wm97xx_battery.c b/drivers/power/wm97xx_battery.c
+index d2d4c08c681c..1245fe1f48c3 100644
+--- a/drivers/power/wm97xx_battery.c
++++ b/drivers/power/wm97xx_battery.c
+@@ -146,7 +146,7 @@ static irqreturn_t wm97xx_chrg_irq(int irq, void *data)
+ #ifdef CONFIG_PM
+ static int wm97xx_bat_suspend(struct device *dev)
+ {
+-	flush_work_sync(&bat_work);
++	flush_work(&bat_work);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/power/z2_battery.c b/drivers/power/z2_battery.c
+index 8c9a607ea77a..5757d0d6782f 100644
+--- a/drivers/power/z2_battery.c
++++ b/drivers/power/z2_battery.c
+@@ -276,7 +276,7 @@ static int z2_batt_suspend(struct device *dev)
+ 	struct i2c_client *client = to_i2c_client(dev);
+ 	struct z2_charger *charger = i2c_get_clientdata(client);
+ 
+-	flush_work_sync(&charger->bat_work);
++	flush_work(&charger->bat_work);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/regulator/core.c b/drivers/regulator/core.c
+index f092588a078c..1d2b70017a8d 100644
+--- a/drivers/regulator/core.c
++++ b/drivers/regulator/core.c
+@@ -3335,7 +3335,7 @@ void regulator_unregister(struct regulator_dev *rdev)
+ 		regulator_put(rdev->supply);
+ 	mutex_lock(&regulator_list_mutex);
+ 	debugfs_remove_recursive(rdev->debugfs);
+-	flush_work_sync(&rdev->disable_work.work);
++	flush_work(&rdev->disable_work.work);
+ 	WARN_ON(rdev->open_count);
+ 	unset_regulator_supplies(rdev);
+ 	list_del(&rdev->list);
+diff --git a/drivers/scsi/arcmsr/arcmsr_hba.c b/drivers/scsi/arcmsr/arcmsr_hba.c
+index def24a1079ad..33c52bc2c7b4 100644
+--- a/drivers/scsi/arcmsr/arcmsr_hba.c
++++ b/drivers/scsi/arcmsr/arcmsr_hba.c
+@@ -999,7 +999,7 @@ static void arcmsr_remove(struct pci_dev *pdev)
+ 	int poll_count = 0;
+ 	arcmsr_free_sysfs_attr(acb);
+ 	scsi_remove_host(host);
+-	flush_work_sync(&acb->arcmsr_do_message_isr_bh);
++	flush_work(&acb->arcmsr_do_message_isr_bh);
+ 	del_timer_sync(&acb->eternal_timer);
+ 	arcmsr_disable_outbound_ints(acb);
+ 	arcmsr_stop_adapter_bgrb(acb);
+@@ -1045,7 +1045,7 @@ static void arcmsr_shutdown(struct pci_dev *pdev)
+ 		(struct AdapterControlBlock *)host->hostdata;
+ 	del_timer_sync(&acb->eternal_timer);
+ 	arcmsr_disable_outbound_ints(acb);
+-	flush_work_sync(&acb->arcmsr_do_message_isr_bh);
++	flush_work(&acb->arcmsr_do_message_isr_bh);
+ 	arcmsr_stop_adapter_bgrb(acb);
+ 	arcmsr_flush_adapter_cache(acb);
+ }
+diff --git a/drivers/scsi/ipr.c b/drivers/scsi/ipr.c
+index 467dc38246f9..2ffeb9afd1b7 100644
+--- a/drivers/scsi/ipr.c
++++ b/drivers/scsi/ipr.c
+@@ -9020,7 +9020,7 @@ static void __ipr_remove(struct pci_dev *pdev)
+ 
+ 	spin_unlock_irqrestore(ioa_cfg->host->host_lock, host_lock_flags);
+ 	wait_event(ioa_cfg->reset_wait_q, !ioa_cfg->in_reset_reload);
+-	flush_work_sync(&ioa_cfg->work_q);
++	flush_work(&ioa_cfg->work_q);
+ 	spin_lock_irqsave(ioa_cfg->host->host_lock, host_lock_flags);
+ 
+ 	spin_lock(&ipr_driver_lock);
+diff --git a/drivers/scsi/pmcraid.c b/drivers/scsi/pmcraid.c
+index ea8a0b47d66d..af763eab2039 100644
+--- a/drivers/scsi/pmcraid.c
++++ b/drivers/scsi/pmcraid.c
+@@ -5459,7 +5459,7 @@ static void __devexit pmcraid_remove(struct pci_dev *pdev)
+ 	pmcraid_shutdown(pdev);
+ 
+ 	pmcraid_disable_interrupts(pinstance, ~0);
+-	flush_work_sync(&pinstance->worker_q);
++	flush_work(&pinstance->worker_q);
+ 
+ 	pmcraid_kill_tasklets(pinstance);
+ 	pmcraid_unregister_interrupt_handler(pinstance);
+diff --git a/drivers/scsi/qla2xxx/qla_target.c b/drivers/scsi/qla2xxx/qla_target.c
+index 5b30132960c7..bddc97c5c8e9 100644
+--- a/drivers/scsi/qla2xxx/qla_target.c
++++ b/drivers/scsi/qla2xxx/qla_target.c
+@@ -969,7 +969,7 @@ void qlt_stop_phase1(struct qla_tgt *tgt)
+ 	spin_unlock_irqrestore(&ha->hardware_lock, flags);
+ 	mutex_unlock(&ha->tgt.tgt_mutex);
+ 
+-	flush_delayed_work_sync(&tgt->sess_del_work);
++	flush_delayed_work(&tgt->sess_del_work);
+ 
+ 	ql_dbg(ql_dbg_tgt_mgt, vha, 0xf009,
+ 	    "Waiting for sess works (tgt %p)", tgt);
+diff --git a/drivers/tty/hvc/hvsi.c b/drivers/tty/hvc/hvsi.c
+index 6f5bc49c441f..1f8e8b37ed23 100644
+--- a/drivers/tty/hvc/hvsi.c
++++ b/drivers/tty/hvc/hvsi.c
+@@ -765,7 +765,7 @@ static void hvsi_flush_output(struct hvsi_struct *hp)
+ 
+ 	/* 'writer' could still be pending if it didn't see n_outbuf = 0 yet */
+ 	cancel_delayed_work_sync(&hp->writer);
+-	flush_work_sync(&hp->handshaker);
++	flush_work(&hp->handshaker);
+ 
+ 	/*
+ 	 * it's also possible that our timeout expired and hvsi_write_worker
+diff --git a/drivers/tty/ipwireless/hardware.c b/drivers/tty/ipwireless/hardware.c
+index 0aeb5a38d296..b4ba0670dc54 100644
+--- a/drivers/tty/ipwireless/hardware.c
++++ b/drivers/tty/ipwireless/hardware.c
+@@ -1729,7 +1729,7 @@ void ipwireless_hardware_free(struct ipw_hardware *hw)
+ 
+ 	ipwireless_stop_interrupts(hw);
+ 
+-	flush_work_sync(&hw->work_rx);
++	flush_work(&hw->work_rx);
+ 
+ 	for (i = 0; i < NL_NUM_OF_ADDRESSES; i++)
+ 		if (hw->packet_assembler[i] != NULL)
+diff --git a/drivers/tty/ipwireless/network.c b/drivers/tty/ipwireless/network.c
+index 57c8b481113f..90ea902ff191 100644
+--- a/drivers/tty/ipwireless/network.c
++++ b/drivers/tty/ipwireless/network.c
+@@ -430,8 +430,8 @@ void ipwireless_network_free(struct ipw_network *network)
+ 	network->shutting_down = 1;
+ 
+ 	ipwireless_ppp_close(network);
+-	flush_work_sync(&network->work_go_online);
+-	flush_work_sync(&network->work_go_offline);
++	flush_work(&network->work_go_online);
++	flush_work(&network->work_go_offline);
+ 
+ 	ipwireless_stop_interrupts(network->hardware);
+ 	ipwireless_associate_network(network->hardware, NULL);
+diff --git a/drivers/tty/serial/kgdboc.c b/drivers/tty/serial/kgdboc.c
+index 2b42a01a81c6..ebabf929f460 100644
+--- a/drivers/tty/serial/kgdboc.c
++++ b/drivers/tty/serial/kgdboc.c
+@@ -122,7 +122,7 @@ static void kgdboc_unregister_kbd(void)
+ 			i--;
+ 		}
+ 	}
+-	flush_work_sync(&kgdboc_restore_input_work);
++	flush_work(&kgdboc_restore_input_work);
+ }
+ #else /* ! CONFIG_KDB_KEYBOARD */
+ #define kgdboc_register_kbd(x) 0
+diff --git a/drivers/tty/serial/omap-serial.c b/drivers/tty/serial/omap-serial.c
+index d3cda0cb2df0..0952d71bdf28 100644
+--- a/drivers/tty/serial/omap-serial.c
++++ b/drivers/tty/serial/omap-serial.c
+@@ -1205,7 +1205,7 @@ static int serial_omap_suspend(struct device *dev)
+ 
+ 	if (up) {
+ 		uart_suspend_port(&serial_omap_reg, &up->port);
+-		flush_work_sync(&up->qos_work);
++		flush_work(&up->qos_work);
+ 	}
+ 
+ 	return 0;
+diff --git a/drivers/tty/tty_ldisc.c b/drivers/tty/tty_ldisc.c
+index 6f99c9959f0c..ac5be812dbe3 100644
+--- a/drivers/tty/tty_ldisc.c
++++ b/drivers/tty/tty_ldisc.c
+@@ -523,9 +523,9 @@ static int tty_ldisc_halt(struct tty_struct *tty)
+  */
+ static void tty_ldisc_flush_works(struct tty_struct *tty)
+ {
+-	flush_work_sync(&tty->hangup_work);
+-	flush_work_sync(&tty->SAK_work);
+-	flush_work_sync(&tty->buf.work);
++	flush_work(&tty->hangup_work);
++	flush_work(&tty->SAK_work);
++	flush_work(&tty->buf.work);
+ }
+ 
+ /**
+diff --git a/drivers/usb/atm/speedtch.c b/drivers/usb/atm/speedtch.c
+index 975e9c6691d6..807627b36cc8 100644
+--- a/drivers/usb/atm/speedtch.c
++++ b/drivers/usb/atm/speedtch.c
+@@ -718,7 +718,7 @@ static void speedtch_atm_stop(struct usbatm_data *usbatm, struct atm_dev *atm_de
+ 	del_timer_sync(&instance->resubmit_timer);
+ 	usb_free_urb(int_urb);
+ 
+-	flush_work_sync(&instance->status_check_work);
++	flush_work(&instance->status_check_work);
+ }
+ 
+ static int speedtch_pre_reset(struct usb_interface *intf)
+diff --git a/drivers/usb/atm/ueagle-atm.c b/drivers/usb/atm/ueagle-atm.c
+index d7e422dc0ef7..9d1a044504e8 100644
+--- a/drivers/usb/atm/ueagle-atm.c
++++ b/drivers/usb/atm/ueagle-atm.c
+@@ -2234,7 +2234,7 @@ static void uea_stop(struct uea_softc *sc)
+ 	usb_free_urb(sc->urb_int);
+ 
+ 	/* flush the work item, when no one can schedule it */
+-	flush_work_sync(&sc->task);
++	flush_work(&sc->task);
+ 
+ 	release_firmware(sc->dsp_firm);
+ 	uea_leaves(INS_TO_USBDEV(sc));
+diff --git a/drivers/usb/gadget/u_ether.c b/drivers/usb/gadget/u_ether.c
+index 90e82e288eb9..f1e5fbf5c2c7 100644
+--- a/drivers/usb/gadget/u_ether.c
++++ b/drivers/usb/gadget/u_ether.c
+@@ -834,7 +834,7 @@ void gether_cleanup(void)
+ 		return;
+ 
+ 	unregister_netdev(the_dev->net);
+-	flush_work_sync(&the_dev->work);
++	flush_work(&the_dev->work);
+ 	free_netdev(the_dev->net);
+ 
+ 	the_dev = NULL;
+diff --git a/drivers/usb/host/ohci-hcd.c b/drivers/usb/host/ohci-hcd.c
+index 2b1e8d84c873..2364098ea83c 100644
+--- a/drivers/usb/host/ohci-hcd.c
++++ b/drivers/usb/host/ohci-hcd.c
+@@ -893,7 +893,7 @@ static void ohci_stop (struct usb_hcd *hcd)
+ 	ohci_dump (ohci, 1);
+ 
+ 	if (quirk_nec(ohci))
+-		flush_work_sync(&ohci->nec_work);
++		flush_work(&ohci->nec_work);
+ 
+ 	ohci_usb_reset (ohci);
+ 	ohci_writel (ohci, OHCI_INTR_MIE, &ohci->regs->intrdisable);
+diff --git a/drivers/usb/otg/isp1301_omap.c b/drivers/usb/otg/isp1301_omap.c
+index 7a88667742b6..720df35561c9 100644
+--- a/drivers/usb/otg/isp1301_omap.c
++++ b/drivers/usb/otg/isp1301_omap.c
+@@ -1230,7 +1230,7 @@ static int __exit isp1301_remove(struct i2c_client *i2c)
+ 	isp->timer.data = 0;
+ 	set_bit(WORK_STOP, &isp->todo);
+ 	del_timer_sync(&isp->timer);
+-	flush_work_sync(&isp->work);
++	flush_work(&isp->work);
+ 
+ 	put_device(&i2c->dev);
+ 	the_transceiver = NULL;
+diff --git a/fs/affs/super.c b/fs/affs/super.c
+index c70f1e5fc024..022cecb0757d 100644
+--- a/fs/affs/super.c
++++ b/fs/affs/super.c
+@@ -551,7 +551,7 @@ affs_remount(struct super_block *sb, int *flags, char *data)
+ 		return -EINVAL;
+ 	}
+ 
+-	flush_delayed_work_sync(&sbi->sb_work);
++	flush_delayed_work(&sbi->sb_work);
+ 	replace_mount_options(sb, new_opts);
+ 
+ 	sbi->s_flags = mount_flags;
+diff --git a/fs/gfs2/lock_dlm.c b/fs/gfs2/lock_dlm.c
+index 4a38db739ca0..0fb6539b0c8c 100644
+--- a/fs/gfs2/lock_dlm.c
++++ b/fs/gfs2/lock_dlm.c
+@@ -1289,7 +1289,7 @@ static void gdlm_unmount(struct gfs2_sbd *sdp)
+ 	spin_lock(&ls->ls_recover_spin);
+ 	set_bit(DFL_UNMOUNT, &ls->ls_recover_flags);
+ 	spin_unlock(&ls->ls_recover_spin);
+-	flush_delayed_work_sync(&sdp->sd_control_work);
++	flush_delayed_work(&sdp->sd_control_work);
+ 
+ 	/* mounted_lock and control_lock will be purged in dlm recovery */
+ release:
+diff --git a/fs/gfs2/super.c b/fs/gfs2/super.c
+index fc3168f47a14..867700aba536 100644
+--- a/fs/gfs2/super.c
++++ b/fs/gfs2/super.c
+@@ -1572,7 +1572,7 @@ static void gfs2_evict_inode(struct inode *inode)
+ 	clear_inode(inode);
+ 	gfs2_dir_hash_inval(ip);
+ 	ip->i_gl->gl_object = NULL;
+-	flush_delayed_work_sync(&ip->i_gl->gl_work);
++	flush_delayed_work(&ip->i_gl->gl_work);
+ 	gfs2_glock_add_to_lru(ip->i_gl);
+ 	gfs2_glock_put(ip->i_gl);
+ 	ip->i_gl = NULL;
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index ee1bc55677f1..553909395270 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -644,7 +644,7 @@ static int hfs_file_fsync(struct file *filp, loff_t start, loff_t end,
+ 
+ 	/* sync the superblock to buffers */
+ 	sb = inode->i_sb;
+-	flush_delayed_work_sync(&HFS_SB(sb)->mdb_work);
++	flush_delayed_work(&HFS_SB(sb)->mdb_work);
+ 	/* .. finally sync the buffers to disk */
+ 	err = sync_blockdev(sb->s_bdev);
+ 	if (!ret)
+diff --git a/fs/ncpfs/inode.c b/fs/ncpfs/inode.c
+index 333df07ae3bd..eaa74323663a 100644
+--- a/fs/ncpfs/inode.c
++++ b/fs/ncpfs/inode.c
+@@ -314,11 +314,11 @@ static void ncp_stop_tasks(struct ncp_server *server) {
+ 	release_sock(sk);
+ 	del_timer_sync(&server->timeout_tm);
+ 
+-	flush_work_sync(&server->rcv.tq);
++	flush_work(&server->rcv.tq);
+ 	if (sk->sk_socket->type == SOCK_STREAM)
+-		flush_work_sync(&server->tx.tq);
++		flush_work(&server->tx.tq);
+ 	else
+-		flush_work_sync(&server->timeout_tq);
++		flush_work(&server->timeout_tq);
+ }
+ 
+ static int  ncp_show_options(struct seq_file *seq, struct dentry *root)
+diff --git a/fs/ocfs2/cluster/quorum.c b/fs/ocfs2/cluster/quorum.c
+index 8f9cea1597af..c19897d0fe14 100644
+--- a/fs/ocfs2/cluster/quorum.c
++++ b/fs/ocfs2/cluster/quorum.c
+@@ -327,5 +327,5 @@ void o2quo_exit(void)
+ {
+ 	struct o2quo_state *qs = &o2quo_state;
+ 
+-	flush_work_sync(&qs->qs_work);
++	flush_work(&qs->qs_work);
+ }
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index bdaf4cb9f4a2..e8e6be439bcd 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -953,7 +953,7 @@ xfs_fs_sync_fs(
+ 		 * We schedule xfssyncd now (now that the disk is
+ 		 * active) instead of later (when it might not be).
+ 		 */
+-		flush_delayed_work_sync(&mp->m_sync_work);
++		flush_delayed_work(&mp->m_sync_work);
+ 	}
+ 
+ 	return 0;
+diff --git a/fs/xfs/xfs_sync.c b/fs/xfs/xfs_sync.c
+index 96548176db80..9500caf15acf 100644
+--- a/fs/xfs/xfs_sync.c
++++ b/fs/xfs/xfs_sync.c
+@@ -475,7 +475,7 @@ xfs_flush_inodes(
+ 	struct xfs_mount	*mp = ip->i_mount;
+ 
+ 	queue_work(xfs_syncd_wq, &mp->m_flush_work);
+-	flush_work_sync(&mp->m_flush_work);
++	flush_work(&mp->m_flush_work);
+ }
+ 
+ STATIC void
+diff --git a/include/linux/workqueue.h b/include/linux/workqueue.h
+index 855fcdaa2d72..a351be7c3e91 100644
+--- a/include/linux/workqueue.h
++++ b/include/linux/workqueue.h
+@@ -460,13 +460,13 @@ static inline bool __cancel_delayed_work(struct delayed_work *work)
+ }
+ 
+ /* used to be different but now identical to flush_work(), deprecated */
+-static inline bool flush_work_sync(struct work_struct *work)
++static inline bool __deprecated flush_work_sync(struct work_struct *work)
+ {
+ 	return flush_work(work);
+ }
+ 
+ /* used to be different but now identical to flush_delayed_work(), deprecated */
+-static inline bool flush_delayed_work_sync(struct delayed_work *dwork)
++static inline bool __deprecated flush_delayed_work_sync(struct delayed_work *dwork)
+ {
+ 	return flush_delayed_work(dwork);
+ }
+diff --git a/net/9p/trans_fd.c b/net/9p/trans_fd.c
+index 6449bae15702..505f0ce3f10b 100644
+--- a/net/9p/trans_fd.c
++++ b/net/9p/trans_fd.c
+@@ -1083,7 +1083,7 @@ int p9_trans_fd_init(void)
+ 
+ void p9_trans_fd_exit(void)
+ {
+-	flush_work_sync(&p9_poll_work);
++	flush_work(&p9_poll_work);
+ 	v9fs_unregister_trans(&p9_tcp_trans);
+ 	v9fs_unregister_trans(&p9_unix_trans);
+ 	v9fs_unregister_trans(&p9_fd_trans);
+diff --git a/net/dsa/dsa.c b/net/dsa/dsa.c
+index 88e7c2f3fa0d..45295ca09571 100644
+--- a/net/dsa/dsa.c
++++ b/net/dsa/dsa.c
+@@ -370,7 +370,7 @@ static int dsa_remove(struct platform_device *pdev)
+ 	if (dst->link_poll_needed)
+ 		del_timer_sync(&dst->link_poll_timer);
+ 
+-	flush_work_sync(&dst->link_poll_work);
++	flush_work(&dst->link_poll_work);
+ 
+ 	for (i = 0; i < dst->pd->nr_chips; i++) {
+ 		struct dsa_switch *ds = dst->ds[i];
+diff --git a/sound/i2c/other/ak4113.c b/sound/i2c/other/ak4113.c
+index dde5c9c92132..ef68d710d08c 100644
+--- a/sound/i2c/other/ak4113.c
++++ b/sound/i2c/other/ak4113.c
+@@ -141,7 +141,7 @@ void snd_ak4113_reinit(struct ak4113 *chip)
+ {
+ 	chip->init = 1;
+ 	mb();
+-	flush_delayed_work_sync(&chip->work);
++	flush_delayed_work(&chip->work);
+ 	ak4113_init_regs(chip);
+ 	/* bring up statistics / event queing */
+ 	chip->init = 0;
+diff --git a/sound/i2c/other/ak4114.c b/sound/i2c/other/ak4114.c
+index fdf3c1b65e38..816e7d225fb0 100644
+--- a/sound/i2c/other/ak4114.c
++++ b/sound/i2c/other/ak4114.c
+@@ -154,7 +154,7 @@ void snd_ak4114_reinit(struct ak4114 *chip)
+ {
+ 	chip->init = 1;
+ 	mb();
+-	flush_delayed_work_sync(&chip->work);
++	flush_delayed_work(&chip->work);
+ 	ak4114_init_regs(chip);
+ 	/* bring up statistics / event queing */
+ 	chip->init = 0;
+diff --git a/sound/pci/oxygen/oxygen_lib.c b/sound/pci/oxygen/oxygen_lib.c
+index ab8738e21ad1..e9fa2d07951d 100644
+--- a/sound/pci/oxygen/oxygen_lib.c
++++ b/sound/pci/oxygen/oxygen_lib.c
+@@ -573,8 +573,8 @@ static void oxygen_card_free(struct snd_card *card)
+ 	oxygen_shutdown(chip);
+ 	if (chip->irq >= 0)
+ 		free_irq(chip->irq, chip);
+-	flush_work_sync(&chip->spdif_input_bits_work);
+-	flush_work_sync(&chip->gpio_work);
++	flush_work(&chip->spdif_input_bits_work);
++	flush_work(&chip->gpio_work);
+ 	chip->model.cleanup(chip);
+ 	kfree(chip->model_data);
+ 	mutex_destroy(&chip->mutex);
+@@ -751,8 +751,8 @@ static int oxygen_pci_suspend(struct device *dev)
+ 	spin_unlock_irq(&chip->reg_lock);
+ 
+ 	synchronize_irq(chip->irq);
+-	flush_work_sync(&chip->spdif_input_bits_work);
+-	flush_work_sync(&chip->gpio_work);
++	flush_work(&chip->spdif_input_bits_work);
++	flush_work(&chip->gpio_work);
+ 	chip->interrupt_mask = saved_interrupt_mask;
+ 
+ 	pci_disable_device(pci);
+diff --git a/sound/soc/codecs/wm8350.c b/sound/soc/codecs/wm8350.c
+index d26c8ae4e6d9..a4cae060bf26 100644
+--- a/sound/soc/codecs/wm8350.c
++++ b/sound/soc/codecs/wm8350.c
+@@ -1601,7 +1601,7 @@ static int  wm8350_codec_remove(struct snd_soc_codec *codec)
+ 
+ 	/* if there was any work waiting then we run it now and
+ 	 * wait for its completion */
+-	flush_delayed_work_sync(&codec->dapm.delayed_work);
++	flush_delayed_work(&codec->dapm.delayed_work);
+ 
+ 	wm8350_set_bias_level(codec, SND_SOC_BIAS_OFF);
+ 
+diff --git a/sound/soc/codecs/wm8753.c b/sound/soc/codecs/wm8753.c
+index 13bff87ddcf5..2e4a775ae560 100644
+--- a/sound/soc/codecs/wm8753.c
++++ b/sound/soc/codecs/wm8753.c
+@@ -1509,7 +1509,7 @@ static int wm8753_probe(struct snd_soc_codec *codec)
+ /* power down chip */
+ static int wm8753_remove(struct snd_soc_codec *codec)
+ {
+-	flush_delayed_work_sync(&codec->dapm.delayed_work);
++	flush_delayed_work(&codec->dapm.delayed_work);
+ 	wm8753_set_bias_level(codec, SND_SOC_BIAS_OFF);
+ 
+ 	return 0;
+diff --git a/sound/soc/soc-core.c b/sound/soc/soc-core.c
+index f219b2f7ee68..f6eec782c61e 100644
+--- a/sound/soc/soc-core.c
++++ b/sound/soc/soc-core.c
+@@ -591,7 +591,7 @@ int snd_soc_suspend(struct device *dev)
+ 
+ 	/* close any waiting streams and save state */
+ 	for (i = 0; i < card->num_rtd; i++) {
+-		flush_delayed_work_sync(&card->rtd[i].delayed_work);
++		flush_delayed_work(&card->rtd[i].delayed_work);
+ 		card->rtd[i].codec->dapm.suspend_bias_level = card->rtd[i].codec->dapm.bias_level;
+ 	}
+ 
+@@ -1846,7 +1846,7 @@ static int soc_cleanup_card_resources(struct snd_soc_card *card)
+ 	/* make sure any delayed work runs */
+ 	for (i = 0; i < card->num_rtd; i++) {
+ 		struct snd_soc_pcm_runtime *rtd = &card->rtd[i];
+-		flush_delayed_work_sync(&rtd->delayed_work);
++		flush_delayed_work(&rtd->delayed_work);
+ 	}
+ 
+ 	/* remove auxiliary devices */
+@@ -1890,7 +1890,7 @@ int snd_soc_poweroff(struct device *dev)
+ 	 * now, we're shutting down so no imminent restart. */
+ 	for (i = 0; i < card->num_rtd; i++) {
+ 		struct snd_soc_pcm_runtime *rtd = &card->rtd[i];
+-		flush_delayed_work_sync(&rtd->delayed_work);
++		flush_delayed_work(&rtd->delayed_work);
+ 	}
+ 
+ 	snd_soc_dapm_shutdown(card);
+diff --git a/virt/kvm/eventfd.c b/virt/kvm/eventfd.c
+index 7d7e2aaffece..67a35e90384c 100644
+--- a/virt/kvm/eventfd.c
++++ b/virt/kvm/eventfd.c
+@@ -90,7 +90,7 @@ irqfd_shutdown(struct work_struct *work)
+ 	 * We know no new events will be scheduled at this point, so block
+ 	 * until all previously outstanding events have completed
+ 	 */
+-	flush_work_sync(&irqfd->inject);
++	flush_work(&irqfd->inject);
+ 
+ 	/*
+ 	 * It is now safe to release the object's resources
+-- 
+2.17.0
+

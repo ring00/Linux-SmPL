@@ -1,0 +1,721 @@
+From 3309dd04cbcd2cdad168485af5cf3576b5051e49 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Thu, 9 Apr 2015 12:55:47 -0400
+Subject: [PATCH] switch generic_write_checks() to iocb and iter
+
+... returning -E... upon error and amount of data left in iter after
+(possible) truncation upon success.  Note, that normal case gives
+a non-zero (positive) return value, so any tests for != 0 _must_ be
+updated.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+
+Conflicts:
+	fs/ext4/file.c
+---
+ fs/9p/vfs_file.c   | 26 ++++++++++----------------
+ fs/btrfs/file.c    | 24 +++++++++---------------
+ fs/ceph/file.c     | 14 ++++++--------
+ fs/cifs/file.c     | 26 ++++++--------------------
+ fs/ext4/file.c     | 20 ++++++--------------
+ fs/fuse/file.c     | 22 +++++++---------------
+ fs/ncpfs/file.c    | 14 +++++---------
+ fs/nfs/direct.c    | 25 ++++++++++---------------
+ fs/ntfs/file.c     | 11 ++++-------
+ fs/ocfs2/file.c    | 19 ++++++++++---------
+ fs/udf/file.c      | 10 ++--------
+ fs/xfs/xfs_file.c  |  8 ++++----
+ include/linux/fs.h |  2 +-
+ mm/filemap.c       | 44 +++++++++++++++++++-------------------------
+ 14 files changed, 99 insertions(+), 166 deletions(-)
+
+diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c
+index b5b020ace1b3..2a9dd37dc426 100644
+--- a/fs/9p/vfs_file.c
++++ b/fs/9p/vfs_file.c
+@@ -404,21 +404,16 @@ static ssize_t
+ v9fs_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+-	ssize_t retval = 0;
+-	loff_t origin = iocb->ki_pos;
+-	size_t count = iov_iter_count(from);
++	ssize_t retval;
++	loff_t origin;
+ 	int err = 0;
+ 
+-	retval = generic_write_checks(file, &origin, &count);
+-	if (retval)
++	retval = generic_write_checks(iocb, from);
++	if (retval <= 0)
+ 		return retval;
+ 
+-	iov_iter_truncate(from, count);
+-
+-	if (!count)
+-		return 0;
+-
+-	retval = p9_client_write(file->private_data, origin, from, &err);
++	origin = iocb->ki_pos;
++	retval = p9_client_write(file->private_data, iocb->ki_pos, from, &err);
+ 	if (retval > 0) {
+ 		struct inode *inode = file_inode(file);
+ 		loff_t i_size;
+@@ -428,12 +423,11 @@ v9fs_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 		if (inode->i_mapping && inode->i_mapping->nrpages)
+ 			invalidate_inode_pages2_range(inode->i_mapping,
+ 						      pg_start, pg_end);
+-		origin += retval;
++		iocb->ki_pos += retval;
+ 		i_size = i_size_read(inode);
+-		iocb->ki_pos = origin;
+-		if (origin > i_size) {
+-			inode_add_bytes(inode, origin - i_size);
+-			i_size_write(inode, origin);
++		if (iocb->ki_pos > i_size) {
++			inode_add_bytes(inode, iocb->ki_pos - i_size);
++			i_size_write(inode, iocb->ki_pos);
+ 		}
+ 		return retval;
+ 	}
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index 691a84a81e09..c64d11c41eeb 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1739,27 +1739,19 @@ static ssize_t btrfs_file_write_iter(struct kiocb *iocb,
+ 	u64 start_pos;
+ 	u64 end_pos;
+ 	ssize_t num_written = 0;
+-	ssize_t err = 0;
+-	size_t count = iov_iter_count(from);
+ 	bool sync = (file->f_flags & O_DSYNC) || IS_SYNC(file->f_mapping->host);
+-	loff_t pos = iocb->ki_pos;
++	ssize_t err;
++	loff_t pos;
++	size_t count;
+ 
+ 	mutex_lock(&inode->i_mutex);
+-
+-	current->backing_dev_info = inode_to_bdi(inode);
+-	err = generic_write_checks(file, &pos, &count);
+-	if (err) {
++	err = generic_write_checks(iocb, from);
++	if (err <= 0) {
+ 		mutex_unlock(&inode->i_mutex);
+-		goto out;
+-	}
+-
+-	if (count == 0) {
+-		mutex_unlock(&inode->i_mutex);
+-		goto out;
++		return err;
+ 	}
+ 
+-	iov_iter_truncate(from, count);
+-
++	current->backing_dev_info = inode_to_bdi(inode);
+ 	err = file_remove_suid(file);
+ 	if (err) {
+ 		mutex_unlock(&inode->i_mutex);
+@@ -1786,6 +1778,8 @@ static ssize_t btrfs_file_write_iter(struct kiocb *iocb,
+ 	 */
+ 	update_time_for_write(inode);
+ 
++	pos = iocb->ki_pos;
++	count = iov_iter_count(from);
+ 	start_pos = round_down(pos, root->sectorsize);
+ 	if (start_pos > i_size_read(inode)) {
+ 		/* Expand hole size to cover write data, preventing empty gap */
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 761841903160..3f0b9339d823 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -941,9 +941,9 @@ static ssize_t ceph_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct ceph_inode_info *ci = ceph_inode(inode);
+ 	struct ceph_osd_client *osdc =
+ 		&ceph_sb_to_client(inode->i_sb)->client->osdc;
+-	ssize_t count = iov_iter_count(from), written = 0;
++	ssize_t count, written = 0;
+ 	int err, want, got;
+-	loff_t pos = iocb->ki_pos;
++	loff_t pos;
+ 
+ 	if (ceph_snap(inode) != CEPH_NOSNAP)
+ 		return -EROFS;
+@@ -953,14 +953,12 @@ static ssize_t ceph_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	/* We can write back this queue in page reclaim */
+ 	current->backing_dev_info = inode_to_bdi(inode);
+ 
+-	err = generic_write_checks(file, &pos, &count);
+-	if (err)
+-		goto out;
+-
+-	if (count == 0)
++	err = generic_write_checks(iocb, from);
++	if (err <= 0)
+ 		goto out;
+-	iov_iter_truncate(from, count);
+ 
++	pos = iocb->ki_pos;
++	count = iov_iter_count(from);
+ 	err = file_remove_suid(file);
+ 	if (err)
+ 		goto out;
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 4202e74b2db5..ca2bc5406306 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -2563,7 +2563,6 @@ cifs_write_from_iter(loff_t offset, size_t len, struct iov_iter *from,
+ ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+-	size_t len;
+ 	ssize_t total_written = 0;
+ 	struct cifsFileInfo *open_file;
+ 	struct cifs_tcon *tcon;
+@@ -2579,16 +2578,10 @@ ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from)
+ 	 * write request.
+ 	 */
+ 
+-	len = iov_iter_count(from);
+-	rc = generic_write_checks(file, &iocb->ki_pos, &len);
+-	if (rc)
++	rc = generic_write_checks(iocb, from);
++	if (rc <= 0)
+ 		return rc;
+ 
+-	if (!len)
+-		return 0;
+-
+-	iov_iter_truncate(from, len);
+-
+ 	INIT_LIST_HEAD(&wdata_list);
+ 	cifs_sb = CIFS_FILE_SB(file);
+ 	open_file = file->private_data;
+@@ -2599,8 +2592,8 @@ ssize_t cifs_user_writev(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	memcpy(&saved_from, from, sizeof(struct iov_iter));
+ 
+-	rc = cifs_write_from_iter(iocb->ki_pos, len, from, open_file, cifs_sb,
+-				  &wdata_list);
++	rc = cifs_write_from_iter(iocb->ki_pos, iov_iter_count(from), from,
++				  open_file, cifs_sb, &wdata_list);
+ 
+ 	/*
+ 	 * If at least one write was successfully sent, then discard any rc
+@@ -2674,7 +2667,6 @@ cifs_writev(struct kiocb *iocb, struct iov_iter *from)
+ 	struct cifsInodeInfo *cinode = CIFS_I(inode);
+ 	struct TCP_Server_Info *server = tlink_tcon(cfile->tlink)->ses->server;
+ 	ssize_t rc;
+-	size_t count;
+ 
+ 	/*
+ 	 * We need to hold the sem to be sure nobody modifies lock list
+@@ -2683,16 +2675,10 @@ cifs_writev(struct kiocb *iocb, struct iov_iter *from)
+ 	down_read(&cinode->lock_sem);
+ 	mutex_lock(&inode->i_mutex);
+ 
+-	count = iov_iter_count(from);
+-	rc = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (rc)
++	rc = generic_write_checks(iocb, from);
++	if (rc <= 0)
+ 		goto out;
+ 
+-	if (count == 0)
+-		goto out;
+-
+-	iov_iter_truncate(from, count);
+-
+ 	if (!cifs_find_lock_conflict(cfile, iocb->ki_pos, iov_iter_count(from),
+ 				     server->vals->exclusive_lock_type, NULL,
+ 				     CIFS_WRITE_OP))
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 42b1fa33a17a..c10785f10d1d 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -97,9 +97,7 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct blk_plug plug;
+ 	int o_direct = io_is_direct(file);
+ 	int overwrite = 0;
+-	size_t length = iov_iter_count(from);
+ 	ssize_t ret;
+-	loff_t pos;
+ 
+ 	/*
+ 	 * Unaligned direct AIO must be serialized; see comment above
+@@ -116,16 +114,10 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	}
+ 
+ 	mutex_lock(&inode->i_mutex);
+-	ret = generic_write_checks(file, &iocb->ki_pos, &length);
+-	if (ret)
++	ret = generic_write_checks(iocb, from);
++	if (ret <= 0)
+ 		goto out;
+ 
+-	if (length == 0)
+-		goto out;
+-
+-	iov_iter_truncate(from, length);
+-	pos = iocb->ki_pos;
+-
+ 	/*
+ 	 * If we have encountered a bitmap-format file, the size limit
+ 	 * is smaller than s_maxbytes, which is for extent-mapped files.
+@@ -133,19 +125,19 @@ ext4_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	if (!(ext4_test_inode_flag(inode, EXT4_INODE_EXTENTS))) {
+ 		struct ext4_sb_info *sbi = EXT4_SB(inode->i_sb);
+ 
+-		if (pos >= sbi->s_bitmap_maxbytes) {
++		if (iocb->ki_pos >= sbi->s_bitmap_maxbytes) {
+ 			ret = -EFBIG;
+ 			goto out;
+ 		}
+-		iov_iter_truncate(from, sbi->s_bitmap_maxbytes - pos);
++		iov_iter_truncate(from, sbi->s_bitmap_maxbytes - iocb->ki_pos);
+ 	}
+ 
+ 	iocb->private = &overwrite;
+ 	if (o_direct) {
+-		length = iov_iter_count(from);
++		size_t length = iov_iter_count(from);
++		loff_t pos = iocb->ki_pos;
+ 		blk_start_plug(&plug);
+ 
+-
+ 		/* check whether we do a DIO overwrite or not */
+ 		if (ext4_should_dioread_nolock(inode) && !aio_mutex &&
+ 		    !file->f_mapping->nrpages && pos + length <= i_size_read(inode)) {
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 8c15d0a077e8..b86c8e08399a 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1145,13 +1145,11 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+-	size_t count = iov_iter_count(from);
+ 	ssize_t written = 0;
+ 	ssize_t written_buffered = 0;
+ 	struct inode *inode = mapping->host;
+ 	ssize_t err;
+ 	loff_t endbyte = 0;
+-	loff_t pos = iocb->ki_pos;
+ 
+ 	if (get_fuse_conn(inode)->writeback_cache) {
+ 		/* Update size (EOF optimization) and mode (SUID clearing) */
+@@ -1167,14 +1165,10 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	/* We can write back this queue in page reclaim */
+ 	current->backing_dev_info = inode_to_bdi(inode);
+ 
+-	err = generic_write_checks(file, &pos, &count);
+-	if (err)
+-		goto out;
+-
+-	if (count == 0)
++	err = generic_write_checks(iocb, from);
++	if (err <= 0)
+ 		goto out;
+ 
+-	iov_iter_truncate(from, count);
+ 	err = file_remove_suid(file);
+ 	if (err)
+ 		goto out;
+@@ -1184,6 +1178,7 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 		goto out;
+ 
+ 	if (file->f_flags & O_DIRECT) {
++		loff_t pos = iocb->ki_pos;
+ 		written = generic_file_direct_write(iocb, from, pos);
+ 		if (written < 0 || !iov_iter_count(from))
+ 			goto out;
+@@ -1209,9 +1204,9 @@ static ssize_t fuse_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 		written += written_buffered;
+ 		iocb->ki_pos = pos + written_buffered;
+ 	} else {
+-		written = fuse_perform_write(file, mapping, from, pos);
++		written = fuse_perform_write(file, mapping, from, iocb->ki_pos);
+ 		if (written >= 0)
+-			iocb->ki_pos = pos + written;
++			iocb->ki_pos += written;
+ 	}
+ out:
+ 	current->backing_dev_info = NULL;
+@@ -1412,7 +1407,6 @@ static ssize_t fuse_direct_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
+ 	struct fuse_io_priv io = { .async = 0, .file = file };
+-	size_t count = iov_iter_count(from);
+ 	ssize_t res;
+ 
+ 	if (is_bad_inode(inode))
+@@ -1420,11 +1414,9 @@ static ssize_t fuse_direct_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 
+ 	/* Don't allow parallel writes to the same file */
+ 	mutex_lock(&inode->i_mutex);
+-	res = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (!res) {
+-		iov_iter_truncate(from, count);
++	res = generic_write_checks(iocb, from);
++	if (res > 0)
+ 		res = fuse_direct_io(&io, from, &iocb->ki_pos, FUSE_DIO_WRITE);
+-	}
+ 	fuse_invalidate_attr(inode);
+ 	if (res > 0)
+ 		fuse_write_update_size(inode, iocb->ki_pos);
+diff --git a/fs/ncpfs/file.c b/fs/ncpfs/file.c
+index ab6363b16556..011324ce9df2 100644
+--- a/fs/ncpfs/file.c
++++ b/fs/ncpfs/file.c
+@@ -170,20 +170,15 @@ ncp_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
+ 	size_t already_written = 0;
+-	loff_t pos = iocb->ki_pos;
+-	size_t count = iov_iter_count(from);
+ 	size_t bufsize;
+ 	int errno;
+ 	void *bouncebuffer;
++	off_t pos;
+ 
+ 	ncp_dbg(1, "enter %pD2\n", file);
+-	errno = generic_write_checks(file, &pos, &count);
+-	if (errno)
++	errno = generic_write_checks(iocb, from);
++	if (errno <= 0)
+ 		return errno;
+-	iov_iter_truncate(from, count);
+-	
+-	if (!count)
+-		return 0;
+ 
+ 	errno = ncp_make_open(inode, O_WRONLY);
+ 	if (errno) {
+@@ -201,10 +196,11 @@ ncp_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 		errno = -EIO;	/* -ENOMEM */
+ 		goto outrel;
+ 	}
++	pos = iocb->ki_pos;
+ 	while (iov_iter_count(from)) {
+ 		int written_this_time;
+ 		size_t to_write = min_t(size_t,
+-				      bufsize - ((off_t)pos % bufsize),
++				      bufsize - (pos % bufsize),
+ 				      iov_iter_count(from));
+ 
+ 		if (copy_from_iter(bouncebuffer, to_write, from) != to_write) {
+diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
+index 5ddd77acb3f7..9634189b8545 100644
+--- a/fs/nfs/direct.c
++++ b/fs/nfs/direct.c
+@@ -969,24 +969,19 @@ ssize_t nfs_file_direct_write(struct kiocb *iocb, struct iov_iter *iter,
+ 	struct nfs_direct_req *dreq;
+ 	struct nfs_lock_context *l_ctx;
+ 	loff_t end;
+-	size_t count = iov_iter_count(iter);
+-	end = (pos + count - 1) >> PAGE_CACHE_SHIFT;
+-
+-	nfs_add_stats(mapping->host, NFSIOS_DIRECTWRITTENBYTES, count);
+ 
+ 	dfprintk(FILE, "NFS: direct write(%pD2, %zd@%Ld)\n",
+-		file, count, (long long) pos);
++		file, iov_iter_count(iter), (long long) iocb->ki_pos);
+ 
+-	result = generic_write_checks(file, &pos, &count);
+-	if (result)
++	result = generic_write_checks(iocb, iter);
++	if (result <= 0)
+ 		goto out;
+ 
+-	result = -EINVAL;
+-	if ((ssize_t) count < 0)
+-		goto out;
+-	result = 0;
+-	if (!count)
+-		goto out;
++	nfs_add_stats(mapping->host, NFSIOS_DIRECTWRITTENBYTES,
++		      iov_iter_count(iter));
++
++	pos = iocb->ki_pos;
++	end = (pos + iov_iter_count(iter) - 1) >> PAGE_CACHE_SHIFT;
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 
+@@ -1001,7 +996,7 @@ ssize_t nfs_file_direct_write(struct kiocb *iocb, struct iov_iter *iter,
+ 			goto out_unlock;
+ 	}
+ 
+-	task_io_account_write(count);
++	task_io_account_write(iov_iter_count(iter));
+ 
+ 	result = -ENOMEM;
+ 	dreq = nfs_direct_req_alloc();
+@@ -1009,7 +1004,7 @@ ssize_t nfs_file_direct_write(struct kiocb *iocb, struct iov_iter *iter,
+ 		goto out_unlock;
+ 
+ 	dreq->inode = inode;
+-	dreq->bytes_left = count;
++	dreq->bytes_left = iov_iter_count(iter);
+ 	dreq->io_start = pos;
+ 	dreq->ctx = get_nfs_open_context(nfs_file_open_context(iocb->ki_filp));
+ 	l_ctx = nfs_get_lock_context(dreq->ctx);
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index cec4ec3c1ede..7bb487e663b4 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -339,17 +339,14 @@ static ssize_t ntfs_prepare_file_for_write(struct kiocb *iocb,
+ 	struct inode *vi = file_inode(file);
+ 	ntfs_inode *base_ni, *ni = NTFS_I(vi);
+ 	ntfs_volume *vol = ni->vol;
+-	size_t count = iov_iter_count(from);
+ 
+ 	ntfs_debug("Entering for i_ino 0x%lx, attribute type 0x%x, pos "
+ 			"0x%llx, count 0x%zx.", vi->i_ino,
+ 			(unsigned)le32_to_cpu(ni->type),
+-			(unsigned long long)iocb->ki_pos, count);
+-	err = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (unlikely(err))
+-		goto out;
+-	iov_iter_truncate(from, count);
+-	if (count == 0)
++			(unsigned long long)iocb->ki_pos,
++			iov_iter_count(from));
++	err = generic_write_checks(iocb, from);
++	if (unlikely(err <= 0))
+ 		goto out;
+ 	/*
+ 	 * All checks have passed.  Before we start doing any writing we want
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index fc53ff065364..b93919f50f0f 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2250,9 +2250,10 @@ static int ocfs2_prepare_inode_for_write(struct file *file,
+ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 				    struct iov_iter *from)
+ {
+-	int ret, direct_io, appending, rw_level, have_alloc_sem  = 0;
++	int direct_io, appending, rw_level, have_alloc_sem  = 0;
+ 	int can_do_direct, has_refcount = 0;
+ 	ssize_t written = 0;
++	ssize_t ret;
+ 	size_t count = iov_iter_count(from), orig_count;
+ 	loff_t old_size;
+ 	u32 old_clusters;
+@@ -2319,13 +2320,14 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 		ocfs2_inode_unlock(inode, 1);
+ 	}
+ 
+-	orig_count = count;
+-	ret = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (ret < 0) {
+-		mlog_errno(ret);
++	orig_count = iov_iter_count(from);
++	ret = generic_write_checks(iocb, from);
++	if (ret <= 0) {
++		if (ret)
++			mlog_errno(ret);
+ 		goto out;
+ 	}
+-	iov_iter_truncate(from, count);
++	count = ret;
+ 
+ 	can_do_direct = direct_io;
+ 	ret = ocfs2_prepare_inode_for_write(file, iocb->ki_pos, count, appending,
+@@ -2349,7 +2351,7 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 		rw_level = -1;
+ 
+ 		direct_io = 0;
+-		iov_iter_reexpand(from, count = orig_count);
++		iov_iter_reexpand(from, orig_count);
+ 		goto relock;
+ 	}
+ 
+@@ -2377,7 +2379,7 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 		loff_t endbyte;
+ 		ssize_t written_buffered;
+ 		written = generic_file_direct_write(iocb, from, iocb->ki_pos);
+-		if (written < 0 || written == count) {
++		if (written < 0 || !iov_iter_count(from)) {
+ 			ret = written;
+ 			goto out_dio;
+ 		}
+@@ -2385,7 +2387,6 @@ static ssize_t ocfs2_file_write_iter(struct kiocb *iocb,
+ 		/*
+ 		 * for completing the rest of the request.
+ 		 */
+-		count -= written;
+ 		written_buffered = generic_perform_write(file, from, iocb->ki_pos);
+ 		/*
+ 		 * If generic_file_buffered_write() returned a synchronous error
+diff --git a/fs/udf/file.c b/fs/udf/file.c
+index ccab8b78e363..3de2edafff73 100644
+--- a/fs/udf/file.c
++++ b/fs/udf/file.c
+@@ -120,21 +120,15 @@ static ssize_t udf_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	ssize_t retval;
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file_inode(file);
+-	size_t count = iov_iter_count(from);
+ 	struct udf_inode_info *iinfo = UDF_I(inode);
+ 	int err;
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 
+-	retval = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (retval)
++	retval = generic_write_checks(iocb, from);
++	if (retval <= 0)
+ 		goto out;
+ 
+-	if (count == 0)
+-		goto out;
+-
+-	iov_iter_truncate(from, count);
+-
+ 	down_write(&iinfo->i_data_sem);
+ 	if (iinfo->i_alloc_type == ICBTAG_FLAG_AD_IN_ICB) {
+ 		loff_t end = iocb->ki_pos + iov_iter_count(from);
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index ebde43e15dd9..28d157807b42 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -551,12 +551,12 @@ xfs_file_aio_write_checks(
+ 	struct file		*file = iocb->ki_filp;
+ 	struct inode		*inode = file->f_mapping->host;
+ 	struct xfs_inode	*ip = XFS_I(inode);
+-	int			error = 0;
++	ssize_t			error = 0;
+ 	size_t			count = iov_iter_count(from);
+ 
+ restart:
+-	error = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (error)
++	error = generic_write_checks(iocb, from);
++	if (error <= 0)
+ 		return error;
+ 
+ 	error = xfs_break_layouts(inode, iolock);
+@@ -577,13 +577,13 @@ xfs_file_aio_write_checks(
+ 			xfs_rw_iunlock(ip, *iolock);
+ 			*iolock = XFS_IOLOCK_EXCL;
+ 			xfs_rw_ilock(ip, *iolock);
++			iov_iter_reexpand(from, count);
+ 			goto restart;
+ 		}
+ 		error = xfs_zero_eof(ip, iocb->ki_pos, i_size_read(inode), &zero);
+ 		if (error)
+ 			return error;
+ 	}
+-	iov_iter_truncate(from, count);
+ 
+ 	/*
+ 	 * Updating the timestamps will grab the ilock again from
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index c7b21db7782f..b4aa400ac723 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2566,7 +2566,7 @@ extern int sb_min_blocksize(struct super_block *, int);
+ 
+ extern int generic_file_mmap(struct file *, struct vm_area_struct *);
+ extern int generic_file_readonly_mmap(struct file *, struct vm_area_struct *);
+-int generic_write_checks(struct file *file, loff_t *pos, size_t *count);
++extern ssize_t generic_write_checks(struct kiocb *, struct iov_iter *);
+ extern ssize_t generic_file_read_iter(struct kiocb *, struct iov_iter *);
+ extern ssize_t __generic_file_write_iter(struct kiocb *, struct iov_iter *);
+ extern ssize_t generic_file_write_iter(struct kiocb *, struct iov_iter *);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index dfc573c6ec25..243997a26e7c 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -2260,36 +2260,38 @@ EXPORT_SYMBOL(read_cache_page_gfp);
+  * Returns appropriate error code that caller should return or
+  * zero in case that write should be allowed.
+  */
+-inline int generic_write_checks(struct file *file, loff_t *pos, size_t *count)
++inline ssize_t generic_write_checks(struct kiocb *iocb, struct iov_iter *from)
+ {
++	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+ 	unsigned long limit = rlimit(RLIMIT_FSIZE);
++	loff_t pos;
+ 
+-        if (unlikely(*pos < 0))
+-                return -EINVAL;
++	if (!iov_iter_count(from))
++		return 0;
+ 
+ 	/* FIXME: this is for backwards compatibility with 2.4 */
+ 	if (file->f_flags & O_APPEND)
+-		*pos = i_size_read(inode);
++		iocb->ki_pos = i_size_read(inode);
++
++	pos = iocb->ki_pos;
+ 
+ 	if (limit != RLIM_INFINITY) {
+-		if (*pos >= limit) {
++		if (iocb->ki_pos >= limit) {
+ 			send_sig(SIGXFSZ, current, 0);
+ 			return -EFBIG;
+ 		}
+-		if (*count > limit - (typeof(limit))*pos)
+-			*count = limit - (typeof(limit))*pos;
++		iov_iter_truncate(from, limit - (unsigned long)pos);
+ 	}
+ 
+ 	/*
+ 	 * LFS rule
+ 	 */
+-	if (unlikely(*pos + *count > MAX_NON_LFS &&
++	if (unlikely(pos + iov_iter_count(from) > MAX_NON_LFS &&
+ 				!(file->f_flags & O_LARGEFILE))) {
+-		if (*pos >= MAX_NON_LFS)
++		if (pos >= MAX_NON_LFS)
+ 			return -EFBIG;
+-		if (*count > MAX_NON_LFS - (unsigned long)*pos)
+-			*count = MAX_NON_LFS - (unsigned long)*pos;
++		iov_iter_truncate(from, MAX_NON_LFS - (unsigned long)pos);
+ 	}
+ 
+ 	/*
+@@ -2299,16 +2301,11 @@ inline int generic_write_checks(struct file *file, loff_t *pos, size_t *count)
+ 	 * exceeded without writing data we send a signal and return EFBIG.
+ 	 * Linus frestrict idea will clean these up nicely..
+ 	 */
+-	if (unlikely(*pos >= inode->i_sb->s_maxbytes)) {
+-		if (*count || *pos > inode->i_sb->s_maxbytes) {
+-			return -EFBIG;
+-		}
+-		/* zero-length writes at ->s_maxbytes are OK */
+-	}
++	if (unlikely(pos >= inode->i_sb->s_maxbytes))
++		return -EFBIG;
+ 
+-	if (unlikely(*pos + *count > inode->i_sb->s_maxbytes))
+-		*count = inode->i_sb->s_maxbytes - *pos;
+-	return 0;
++	iov_iter_truncate(from, inode->i_sb->s_maxbytes - pos);
++	return iov_iter_count(from);
+ }
+ EXPORT_SYMBOL(generic_write_checks);
+ 
+@@ -2618,14 +2615,11 @@ ssize_t generic_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+ 	ssize_t ret;
+-	size_t count = iov_iter_count(from);
+ 
+ 	mutex_lock(&inode->i_mutex);
+-	ret = generic_write_checks(file, &iocb->ki_pos, &count);
+-	if (!ret && count) {
+-		iov_iter_truncate(from, count);
++	ret = generic_write_checks(iocb, from);
++	if (ret > 0)
+ 		ret = __generic_file_write_iter(iocb, from);
+-	}
+ 	mutex_unlock(&inode->i_mutex);
+ 
+ 	if (ret > 0) {
+-- 
+2.17.0
+

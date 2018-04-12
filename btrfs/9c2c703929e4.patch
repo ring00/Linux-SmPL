@@ -1,0 +1,207 @@
+From 9c2c703929e4c41210cfa6e3f599514421bab8dc Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 20 Jun 2011 19:06:22 -0400
+Subject: [PATCH] ->permission() sanitizing: pass MAY_NOT_BLOCK to
+ ->check_acl()
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/9p/acl.c                | 2 +-
+ fs/btrfs/acl.c             | 3 +--
+ fs/ext2/acl.c              | 2 +-
+ fs/ext3/acl.c              | 2 +-
+ fs/ext4/acl.c              | 2 +-
+ fs/generic_acl.c           | 2 +-
+ fs/gfs2/acl.c              | 2 +-
+ fs/jffs2/acl.c             | 2 +-
+ fs/jfs/acl.c               | 2 +-
+ fs/namei.c                 | 4 ++--
+ fs/ocfs2/acl.c             | 2 +-
+ fs/reiserfs/xattr.c        | 2 +-
+ fs/xfs/linux-2.6/xfs_acl.c | 2 +-
+ 13 files changed, 14 insertions(+), 15 deletions(-)
+
+diff --git a/fs/9p/acl.c b/fs/9p/acl.c
+index 535ab6eccb1a..94af68b092af 100644
+--- a/fs/9p/acl.c
++++ b/fs/9p/acl.c
+@@ -101,7 +101,7 @@ int v9fs_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	struct posix_acl *acl;
+ 	struct v9fs_session_info *v9ses;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	v9ses = v9fs_inode2v9ses(inode);
+diff --git a/fs/btrfs/acl.c b/fs/btrfs/acl.c
+index f66fc9959733..a25a4a2e0df2 100644
+--- a/fs/btrfs/acl.c
++++ b/fs/btrfs/acl.c
+@@ -199,10 +199,9 @@ int btrfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+ 	int error = -EAGAIN;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			error = -ECHILD;
+-
+ 	} else {
+ 		struct posix_acl *acl;
+ 		acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
+diff --git a/fs/ext2/acl.c b/fs/ext2/acl.c
+index abea5a17c764..6b9442d1be52 100644
+--- a/fs/ext2/acl.c
++++ b/fs/ext2/acl.c
+@@ -236,7 +236,7 @@ ext2_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 		return -EAGAIN;
+diff --git a/fs/ext3/acl.c b/fs/ext3/acl.c
+index 9d021c0d472a..0a6940d6c30c 100644
+--- a/fs/ext3/acl.c
++++ b/fs/ext3/acl.c
+@@ -244,7 +244,7 @@ ext3_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 		return -EAGAIN;
+diff --git a/fs/ext4/acl.c b/fs/ext4/acl.c
+index 21eacd7b7d79..4f54252e439e 100644
+--- a/fs/ext4/acl.c
++++ b/fs/ext4/acl.c
+@@ -242,7 +242,7 @@ ext4_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 		return -EAGAIN;
+diff --git a/fs/generic_acl.c b/fs/generic_acl.c
+index 8f26d1a58912..5976bb1fa4ca 100644
+--- a/fs/generic_acl.c
++++ b/fs/generic_acl.c
+@@ -192,7 +192,7 @@ generic_acl_chmod(struct inode *inode)
+ int
+ generic_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 	} else {
+diff --git a/fs/gfs2/acl.c b/fs/gfs2/acl.c
+index cbc07155b1a0..4d97352d39a1 100644
+--- a/fs/gfs2/acl.c
++++ b/fs/gfs2/acl.c
+@@ -80,7 +80,7 @@ int gfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	struct posix_acl *acl;
+ 	int error;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 		return -EAGAIN;
+diff --git a/fs/jffs2/acl.c b/fs/jffs2/acl.c
+index 828a0e1ea438..952afb59e6f1 100644
+--- a/fs/jffs2/acl.c
++++ b/fs/jffs2/acl.c
+@@ -264,7 +264,7 @@ int jffs2_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	struct posix_acl *acl;
+ 	int rc;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	acl = jffs2_get_acl(inode, ACL_TYPE_ACCESS);
+diff --git a/fs/jfs/acl.c b/fs/jfs/acl.c
+index e5de9422fa32..859ae5a92166 100644
+--- a/fs/jfs/acl.c
++++ b/fs/jfs/acl.c
+@@ -118,7 +118,7 @@ int jfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	acl = jfs_get_acl(inode, ACL_TYPE_ACCESS);
+diff --git a/fs/namei.c b/fs/namei.c
+index 723a3fe4bc40..e0624e2f0bba 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -181,7 +181,7 @@ static int acl_permission_check(struct inode *inode, int mask, unsigned int flag
+ 	int (*check_acl)(struct inode *inode, int mask, unsigned int flags);
+ 	unsigned int mode = inode->i_mode;
+ 
+-	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
++	mask &= MAY_READ | MAY_WRITE | MAY_EXEC | MAY_NOT_BLOCK;
+ 
+ 	if (current_user_ns() != inode_userns(inode))
+ 		goto other_perms;
+@@ -204,7 +204,7 @@ static int acl_permission_check(struct inode *inode, int mask, unsigned int flag
+ 	/*
+ 	 * If the DACs are ok we don't need any capability check.
+ 	 */
+-	if ((mask & ~mode) == 0)
++	if ((mask & ~mode & (MAY_READ | MAY_WRITE | MAY_EXEC)) == 0)
+ 		return 0;
+ 	return -EACCES;
+ }
+diff --git a/fs/ocfs2/acl.c b/fs/ocfs2/acl.c
+index e913ad130fdd..4b683ccc4506 100644
+--- a/fs/ocfs2/acl.c
++++ b/fs/ocfs2/acl.c
+@@ -297,7 +297,7 @@ int ocfs2_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	struct posix_acl *acl;
+ 	int ret = -EAGAIN;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	osb = OCFS2_SB(inode->i_sb);
+diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
+index ddc5301d2986..6747470ec103 100644
+--- a/fs/reiserfs/xattr.c
++++ b/fs/reiserfs/xattr.c
+@@ -879,7 +879,7 @@ int reiserfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	if (get_inode_sd_version(inode) == STAT_DATA_V1)
+ 		return -EAGAIN;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	acl = reiserfs_get_acl(inode, ACL_TYPE_ACCESS);
+diff --git a/fs/xfs/linux-2.6/xfs_acl.c b/fs/xfs/linux-2.6/xfs_acl.c
+index 39f4f809bb68..278e6736135a 100644
+--- a/fs/xfs/linux-2.6/xfs_acl.c
++++ b/fs/xfs/linux-2.6/xfs_acl.c
+@@ -235,7 +235,7 @@ xfs_check_acl(struct inode *inode, int mask, unsigned int flags)
+ 	if (!XFS_IFORK_Q(ip))
+ 		return -EAGAIN;
+ 
+-	if (flags & IPERM_FLAG_RCU) {
++	if (mask & MAY_NOT_BLOCK) {
+ 		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+ 			return -ECHILD;
+ 		return -EAGAIN;
+-- 
+2.17.0
+

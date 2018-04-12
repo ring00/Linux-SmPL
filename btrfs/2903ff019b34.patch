@@ -1,0 +1,3481 @@
+From 2903ff019b346ab8d36ebbf54853c3aaf6590608 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Tue, 28 Aug 2012 12:52:22 -0400
+Subject: [PATCH] switch simple cases of fget_light to fdget
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/alpha/kernel/osf_sys.c                |  15 +-
+ arch/ia64/kernel/perfmon.c                 |  15 +-
+ arch/parisc/hpux/fs.c                      |  17 +-
+ arch/powerpc/platforms/cell/spu_syscalls.c |  21 ++-
+ drivers/infiniband/core/ucma.c             |  12 +-
+ drivers/infiniband/core/uverbs_cmd.c       |  18 +--
+ drivers/infiniband/core/uverbs_main.c      |  12 +-
+ drivers/vfio/vfio.c                        |  17 +-
+ drivers/video/msm/mdp.c                    |  12 +-
+ fs/btrfs/ioctl.c                           |  26 ++-
+ fs/coda/inode.c                            |  14 +-
+ fs/compat.c                                |  90 +++++------
+ fs/compat_ioctl.c                          |  27 ++--
+ fs/eventpoll.c                             |  25 ++-
+ fs/ext4/ioctl.c                            |  14 +-
+ fs/fcntl.c                                 |  32 ++--
+ fs/fhandle.c                               |  17 +-
+ fs/ioctl.c                                 |  25 ++-
+ fs/locks.c                                 |  20 ++-
+ fs/namei.c                                 |  39 ++---
+ fs/notify/fanotify/fanotify_user.c         |  28 ++--
+ fs/notify/inotify/inotify_user.c           |  28 ++--
+ fs/ocfs2/cluster/heartbeat.c               |  39 +++--
+ fs/open.c                                  |  64 ++++----
+ fs/read_write.c                            | 176 +++++++++------------
+ fs/readdir.c                               |  36 ++---
+ fs/select.c                                |  28 ++--
+ fs/signalfd.c                              |  13 +-
+ fs/splice.c                                |  69 ++++----
+ fs/stat.c                                  |  10 +-
+ fs/statfs.c                                |   9 +-
+ fs/sync.c                                  |  33 ++--
+ fs/timerfd.c                               |  48 +++---
+ fs/utimes.c                                |  11 +-
+ fs/xattr.c                                 |  52 +++---
+ fs/xfs/xfs_dfrag.c                         |  36 ++---
+ fs/xfs/xfs_ioctl.c                         |  12 +-
+ include/linux/file.h                       |   5 +-
+ ipc/mqueue.c                               |  84 +++++-----
+ kernel/events/core.c                       |  70 ++++----
+ kernel/sys.c                               |  16 +-
+ kernel/taskstats.c                         |  11 +-
+ mm/fadvise.c                               |  35 ++--
+ mm/readahead.c                             |  15 +-
+ 44 files changed, 633 insertions(+), 763 deletions(-)
+
+diff --git a/arch/alpha/kernel/osf_sys.c b/arch/alpha/kernel/osf_sys.c
+index d6c49e67d3fc..f1daf7ae42e9 100644
+--- a/arch/alpha/kernel/osf_sys.c
++++ b/arch/alpha/kernel/osf_sys.c
+@@ -144,28 +144,25 @@ SYSCALL_DEFINE4(osf_getdirentries, unsigned int, fd,
+ 		struct osf_dirent __user *, dirent, unsigned int, count,
+ 		long __user *, basep)
+ {
+-	int error, fput_needed;
+-	struct file *file;
++	int error;
++	struct fd arg = fdget(fd);
+ 	struct osf_dirent_callback buf;
+ 
+-	error = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
+-		goto out;
++	if (!arg.file)
++		return -EBADF;
+ 
+ 	buf.dirent = dirent;
+ 	buf.basep = basep;
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, osf_filldir, &buf);
++	error = vfs_readdir(arg.file, osf_filldir, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	if (count != buf.count)
+ 		error = count - buf.count;
+ 
+-	fput_light(file, fput_needed);
+- out:
++	fdput(arg);
+ 	return error;
+ }
+ 
+diff --git a/arch/ia64/kernel/perfmon.c b/arch/ia64/kernel/perfmon.c
+index ff5d4e4c3733..e3bd7b8aceab 100644
+--- a/arch/ia64/kernel/perfmon.c
++++ b/arch/ia64/kernel/perfmon.c
+@@ -4780,7 +4780,7 @@ pfm_check_task_state(pfm_context_t *ctx, int cmd, unsigned long flags)
+ asmlinkage long
+ sys_perfmonctl (int fd, int cmd, void __user *arg, int count)
+ {
+-	struct file *file = NULL;
++	struct fd f = {NULL, 0};
+ 	pfm_context_t *ctx = NULL;
+ 	unsigned long flags = 0UL;
+ 	void *args_k = NULL;
+@@ -4789,7 +4789,6 @@ sys_perfmonctl (int fd, int cmd, void __user *arg, int count)
+ 	int narg, completed_args = 0, call_made = 0, cmd_flags;
+ 	int (*func)(pfm_context_t *ctx, void *arg, int count, struct pt_regs *regs);
+ 	int (*getsize)(void *arg, size_t *sz);
+-	int fput_needed;
+ #define PFM_MAX_ARGSIZE	4096
+ 
+ 	/*
+@@ -4878,17 +4877,17 @@ sys_perfmonctl (int fd, int cmd, void __user *arg, int count)
+ 
+ 	ret = -EBADF;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (unlikely(file == NULL)) {
++	f = fdget(fd);
++	if (unlikely(f.file == NULL)) {
+ 		DPRINT(("invalid fd %d\n", fd));
+ 		goto error_args;
+ 	}
+-	if (unlikely(PFM_IS_FILE(file) == 0)) {
++	if (unlikely(PFM_IS_FILE(f.file) == 0)) {
+ 		DPRINT(("fd %d not related to perfmon\n", fd));
+ 		goto error_args;
+ 	}
+ 
+-	ctx = file->private_data;
++	ctx = f.file->private_data;
+ 	if (unlikely(ctx == NULL)) {
+ 		DPRINT(("no context for fd %d\n", fd));
+ 		goto error_args;
+@@ -4918,8 +4917,8 @@ sys_perfmonctl (int fd, int cmd, void __user *arg, int count)
+ 	if (call_made && PFM_CMD_RW_ARG(cmd) && copy_to_user(arg, args_k, base_sz*count)) ret = -EFAULT;
+ 
+ error_args:
+-	if (file)
+-		fput_light(file, fput_needed);
++	if (f.file)
++		fdput(f);
+ 
+ 	kfree(args_k);
+ 
+diff --git a/arch/parisc/hpux/fs.c b/arch/parisc/hpux/fs.c
+index 41e01832cb21..6785de7bd2a0 100644
+--- a/arch/parisc/hpux/fs.c
++++ b/arch/parisc/hpux/fs.c
+@@ -109,33 +109,32 @@ static int filldir(void * __buf, const char * name, int namlen, loff_t offset,
+ 
+ int hpux_getdents(unsigned int fd, struct hpux_dirent __user *dirent, unsigned int count)
+ {
+-	struct file * file;
++	struct fd arg;
+ 	struct hpux_dirent __user * lastdirent;
+ 	struct getdents_callback buf;
+-	int error = -EBADF, fput_needed;
++	int error;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
+-		goto out;
++	arg = fdget(fd);
++	if (!arg.file)
++		return -EBADF;
+ 
+ 	buf.current_dir = dirent;
+ 	buf.previous = NULL;
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, filldir, &buf);
++	error = vfs_readdir(arg.file, filldir, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	lastdirent = buf.previous;
+ 	if (lastdirent) {
+-		if (put_user(file->f_pos, &lastdirent->d_off))
++		if (put_user(arg.file->f_pos, &lastdirent->d_off))
+ 			error = -EFAULT;
+ 		else
+ 			error = count - buf.count;
+ 	}
+ 
+-	fput_light(file, fput_needed);
+-out:
++	fdput(arg);
+ 	return error;
+ }
+ 
+diff --git a/arch/powerpc/platforms/cell/spu_syscalls.c b/arch/powerpc/platforms/cell/spu_syscalls.c
+index 714bbfc3162c..db4e638cf408 100644
+--- a/arch/powerpc/platforms/cell/spu_syscalls.c
++++ b/arch/powerpc/platforms/cell/spu_syscalls.c
+@@ -69,8 +69,6 @@ SYSCALL_DEFINE4(spu_create, const char __user *, name, unsigned int, flags,
+ 	umode_t, mode, int, neighbor_fd)
+ {
+ 	long ret;
+-	struct file *neighbor;
+-	int fput_needed;
+ 	struct spufs_calls *calls;
+ 
+ 	calls = spufs_calls_get();
+@@ -78,11 +76,11 @@ SYSCALL_DEFINE4(spu_create, const char __user *, name, unsigned int, flags,
+ 		return -ENOSYS;
+ 
+ 	if (flags & SPU_CREATE_AFFINITY_SPU) {
++		struct fd neighbor = fdget(neighbor_fd);
+ 		ret = -EBADF;
+-		neighbor = fget_light(neighbor_fd, &fput_needed);
+-		if (neighbor) {
+-			ret = calls->create_thread(name, flags, mode, neighbor);
+-			fput_light(neighbor, fput_needed);
++		if (neighbor.file) {
++			ret = calls->create_thread(name, flags, mode, neighbor.file);
++			fdput(neighbor);
+ 		}
+ 	} else
+ 		ret = calls->create_thread(name, flags, mode, NULL);
+@@ -94,8 +92,7 @@ SYSCALL_DEFINE4(spu_create, const char __user *, name, unsigned int, flags,
+ asmlinkage long sys_spu_run(int fd, __u32 __user *unpc, __u32 __user *ustatus)
+ {
+ 	long ret;
+-	struct file *filp;
+-	int fput_needed;
++	struct fd arg;
+ 	struct spufs_calls *calls;
+ 
+ 	calls = spufs_calls_get();
+@@ -103,10 +100,10 @@ asmlinkage long sys_spu_run(int fd, __u32 __user *unpc, __u32 __user *ustatus)
+ 		return -ENOSYS;
+ 
+ 	ret = -EBADF;
+-	filp = fget_light(fd, &fput_needed);
+-	if (filp) {
+-		ret = calls->spu_run(filp, unpc, ustatus);
+-		fput_light(filp, fput_needed);
++	arg = fdget(fd);
++	if (arg.file) {
++		ret = calls->spu_run(arg.file, unpc, ustatus);
++		fdput(arg);
+ 	}
+ 
+ 	spufs_calls_put(calls);
+diff --git a/drivers/infiniband/core/ucma.c b/drivers/infiniband/core/ucma.c
+index 6b2ae729de92..6f28da9f4cad 100644
+--- a/drivers/infiniband/core/ucma.c
++++ b/drivers/infiniband/core/ucma.c
+@@ -1184,20 +1184,20 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
+ 	struct rdma_ucm_migrate_id cmd;
+ 	struct rdma_ucm_migrate_resp resp;
+ 	struct ucma_context *ctx;
+-	struct file *filp;
++	struct fd f;
+ 	struct ucma_file *cur_file;
+-	int ret = 0, fput_needed;
++	int ret = 0;
+ 
+ 	if (copy_from_user(&cmd, inbuf, sizeof(cmd)))
+ 		return -EFAULT;
+ 
+ 	/* Get current fd to protect against it being closed */
+-	filp = fget_light(cmd.fd, &fput_needed);
+-	if (!filp)
++	f = fdget(cmd.fd);
++	if (!f.file)
+ 		return -ENOENT;
+ 
+ 	/* Validate current fd and prevent destruction of id. */
+-	ctx = ucma_get_ctx(filp->private_data, cmd.id);
++	ctx = ucma_get_ctx(f.file->private_data, cmd.id);
+ 	if (IS_ERR(ctx)) {
+ 		ret = PTR_ERR(ctx);
+ 		goto file_put;
+@@ -1231,7 +1231,7 @@ static ssize_t ucma_migrate_id(struct ucma_file *new_file,
+ 
+ 	ucma_put_ctx(ctx);
+ file_put:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/infiniband/core/uverbs_cmd.c b/drivers/infiniband/core/uverbs_cmd.c
+index 402679bd30a3..0cb0007724a2 100644
+--- a/drivers/infiniband/core/uverbs_cmd.c
++++ b/drivers/infiniband/core/uverbs_cmd.c
+@@ -705,9 +705,9 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
+ 	struct ib_udata			udata;
+ 	struct ib_uxrcd_object         *obj;
+ 	struct ib_xrcd                 *xrcd = NULL;
+-	struct file                    *f = NULL;
++	struct fd			f = {NULL, 0};
+ 	struct inode                   *inode = NULL;
+-	int				ret = 0, fput_needed;
++	int				ret = 0;
+ 	int				new_xrcd = 0;
+ 
+ 	if (out_len < sizeof resp)
+@@ -724,13 +724,13 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
+ 
+ 	if (cmd.fd != -1) {
+ 		/* search for file descriptor */
+-		f = fget_light(cmd.fd, &fput_needed);
+-		if (!f) {
++		f = fdget(cmd.fd);
++		if (!f.file) {
+ 			ret = -EBADF;
+ 			goto err_tree_mutex_unlock;
+ 		}
+ 
+-		inode = f->f_dentry->d_inode;
++		inode = f.file->f_path.dentry->d_inode;
+ 		xrcd = find_xrcd(file->device, inode);
+ 		if (!xrcd && !(cmd.oflags & O_CREAT)) {
+ 			/* no file descriptor. Need CREATE flag */
+@@ -795,8 +795,8 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
+ 		goto err_copy;
+ 	}
+ 
+-	if (f)
+-		fput_light(f, fput_needed);
++	if (f.file)
++		fdput(f);
+ 
+ 	mutex_lock(&file->mutex);
+ 	list_add_tail(&obj->uobject.list, &file->ucontext->xrcd_list);
+@@ -825,8 +825,8 @@ ssize_t ib_uverbs_open_xrcd(struct ib_uverbs_file *file,
+ 	put_uobj_write(&obj->uobject);
+ 
+ err_tree_mutex_unlock:
+-	if (f)
+-		fput_light(f, fput_needed);
++	if (f.file)
++		fdput(f);
+ 
+ 	mutex_unlock(&file->device->xrcd_tree_mutex);
+ 
+diff --git a/drivers/infiniband/core/uverbs_main.c b/drivers/infiniband/core/uverbs_main.c
+index acf75c2cf7ef..6f2ce6fa98f8 100644
+--- a/drivers/infiniband/core/uverbs_main.c
++++ b/drivers/infiniband/core/uverbs_main.c
+@@ -541,17 +541,15 @@ struct file *ib_uverbs_alloc_event_file(struct ib_uverbs_file *uverbs_file,
+ struct ib_uverbs_event_file *ib_uverbs_lookup_comp_file(int fd)
+ {
+ 	struct ib_uverbs_event_file *ev_file = NULL;
+-	struct file *filp;
+-	int fput_needed;
++	struct fd f = fdget(fd);
+ 
+-	filp = fget_light(fd, &fput_needed);
+-	if (!filp)
++	if (!f.file)
+ 		return NULL;
+ 
+-	if (filp->f_op != &uverbs_event_fops)
++	if (f.file->f_op != &uverbs_event_fops)
+ 		goto out;
+ 
+-	ev_file = filp->private_data;
++	ev_file = f.file->private_data;
+ 	if (ev_file->is_async) {
+ 		ev_file = NULL;
+ 		goto out;
+@@ -560,7 +558,7 @@ struct ib_uverbs_event_file *ib_uverbs_lookup_comp_file(int fd)
+ 	kref_get(&ev_file->ref);
+ 
+ out:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ 	return ev_file;
+ }
+ 
+diff --git a/drivers/vfio/vfio.c b/drivers/vfio/vfio.c
+index 91bcd97d3061..56097c6d072d 100644
+--- a/drivers/vfio/vfio.c
++++ b/drivers/vfio/vfio.c
+@@ -1014,25 +1014,25 @@ static void vfio_group_try_dissolve_container(struct vfio_group *group)
+ 
+ static int vfio_group_set_container(struct vfio_group *group, int container_fd)
+ {
+-	struct file *filep;
++	struct fd f;
+ 	struct vfio_container *container;
+ 	struct vfio_iommu_driver *driver;
+-	int ret = 0, fput_needed;
++	int ret = 0;
+ 
+ 	if (atomic_read(&group->container_users))
+ 		return -EINVAL;
+ 
+-	filep = fget_light(container_fd, &fput_needed);
+-	if (!filep)
++	f = fdget(container_fd);
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	/* Sanity check, is this really our fd? */
+-	if (filep->f_op != &vfio_fops) {
+-		fput_light(filep, fput_needed);
++	if (f.file->f_op != &vfio_fops) {
++		fdput(f);
+ 		return -EINVAL;
+ 	}
+ 
+-	container = filep->private_data;
++	container = f.file->private_data;
+ 	WARN_ON(!container); /* fget ensures we don't race vfio_release */
+ 
+ 	mutex_lock(&container->group_lock);
+@@ -1054,8 +1054,7 @@ static int vfio_group_set_container(struct vfio_group *group, int container_fd)
+ 
+ unlock_out:
+ 	mutex_unlock(&container->group_lock);
+-	fput_light(filep, fput_needed);
+-
++	fdput(f);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/video/msm/mdp.c b/drivers/video/msm/mdp.c
+index cb2ddf164c98..07c9d8ab2c3b 100644
+--- a/drivers/video/msm/mdp.c
++++ b/drivers/video/msm/mdp.c
+@@ -257,19 +257,17 @@ int get_img(struct mdp_img *img, struct fb_info *info,
+ 	    unsigned long *start, unsigned long *len,
+ 	    struct file **filep)
+ {
+-	int put_needed, ret = 0;
+-	struct file *file;
+-
+-	file = fget_light(img->memory_id, &put_needed);
+-	if (file == NULL)
++	int ret = 0;
++	struct fd f = fdget(img->memory_id);
++	if (f.file == NULL)
+ 		return -1;
+ 
+-	if (MAJOR(file->f_dentry->d_inode->i_rdev) == FB_MAJOR) {
++	if (MAJOR(f.file->f_dentry->d_inode->i_rdev) == FB_MAJOR) {
+ 		*start = info->fix.smem_start;
+ 		*len = info->fix.smem_len;
+ 	} else
+ 		ret = -1;
+-	fput_light(file, put_needed);
++	fdput(f);
+ 
+ 	return ret;
+ }
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index 3494f2f44167..0a4f0c8bc58f 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -1397,7 +1397,6 @@ static noinline int btrfs_ioctl_snap_create_transid(struct file *file,
+ 				u64 *transid, bool readonly,
+ 				struct btrfs_qgroup_inherit **inherit)
+ {
+-	struct file *src_file;
+ 	int namelen;
+ 	int ret = 0;
+ 
+@@ -1421,15 +1420,14 @@ static noinline int btrfs_ioctl_snap_create_transid(struct file *file,
+ 		ret = btrfs_mksubvol(&file->f_path, name, namelen,
+ 				     NULL, transid, readonly, inherit);
+ 	} else {
++		struct fd src = fdget(fd);
+ 		struct inode *src_inode;
+-		int fput_needed;
+-		src_file = fget_light(fd, &fput_needed);
+-		if (!src_file) {
++		if (!src.file) {
+ 			ret = -EINVAL;
+ 			goto out_drop_write;
+ 		}
+ 
+-		src_inode = src_file->f_path.dentry->d_inode;
++		src_inode = src.file->f_path.dentry->d_inode;
+ 		if (src_inode->i_sb != file->f_path.dentry->d_inode->i_sb) {
+ 			printk(KERN_INFO "btrfs: Snapshot src from "
+ 			       "another FS\n");
+@@ -1439,7 +1437,7 @@ static noinline int btrfs_ioctl_snap_create_transid(struct file *file,
+ 					     BTRFS_I(src_inode)->root,
+ 					     transid, readonly, inherit);
+ 		}
+-		fput_light(src_file, fput_needed);
++		fdput(src);
+ 	}
+ out_drop_write:
+ 	mnt_drop_write_file(file);
+@@ -2341,7 +2339,7 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ {
+ 	struct inode *inode = fdentry(file)->d_inode;
+ 	struct btrfs_root *root = BTRFS_I(inode)->root;
+-	struct file *src_file;
++	struct fd src_file;
+ 	struct inode *src;
+ 	struct btrfs_trans_handle *trans;
+ 	struct btrfs_path *path;
+@@ -2350,7 +2348,7 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ 	struct btrfs_key key;
+ 	u32 nritems;
+ 	int slot;
+-	int ret, fput_needed;
++	int ret;
+ 	u64 len = olen;
+ 	u64 bs = root->fs_info->sb->s_blocksize;
+ 	u64 hint_byte;
+@@ -2376,24 +2374,24 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ 	if (ret)
+ 		return ret;
+ 
+-	src_file = fget_light(srcfd, &fput_needed);
+-	if (!src_file) {
++	src_file = fdget(srcfd);
++	if (!src_file.file) {
+ 		ret = -EBADF;
+ 		goto out_drop_write;
+ 	}
+ 
+ 	ret = -EXDEV;
+-	if (src_file->f_path.mnt != file->f_path.mnt)
++	if (src_file.file->f_path.mnt != file->f_path.mnt)
+ 		goto out_fput;
+ 
+-	src = src_file->f_dentry->d_inode;
++	src = src_file.file->f_dentry->d_inode;
+ 
+ 	ret = -EINVAL;
+ 	if (src == inode)
+ 		goto out_fput;
+ 
+ 	/* the src must be open for reading */
+-	if (!(src_file->f_mode & FMODE_READ))
++	if (!(src_file.file->f_mode & FMODE_READ))
+ 		goto out_fput;
+ 
+ 	/* don't make the dst file partly checksummed */
+@@ -2724,7 +2722,7 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ 	vfree(buf);
+ 	btrfs_free_path(path);
+ out_fput:
+-	fput_light(src_file, fput_needed);
++	fdput(src_file);
+ out_drop_write:
+ 	mnt_drop_write_file(file);
+ 	return ret;
+diff --git a/fs/coda/inode.c b/fs/coda/inode.c
+index bd2313d106e5..d315c6c5891a 100644
+--- a/fs/coda/inode.c
++++ b/fs/coda/inode.c
+@@ -107,9 +107,9 @@ static const struct super_operations coda_super_operations =
+ 
+ static int get_device_index(struct coda_mount_data *data)
+ {
+-	struct file *file;
++	struct fd f;
+ 	struct inode *inode;
+-	int idx, fput_needed;
++	int idx;
+ 
+ 	if (data == NULL) {
+ 		printk("coda_read_super: Bad mount data\n");
+@@ -121,17 +121,17 @@ static int get_device_index(struct coda_mount_data *data)
+ 		return -1;
+ 	}
+ 
+-	file = fget_light(data->fd, &fput_needed);
+-	if (!file)
++	f = fdget(data->fd);
++	if (!f.file)
+ 		goto Ebadf;
+-	inode = file->f_path.dentry->d_inode;
++	inode = f.file->f_path.dentry->d_inode;
+ 	if (!S_ISCHR(inode->i_mode) || imajor(inode) != CODA_PSDEV_MAJOR) {
+-		fput_light(file, fput_needed);
++		fdput(f);
+ 		goto Ebadf;
+ 	}
+ 
+ 	idx = iminor(inode);
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 
+ 	if (idx < 0 || idx >= MAX_CODADEVS) {
+ 		printk("coda_read_super: Bad minor number\n");
+diff --git a/fs/compat.c b/fs/compat.c
+index 1bdb350ea5d3..d72d51e19025 100644
+--- a/fs/compat.c
++++ b/fs/compat.c
+@@ -870,22 +870,20 @@ asmlinkage long compat_sys_old_readdir(unsigned int fd,
+ 	struct compat_old_linux_dirent __user *dirent, unsigned int count)
+ {
+ 	int error;
+-	struct file *file;
+-	int fput_needed;
++	struct fd f = fdget(fd);
+ 	struct compat_readdir_callback buf;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.result = 0;
+ 	buf.dirent = dirent;
+ 
+-	error = vfs_readdir(file, compat_fillonedir, &buf);
++	error = vfs_readdir(f.file, compat_fillonedir, &buf);
+ 	if (buf.result)
+ 		error = buf.result;
+ 
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -949,17 +947,16 @@ static int compat_filldir(void *__buf, const char *name, int namlen,
+ asmlinkage long compat_sys_getdents(unsigned int fd,
+ 		struct compat_linux_dirent __user *dirent, unsigned int count)
+ {
+-	struct file * file;
++	struct fd f;
+ 	struct compat_linux_dirent __user * lastdirent;
+ 	struct compat_getdents_callback buf;
+-	int fput_needed;
+ 	int error;
+ 
+ 	if (!access_ok(VERIFY_WRITE, dirent, count))
+ 		return -EFAULT;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.current_dir = dirent;
+@@ -967,17 +964,17 @@ asmlinkage long compat_sys_getdents(unsigned int fd,
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, compat_filldir, &buf);
++	error = vfs_readdir(f.file, compat_filldir, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	lastdirent = buf.previous;
+ 	if (lastdirent) {
+-		if (put_user(file->f_pos, &lastdirent->d_off))
++		if (put_user(f.file->f_pos, &lastdirent->d_off))
+ 			error = -EFAULT;
+ 		else
+ 			error = count - buf.count;
+ 	}
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -1035,17 +1032,16 @@ static int compat_filldir64(void * __buf, const char * name, int namlen, loff_t
+ asmlinkage long compat_sys_getdents64(unsigned int fd,
+ 		struct linux_dirent64 __user * dirent, unsigned int count)
+ {
+-	struct file * file;
++	struct fd f;
+ 	struct linux_dirent64 __user * lastdirent;
+ 	struct compat_getdents_callback64 buf;
+-	int fput_needed;
+ 	int error;
+ 
+ 	if (!access_ok(VERIFY_WRITE, dirent, count))
+ 		return -EFAULT;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.current_dir = dirent;
+@@ -1053,18 +1049,18 @@ asmlinkage long compat_sys_getdents64(unsigned int fd,
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, compat_filldir64, &buf);
++	error = vfs_readdir(f.file, compat_filldir64, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	lastdirent = buf.previous;
+ 	if (lastdirent) {
+-		typeof(lastdirent->d_off) d_off = file->f_pos;
++		typeof(lastdirent->d_off) d_off = f.file->f_pos;
+ 		if (__put_user_unaligned(d_off, &lastdirent->d_off))
+ 			error = -EFAULT;
+ 		else
+ 			error = count - buf.count;
+ 	}
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ #endif /* ! __ARCH_OMIT_COMPAT_SYS_GETDENTS64 */
+@@ -1152,18 +1148,16 @@ asmlinkage ssize_t
+ compat_sys_readv(unsigned long fd, const struct compat_iovec __user *vec,
+ 		 unsigned long vlen)
+ {
+-	struct file *file;
+-	int fput_needed;
++	struct fd f = fdget(fd);
+ 	ssize_t ret;
+ 	loff_t pos;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+-	pos = file->f_pos;
+-	ret = compat_readv(file, vec, vlen, &pos);
+-	file->f_pos = pos;
+-	fput_light(file, fput_needed);
++	pos = f.file->f_pos;
++	ret = compat_readv(f.file, vec, vlen, &pos);
++	f.file->f_pos = pos;
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -1171,19 +1165,18 @@ asmlinkage ssize_t
+ compat_sys_preadv64(unsigned long fd, const struct compat_iovec __user *vec,
+ 		    unsigned long vlen, loff_t pos)
+ {
+-	struct file *file;
+-	int fput_needed;
++	struct fd f;
+ 	ssize_t ret;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 	ret = -ESPIPE;
+-	if (file->f_mode & FMODE_PREAD)
+-		ret = compat_readv(file, vec, vlen, &pos);
+-	fput_light(file, fput_needed);
++	if (f.file->f_mode & FMODE_PREAD)
++		ret = compat_readv(f.file, vec, vlen, &pos);
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -1221,18 +1214,16 @@ asmlinkage ssize_t
+ compat_sys_writev(unsigned long fd, const struct compat_iovec __user *vec,
+ 		  unsigned long vlen)
+ {
+-	struct file *file;
+-	int fput_needed;
++	struct fd f = fdget(fd);
+ 	ssize_t ret;
+ 	loff_t pos;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+-	pos = file->f_pos;
+-	ret = compat_writev(file, vec, vlen, &pos);
+-	file->f_pos = pos;
+-	fput_light(file, fput_needed);
++	pos = f.file->f_pos;
++	ret = compat_writev(f.file, vec, vlen, &pos);
++	f.file->f_pos = pos;
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -1240,19 +1231,18 @@ asmlinkage ssize_t
+ compat_sys_pwritev64(unsigned long fd, const struct compat_iovec __user *vec,
+ 		     unsigned long vlen, loff_t pos)
+ {
+-	struct file *file;
+-	int fput_needed;
++	struct fd f;
+ 	ssize_t ret;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 	ret = -ESPIPE;
+-	if (file->f_mode & FMODE_PWRITE)
+-		ret = compat_writev(file, vec, vlen, &pos);
+-	fput_light(file, fput_needed);
++	if (f.file->f_mode & FMODE_PWRITE)
++		ret = compat_writev(f.file, vec, vlen, &pos);
++	fdput(f);
+ 	return ret;
+ }
+ 
+diff --git a/fs/compat_ioctl.c b/fs/compat_ioctl.c
+index debdfe0fc809..48f1987bec34 100644
+--- a/fs/compat_ioctl.c
++++ b/fs/compat_ioctl.c
+@@ -1531,16 +1531,13 @@ static int compat_ioctl_check_table(unsigned int xcmd)
+ asmlinkage long compat_sys_ioctl(unsigned int fd, unsigned int cmd,
+ 				unsigned long arg)
+ {
+-	struct file *filp;
++	struct fd f = fdget(fd);
+ 	int error = -EBADF;
+-	int fput_needed;
+-
+-	filp = fget_light(fd, &fput_needed);
+-	if (!filp)
++	if (!f.file)
+ 		goto out;
+ 
+ 	/* RED-PEN how should LSM module know it's handling 32bit? */
+-	error = security_file_ioctl(filp, cmd, arg);
++	error = security_file_ioctl(f.file, cmd, arg);
+ 	if (error)
+ 		goto out_fput;
+ 
+@@ -1560,30 +1557,30 @@ asmlinkage long compat_sys_ioctl(unsigned int fd, unsigned int cmd,
+ #if defined(CONFIG_IA64) || defined(CONFIG_X86_64)
+ 	case FS_IOC_RESVSP_32:
+ 	case FS_IOC_RESVSP64_32:
+-		error = compat_ioctl_preallocate(filp, compat_ptr(arg));
++		error = compat_ioctl_preallocate(f.file, compat_ptr(arg));
+ 		goto out_fput;
+ #else
+ 	case FS_IOC_RESVSP:
+ 	case FS_IOC_RESVSP64:
+-		error = ioctl_preallocate(filp, compat_ptr(arg));
++		error = ioctl_preallocate(f.file, compat_ptr(arg));
+ 		goto out_fput;
+ #endif
+ 
+ 	case FIBMAP:
+ 	case FIGETBSZ:
+ 	case FIONREAD:
+-		if (S_ISREG(filp->f_path.dentry->d_inode->i_mode))
++		if (S_ISREG(f.file->f_path.dentry->d_inode->i_mode))
+ 			break;
+ 		/*FALL THROUGH*/
+ 
+ 	default:
+-		if (filp->f_op && filp->f_op->compat_ioctl) {
+-			error = filp->f_op->compat_ioctl(filp, cmd, arg);
++		if (f.file->f_op && f.file->f_op->compat_ioctl) {
++			error = f.file->f_op->compat_ioctl(f.file, cmd, arg);
+ 			if (error != -ENOIOCTLCMD)
+ 				goto out_fput;
+ 		}
+ 
+-		if (!filp->f_op || !filp->f_op->unlocked_ioctl)
++		if (!f.file->f_op || !f.file->f_op->unlocked_ioctl)
+ 			goto do_ioctl;
+ 		break;
+ 	}
+@@ -1591,7 +1588,7 @@ asmlinkage long compat_sys_ioctl(unsigned int fd, unsigned int cmd,
+ 	if (compat_ioctl_check_table(XFORM(cmd)))
+ 		goto found_handler;
+ 
+-	error = do_ioctl_trans(fd, cmd, arg, filp);
++	error = do_ioctl_trans(fd, cmd, arg, f.file);
+ 	if (error == -ENOIOCTLCMD)
+ 		error = -ENOTTY;
+ 
+@@ -1600,9 +1597,9 @@ asmlinkage long compat_sys_ioctl(unsigned int fd, unsigned int cmd,
+  found_handler:
+ 	arg = (unsigned long)compat_ptr(arg);
+  do_ioctl:
+-	error = do_vfs_ioctl(filp, fd, cmd, arg);
++	error = do_vfs_ioctl(f.file, fd, cmd, arg);
+  out_fput:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+  out:
+ 	return error;
+ }
+diff --git a/fs/eventpoll.c b/fs/eventpoll.c
+index 567ae72e155d..cd96649bfe62 100644
+--- a/fs/eventpoll.c
++++ b/fs/eventpoll.c
+@@ -1809,8 +1809,8 @@ SYSCALL_DEFINE4(epoll_ctl, int, epfd, int, op, int, fd,
+ SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
+ 		int, maxevents, int, timeout)
+ {
+-	int error, fput_needed;
+-	struct file *file;
++	int error;
++	struct fd f;
+ 	struct eventpoll *ep;
+ 
+ 	/* The maximum number of event must be greater than zero */
+@@ -1818,38 +1818,33 @@ SYSCALL_DEFINE4(epoll_wait, int, epfd, struct epoll_event __user *, events,
+ 		return -EINVAL;
+ 
+ 	/* Verify that the area passed by the user is writeable */
+-	if (!access_ok(VERIFY_WRITE, events, maxevents * sizeof(struct epoll_event))) {
+-		error = -EFAULT;
+-		goto error_return;
+-	}
++	if (!access_ok(VERIFY_WRITE, events, maxevents * sizeof(struct epoll_event)))
++		return -EFAULT;
+ 
+ 	/* Get the "struct file *" for the eventpoll file */
+-	error = -EBADF;
+-	file = fget_light(epfd, &fput_needed);
+-	if (!file)
+-		goto error_return;
++	f = fdget(epfd);
++	if (!f.file)
++		return -EBADF;
+ 
+ 	/*
+ 	 * We have to check that the file structure underneath the fd
+ 	 * the user passed to us _is_ an eventpoll file.
+ 	 */
+ 	error = -EINVAL;
+-	if (!is_file_epoll(file))
++	if (!is_file_epoll(f.file))
+ 		goto error_fput;
+ 
+ 	/*
+ 	 * At this point it is safe to assume that the "private_data" contains
+ 	 * our own data structure.
+ 	 */
+-	ep = file->private_data;
++	ep = f.file->private_data;
+ 
+ 	/* Time to fish for events ... */
+ 	error = ep_poll(ep, events, maxevents, timeout);
+ 
+ error_fput:
+-	fput_light(file, fput_needed);
+-error_return:
+-
++	fdput(f);
+ 	return error;
+ }
+ 
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index 39646f224514..5439d6a56e99 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -233,8 +233,8 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 	case EXT4_IOC_MOVE_EXT: {
+ 		struct move_extent me;
+-		struct file *donor_filp;
+-		int err, fput_needed;
++		struct fd donor;
++		int err;
+ 
+ 		if (!(filp->f_mode & FMODE_READ) ||
+ 		    !(filp->f_mode & FMODE_WRITE))
+@@ -245,11 +245,11 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			return -EFAULT;
+ 		me.moved_len = 0;
+ 
+-		donor_filp = fget_light(me.donor_fd, &fput_needed);
+-		if (!donor_filp)
++		donor = fdget(me.donor_fd);
++		if (!donor.file)
+ 			return -EBADF;
+ 
+-		if (!(donor_filp->f_mode & FMODE_WRITE)) {
++		if (!(donor.file->f_mode & FMODE_WRITE)) {
+ 			err = -EBADF;
+ 			goto mext_out;
+ 		}
+@@ -266,7 +266,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (err)
+ 			goto mext_out;
+ 
+-		err = ext4_move_extents(filp, donor_filp, me.orig_start,
++		err = ext4_move_extents(filp, donor.file, me.orig_start,
+ 					me.donor_start, me.len, &me.moved_len);
+ 		mnt_drop_write_file(filp);
+ 
+@@ -274,7 +274,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 				 &me, sizeof(me)))
+ 			err = -EFAULT;
+ mext_out:
+-		fput_light(donor_filp, fput_needed);
++		fdput(donor);
+ 		return err;
+ 	}
+ 
+diff --git a/fs/fcntl.c b/fs/fcntl.c
+index 40a5bfb72cca..91af39a33af7 100644
+--- a/fs/fcntl.c
++++ b/fs/fcntl.c
+@@ -348,25 +348,23 @@ static int check_fcntl_cmd(unsigned cmd)
+ 
+ SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
+ {	
+-	struct file *filp;
+-	int fput_needed;
++	struct fd f = fdget_raw(fd);
+ 	long err = -EBADF;
+ 
+-	filp = fget_raw_light(fd, &fput_needed);
+-	if (!filp)
++	if (!f.file)
+ 		goto out;
+ 
+-	if (unlikely(filp->f_mode & FMODE_PATH)) {
++	if (unlikely(f.file->f_mode & FMODE_PATH)) {
+ 		if (!check_fcntl_cmd(cmd))
+ 			goto out1;
+ 	}
+ 
+-	err = security_file_fcntl(filp, cmd, arg);
++	err = security_file_fcntl(f.file, cmd, arg);
+ 	if (!err)
+-		err = do_fcntl(fd, cmd, arg, filp);
++		err = do_fcntl(fd, cmd, arg, f.file);
+ 
+ out1:
+- 	fput_light(filp, fput_needed);
++ 	fdput(f);
+ out:
+ 	return err;
+ }
+@@ -375,38 +373,36 @@ SYSCALL_DEFINE3(fcntl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
+ SYSCALL_DEFINE3(fcntl64, unsigned int, fd, unsigned int, cmd,
+ 		unsigned long, arg)
+ {	
+-	struct file * filp;
++	struct fd f = fdget_raw(fd);
+ 	long err = -EBADF;
+-	int fput_needed;
+ 
+-	filp = fget_raw_light(fd, &fput_needed);
+-	if (!filp)
++	if (!f.file)
+ 		goto out;
+ 
+-	if (unlikely(filp->f_mode & FMODE_PATH)) {
++	if (unlikely(f.file->f_mode & FMODE_PATH)) {
+ 		if (!check_fcntl_cmd(cmd))
+ 			goto out1;
+ 	}
+ 
+-	err = security_file_fcntl(filp, cmd, arg);
++	err = security_file_fcntl(f.file, cmd, arg);
+ 	if (err)
+ 		goto out1;
+ 	
+ 	switch (cmd) {
+ 		case F_GETLK64:
+-			err = fcntl_getlk64(filp, (struct flock64 __user *) arg);
++			err = fcntl_getlk64(f.file, (struct flock64 __user *) arg);
+ 			break;
+ 		case F_SETLK64:
+ 		case F_SETLKW64:
+-			err = fcntl_setlk64(fd, filp, cmd,
++			err = fcntl_setlk64(fd, f.file, cmd,
+ 					(struct flock64 __user *) arg);
+ 			break;
+ 		default:
+-			err = do_fcntl(fd, cmd, arg, filp);
++			err = do_fcntl(fd, cmd, arg, f.file);
+ 			break;
+ 	}
+ out1:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ out:
+ 	return err;
+ }
+diff --git a/fs/fhandle.c b/fs/fhandle.c
+index a48e4a139be1..f775bfdd6e4a 100644
+--- a/fs/fhandle.c
++++ b/fs/fhandle.c
+@@ -113,24 +113,21 @@ SYSCALL_DEFINE5(name_to_handle_at, int, dfd, const char __user *, name,
+ 
+ static struct vfsmount *get_vfsmount_from_fd(int fd)
+ {
+-	struct path path;
++	struct vfsmount *mnt;
+ 
+ 	if (fd == AT_FDCWD) {
+ 		struct fs_struct *fs = current->fs;
+ 		spin_lock(&fs->lock);
+-		path = fs->pwd;
+-		mntget(path.mnt);
++		mnt = mntget(fs->pwd.mnt);
+ 		spin_unlock(&fs->lock);
+ 	} else {
+-		int fput_needed;
+-		struct file *file = fget_light(fd, &fput_needed);
+-		if (!file)
++		struct fd f = fdget(fd);
++		if (!f.file)
+ 			return ERR_PTR(-EBADF);
+-		path = file->f_path;
+-		mntget(path.mnt);
+-		fput_light(file, fput_needed);
++		mnt = mntget(f.file->f_path.mnt);
++		fdput(f);
+ 	}
+-	return path.mnt;
++	return mnt;
+ }
+ 
+ static int vfs_dentry_acceptable(void *context, struct dentry *dentry)
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index 29167bebe874..3bdad6d1f268 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -603,21 +603,14 @@ int do_vfs_ioctl(struct file *filp, unsigned int fd, unsigned int cmd,
+ 
+ SYSCALL_DEFINE3(ioctl, unsigned int, fd, unsigned int, cmd, unsigned long, arg)
+ {
+-	struct file *filp;
+-	int error = -EBADF;
+-	int fput_needed;
+-
+-	filp = fget_light(fd, &fput_needed);
+-	if (!filp)
+-		goto out;
+-
+-	error = security_file_ioctl(filp, cmd, arg);
+-	if (error)
+-		goto out_fput;
+-
+-	error = do_vfs_ioctl(filp, fd, cmd, arg);
+- out_fput:
+-	fput_light(filp, fput_needed);
+- out:
++	int error;
++	struct fd f = fdget(fd);
++
++	if (!f.file)
++		return -EBADF;
++	error = security_file_ioctl(f.file, cmd, arg);
++	if (!error)
++		error = do_vfs_ioctl(f.file, fd, cmd, arg);
++	fdput(f);
+ 	return error;
+ }
+diff --git a/fs/locks.c b/fs/locks.c
+index 7e81bfc75164..abc7dc6c490b 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1625,15 +1625,13 @@ EXPORT_SYMBOL(flock_lock_file_wait);
+  */
+ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
+ {
+-	struct file *filp;
+-	int fput_needed;
++	struct fd f = fdget(fd);
+ 	struct file_lock *lock;
+ 	int can_sleep, unlock;
+ 	int error;
+ 
+ 	error = -EBADF;
+-	filp = fget_light(fd, &fput_needed);
+-	if (!filp)
++	if (!f.file)
+ 		goto out;
+ 
+ 	can_sleep = !(cmd & LOCK_NB);
+@@ -1641,31 +1639,31 @@ SYSCALL_DEFINE2(flock, unsigned int, fd, unsigned int, cmd)
+ 	unlock = (cmd == LOCK_UN);
+ 
+ 	if (!unlock && !(cmd & LOCK_MAND) &&
+-	    !(filp->f_mode & (FMODE_READ|FMODE_WRITE)))
++	    !(f.file->f_mode & (FMODE_READ|FMODE_WRITE)))
+ 		goto out_putf;
+ 
+-	error = flock_make_lock(filp, &lock, cmd);
++	error = flock_make_lock(f.file, &lock, cmd);
+ 	if (error)
+ 		goto out_putf;
+ 	if (can_sleep)
+ 		lock->fl_flags |= FL_SLEEP;
+ 
+-	error = security_file_lock(filp, lock->fl_type);
++	error = security_file_lock(f.file, lock->fl_type);
+ 	if (error)
+ 		goto out_free;
+ 
+-	if (filp->f_op && filp->f_op->flock)
+-		error = filp->f_op->flock(filp,
++	if (f.file->f_op && f.file->f_op->flock)
++		error = f.file->f_op->flock(f.file,
+ 					  (can_sleep) ? F_SETLKW : F_SETLK,
+ 					  lock);
+ 	else
+-		error = flock_lock_file_wait(filp, lock);
++		error = flock_lock_file_wait(f.file, lock);
+ 
+  out_free:
+ 	locks_free_lock(lock);
+ 
+  out_putf:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+  out:
+ 	return error;
+ }
+diff --git a/fs/namei.c b/fs/namei.c
+index c5b85b3523c0..e1c7072c7afa 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1797,8 +1797,6 @@ static int path_init(int dfd, const char *name, unsigned int flags,
+ 		     struct nameidata *nd, struct file **fp)
+ {
+ 	int retval = 0;
+-	int fput_needed;
+-	struct file *file;
+ 
+ 	nd->last_type = LAST_ROOT; /* if there are only slashes... */
+ 	nd->flags = flags | LOOKUP_JUMPED;
+@@ -1850,44 +1848,41 @@ static int path_init(int dfd, const char *name, unsigned int flags,
+ 			get_fs_pwd(current->fs, &nd->path);
+ 		}
+ 	} else {
++		struct fd f = fdget_raw(dfd);
+ 		struct dentry *dentry;
+ 
+-		file = fget_raw_light(dfd, &fput_needed);
+-		retval = -EBADF;
+-		if (!file)
+-			goto out_fail;
++		if (!f.file)
++			return -EBADF;
+ 
+-		dentry = file->f_path.dentry;
++		dentry = f.file->f_path.dentry;
+ 
+ 		if (*name) {
+-			retval = -ENOTDIR;
+-			if (!S_ISDIR(dentry->d_inode->i_mode))
+-				goto fput_fail;
++			if (!S_ISDIR(dentry->d_inode->i_mode)) {
++				fdput(f);
++				return -ENOTDIR;
++			}
+ 
+ 			retval = inode_permission(dentry->d_inode, MAY_EXEC);
+-			if (retval)
+-				goto fput_fail;
++			if (retval) {
++				fdput(f);
++				return retval;
++			}
+ 		}
+ 
+-		nd->path = file->f_path;
++		nd->path = f.file->f_path;
+ 		if (flags & LOOKUP_RCU) {
+-			if (fput_needed)
+-				*fp = file;
++			if (f.need_put)
++				*fp = f.file;
+ 			nd->seq = __read_seqcount_begin(&nd->path.dentry->d_seq);
+ 			lock_rcu_walk();
+ 		} else {
+-			path_get(&file->f_path);
+-			fput_light(file, fput_needed);
++			path_get(&nd->path);
++			fdput(f);
+ 		}
+ 	}
+ 
+ 	nd->inode = nd->path.dentry->d_inode;
+ 	return 0;
+-
+-fput_fail:
+-	fput_light(file, fput_needed);
+-out_fail:
+-	return retval;
+ }
+ 
+ static inline int lookup_last(struct nameidata *nd, struct path *path)
+diff --git a/fs/notify/fanotify/fanotify_user.c b/fs/notify/fanotify/fanotify_user.c
+index ea48693940f1..721d692fa8d4 100644
+--- a/fs/notify/fanotify/fanotify_user.c
++++ b/fs/notify/fanotify/fanotify_user.c
+@@ -451,24 +451,22 @@ static int fanotify_find_path(int dfd, const char __user *filename,
+ 		 dfd, filename, flags);
+ 
+ 	if (filename == NULL) {
+-		struct file *file;
+-		int fput_needed;
++		struct fd f = fdget(dfd);
+ 
+ 		ret = -EBADF;
+-		file = fget_light(dfd, &fput_needed);
+-		if (!file)
++		if (!f.file)
+ 			goto out;
+ 
+ 		ret = -ENOTDIR;
+ 		if ((flags & FAN_MARK_ONLYDIR) &&
+-		    !(S_ISDIR(file->f_path.dentry->d_inode->i_mode))) {
+-			fput_light(file, fput_needed);
++		    !(S_ISDIR(f.file->f_path.dentry->d_inode->i_mode))) {
++			fdput(f);
+ 			goto out;
+ 		}
+ 
+-		*path = file->f_path;
++		*path = f.file->f_path;
+ 		path_get(path);
+-		fput_light(file, fput_needed);
++		fdput(f);
+ 	} else {
+ 		unsigned int lookup_flags = 0;
+ 
+@@ -748,9 +746,9 @@ SYSCALL_DEFINE(fanotify_mark)(int fanotify_fd, unsigned int flags,
+ 	struct inode *inode = NULL;
+ 	struct vfsmount *mnt = NULL;
+ 	struct fsnotify_group *group;
+-	struct file *filp;
++	struct fd f;
+ 	struct path path;
+-	int ret, fput_needed;
++	int ret;
+ 
+ 	pr_debug("%s: fanotify_fd=%d flags=%x dfd=%d pathname=%p mask=%llx\n",
+ 		 __func__, fanotify_fd, flags, dfd, pathname, mask);
+@@ -784,15 +782,15 @@ SYSCALL_DEFINE(fanotify_mark)(int fanotify_fd, unsigned int flags,
+ #endif
+ 		return -EINVAL;
+ 
+-	filp = fget_light(fanotify_fd, &fput_needed);
+-	if (unlikely(!filp))
++	f = fdget(fanotify_fd);
++	if (unlikely(!f.file))
+ 		return -EBADF;
+ 
+ 	/* verify that this is indeed an fanotify instance */
+ 	ret = -EINVAL;
+-	if (unlikely(filp->f_op != &fanotify_fops))
++	if (unlikely(f.file->f_op != &fanotify_fops))
+ 		goto fput_and_out;
+-	group = filp->private_data;
++	group = f.file->private_data;
+ 
+ 	/*
+ 	 * group->priority == FS_PRIO_0 == FAN_CLASS_NOTIF.  These are not
+@@ -839,7 +837,7 @@ SYSCALL_DEFINE(fanotify_mark)(int fanotify_fd, unsigned int flags,
+ 
+ 	path_put(&path);
+ fput_and_out:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+diff --git a/fs/notify/inotify/inotify_user.c b/fs/notify/inotify/inotify_user.c
+index 8445fbc8985c..c311dda054a3 100644
+--- a/fs/notify/inotify/inotify_user.c
++++ b/fs/notify/inotify/inotify_user.c
+@@ -757,16 +757,16 @@ SYSCALL_DEFINE3(inotify_add_watch, int, fd, const char __user *, pathname,
+ 	struct fsnotify_group *group;
+ 	struct inode *inode;
+ 	struct path path;
+-	struct file *filp;
+-	int ret, fput_needed;
++	struct fd f;
++	int ret;
+ 	unsigned flags = 0;
+ 
+-	filp = fget_light(fd, &fput_needed);
+-	if (unlikely(!filp))
++	f = fdget(fd);
++	if (unlikely(!f.file))
+ 		return -EBADF;
+ 
+ 	/* verify that this is indeed an inotify instance */
+-	if (unlikely(filp->f_op != &inotify_fops)) {
++	if (unlikely(f.file->f_op != &inotify_fops)) {
+ 		ret = -EINVAL;
+ 		goto fput_and_out;
+ 	}
+@@ -782,13 +782,13 @@ SYSCALL_DEFINE3(inotify_add_watch, int, fd, const char __user *, pathname,
+ 
+ 	/* inode held in place by reference to path; group by fget on fd */
+ 	inode = path.dentry->d_inode;
+-	group = filp->private_data;
++	group = f.file->private_data;
+ 
+ 	/* create/update an inode mark */
+ 	ret = inotify_update_watch(group, inode, mask);
+ 	path_put(&path);
+ fput_and_out:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -796,19 +796,19 @@ SYSCALL_DEFINE2(inotify_rm_watch, int, fd, __s32, wd)
+ {
+ 	struct fsnotify_group *group;
+ 	struct inotify_inode_mark *i_mark;
+-	struct file *filp;
+-	int ret = 0, fput_needed;
++	struct fd f;
++	int ret = 0;
+ 
+-	filp = fget_light(fd, &fput_needed);
+-	if (unlikely(!filp))
++	f = fdget(fd);
++	if (unlikely(!f.file))
+ 		return -EBADF;
+ 
+ 	/* verify that this is indeed an inotify instance */
+ 	ret = -EINVAL;
+-	if (unlikely(filp->f_op != &inotify_fops))
++	if (unlikely(f.file->f_op != &inotify_fops))
+ 		goto out;
+ 
+-	group = filp->private_data;
++	group = f.file->private_data;
+ 
+ 	ret = -EINVAL;
+ 	i_mark = inotify_idr_find(group, wd);
+@@ -823,7 +823,7 @@ SYSCALL_DEFINE2(inotify_rm_watch, int, fd, __s32, wd)
+ 	fsnotify_put_mark(&i_mark->fsn_mark);
+ 
+ out:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+diff --git a/fs/ocfs2/cluster/heartbeat.c b/fs/ocfs2/cluster/heartbeat.c
+index 61c28ae266f5..f7c648d7d6bf 100644
+--- a/fs/ocfs2/cluster/heartbeat.c
++++ b/fs/ocfs2/cluster/heartbeat.c
+@@ -1746,11 +1746,10 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 	long fd;
+ 	int sectsize;
+ 	char *p = (char *)page;
+-	struct file *filp = NULL;
+-	struct inode *inode = NULL;
++	struct fd f;
++	struct inode *inode;
+ 	ssize_t ret = -EINVAL;
+ 	int live_threshold;
+-	int fput_needed;
+ 
+ 	if (reg->hr_bdev)
+ 		goto out;
+@@ -1767,26 +1766,26 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 	if (fd < 0 || fd >= INT_MAX)
+ 		goto out;
+ 
+-	filp = fget_light(fd, &fput_needed);
+-	if (filp == NULL)
++	f = fdget(fd);
++	if (f.file == NULL)
+ 		goto out;
+ 
+ 	if (reg->hr_blocks == 0 || reg->hr_start_block == 0 ||
+ 	    reg->hr_block_bytes == 0)
+-		goto out;
++		goto out2;
+ 
+-	inode = igrab(filp->f_mapping->host);
++	inode = igrab(f.file->f_mapping->host);
+ 	if (inode == NULL)
+-		goto out;
++		goto out2;
+ 
+ 	if (!S_ISBLK(inode->i_mode))
+-		goto out;
++		goto out3;
+ 
+-	reg->hr_bdev = I_BDEV(filp->f_mapping->host);
++	reg->hr_bdev = I_BDEV(f.file->f_mapping->host);
+ 	ret = blkdev_get(reg->hr_bdev, FMODE_WRITE | FMODE_READ, NULL);
+ 	if (ret) {
+ 		reg->hr_bdev = NULL;
+-		goto out;
++		goto out3;
+ 	}
+ 	inode = NULL;
+ 
+@@ -1798,7 +1797,7 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 		     "blocksize %u incorrect for device, expected %d",
+ 		     reg->hr_block_bytes, sectsize);
+ 		ret = -EINVAL;
+-		goto out;
++		goto out3;
+ 	}
+ 
+ 	o2hb_init_region_params(reg);
+@@ -1812,13 +1811,13 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 	ret = o2hb_map_slot_data(reg);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		goto out;
++		goto out3;
+ 	}
+ 
+ 	ret = o2hb_populate_slot_data(reg);
+ 	if (ret) {
+ 		mlog_errno(ret);
+-		goto out;
++		goto out3;
+ 	}
+ 
+ 	INIT_DELAYED_WORK(&reg->hr_write_timeout_work, o2hb_write_timeout);
+@@ -1848,7 +1847,7 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 	if (IS_ERR(hb_task)) {
+ 		ret = PTR_ERR(hb_task);
+ 		mlog_errno(ret);
+-		goto out;
++		goto out3;
+ 	}
+ 
+ 	spin_lock(&o2hb_live_lock);
+@@ -1864,7 +1863,7 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 
+ 	if (reg->hr_aborted_start) {
+ 		ret = -EIO;
+-		goto out;
++		goto out3;
+ 	}
+ 
+ 	/* Ok, we were woken.  Make sure it wasn't by drop_item() */
+@@ -1883,11 +1882,11 @@ static ssize_t o2hb_region_dev_write(struct o2hb_region *reg,
+ 		printk(KERN_NOTICE "o2hb: Heartbeat started on region %s (%s)\n",
+ 		       config_item_name(&reg->hr_item), reg->hr_dev_name);
+ 
++out3:
++	iput(inode);
++out2:
++	fdput(f);
+ out:
+-	if (filp)
+-		fput_light(filp, fput_needed);
+-	if (inode)
+-		iput(inode);
+ 	if (ret < 0) {
+ 		if (reg->hr_bdev) {
+ 			blkdev_put(reg->hr_bdev, FMODE_READ|FMODE_WRITE);
+diff --git a/fs/open.c b/fs/open.c
+index 3c741eae6b99..85603262d8db 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -134,25 +134,25 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
+ {
+ 	struct inode *inode;
+ 	struct dentry *dentry;
+-	struct file *file;
+-	int error, fput_needed;
++	struct fd f;
++	int error;
+ 
+ 	error = -EINVAL;
+ 	if (length < 0)
+ 		goto out;
+ 	error = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		goto out;
+ 
+ 	/* explicitly opened as large or we are on 64-bit box */
+-	if (file->f_flags & O_LARGEFILE)
++	if (f.file->f_flags & O_LARGEFILE)
+ 		small = 0;
+ 
+-	dentry = file->f_path.dentry;
++	dentry = f.file->f_path.dentry;
+ 	inode = dentry->d_inode;
+ 	error = -EINVAL;
+-	if (!S_ISREG(inode->i_mode) || !(file->f_mode & FMODE_WRITE))
++	if (!S_ISREG(inode->i_mode) || !(f.file->f_mode & FMODE_WRITE))
+ 		goto out_putf;
+ 
+ 	error = -EINVAL;
+@@ -165,14 +165,14 @@ static long do_sys_ftruncate(unsigned int fd, loff_t length, int small)
+ 		goto out_putf;
+ 
+ 	sb_start_write(inode->i_sb);
+-	error = locks_verify_truncate(inode, file, length);
++	error = locks_verify_truncate(inode, f.file, length);
+ 	if (!error)
+-		error = security_path_truncate(&file->f_path);
++		error = security_path_truncate(&f.file->f_path);
+ 	if (!error)
+-		error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, file);
++		error = do_truncate(dentry, length, ATTR_MTIME|ATTR_CTIME, f.file);
+ 	sb_end_write(inode->i_sb);
+ out_putf:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ out:
+ 	return error;
+ }
+@@ -276,15 +276,13 @@ int do_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+ 
+ SYSCALL_DEFINE(fallocate)(int fd, int mode, loff_t offset, loff_t len)
+ {
+-	struct file *file;
+-	int error = -EBADF, fput_needed;
++	struct fd f = fdget(fd);
++	int error = -EBADF;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		error = do_fallocate(file, mode, offset, len);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		error = do_fallocate(f.file, mode, offset, len);
++		fdput(f);
+ 	}
+-
+ 	return error;
+ }
+ 
+@@ -400,16 +398,15 @@ SYSCALL_DEFINE1(chdir, const char __user *, filename)
+ 
+ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ {
+-	struct file *file;
++	struct fd f = fdget_raw(fd);
+ 	struct inode *inode;
+-	int error, fput_needed;
++	int error = -EBADF;
+ 
+ 	error = -EBADF;
+-	file = fget_raw_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		goto out;
+ 
+-	inode = file->f_path.dentry->d_inode;
++	inode = f.file->f_path.dentry->d_inode;
+ 
+ 	error = -ENOTDIR;
+ 	if (!S_ISDIR(inode->i_mode))
+@@ -417,9 +414,9 @@ SYSCALL_DEFINE1(fchdir, unsigned int, fd)
+ 
+ 	error = inode_permission(inode, MAY_EXEC | MAY_CHDIR);
+ 	if (!error)
+-		set_fs_pwd(current->fs, &file->f_path);
++		set_fs_pwd(current->fs, &f.file->f_path);
+ out_putf:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ out:
+ 	return error;
+ }
+@@ -582,21 +579,20 @@ SYSCALL_DEFINE3(lchown, const char __user *, filename, uid_t, user, gid_t, group
+ 
+ SYSCALL_DEFINE3(fchown, unsigned int, fd, uid_t, user, gid_t, group)
+ {
+-	struct file *file;
+-	int error = -EBADF, fput_needed;
++	struct fd f = fdget(fd);
++	int error = -EBADF;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		goto out;
+ 
+-	error = mnt_want_write_file(file);
++	error = mnt_want_write_file(f.file);
+ 	if (error)
+ 		goto out_fput;
+-	audit_inode(NULL, file->f_path.dentry);
+-	error = chown_common(&file->f_path, user, group);
+-	mnt_drop_write_file(file);
++	audit_inode(NULL, f.file->f_path.dentry);
++	error = chown_common(&f.file->f_path, user, group);
++	mnt_drop_write_file(f.file);
+ out_fput:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ out:
+ 	return error;
+ }
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 1adfb691e4f1..28b38279a219 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -232,23 +232,18 @@ EXPORT_SYMBOL(vfs_llseek);
+ SYSCALL_DEFINE3(lseek, unsigned int, fd, off_t, offset, unsigned int, origin)
+ {
+ 	off_t retval;
+-	struct file * file;
+-	int fput_needed;
+-
+-	retval = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
+-		goto bad;
++	struct fd f = fdget(fd);
++	if (!f.file)
++		return -EBADF;
+ 
+ 	retval = -EINVAL;
+ 	if (origin <= SEEK_MAX) {
+-		loff_t res = vfs_llseek(file, offset, origin);
++		loff_t res = vfs_llseek(f.file, offset, origin);
+ 		retval = res;
+ 		if (res != (loff_t)retval)
+ 			retval = -EOVERFLOW;	/* LFS: should only happen on 32 bit platforms */
+ 	}
+-	fput_light(file, fput_needed);
+-bad:
++	fdput(f);
+ 	return retval;
+ }
+ 
+@@ -258,20 +253,17 @@ SYSCALL_DEFINE5(llseek, unsigned int, fd, unsigned long, offset_high,
+ 		unsigned int, origin)
+ {
+ 	int retval;
+-	struct file * file;
++	struct fd f = fdget(fd);
+ 	loff_t offset;
+-	int fput_needed;
+ 
+-	retval = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
+-		goto bad;
++	if (!f.file)
++		return -EBADF;
+ 
+ 	retval = -EINVAL;
+ 	if (origin > SEEK_MAX)
+ 		goto out_putf;
+ 
+-	offset = vfs_llseek(file, ((loff_t) offset_high << 32) | offset_low,
++	offset = vfs_llseek(f.file, ((loff_t) offset_high << 32) | offset_low,
+ 			origin);
+ 
+ 	retval = (int)offset;
+@@ -281,8 +273,7 @@ SYSCALL_DEFINE5(llseek, unsigned int, fd, unsigned long, offset_high,
+ 			retval = 0;
+ 	}
+ out_putf:
+-	fput_light(file, fput_needed);
+-bad:
++	fdput(f);
+ 	return retval;
+ }
+ #endif
+@@ -461,34 +452,29 @@ static inline void file_pos_write(struct file *file, loff_t pos)
+ 
+ SYSCALL_DEFINE3(read, unsigned int, fd, char __user *, buf, size_t, count)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		loff_t pos = file_pos_read(file);
+-		ret = vfs_read(file, buf, count, &pos);
+-		file_pos_write(file, pos);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		loff_t pos = file_pos_read(f.file);
++		ret = vfs_read(f.file, buf, count, &pos);
++		file_pos_write(f.file, pos);
++		fdput(f);
+ 	}
+-
+ 	return ret;
+ }
+ 
+ SYSCALL_DEFINE3(write, unsigned int, fd, const char __user *, buf,
+ 		size_t, count)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		loff_t pos = file_pos_read(file);
+-		ret = vfs_write(file, buf, count, &pos);
+-		file_pos_write(file, pos);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		loff_t pos = file_pos_read(f.file);
++		ret = vfs_write(f.file, buf, count, &pos);
++		file_pos_write(f.file, pos);
++		fdput(f);
+ 	}
+ 
+ 	return ret;
+@@ -497,19 +483,18 @@ SYSCALL_DEFINE3(write, unsigned int, fd, const char __user *, buf,
+ SYSCALL_DEFINE(pread64)(unsigned int fd, char __user *buf,
+ 			size_t count, loff_t pos)
+ {
+-	struct file *file;
++	struct fd f;
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
++	f = fdget(fd);
++	if (f.file) {
+ 		ret = -ESPIPE;
+-		if (file->f_mode & FMODE_PREAD)
+-			ret = vfs_read(file, buf, count, &pos);
+-		fput_light(file, fput_needed);
++		if (f.file->f_mode & FMODE_PREAD)
++			ret = vfs_read(f.file, buf, count, &pos);
++		fdput(f);
+ 	}
+ 
+ 	return ret;
+@@ -526,19 +511,18 @@ SYSCALL_ALIAS(sys_pread64, SyS_pread64);
+ SYSCALL_DEFINE(pwrite64)(unsigned int fd, const char __user *buf,
+ 			 size_t count, loff_t pos)
+ {
+-	struct file *file;
++	struct fd f;
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
++	f = fdget(fd);
++	if (f.file) {
+ 		ret = -ESPIPE;
+-		if (file->f_mode & FMODE_PWRITE)  
+-			ret = vfs_write(file, buf, count, &pos);
+-		fput_light(file, fput_needed);
++		if (f.file->f_mode & FMODE_PWRITE)  
++			ret = vfs_write(f.file, buf, count, &pos);
++		fdput(f);
+ 	}
+ 
+ 	return ret;
+@@ -789,16 +773,14 @@ EXPORT_SYMBOL(vfs_writev);
+ SYSCALL_DEFINE3(readv, unsigned long, fd, const struct iovec __user *, vec,
+ 		unsigned long, vlen)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		loff_t pos = file_pos_read(file);
+-		ret = vfs_readv(file, vec, vlen, &pos);
+-		file_pos_write(file, pos);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		loff_t pos = file_pos_read(f.file);
++		ret = vfs_readv(f.file, vec, vlen, &pos);
++		file_pos_write(f.file, pos);
++		fdput(f);
+ 	}
+ 
+ 	if (ret > 0)
+@@ -810,16 +792,14 @@ SYSCALL_DEFINE3(readv, unsigned long, fd, const struct iovec __user *, vec,
+ SYSCALL_DEFINE3(writev, unsigned long, fd, const struct iovec __user *, vec,
+ 		unsigned long, vlen)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		loff_t pos = file_pos_read(file);
+-		ret = vfs_writev(file, vec, vlen, &pos);
+-		file_pos_write(file, pos);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		loff_t pos = file_pos_read(f.file);
++		ret = vfs_writev(f.file, vec, vlen, &pos);
++		file_pos_write(f.file, pos);
++		fdput(f);
+ 	}
+ 
+ 	if (ret > 0)
+@@ -838,19 +818,18 @@ SYSCALL_DEFINE5(preadv, unsigned long, fd, const struct iovec __user *, vec,
+ 		unsigned long, vlen, unsigned long, pos_l, unsigned long, pos_h)
+ {
+ 	loff_t pos = pos_from_hilo(pos_h, pos_l);
+-	struct file *file;
++	struct fd f;
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
++	f = fdget(fd);
++	if (f.file) {
+ 		ret = -ESPIPE;
+-		if (file->f_mode & FMODE_PREAD)
+-			ret = vfs_readv(file, vec, vlen, &pos);
+-		fput_light(file, fput_needed);
++		if (f.file->f_mode & FMODE_PREAD)
++			ret = vfs_readv(f.file, vec, vlen, &pos);
++		fdput(f);
+ 	}
+ 
+ 	if (ret > 0)
+@@ -863,19 +842,18 @@ SYSCALL_DEFINE5(pwritev, unsigned long, fd, const struct iovec __user *, vec,
+ 		unsigned long, vlen, unsigned long, pos_l, unsigned long, pos_h)
+ {
+ 	loff_t pos = pos_from_hilo(pos_h, pos_l);
+-	struct file *file;
++	struct fd f;
+ 	ssize_t ret = -EBADF;
+-	int fput_needed;
+ 
+ 	if (pos < 0)
+ 		return -EINVAL;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
++	f = fdget(fd);
++	if (f.file) {
+ 		ret = -ESPIPE;
+-		if (file->f_mode & FMODE_PWRITE)
+-			ret = vfs_writev(file, vec, vlen, &pos);
+-		fput_light(file, fput_needed);
++		if (f.file->f_mode & FMODE_PWRITE)
++			ret = vfs_writev(f.file, vec, vlen, &pos);
++		fdput(f);
+ 	}
+ 
+ 	if (ret > 0)
+@@ -887,28 +865,28 @@ SYSCALL_DEFINE5(pwritev, unsigned long, fd, const struct iovec __user *, vec,
+ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
+ 			   size_t count, loff_t max)
+ {
+-	struct file * in_file, * out_file;
+-	struct inode * in_inode, * out_inode;
++	struct fd in, out;
++	struct inode *in_inode, *out_inode;
+ 	loff_t pos;
+ 	ssize_t retval;
+-	int fput_needed_in, fput_needed_out, fl;
++	int fl;
+ 
+ 	/*
+ 	 * Get input file, and verify that it is ok..
+ 	 */
+ 	retval = -EBADF;
+-	in_file = fget_light(in_fd, &fput_needed_in);
+-	if (!in_file)
++	in = fdget(in_fd);
++	if (!in.file)
+ 		goto out;
+-	if (!(in_file->f_mode & FMODE_READ))
++	if (!(in.file->f_mode & FMODE_READ))
+ 		goto fput_in;
+ 	retval = -ESPIPE;
+ 	if (!ppos)
+-		ppos = &in_file->f_pos;
++		ppos = &in.file->f_pos;
+ 	else
+-		if (!(in_file->f_mode & FMODE_PREAD))
++		if (!(in.file->f_mode & FMODE_PREAD))
+ 			goto fput_in;
+-	retval = rw_verify_area(READ, in_file, ppos, count);
++	retval = rw_verify_area(READ, in.file, ppos, count);
+ 	if (retval < 0)
+ 		goto fput_in;
+ 	count = retval;
+@@ -917,15 +895,15 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
+ 	 * Get output file, and verify that it is ok..
+ 	 */
+ 	retval = -EBADF;
+-	out_file = fget_light(out_fd, &fput_needed_out);
+-	if (!out_file)
++	out = fdget(out_fd);
++	if (!out.file)
+ 		goto fput_in;
+-	if (!(out_file->f_mode & FMODE_WRITE))
++	if (!(out.file->f_mode & FMODE_WRITE))
+ 		goto fput_out;
+ 	retval = -EINVAL;
+-	in_inode = in_file->f_path.dentry->d_inode;
+-	out_inode = out_file->f_path.dentry->d_inode;
+-	retval = rw_verify_area(WRITE, out_file, &out_file->f_pos, count);
++	in_inode = in.file->f_path.dentry->d_inode;
++	out_inode = out.file->f_path.dentry->d_inode;
++	retval = rw_verify_area(WRITE, out.file, &out.file->f_pos, count);
+ 	if (retval < 0)
+ 		goto fput_out;
+ 	count = retval;
+@@ -949,10 +927,10 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
+ 	 * and the application is arguably buggy if it doesn't expect
+ 	 * EAGAIN on a non-blocking file descriptor.
+ 	 */
+-	if (in_file->f_flags & O_NONBLOCK)
++	if (in.file->f_flags & O_NONBLOCK)
+ 		fl = SPLICE_F_NONBLOCK;
+ #endif
+-	retval = do_splice_direct(in_file, ppos, out_file, count, fl);
++	retval = do_splice_direct(in.file, ppos, out.file, count, fl);
+ 
+ 	if (retval > 0) {
+ 		add_rchar(current, retval);
+@@ -965,9 +943,9 @@ static ssize_t do_sendfile(int out_fd, int in_fd, loff_t *ppos,
+ 		retval = -EOVERFLOW;
+ 
+ fput_out:
+-	fput_light(out_file, fput_needed_out);
++	fdput(out);
+ fput_in:
+-	fput_light(in_file, fput_needed_in);
++	fdput(in);
+ out:
+ 	return retval;
+ }
+diff --git a/fs/readdir.c b/fs/readdir.c
+index 39e3370d79cf..5e69ef533b77 100644
+--- a/fs/readdir.c
++++ b/fs/readdir.c
+@@ -106,22 +106,20 @@ SYSCALL_DEFINE3(old_readdir, unsigned int, fd,
+ 		struct old_linux_dirent __user *, dirent, unsigned int, count)
+ {
+ 	int error;
+-	struct file * file;
++	struct fd f = fdget(fd);
+ 	struct readdir_callback buf;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.result = 0;
+ 	buf.dirent = dirent;
+ 
+-	error = vfs_readdir(file, fillonedir, &buf);
++	error = vfs_readdir(f.file, fillonedir, &buf);
+ 	if (buf.result)
+ 		error = buf.result;
+ 
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -191,17 +189,16 @@ static int filldir(void * __buf, const char * name, int namlen, loff_t offset,
+ SYSCALL_DEFINE3(getdents, unsigned int, fd,
+ 		struct linux_dirent __user *, dirent, unsigned int, count)
+ {
+-	struct file * file;
++	struct fd f;
+ 	struct linux_dirent __user * lastdirent;
+ 	struct getdents_callback buf;
+-	int fput_needed;
+ 	int error;
+ 
+ 	if (!access_ok(VERIFY_WRITE, dirent, count))
+ 		return -EFAULT;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.current_dir = dirent;
+@@ -209,17 +206,17 @@ SYSCALL_DEFINE3(getdents, unsigned int, fd,
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, filldir, &buf);
++	error = vfs_readdir(f.file, filldir, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	lastdirent = buf.previous;
+ 	if (lastdirent) {
+-		if (put_user(file->f_pos, &lastdirent->d_off))
++		if (put_user(f.file->f_pos, &lastdirent->d_off))
+ 			error = -EFAULT;
+ 		else
+ 			error = count - buf.count;
+ 	}
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -272,17 +269,16 @@ static int filldir64(void * __buf, const char * name, int namlen, loff_t offset,
+ SYSCALL_DEFINE3(getdents64, unsigned int, fd,
+ 		struct linux_dirent64 __user *, dirent, unsigned int, count)
+ {
+-	struct file * file;
++	struct fd f;
+ 	struct linux_dirent64 __user * lastdirent;
+ 	struct getdents_callback64 buf;
+-	int fput_needed;
+ 	int error;
+ 
+ 	if (!access_ok(VERIFY_WRITE, dirent, count))
+ 		return -EFAULT;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return -EBADF;
+ 
+ 	buf.current_dir = dirent;
+@@ -290,17 +286,17 @@ SYSCALL_DEFINE3(getdents64, unsigned int, fd,
+ 	buf.count = count;
+ 	buf.error = 0;
+ 
+-	error = vfs_readdir(file, filldir64, &buf);
++	error = vfs_readdir(f.file, filldir64, &buf);
+ 	if (error >= 0)
+ 		error = buf.error;
+ 	lastdirent = buf.previous;
+ 	if (lastdirent) {
+-		typeof(lastdirent->d_off) d_off = file->f_pos;
++		typeof(lastdirent->d_off) d_off = f.file->f_pos;
+ 		if (__put_user(d_off, &lastdirent->d_off))
+ 			error = -EFAULT;
+ 		else
+ 			error = count - buf.count;
+ 	}
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+diff --git a/fs/select.c b/fs/select.c
+index ffdd16d6e691..2ef72d965036 100644
+--- a/fs/select.c
++++ b/fs/select.c
+@@ -428,8 +428,6 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 		for (i = 0; i < n; ++rinp, ++routp, ++rexp) {
+ 			unsigned long in, out, ex, all_bits, bit = 1, mask, j;
+ 			unsigned long res_in = 0, res_out = 0, res_ex = 0;
+-			const struct file_operations *f_op = NULL;
+-			struct file *file = NULL;
+ 
+ 			in = *inp++; out = *outp++; ex = *exp++;
+ 			all_bits = in | out | ex;
+@@ -439,20 +437,21 @@ int do_select(int n, fd_set_bits *fds, struct timespec *end_time)
+ 			}
+ 
+ 			for (j = 0; j < BITS_PER_LONG; ++j, ++i, bit <<= 1) {
+-				int fput_needed;
++				struct fd f;
+ 				if (i >= n)
+ 					break;
+ 				if (!(bit & all_bits))
+ 					continue;
+-				file = fget_light(i, &fput_needed);
+-				if (file) {
+-					f_op = file->f_op;
++				f = fdget(i);
++				if (f.file) {
++					const struct file_operations *f_op;
++					f_op = f.file->f_op;
+ 					mask = DEFAULT_POLLMASK;
+ 					if (f_op && f_op->poll) {
+ 						wait_key_set(wait, in, out, bit);
+-						mask = (*f_op->poll)(file, wait);
++						mask = (*f_op->poll)(f.file, wait);
+ 					}
+-					fput_light(file, fput_needed);
++					fdput(f);
+ 					if ((mask & POLLIN_SET) && (in & bit)) {
+ 						res_in |= bit;
+ 						retval++;
+@@ -725,20 +724,17 @@ static inline unsigned int do_pollfd(struct pollfd *pollfd, poll_table *pwait)
+ 	mask = 0;
+ 	fd = pollfd->fd;
+ 	if (fd >= 0) {
+-		int fput_needed;
+-		struct file * file;
+-
+-		file = fget_light(fd, &fput_needed);
++		struct fd f = fdget(fd);
+ 		mask = POLLNVAL;
+-		if (file != NULL) {
++		if (f.file) {
+ 			mask = DEFAULT_POLLMASK;
+-			if (file->f_op && file->f_op->poll) {
++			if (f.file->f_op && f.file->f_op->poll) {
+ 				pwait->_key = pollfd->events|POLLERR|POLLHUP;
+-				mask = file->f_op->poll(file, pwait);
++				mask = f.file->f_op->poll(f.file, pwait);
+ 			}
+ 			/* Mask out unneeded events. */
+ 			mask &= pollfd->events | POLLERR | POLLHUP;
+-			fput_light(file, fput_needed);
++			fdput(f);
+ 		}
+ 	}
+ 	pollfd->revents = mask;
+diff --git a/fs/signalfd.c b/fs/signalfd.c
+index 9f35a37173de..8bee4e570911 100644
+--- a/fs/signalfd.c
++++ b/fs/signalfd.c
+@@ -269,13 +269,12 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sigset_t __user *, user_mask,
+ 		if (ufd < 0)
+ 			kfree(ctx);
+ 	} else {
+-		int fput_needed;
+-		struct file *file = fget_light(ufd, &fput_needed);
+-		if (!file)
++		struct fd f = fdget(ufd);
++		if (!f.file)
+ 			return -EBADF;
+-		ctx = file->private_data;
+-		if (file->f_op != &signalfd_fops) {
+-			fput_light(file, fput_needed);
++		ctx = f.file->private_data;
++		if (f.file->f_op != &signalfd_fops) {
++			fdput(f);
+ 			return -EINVAL;
+ 		}
+ 		spin_lock_irq(&current->sighand->siglock);
+@@ -283,7 +282,7 @@ SYSCALL_DEFINE4(signalfd4, int, ufd, sigset_t __user *, user_mask,
+ 		spin_unlock_irq(&current->sighand->siglock);
+ 
+ 		wake_up(&current->sighand->signalfd_wqh);
+-		fput_light(file, fput_needed);
++		fdput(f);
+ 	}
+ 
+ 	return ufd;
+diff --git a/fs/splice.c b/fs/splice.c
+index 41514dd89462..13e5b4776e7a 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -1666,9 +1666,8 @@ static long vmsplice_to_pipe(struct file *file, const struct iovec __user *iov,
+ SYSCALL_DEFINE4(vmsplice, int, fd, const struct iovec __user *, iov,
+ 		unsigned long, nr_segs, unsigned int, flags)
+ {
+-	struct file *file;
++	struct fd f;
+ 	long error;
+-	int fput;
+ 
+ 	if (unlikely(nr_segs > UIO_MAXIOV))
+ 		return -EINVAL;
+@@ -1676,14 +1675,14 @@ SYSCALL_DEFINE4(vmsplice, int, fd, const struct iovec __user *, iov,
+ 		return 0;
+ 
+ 	error = -EBADF;
+-	file = fget_light(fd, &fput);
+-	if (file) {
+-		if (file->f_mode & FMODE_WRITE)
+-			error = vmsplice_to_pipe(file, iov, nr_segs, flags);
+-		else if (file->f_mode & FMODE_READ)
+-			error = vmsplice_to_user(file, iov, nr_segs, flags);
+-
+-		fput_light(file, fput);
++	f = fdget(fd);
++	if (f.file) {
++		if (f.file->f_mode & FMODE_WRITE)
++			error = vmsplice_to_pipe(f.file, iov, nr_segs, flags);
++		else if (f.file->f_mode & FMODE_READ)
++			error = vmsplice_to_user(f.file, iov, nr_segs, flags);
++
++		fdput(f);
+ 	}
+ 
+ 	return error;
+@@ -1693,30 +1692,27 @@ SYSCALL_DEFINE6(splice, int, fd_in, loff_t __user *, off_in,
+ 		int, fd_out, loff_t __user *, off_out,
+ 		size_t, len, unsigned int, flags)
+ {
++	struct fd in, out;
+ 	long error;
+-	struct file *in, *out;
+-	int fput_in, fput_out;
+ 
+ 	if (unlikely(!len))
+ 		return 0;
+ 
+ 	error = -EBADF;
+-	in = fget_light(fd_in, &fput_in);
+-	if (in) {
+-		if (in->f_mode & FMODE_READ) {
+-			out = fget_light(fd_out, &fput_out);
+-			if (out) {
+-				if (out->f_mode & FMODE_WRITE)
+-					error = do_splice(in, off_in,
+-							  out, off_out,
++	in = fdget(fd_in);
++	if (in.file) {
++		if (in.file->f_mode & FMODE_READ) {
++			out = fdget(fd_out);
++			if (out.file) {
++				if (out.file->f_mode & FMODE_WRITE)
++					error = do_splice(in.file, off_in,
++							  out.file, off_out,
+ 							  len, flags);
+-				fput_light(out, fput_out);
++				fdput(out);
+ 			}
+ 		}
+-
+-		fput_light(in, fput_in);
++		fdput(in);
+ 	}
+-
+ 	return error;
+ }
+ 
+@@ -2027,26 +2023,25 @@ static long do_tee(struct file *in, struct file *out, size_t len,
+ 
+ SYSCALL_DEFINE4(tee, int, fdin, int, fdout, size_t, len, unsigned int, flags)
+ {
+-	struct file *in;
+-	int error, fput_in;
++	struct fd in;
++	int error;
+ 
+ 	if (unlikely(!len))
+ 		return 0;
+ 
+ 	error = -EBADF;
+-	in = fget_light(fdin, &fput_in);
+-	if (in) {
+-		if (in->f_mode & FMODE_READ) {
+-			int fput_out;
+-			struct file *out = fget_light(fdout, &fput_out);
+-
+-			if (out) {
+-				if (out->f_mode & FMODE_WRITE)
+-					error = do_tee(in, out, len, flags);
+-				fput_light(out, fput_out);
++	in = fdget(fdin);
++	if (in.file) {
++		if (in.file->f_mode & FMODE_READ) {
++			struct fd out = fdget(fdout);
++			if (out.file) {
++				if (out.file->f_mode & FMODE_WRITE)
++					error = do_tee(in.file, out.file,
++							len, flags);
++				fdput(out);
+ 			}
+ 		}
+- 		fput_light(in, fput_in);
++ 		fdput(in);
+  	}
+ 
+ 	return error;
+diff --git a/fs/stat.c b/fs/stat.c
+index 40780229a032..ee18fa122ae0 100644
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -57,13 +57,13 @@ EXPORT_SYMBOL(vfs_getattr);
+ 
+ int vfs_fstat(unsigned int fd, struct kstat *stat)
+ {
+-	int fput_needed;
+-	struct file *f = fget_raw_light(fd, &fput_needed);
++	struct fd f = fdget_raw(fd);
+ 	int error = -EBADF;
+ 
+-	if (f) {
+-		error = vfs_getattr(f->f_path.mnt, f->f_path.dentry, stat);
+-		fput_light(f, fput_needed);
++	if (f.file) {
++		error = vfs_getattr(f.file->f_path.mnt, f.file->f_path.dentry,
++				    stat);
++		fdput(f);
+ 	}
+ 	return error;
+ }
+diff --git a/fs/statfs.c b/fs/statfs.c
+index 95ad5c0e586c..f8e832e6f0a2 100644
+--- a/fs/statfs.c
++++ b/fs/statfs.c
+@@ -87,12 +87,11 @@ int user_statfs(const char __user *pathname, struct kstatfs *st)
+ 
+ int fd_statfs(int fd, struct kstatfs *st)
+ {
+-	int fput_needed;
+-	struct file *file = fget_light(fd, &fput_needed);
++	struct fd f = fdget(fd);
+ 	int error = -EBADF;
+-	if (file) {
+-		error = vfs_statfs(&file->f_path, st);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		error = vfs_statfs(&f.file->f_path, st);
++		fdput(f);
+ 	}
+ 	return error;
+ }
+diff --git a/fs/sync.c b/fs/sync.c
+index eb8722dc556f..14eefeb44636 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -148,21 +148,19 @@ void emergency_sync(void)
+  */
+ SYSCALL_DEFINE1(syncfs, int, fd)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	struct super_block *sb;
+ 	int ret;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+-	sb = file->f_dentry->d_sb;
++	sb = f.file->f_dentry->d_sb;
+ 
+ 	down_read(&sb->s_umount);
+ 	ret = sync_filesystem(sb);
+ 	up_read(&sb->s_umount);
+ 
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -201,14 +199,12 @@ EXPORT_SYMBOL(vfs_fsync);
+ 
+ static int do_fsync(unsigned int fd, int datasync)
+ {
+-	struct file *file;
++	struct fd f = fdget(fd);
+ 	int ret = -EBADF;
+-	int fput_needed;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		ret = vfs_fsync(file, datasync);
+-		fput_light(file, fput_needed);
++	if (f.file) {
++		ret = vfs_fsync(f.file, datasync);
++		fdput(f);
+ 	}
+ 	return ret;
+ }
+@@ -291,10 +287,9 @@ SYSCALL_DEFINE(sync_file_range)(int fd, loff_t offset, loff_t nbytes,
+ 				unsigned int flags)
+ {
+ 	int ret;
+-	struct file *file;
++	struct fd f;
+ 	struct address_space *mapping;
+ 	loff_t endbyte;			/* inclusive */
+-	int fput_needed;
+ 	umode_t i_mode;
+ 
+ 	ret = -EINVAL;
+@@ -333,17 +328,17 @@ SYSCALL_DEFINE(sync_file_range)(int fd, loff_t offset, loff_t nbytes,
+ 		endbyte--;		/* inclusive */
+ 
+ 	ret = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		goto out;
+ 
+-	i_mode = file->f_path.dentry->d_inode->i_mode;
++	i_mode = f.file->f_path.dentry->d_inode->i_mode;
+ 	ret = -ESPIPE;
+ 	if (!S_ISREG(i_mode) && !S_ISBLK(i_mode) && !S_ISDIR(i_mode) &&
+ 			!S_ISLNK(i_mode))
+ 		goto out_put;
+ 
+-	mapping = file->f_mapping;
++	mapping = f.file->f_mapping;
+ 	if (!mapping) {
+ 		ret = -EINVAL;
+ 		goto out_put;
+@@ -366,7 +361,7 @@ SYSCALL_DEFINE(sync_file_range)(int fd, loff_t offset, loff_t nbytes,
+ 		ret = filemap_fdatawait_range(mapping, offset, endbyte);
+ 
+ out_put:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ out:
+ 	return ret;
+ }
+diff --git a/fs/timerfd.c b/fs/timerfd.c
+index dd91e9420c9e..d03822bbf190 100644
+--- a/fs/timerfd.c
++++ b/fs/timerfd.c
+@@ -234,19 +234,17 @@ static const struct file_operations timerfd_fops = {
+ 	.llseek		= noop_llseek,
+ };
+ 
+-static struct file *timerfd_fget(int fd, int *fput_needed)
++static int timerfd_fget(int fd, struct fd *p)
+ {
+-	struct file *file;
+-
+-	file = fget_light(fd, fput_needed);
+-	if (!file)
+-		return ERR_PTR(-EBADF);
+-	if (file->f_op != &timerfd_fops) {
+-		fput_light(file, *fput_needed);
+-		return ERR_PTR(-EINVAL);
++	struct fd f = fdget(fd);
++	if (!f.file)
++		return -EBADF;
++	if (f.file->f_op != &timerfd_fops) {
++		fdput(f);
++		return -EINVAL;
+ 	}
+-
+-	return file;
++	*p = f;
++	return 0;
+ }
+ 
+ SYSCALL_DEFINE2(timerfd_create, int, clockid, int, flags)
+@@ -284,10 +282,10 @@ SYSCALL_DEFINE4(timerfd_settime, int, ufd, int, flags,
+ 		const struct itimerspec __user *, utmr,
+ 		struct itimerspec __user *, otmr)
+ {
+-	struct file *file;
++	struct fd f;
+ 	struct timerfd_ctx *ctx;
+ 	struct itimerspec ktmr, kotmr;
+-	int ret, fput_needed;
++	int ret;
+ 
+ 	if (copy_from_user(&ktmr, utmr, sizeof(ktmr)))
+ 		return -EFAULT;
+@@ -297,10 +295,10 @@ SYSCALL_DEFINE4(timerfd_settime, int, ufd, int, flags,
+ 	    !timespec_valid(&ktmr.it_interval))
+ 		return -EINVAL;
+ 
+-	file = timerfd_fget(ufd, &fput_needed);
+-	if (IS_ERR(file))
+-		return PTR_ERR(file);
+-	ctx = file->private_data;
++	ret = timerfd_fget(ufd, &f);
++	if (ret)
++		return ret;
++	ctx = f.file->private_data;
+ 
+ 	timerfd_setup_cancel(ctx, flags);
+ 
+@@ -334,7 +332,7 @@ SYSCALL_DEFINE4(timerfd_settime, int, ufd, int, flags,
+ 	ret = timerfd_setup(ctx, flags, &ktmr);
+ 
+ 	spin_unlock_irq(&ctx->wqh.lock);
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	if (otmr && copy_to_user(otmr, &kotmr, sizeof(kotmr)))
+ 		return -EFAULT;
+ 
+@@ -343,15 +341,13 @@ SYSCALL_DEFINE4(timerfd_settime, int, ufd, int, flags,
+ 
+ SYSCALL_DEFINE2(timerfd_gettime, int, ufd, struct itimerspec __user *, otmr)
+ {
+-	struct file *file;
++	struct fd f;
+ 	struct timerfd_ctx *ctx;
+ 	struct itimerspec kotmr;
+-	int fput_needed;
+-
+-	file = timerfd_fget(ufd, &fput_needed);
+-	if (IS_ERR(file))
+-		return PTR_ERR(file);
+-	ctx = file->private_data;
++	int ret = timerfd_fget(ufd, &f);
++	if (ret)
++		return ret;
++	ctx = f.file->private_data;
+ 
+ 	spin_lock_irq(&ctx->wqh.lock);
+ 	if (ctx->expired && ctx->tintv.tv64) {
+@@ -363,7 +359,7 @@ SYSCALL_DEFINE2(timerfd_gettime, int, ufd, struct itimerspec __user *, otmr)
+ 	kotmr.it_value = ktime_to_timespec(timerfd_get_remaining(ctx));
+ 	kotmr.it_interval = ktime_to_timespec(ctx->tintv);
+ 	spin_unlock_irq(&ctx->wqh.lock);
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 
+ 	return copy_to_user(otmr, &kotmr, sizeof(kotmr)) ? -EFAULT: 0;
+ }
+diff --git a/fs/utimes.c b/fs/utimes.c
+index fa4dbe451e27..bb0696a41735 100644
+--- a/fs/utimes.c
++++ b/fs/utimes.c
+@@ -140,19 +140,18 @@ long do_utimes(int dfd, const char __user *filename, struct timespec *times,
+ 		goto out;
+ 
+ 	if (filename == NULL && dfd != AT_FDCWD) {
+-		int fput_needed;
+-		struct file *file;
++		struct fd f;
+ 
+ 		if (flags & AT_SYMLINK_NOFOLLOW)
+ 			goto out;
+ 
+-		file = fget_light(dfd, &fput_needed);
++		f = fdget(dfd);
+ 		error = -EBADF;
+-		if (!file)
++		if (!f.file)
+ 			goto out;
+ 
+-		error = utimes_common(&file->f_path, times);
+-		fput_light(file, fput_needed);
++		error = utimes_common(&f.file->f_path, times);
++		fdput(f);
+ 	} else {
+ 		struct path path;
+ 		int lookup_flags = 0;
+diff --git a/fs/xattr.c b/fs/xattr.c
+index 4d45b7189e7e..14a7e2544fe3 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -399,22 +399,20 @@ SYSCALL_DEFINE5(lsetxattr, const char __user *, pathname,
+ SYSCALL_DEFINE5(fsetxattr, int, fd, const char __user *, name,
+ 		const void __user *,value, size_t, size, int, flags)
+ {
+-	int fput_needed;
+-	struct file *f;
++	struct fd f = fdget(fd);
+ 	struct dentry *dentry;
+ 	int error = -EBADF;
+ 
+-	f = fget_light(fd, &fput_needed);
+-	if (!f)
++	if (!f.file)
+ 		return error;
+-	dentry = f->f_path.dentry;
++	dentry = f.file->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+-	error = mnt_want_write_file(f);
++	error = mnt_want_write_file(f.file);
+ 	if (!error) {
+ 		error = setxattr(dentry, name, value, size, flags);
+-		mnt_drop_write_file(f);
++		mnt_drop_write_file(f.file);
+ 	}
+-	fput_light(f, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -495,16 +493,14 @@ SYSCALL_DEFINE4(lgetxattr, const char __user *, pathname,
+ SYSCALL_DEFINE4(fgetxattr, int, fd, const char __user *, name,
+ 		void __user *, value, size_t, size)
+ {
+-	int fput_needed;
+-	struct file *f;
++	struct fd f = fdget(fd);
+ 	ssize_t error = -EBADF;
+ 
+-	f = fget_light(fd, &fput_needed);
+-	if (!f)
++	if (!f.file)
+ 		return error;
+-	audit_inode(NULL, f->f_path.dentry);
+-	error = getxattr(f->f_path.dentry, name, value, size);
+-	fput_light(f, fput_needed);
++	audit_inode(NULL, f.file->f_path.dentry);
++	error = getxattr(f.file->f_path.dentry, name, value, size);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -576,16 +572,14 @@ SYSCALL_DEFINE3(llistxattr, const char __user *, pathname, char __user *, list,
+ 
+ SYSCALL_DEFINE3(flistxattr, int, fd, char __user *, list, size_t, size)
+ {
+-	int fput_needed;
+-	struct file *f;
++	struct fd f = fdget(fd);
+ 	ssize_t error = -EBADF;
+ 
+-	f = fget_light(fd, &fput_needed);
+-	if (!f)
++	if (!f.file)
+ 		return error;
+-	audit_inode(NULL, f->f_path.dentry);
+-	error = listxattr(f->f_path.dentry, list, size);
+-	fput_light(f, fput_needed);
++	audit_inode(NULL, f.file->f_path.dentry);
++	error = listxattr(f.file->f_path.dentry, list, size);
++	fdput(f);
+ 	return error;
+ }
+ 
+@@ -645,22 +639,20 @@ SYSCALL_DEFINE2(lremovexattr, const char __user *, pathname,
+ 
+ SYSCALL_DEFINE2(fremovexattr, int, fd, const char __user *, name)
+ {
+-	int fput_needed;
+-	struct file *f;
++	struct fd f = fdget(fd);
+ 	struct dentry *dentry;
+ 	int error = -EBADF;
+ 
+-	f = fget_light(fd, &fput_needed);
+-	if (!f)
++	if (!f.file)
+ 		return error;
+-	dentry = f->f_path.dentry;
++	dentry = f.file->f_path.dentry;
+ 	audit_inode(NULL, dentry);
+-	error = mnt_want_write_file(f);
++	error = mnt_want_write_file(f.file);
+ 	if (!error) {
+ 		error = removexattr(dentry, name);
+-		mnt_drop_write_file(f);
++		mnt_drop_write_file(f.file);
+ 	}
+-	fput_light(f, fput_needed);
++	fdput(f);
+ 	return error;
+ }
+ 
+diff --git a/fs/xfs/xfs_dfrag.c b/fs/xfs/xfs_dfrag.c
+index e6cdf224d7ea..b9b8646e62db 100644
+--- a/fs/xfs/xfs_dfrag.c
++++ b/fs/xfs/xfs_dfrag.c
+@@ -48,44 +48,44 @@ xfs_swapext(
+ 	xfs_swapext_t	*sxp)
+ {
+ 	xfs_inode_t     *ip, *tip;
+-	struct file	*file, *tmp_file;
+-	int		error = 0, fput_needed, fput_needed_tmp;
++	struct fd	f, tmp;
++	int		error = 0;
+ 
+ 	/* Pull information for the target fd */
+-	file = fget_light((int)sxp->sx_fdtarget, &fput_needed);
+-	if (!file) {
++	f = fdget((int)sxp->sx_fdtarget);
++	if (!f.file) {
+ 		error = XFS_ERROR(EINVAL);
+ 		goto out;
+ 	}
+ 
+-	if (!(file->f_mode & FMODE_WRITE) ||
+-	    !(file->f_mode & FMODE_READ) ||
+-	    (file->f_flags & O_APPEND)) {
++	if (!(f.file->f_mode & FMODE_WRITE) ||
++	    !(f.file->f_mode & FMODE_READ) ||
++	    (f.file->f_flags & O_APPEND)) {
+ 		error = XFS_ERROR(EBADF);
+ 		goto out_put_file;
+ 	}
+ 
+-	tmp_file = fget_light((int)sxp->sx_fdtmp, &fput_needed_tmp);
+-	if (!tmp_file) {
++	tmp = fdget((int)sxp->sx_fdtmp);
++	if (!tmp.file) {
+ 		error = XFS_ERROR(EINVAL);
+ 		goto out_put_file;
+ 	}
+ 
+-	if (!(tmp_file->f_mode & FMODE_WRITE) ||
+-	    !(tmp_file->f_mode & FMODE_READ) ||
+-	    (tmp_file->f_flags & O_APPEND)) {
++	if (!(tmp.file->f_mode & FMODE_WRITE) ||
++	    !(tmp.file->f_mode & FMODE_READ) ||
++	    (tmp.file->f_flags & O_APPEND)) {
+ 		error = XFS_ERROR(EBADF);
+ 		goto out_put_tmp_file;
+ 	}
+ 
+-	if (IS_SWAPFILE(file->f_path.dentry->d_inode) ||
+-	    IS_SWAPFILE(tmp_file->f_path.dentry->d_inode)) {
++	if (IS_SWAPFILE(f.file->f_path.dentry->d_inode) ||
++	    IS_SWAPFILE(tmp.file->f_path.dentry->d_inode)) {
+ 		error = XFS_ERROR(EINVAL);
+ 		goto out_put_tmp_file;
+ 	}
+ 
+-	ip = XFS_I(file->f_path.dentry->d_inode);
+-	tip = XFS_I(tmp_file->f_path.dentry->d_inode);
++	ip = XFS_I(f.file->f_path.dentry->d_inode);
++	tip = XFS_I(tmp.file->f_path.dentry->d_inode);
+ 
+ 	if (ip->i_mount != tip->i_mount) {
+ 		error = XFS_ERROR(EINVAL);
+@@ -105,9 +105,9 @@ xfs_swapext(
+ 	error = xfs_swap_extents(ip, tip, sxp);
+ 
+  out_put_tmp_file:
+-	fput_light(tmp_file, fput_needed_tmp);
++	fdput(tmp);
+  out_put_file:
+-	fput_light(file, fput_needed);
++	fdput(f);
+  out:
+ 	return error;
+ }
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index 21483eac402d..8305f2ac6773 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -70,16 +70,16 @@ xfs_find_handle(
+ 	int			hsize;
+ 	xfs_handle_t		handle;
+ 	struct inode		*inode;
+-	struct file		*file = NULL;
++	struct fd		f;
+ 	struct path		path;
+-	int			error, fput_needed;
++	int			error;
+ 	struct xfs_inode	*ip;
+ 
+ 	if (cmd == XFS_IOC_FD_TO_HANDLE) {
+-		file = fget_light(hreq->fd, &fput_needed);
+-		if (!file)
++		f = fdget(hreq->fd);
++		if (!f.file)
+ 			return -EBADF;
+-		inode = file->f_path.dentry->d_inode;
++		inode = f.file->f_path.dentry->d_inode;
+ 	} else {
+ 		error = user_lpath((const char __user *)hreq->path, &path);
+ 		if (error)
+@@ -134,7 +134,7 @@ xfs_find_handle(
+ 
+  out_put:
+ 	if (cmd == XFS_IOC_FD_TO_HANDLE)
+-		fput_light(file, fput_needed);
++		fdput(f);
+ 	else
+ 		path_put(&path);
+ 	return error;
+diff --git a/include/linux/file.h b/include/linux/file.h
+index c38bfbff4647..cbacf4faf447 100644
+--- a/include/linux/file.h
++++ b/include/linux/file.h
+@@ -47,6 +47,9 @@ static inline struct fd fdget(unsigned int fd)
+ 	return (struct fd){f,b};
+ }
+ 
++extern struct file *fget_raw(unsigned int fd);
++extern struct file *fget_raw_light(unsigned int fd, int *fput_needed);
++
+ static inline struct fd fdget_raw(unsigned int fd)
+ {
+ 	int b;
+@@ -54,8 +57,6 @@ static inline struct fd fdget_raw(unsigned int fd)
+ 	return (struct fd){f,b};
+ }
+ 
+-extern struct file *fget_raw(unsigned int fd);
+-extern struct file *fget_raw_light(unsigned int fd, int *fput_needed);
+ extern int f_dupfd(unsigned int from, struct file *file, unsigned flags);
+ extern int replace_fd(unsigned fd, struct file *file, unsigned flags);
+ extern void set_close_on_exec(unsigned int fd, int flag);
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index 5db1b69500fd..6d255e535d03 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -944,7 +944,7 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 		size_t, msg_len, unsigned int, msg_prio,
+ 		const struct timespec __user *, u_abs_timeout)
+ {
+-	struct file *filp;
++	struct fd f;
+ 	struct inode *inode;
+ 	struct ext_wait_queue wait;
+ 	struct ext_wait_queue *receiver;
+@@ -953,7 +953,7 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 	ktime_t expires, *timeout = NULL;
+ 	struct timespec ts;
+ 	struct posix_msg_tree_node *new_leaf = NULL;
+-	int ret = 0, fput_needed;
++	int ret = 0;
+ 
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+@@ -967,21 +967,21 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 
+ 	audit_mq_sendrecv(mqdes, msg_len, msg_prio, timeout ? &ts : NULL);
+ 
+-	filp = fget_light(mqdes, &fput_needed);
+-	if (unlikely(!filp)) {
++	f = fdget(mqdes);
++	if (unlikely(!f.file)) {
+ 		ret = -EBADF;
+ 		goto out;
+ 	}
+ 
+-	inode = filp->f_path.dentry->d_inode;
+-	if (unlikely(filp->f_op != &mqueue_file_operations)) {
++	inode = f.file->f_path.dentry->d_inode;
++	if (unlikely(f.file->f_op != &mqueue_file_operations)) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+ 	info = MQUEUE_I(inode);
+-	audit_inode(NULL, filp->f_path.dentry);
++	audit_inode(NULL, f.file->f_path.dentry);
+ 
+-	if (unlikely(!(filp->f_mode & FMODE_WRITE))) {
++	if (unlikely(!(f.file->f_mode & FMODE_WRITE))) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+@@ -1023,7 +1023,7 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 	}
+ 
+ 	if (info->attr.mq_curmsgs == info->attr.mq_maxmsg) {
+-		if (filp->f_flags & O_NONBLOCK) {
++		if (f.file->f_flags & O_NONBLOCK) {
+ 			ret = -EAGAIN;
+ 		} else {
+ 			wait.task = current;
+@@ -1056,7 +1056,7 @@ SYSCALL_DEFINE5(mq_timedsend, mqd_t, mqdes, const char __user *, u_msg_ptr,
+ 	if (ret)
+ 		free_msg(msg_ptr);
+ out_fput:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ out:
+ 	return ret;
+ }
+@@ -1067,14 +1067,13 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ {
+ 	ssize_t ret;
+ 	struct msg_msg *msg_ptr;
+-	struct file *filp;
++	struct fd f;
+ 	struct inode *inode;
+ 	struct mqueue_inode_info *info;
+ 	struct ext_wait_queue wait;
+ 	ktime_t expires, *timeout = NULL;
+ 	struct timespec ts;
+ 	struct posix_msg_tree_node *new_leaf = NULL;
+-	int fput_needed;
+ 
+ 	if (u_abs_timeout) {
+ 		int res = prepare_timeout(u_abs_timeout, &expires, &ts);
+@@ -1085,21 +1084,21 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ 
+ 	audit_mq_sendrecv(mqdes, msg_len, 0, timeout ? &ts : NULL);
+ 
+-	filp = fget_light(mqdes, &fput_needed);
+-	if (unlikely(!filp)) {
++	f = fdget(mqdes);
++	if (unlikely(!f.file)) {
+ 		ret = -EBADF;
+ 		goto out;
+ 	}
+ 
+-	inode = filp->f_path.dentry->d_inode;
+-	if (unlikely(filp->f_op != &mqueue_file_operations)) {
++	inode = f.file->f_path.dentry->d_inode;
++	if (unlikely(f.file->f_op != &mqueue_file_operations)) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+ 	info = MQUEUE_I(inode);
+-	audit_inode(NULL, filp->f_path.dentry);
++	audit_inode(NULL, f.file->f_path.dentry);
+ 
+-	if (unlikely(!(filp->f_mode & FMODE_READ))) {
++	if (unlikely(!(f.file->f_mode & FMODE_READ))) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+@@ -1131,7 +1130,7 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ 	}
+ 
+ 	if (info->attr.mq_curmsgs == 0) {
+-		if (filp->f_flags & O_NONBLOCK) {
++		if (f.file->f_flags & O_NONBLOCK) {
+ 			spin_unlock(&info->lock);
+ 			ret = -EAGAIN;
+ 		} else {
+@@ -1161,7 +1160,7 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ 		free_msg(msg_ptr);
+ 	}
+ out_fput:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ out:
+ 	return ret;
+ }
+@@ -1174,8 +1173,8 @@ SYSCALL_DEFINE5(mq_timedreceive, mqd_t, mqdes, char __user *, u_msg_ptr,
+ SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
+ 		const struct sigevent __user *, u_notification)
+ {
+-	int ret, fput_needed;
+-	struct file *filp;
++	int ret;
++	struct fd f;
+ 	struct sock *sock;
+ 	struct inode *inode;
+ 	struct sigevent notification;
+@@ -1221,13 +1220,13 @@ SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
+ 			skb_put(nc, NOTIFY_COOKIE_LEN);
+ 			/* and attach it to the socket */
+ retry:
+-			filp = fget_light(notification.sigev_signo, &fput_needed);
+-			if (!filp) {
++			f = fdget(notification.sigev_signo);
++			if (!f.file) {
+ 				ret = -EBADF;
+ 				goto out;
+ 			}
+-			sock = netlink_getsockbyfilp(filp);
+-			fput_light(filp, fput_needed);
++			sock = netlink_getsockbyfilp(f.file);
++			fdput(f);
+ 			if (IS_ERR(sock)) {
+ 				ret = PTR_ERR(sock);
+ 				sock = NULL;
+@@ -1246,14 +1245,14 @@ SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
+ 		}
+ 	}
+ 
+-	filp = fget_light(mqdes, &fput_needed);
+-	if (!filp) {
++	f = fdget(mqdes);
++	if (!f.file) {
+ 		ret = -EBADF;
+ 		goto out;
+ 	}
+ 
+-	inode = filp->f_path.dentry->d_inode;
+-	if (unlikely(filp->f_op != &mqueue_file_operations)) {
++	inode = f.file->f_path.dentry->d_inode;
++	if (unlikely(f.file->f_op != &mqueue_file_operations)) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+@@ -1293,7 +1292,7 @@ SYSCALL_DEFINE2(mq_notify, mqd_t, mqdes,
+ 	}
+ 	spin_unlock(&info->lock);
+ out_fput:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ out:
+ 	if (sock) {
+ 		netlink_detachskb(sock, nc);
+@@ -1309,8 +1308,7 @@ SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
+ {
+ 	int ret;
+ 	struct mq_attr mqstat, omqstat;
+-	int fput_needed;
+-	struct file *filp;
++	struct fd f;
+ 	struct inode *inode;
+ 	struct mqueue_inode_info *info;
+ 
+@@ -1321,14 +1319,14 @@ SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
+ 			return -EINVAL;
+ 	}
+ 
+-	filp = fget_light(mqdes, &fput_needed);
+-	if (!filp) {
++	f = fdget(mqdes);
++	if (!f.file) {
+ 		ret = -EBADF;
+ 		goto out;
+ 	}
+ 
+-	inode = filp->f_path.dentry->d_inode;
+-	if (unlikely(filp->f_op != &mqueue_file_operations)) {
++	inode = f.file->f_path.dentry->d_inode;
++	if (unlikely(f.file->f_op != &mqueue_file_operations)) {
+ 		ret = -EBADF;
+ 		goto out_fput;
+ 	}
+@@ -1337,15 +1335,15 @@ SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
+ 	spin_lock(&info->lock);
+ 
+ 	omqstat = info->attr;
+-	omqstat.mq_flags = filp->f_flags & O_NONBLOCK;
++	omqstat.mq_flags = f.file->f_flags & O_NONBLOCK;
+ 	if (u_mqstat) {
+ 		audit_mq_getsetattr(mqdes, &mqstat);
+-		spin_lock(&filp->f_lock);
++		spin_lock(&f.file->f_lock);
+ 		if (mqstat.mq_flags & O_NONBLOCK)
+-			filp->f_flags |= O_NONBLOCK;
++			f.file->f_flags |= O_NONBLOCK;
+ 		else
+-			filp->f_flags &= ~O_NONBLOCK;
+-		spin_unlock(&filp->f_lock);
++			f.file->f_flags &= ~O_NONBLOCK;
++		spin_unlock(&f.file->f_lock);
+ 
+ 		inode->i_atime = inode->i_ctime = CURRENT_TIME;
+ 	}
+@@ -1358,7 +1356,7 @@ SYSCALL_DEFINE3(mq_getsetattr, mqd_t, mqdes,
+ 		ret = -EFAULT;
+ 
+ out_fput:
+-	fput_light(filp, fput_needed);
++	fdput(f);
+ out:
+ 	return ret;
+ }
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index 2bd199bfaef8..bd9c5bca42ae 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -467,14 +467,13 @@ static inline int perf_cgroup_connect(int fd, struct perf_event *event,
+ {
+ 	struct perf_cgroup *cgrp;
+ 	struct cgroup_subsys_state *css;
+-	struct file *file;
+-	int ret = 0, fput_needed;
++	struct fd f = fdget(fd);
++	int ret = 0;
+ 
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+ 
+-	css = cgroup_css_from_dir(file, perf_subsys_id);
++	css = cgroup_css_from_dir(f.file, perf_subsys_id);
+ 	if (IS_ERR(css)) {
+ 		ret = PTR_ERR(css);
+ 		goto out;
+@@ -500,7 +499,7 @@ static inline int perf_cgroup_connect(int fd, struct perf_event *event,
+ 		ret = -EINVAL;
+ 	}
+ out:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ 
+@@ -3233,21 +3232,18 @@ static int perf_event_period(struct perf_event *event, u64 __user *arg)
+ 
+ static const struct file_operations perf_fops;
+ 
+-static struct file *perf_fget_light(int fd, int *fput_needed)
++static inline int perf_fget_light(int fd, struct fd *p)
+ {
+-	struct file *file;
+-
+-	file = fget_light(fd, fput_needed);
+-	if (!file)
+-		return ERR_PTR(-EBADF);
++	struct fd f = fdget(fd);
++	if (!f.file)
++		return -EBADF;
+ 
+-	if (file->f_op != &perf_fops) {
+-		fput_light(file, *fput_needed);
+-		*fput_needed = 0;
+-		return ERR_PTR(-EBADF);
++	if (f.file->f_op != &perf_fops) {
++		fdput(f);
++		return -EBADF;
+ 	}
+-
+-	return file;
++	*p = f;
++	return 0;
+ }
+ 
+ static int perf_event_set_output(struct perf_event *event,
+@@ -3279,22 +3275,19 @@ static long perf_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ 	case PERF_EVENT_IOC_SET_OUTPUT:
+ 	{
+-		struct file *output_file = NULL;
+-		struct perf_event *output_event = NULL;
+-		int fput_needed = 0;
+ 		int ret;
+-
+ 		if (arg != -1) {
+-			output_file = perf_fget_light(arg, &fput_needed);
+-			if (IS_ERR(output_file))
+-				return PTR_ERR(output_file);
+-			output_event = output_file->private_data;
++			struct perf_event *output_event;
++			struct fd output;
++			ret = perf_fget_light(arg, &output);
++			if (ret)
++				return ret;
++			output_event = output.file->private_data;
++			ret = perf_event_set_output(event, output_event);
++			fdput(output);
++		} else {
++			ret = perf_event_set_output(event, NULL);
+ 		}
+-
+-		ret = perf_event_set_output(event, output_event);
+-		if (output_event)
+-			fput_light(output_file, fput_needed);
+-
+ 		return ret;
+ 	}
+ 
+@@ -6229,12 +6222,11 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	struct perf_event_attr attr;
+ 	struct perf_event_context *ctx;
+ 	struct file *event_file = NULL;
+-	struct file *group_file = NULL;
++	struct fd group = {NULL, 0};
+ 	struct task_struct *task = NULL;
+ 	struct pmu *pmu;
+ 	int event_fd;
+ 	int move_group = 0;
+-	int fput_needed = 0;
+ 	int err;
+ 
+ 	/* for future expandability... */
+@@ -6269,12 +6261,10 @@ SYSCALL_DEFINE5(perf_event_open,
+ 		return event_fd;
+ 
+ 	if (group_fd != -1) {
+-		group_file = perf_fget_light(group_fd, &fput_needed);
+-		if (IS_ERR(group_file)) {
+-			err = PTR_ERR(group_file);
++		err = perf_fget_light(group_fd, &group);
++		if (err)
+ 			goto err_fd;
+-		}
+-		group_leader = group_file->private_data;
++		group_leader = group.file->private_data;
+ 		if (flags & PERF_FLAG_FD_OUTPUT)
+ 			output_event = group_leader;
+ 		if (flags & PERF_FLAG_FD_NO_GROUP)
+@@ -6450,7 +6440,7 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	 * of the group leader will find the pointer to itself in
+ 	 * perf_group_detach().
+ 	 */
+-	fput_light(group_file, fput_needed);
++	fdput(group);
+ 	fd_install(event_fd, event_file);
+ 	return event_fd;
+ 
+@@ -6464,7 +6454,7 @@ SYSCALL_DEFINE5(perf_event_open,
+ 	if (task)
+ 		put_task_struct(task);
+ err_group_fd:
+-	fput_light(group_file, fput_needed);
++	fdput(group);
+ err_fd:
+ 	put_unused_fd(event_fd);
+ 	return err;
+diff --git a/kernel/sys.c b/kernel/sys.c
+index 0cb4283df884..f9492284e5d2 100644
+--- a/kernel/sys.c
++++ b/kernel/sys.c
+@@ -1788,15 +1788,15 @@ SYSCALL_DEFINE1(umask, int, mask)
+ #ifdef CONFIG_CHECKPOINT_RESTORE
+ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ {
+-	struct file *exe_file;
++	struct fd exe;
+ 	struct dentry *dentry;
+-	int err, fput_needed;
++	int err;
+ 
+-	exe_file = fget_light(fd, &fput_needed);
+-	if (!exe_file)
++	exe = fdget(fd);
++	if (!exe.file)
+ 		return -EBADF;
+ 
+-	dentry = exe_file->f_path.dentry;
++	dentry = exe.file->f_path.dentry;
+ 
+ 	/*
+ 	 * Because the original mm->exe_file points to executable file, make
+@@ -1805,7 +1805,7 @@ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ 	 */
+ 	err = -EACCES;
+ 	if (!S_ISREG(dentry->d_inode->i_mode)	||
+-	    exe_file->f_path.mnt->mnt_flags & MNT_NOEXEC)
++	    exe.file->f_path.mnt->mnt_flags & MNT_NOEXEC)
+ 		goto exit;
+ 
+ 	err = inode_permission(dentry->d_inode, MAY_EXEC);
+@@ -1839,12 +1839,12 @@ static int prctl_set_mm_exe_file(struct mm_struct *mm, unsigned int fd)
+ 		goto exit_unlock;
+ 
+ 	err = 0;
+-	set_mm_exe_file(mm, exe_file);	/* this grabs a reference to exe_file */
++	set_mm_exe_file(mm, exe.file);	/* this grabs a reference to exe.file */
+ exit_unlock:
+ 	up_write(&mm->mmap_sem);
+ 
+ exit:
+-	fput_light(exe_file, fput_needed);
++	fdput(exe);
+ 	return err;
+ }
+ 
+diff --git a/kernel/taskstats.c b/kernel/taskstats.c
+index d0a32796550f..5116b7e5962e 100644
+--- a/kernel/taskstats.c
++++ b/kernel/taskstats.c
+@@ -415,16 +415,15 @@ static int cgroupstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
+ 	struct nlattr *na;
+ 	size_t size;
+ 	u32 fd;
+-	struct file *file;
+-	int fput_needed;
++	struct fd f;
+ 
+ 	na = info->attrs[CGROUPSTATS_CMD_ATTR_FD];
+ 	if (!na)
+ 		return -EINVAL;
+ 
+ 	fd = nla_get_u32(info->attrs[CGROUPSTATS_CMD_ATTR_FD]);
+-	file = fget_light(fd, &fput_needed);
+-	if (!file)
++	f = fdget(fd);
++	if (!f.file)
+ 		return 0;
+ 
+ 	size = nla_total_size(sizeof(struct cgroupstats));
+@@ -444,7 +443,7 @@ static int cgroupstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
+ 	stats = nla_data(na);
+ 	memset(stats, 0, sizeof(*stats));
+ 
+-	rc = cgroupstats_build(stats, file->f_dentry);
++	rc = cgroupstats_build(stats, f.file->f_dentry);
+ 	if (rc < 0) {
+ 		nlmsg_free(rep_skb);
+ 		goto err;
+@@ -453,7 +452,7 @@ static int cgroupstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
+ 	rc = send_reply(rep_skb, info);
+ 
+ err:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return rc;
+ }
+ 
+diff --git a/mm/fadvise.c b/mm/fadvise.c
+index a83245763cf8..a47f0f50c89f 100644
+--- a/mm/fadvise.c
++++ b/mm/fadvise.c
+@@ -26,8 +26,7 @@
+  */
+ SYSCALL_DEFINE(fadvise64_64)(int fd, loff_t offset, loff_t len, int advice)
+ {
+-	int fput_needed;
+-	struct file *file = fget_light(fd, &fput_needed);
++	struct fd f = fdget(fd);
+ 	struct address_space *mapping;
+ 	struct backing_dev_info *bdi;
+ 	loff_t endbyte;			/* inclusive */
+@@ -36,15 +35,15 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, loff_t offset, loff_t len, int advice)
+ 	unsigned long nrpages;
+ 	int ret = 0;
+ 
+-	if (!file)
++	if (!f.file)
+ 		return -EBADF;
+ 
+-	if (S_ISFIFO(file->f_path.dentry->d_inode->i_mode)) {
++	if (S_ISFIFO(f.file->f_path.dentry->d_inode->i_mode)) {
+ 		ret = -ESPIPE;
+ 		goto out;
+ 	}
+ 
+-	mapping = file->f_mapping;
++	mapping = f.file->f_mapping;
+ 	if (!mapping || len < 0) {
+ 		ret = -EINVAL;
+ 		goto out;
+@@ -77,21 +76,21 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, loff_t offset, loff_t len, int advice)
+ 
+ 	switch (advice) {
+ 	case POSIX_FADV_NORMAL:
+-		file->f_ra.ra_pages = bdi->ra_pages;
+-		spin_lock(&file->f_lock);
+-		file->f_mode &= ~FMODE_RANDOM;
+-		spin_unlock(&file->f_lock);
++		f.file->f_ra.ra_pages = bdi->ra_pages;
++		spin_lock(&f.file->f_lock);
++		f.file->f_mode &= ~FMODE_RANDOM;
++		spin_unlock(&f.file->f_lock);
+ 		break;
+ 	case POSIX_FADV_RANDOM:
+-		spin_lock(&file->f_lock);
+-		file->f_mode |= FMODE_RANDOM;
+-		spin_unlock(&file->f_lock);
++		spin_lock(&f.file->f_lock);
++		f.file->f_mode |= FMODE_RANDOM;
++		spin_unlock(&f.file->f_lock);
+ 		break;
+ 	case POSIX_FADV_SEQUENTIAL:
+-		file->f_ra.ra_pages = bdi->ra_pages * 2;
+-		spin_lock(&file->f_lock);
+-		file->f_mode &= ~FMODE_RANDOM;
+-		spin_unlock(&file->f_lock);
++		f.file->f_ra.ra_pages = bdi->ra_pages * 2;
++		spin_lock(&f.file->f_lock);
++		f.file->f_mode &= ~FMODE_RANDOM;
++		spin_unlock(&f.file->f_lock);
+ 		break;
+ 	case POSIX_FADV_WILLNEED:
+ 		/* First and last PARTIAL page! */
+@@ -107,7 +106,7 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, loff_t offset, loff_t len, int advice)
+ 		 * Ignore return value because fadvise() shall return
+ 		 * success even if filesystem can't retrieve a hint,
+ 		 */
+-		force_page_cache_readahead(mapping, file, start_index,
++		force_page_cache_readahead(mapping, f.file, start_index,
+ 					   nrpages);
+ 		break;
+ 	case POSIX_FADV_NOREUSE:
+@@ -129,7 +128,7 @@ SYSCALL_DEFINE(fadvise64_64)(int fd, loff_t offset, loff_t len, int advice)
+ 		ret = -EINVAL;
+ 	}
+ out:
+-	fput_light(file, fput_needed);
++	fdput(f);
+ 	return ret;
+ }
+ #ifdef CONFIG_HAVE_SYSCALL_WRAPPERS
+diff --git a/mm/readahead.c b/mm/readahead.c
+index 1011111e2bf4..7963f2391236 100644
+--- a/mm/readahead.c
++++ b/mm/readahead.c
+@@ -579,20 +579,19 @@ do_readahead(struct address_space *mapping, struct file *filp,
+ SYSCALL_DEFINE(readahead)(int fd, loff_t offset, size_t count)
+ {
+ 	ssize_t ret;
+-	struct file *file;
+-	int fput_needed;
++	struct fd f;
+ 
+ 	ret = -EBADF;
+-	file = fget_light(fd, &fput_needed);
+-	if (file) {
+-		if (file->f_mode & FMODE_READ) {
+-			struct address_space *mapping = file->f_mapping;
++	f = fdget(fd);
++	if (f.file) {
++		if (f.file->f_mode & FMODE_READ) {
++			struct address_space *mapping = f.file->f_mapping;
+ 			pgoff_t start = offset >> PAGE_CACHE_SHIFT;
+ 			pgoff_t end = (offset + count - 1) >> PAGE_CACHE_SHIFT;
+ 			unsigned long len = end - start + 1;
+-			ret = do_readahead(mapping, file, start, len);
++			ret = do_readahead(mapping, f.file, start, len);
+ 		}
+-		fput_light(file, fput_needed);
++		fdput(f);
+ 	}
+ 	return ret;
+ }
+-- 
+2.17.0
+

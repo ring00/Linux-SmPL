@@ -1,0 +1,659 @@
+From 1d6ac185c32134233f77ce44800ceb4ab9361401 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 11 Dec 2013 11:34:44 +0100
+Subject: [PATCH] drm: Kill DRM_COPY_(TO|FROM)_USER
+
+Less yelling ftw!
+
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/drm_buffer.c          |  2 +-
+ drivers/gpu/drm/i915/i915_dma.c       |  6 +++---
+ drivers/gpu/drm/mga/mga_dma.c         |  4 ++--
+ drivers/gpu/drm/mga/mga_state.c       |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_gem.c |  4 ++--
+ drivers/gpu/drm/qxl/qxl_ioctl.c       |  4 ++--
+ drivers/gpu/drm/r128/r128_cce.c       |  4 ++--
+ drivers/gpu/drm/r128/r128_state.c     | 28 +++++++++++++--------------
+ drivers/gpu/drm/radeon/r300_cmdbuf.c  |  8 ++++----
+ drivers/gpu/drm/radeon/r600_cp.c      |  4 ++--
+ drivers/gpu/drm/radeon/r600_cs.c      |  2 +-
+ drivers/gpu/drm/radeon/radeon_cp.c    |  4 ++--
+ drivers/gpu/drm/radeon/radeon_cs.c    | 10 +++++-----
+ drivers/gpu/drm/radeon/radeon_irq.c   |  2 +-
+ drivers/gpu/drm/radeon/radeon_kms.c   | 10 +++++-----
+ drivers/gpu/drm/radeon/radeon_mem.c   |  2 +-
+ drivers/gpu/drm/radeon/radeon_state.c | 18 ++++++++---------
+ drivers/gpu/drm/savage/savage_bci.c   |  4 ++--
+ drivers/gpu/drm/savage/savage_state.c |  6 +++---
+ drivers/gpu/drm/via/via_dma.c         |  4 ++--
+ include/drm/drm_os_linux.h            |  7 -------
+ 21 files changed, 64 insertions(+), 71 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_buffer.c b/drivers/gpu/drm/drm_buffer.c
+index 39a718340319..0406110f83ed 100644
+--- a/drivers/gpu/drm/drm_buffer.c
++++ b/drivers/gpu/drm/drm_buffer.c
+@@ -114,7 +114,7 @@ int drm_buffer_copy_from_user(struct drm_buffer *buf,
+ 
+ 	for (idx = 0; idx < nr_pages; ++idx) {
+ 
+-		if (DRM_COPY_FROM_USER(buf->data[idx],
++		if (copy_from_user(buf->data[idx],
+ 			user_data + idx * PAGE_SIZE,
+ 			min(PAGE_SIZE, size - idx * PAGE_SIZE))) {
+ 			DRM_ERROR("Failed to copy user data (%p) to drm buffer"
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index 4c18dfcf67d3..bf38e99410a4 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -820,7 +820,7 @@ static int i915_irq_emit(struct drm_device *dev, void *data,
+ 	result = i915_emit_irq(dev);
+ 	mutex_unlock(&dev->struct_mutex);
+ 
+-	if (DRM_COPY_TO_USER(emit->irq_seq, &result, sizeof(int))) {
++	if (copy_to_user(emit->irq_seq, &result, sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+ 	}
+@@ -1008,8 +1008,8 @@ static int i915_getparam(struct drm_device *dev, void *data,
+ 		return -EINVAL;
+ 	}
+ 
+-	if (DRM_COPY_TO_USER(param->value, &value, sizeof(int))) {
+-		DRM_ERROR("DRM_COPY_TO_USER failed\n");
++	if (copy_to_user(param->value, &value, sizeof(int))) {
++		DRM_ERROR("copy_to_user failed\n");
+ 		return -EFAULT;
+ 	}
+ 
+diff --git a/drivers/gpu/drm/mga/mga_dma.c b/drivers/gpu/drm/mga/mga_dma.c
+index 087db33f6cff..c3bf059ba720 100644
+--- a/drivers/gpu/drm/mga/mga_dma.c
++++ b/drivers/gpu/drm/mga/mga_dma.c
+@@ -1075,10 +1075,10 @@ static int mga_dma_get_buffers(struct drm_device *dev,
+ 
+ 		buf->file_priv = file_priv;
+ 
+-		if (DRM_COPY_TO_USER(&d->request_indices[i],
++		if (copy_to_user(&d->request_indices[i],
+ 				     &buf->idx, sizeof(buf->idx)))
+ 			return -EFAULT;
+-		if (DRM_COPY_TO_USER(&d->request_sizes[i],
++		if (copy_to_user(&d->request_sizes[i],
+ 				     &buf->total, sizeof(buf->total)))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/gpu/drm/mga/mga_state.c b/drivers/gpu/drm/mga/mga_state.c
+index 37cc2fb4eadd..314685b7f41f 100644
+--- a/drivers/gpu/drm/mga/mga_state.c
++++ b/drivers/gpu/drm/mga/mga_state.c
+@@ -1029,7 +1029,7 @@ static int mga_getparam(struct drm_device *dev, void *data, struct drm_file *fil
+ 		return -EINVAL;
+ 	}
+ 
+-	if (DRM_COPY_TO_USER(param->value, &value, sizeof(int))) {
++	if (copy_to_user(param->value, &value, sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.c b/drivers/gpu/drm/nouveau/nouveau_gem.c
+index 78a27f8ad7d9..0447163cd2b4 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -506,7 +506,7 @@ validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
+ 			b->presumed.valid = 0;
+ 			relocs++;
+ 
+-			if (DRM_COPY_TO_USER(&upbbo[nvbo->pbbo_index].presumed,
++			if (copy_to_user(&upbbo[nvbo->pbbo_index].presumed,
+ 					     &b->presumed, sizeof(b->presumed)))
+ 				return -EFAULT;
+ 		}
+@@ -593,7 +593,7 @@ u_memcpya(uint64_t user, unsigned nmemb, unsigned size)
+ 	if (!mem)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	if (DRM_COPY_FROM_USER(mem, userptr, size)) {
++	if (copy_from_user(mem, userptr, size)) {
+ 		u_free(mem);
+ 		return ERR_PTR(-EFAULT);
+ 	}
+diff --git a/drivers/gpu/drm/qxl/qxl_ioctl.c b/drivers/gpu/drm/qxl/qxl_ioctl.c
+index 7b95c75e9626..0bb86e6d41b4 100644
+--- a/drivers/gpu/drm/qxl/qxl_ioctl.c
++++ b/drivers/gpu/drm/qxl/qxl_ioctl.c
+@@ -200,7 +200,7 @@ static int qxl_process_single_command(struct qxl_device *qdev,
+ 	for (i = 0; i < cmd->relocs_num; ++i) {
+ 		struct drm_qxl_reloc reloc;
+ 
+-		if (DRM_COPY_FROM_USER(&reloc,
++		if (copy_from_user(&reloc,
+ 				       &((struct drm_qxl_reloc *)(uintptr_t)cmd->relocs)[i],
+ 				       sizeof(reloc))) {
+ 			ret = -EFAULT;
+@@ -297,7 +297,7 @@ static int qxl_execbuffer_ioctl(struct drm_device *dev, void *data,
+ 		struct drm_qxl_command *commands =
+ 			(struct drm_qxl_command *)(uintptr_t)execbuffer->commands;
+ 
+-		if (DRM_COPY_FROM_USER(&user_cmd, &commands[cmd_num],
++		if (copy_from_user(&user_cmd, &commands[cmd_num],
+ 				       sizeof(user_cmd)))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/gpu/drm/r128/r128_cce.c b/drivers/gpu/drm/r128/r128_cce.c
+index c451257f08fb..59459fe4e8c5 100644
+--- a/drivers/gpu/drm/r128/r128_cce.c
++++ b/drivers/gpu/drm/r128/r128_cce.c
+@@ -892,10 +892,10 @@ static int r128_cce_get_buffers(struct drm_device *dev,
+ 
+ 		buf->file_priv = file_priv;
+ 
+-		if (DRM_COPY_TO_USER(&d->request_indices[i], &buf->idx,
++		if (copy_to_user(&d->request_indices[i], &buf->idx,
+ 				     sizeof(buf->idx)))
+ 			return -EFAULT;
+-		if (DRM_COPY_TO_USER(&d->request_sizes[i], &buf->total,
++		if (copy_to_user(&d->request_sizes[i], &buf->total,
+ 				     sizeof(buf->total)))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/gpu/drm/r128/r128_state.c b/drivers/gpu/drm/r128/r128_state.c
+index 01dd9aef9f0e..818986b52e8c 100644
+--- a/drivers/gpu/drm/r128/r128_state.c
++++ b/drivers/gpu/drm/r128/r128_state.c
+@@ -895,16 +895,16 @@ static int r128_cce_dispatch_write_span(struct drm_device *dev,
+ 	if (count > 4096 || count <= 0)
+ 		return -EMSGSIZE;
+ 
+-	if (DRM_COPY_FROM_USER(&x, depth->x, sizeof(x)))
++	if (copy_from_user(&x, depth->x, sizeof(x)))
+ 		return -EFAULT;
+-	if (DRM_COPY_FROM_USER(&y, depth->y, sizeof(y)))
++	if (copy_from_user(&y, depth->y, sizeof(y)))
+ 		return -EFAULT;
+ 
+ 	buffer_size = depth->n * sizeof(u32);
+ 	buffer = kmalloc(buffer_size, GFP_KERNEL);
+ 	if (buffer == NULL)
+ 		return -ENOMEM;
+-	if (DRM_COPY_FROM_USER(buffer, depth->buffer, buffer_size)) {
++	if (copy_from_user(buffer, depth->buffer, buffer_size)) {
+ 		kfree(buffer);
+ 		return -EFAULT;
+ 	}
+@@ -916,7 +916,7 @@ static int r128_cce_dispatch_write_span(struct drm_device *dev,
+ 			kfree(buffer);
+ 			return -ENOMEM;
+ 		}
+-		if (DRM_COPY_FROM_USER(mask, depth->mask, mask_size)) {
++		if (copy_from_user(mask, depth->mask, mask_size)) {
+ 			kfree(buffer);
+ 			kfree(mask);
+ 			return -EFAULT;
+@@ -999,12 +999,12 @@ static int r128_cce_dispatch_write_pixels(struct drm_device *dev,
+ 		kfree(x);
+ 		return -ENOMEM;
+ 	}
+-	if (DRM_COPY_FROM_USER(x, depth->x, xbuf_size)) {
++	if (copy_from_user(x, depth->x, xbuf_size)) {
+ 		kfree(x);
+ 		kfree(y);
+ 		return -EFAULT;
+ 	}
+-	if (DRM_COPY_FROM_USER(y, depth->y, xbuf_size)) {
++	if (copy_from_user(y, depth->y, xbuf_size)) {
+ 		kfree(x);
+ 		kfree(y);
+ 		return -EFAULT;
+@@ -1017,7 +1017,7 @@ static int r128_cce_dispatch_write_pixels(struct drm_device *dev,
+ 		kfree(y);
+ 		return -ENOMEM;
+ 	}
+-	if (DRM_COPY_FROM_USER(buffer, depth->buffer, buffer_size)) {
++	if (copy_from_user(buffer, depth->buffer, buffer_size)) {
+ 		kfree(x);
+ 		kfree(y);
+ 		kfree(buffer);
+@@ -1033,7 +1033,7 @@ static int r128_cce_dispatch_write_pixels(struct drm_device *dev,
+ 			kfree(buffer);
+ 			return -ENOMEM;
+ 		}
+-		if (DRM_COPY_FROM_USER(mask, depth->mask, mask_size)) {
++		if (copy_from_user(mask, depth->mask, mask_size)) {
+ 			kfree(x);
+ 			kfree(y);
+ 			kfree(buffer);
+@@ -1107,9 +1107,9 @@ static int r128_cce_dispatch_read_span(struct drm_device *dev,
+ 	if (count > 4096 || count <= 0)
+ 		return -EMSGSIZE;
+ 
+-	if (DRM_COPY_FROM_USER(&x, depth->x, sizeof(x)))
++	if (copy_from_user(&x, depth->x, sizeof(x)))
+ 		return -EFAULT;
+-	if (DRM_COPY_FROM_USER(&y, depth->y, sizeof(y)))
++	if (copy_from_user(&y, depth->y, sizeof(y)))
+ 		return -EFAULT;
+ 
+ 	BEGIN_RING(7);
+@@ -1162,12 +1162,12 @@ static int r128_cce_dispatch_read_pixels(struct drm_device *dev,
+ 		kfree(x);
+ 		return -ENOMEM;
+ 	}
+-	if (DRM_COPY_FROM_USER(x, depth->x, xbuf_size)) {
++	if (copy_from_user(x, depth->x, xbuf_size)) {
+ 		kfree(x);
+ 		kfree(y);
+ 		return -EFAULT;
+ 	}
+-	if (DRM_COPY_FROM_USER(y, depth->y, ybuf_size)) {
++	if (copy_from_user(y, depth->y, ybuf_size)) {
+ 		kfree(x);
+ 		kfree(y);
+ 		return -EFAULT;
+@@ -1524,7 +1524,7 @@ static int r128_cce_stipple(struct drm_device *dev, void *data, struct drm_file
+ 
+ 	DEV_INIT_TEST_WITH_RETURN(dev_priv);
+ 
+-	if (DRM_COPY_FROM_USER(&mask, stipple->mask, 32 * sizeof(u32)))
++	if (copy_from_user(&mask, stipple->mask, 32 * sizeof(u32)))
+ 		return -EFAULT;
+ 
+ 	RING_SPACE_TEST_WITH_RETURN(dev_priv);
+@@ -1622,7 +1622,7 @@ static int r128_getparam(struct drm_device *dev, void *data, struct drm_file *fi
+ 		return -EINVAL;
+ 	}
+ 
+-	if (DRM_COPY_TO_USER(param->value, &value, sizeof(int))) {
++	if (copy_to_user(param->value, &value, sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+ 	}
+diff --git a/drivers/gpu/drm/radeon/r300_cmdbuf.c b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+index 60170ea5e3a2..84b1d5367a11 100644
+--- a/drivers/gpu/drm/radeon/r300_cmdbuf.c
++++ b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+@@ -75,7 +75,7 @@ static int r300_emit_cliprects(drm_radeon_private_t *dev_priv,
+ 		OUT_RING(CP_PACKET0(R300_RE_CLIPRECT_TL_0, nr * 2 - 1));
+ 
+ 		for (i = 0; i < nr; ++i) {
+-			if (DRM_COPY_FROM_USER
++			if (copy_from_user
+ 			    (&box, &cmdbuf->boxes[n + i], sizeof(box))) {
+ 				DRM_ERROR("copy cliprect faulted\n");
+ 				return -EFAULT;
+@@ -928,12 +928,12 @@ static int r300_scratch(drm_radeon_private_t *dev_priv,
+ 		buf_idx = drm_buffer_pointer_to_dword(cmdbuf->buffer, 0);
+ 		*buf_idx *= 2; /* 8 bytes per buf */
+ 
+-		if (DRM_COPY_TO_USER(ref_age_base + *buf_idx,
++		if (copy_to_user(ref_age_base + *buf_idx,
+ 				&dev_priv->scratch_ages[header.scratch.reg],
+ 				sizeof(u32)))
+ 			return -EINVAL;
+ 
+-		if (DRM_COPY_FROM_USER(&h_pending,
++		if (copy_from_user(&h_pending,
+ 				ref_age_base + *buf_idx + 1,
+ 				sizeof(u32)))
+ 			return -EINVAL;
+@@ -943,7 +943,7 @@ static int r300_scratch(drm_radeon_private_t *dev_priv,
+ 
+ 		h_pending--;
+ 
+-		if (DRM_COPY_TO_USER(ref_age_base + *buf_idx + 1,
++		if (copy_to_user(ref_age_base + *buf_idx + 1,
+ 					&h_pending,
+ 					sizeof(u32)))
+ 			return -EINVAL;
+diff --git a/drivers/gpu/drm/radeon/r600_cp.c b/drivers/gpu/drm/radeon/r600_cp.c
+index d8eb48bff0ed..8c9b7e26533c 100644
+--- a/drivers/gpu/drm/radeon/r600_cp.c
++++ b/drivers/gpu/drm/radeon/r600_cp.c
+@@ -2515,7 +2515,7 @@ int r600_cp_dispatch_texture(struct drm_device *dev,
+ 		buf = radeon_freelist_get(dev);
+ 		if (!buf) {
+ 			DRM_DEBUG("EAGAIN\n");
+-			if (DRM_COPY_TO_USER(tex->image, image, sizeof(*image)))
++			if (copy_to_user(tex->image, image, sizeof(*image)))
+ 				return -EFAULT;
+ 			return -EAGAIN;
+ 		}
+@@ -2528,7 +2528,7 @@ int r600_cp_dispatch_texture(struct drm_device *dev,
+ 		buffer =
+ 		    (u32 *) ((char *)dev->agp_buffer_map->handle + buf->offset);
+ 
+-		if (DRM_COPY_FROM_USER(buffer, data, pass_size)) {
++		if (copy_from_user(buffer, data, pass_size)) {
+ 			DRM_ERROR("EFAULT on pad, %d bytes\n", pass_size);
+ 			return -EFAULT;
+ 		}
+diff --git a/drivers/gpu/drm/radeon/r600_cs.c b/drivers/gpu/drm/radeon/r600_cs.c
+index 5dceea6f71ae..d824f7fed47d 100644
+--- a/drivers/gpu/drm/radeon/r600_cs.c
++++ b/drivers/gpu/drm/radeon/r600_cs.c
+@@ -2386,7 +2386,7 @@ int r600_cs_legacy(struct drm_device *dev, void *data, struct drm_file *filp,
+ 	ib_chunk = &parser.chunks[parser.chunk_ib_idx];
+ 	parser.ib.length_dw = ib_chunk->length_dw;
+ 	*l = parser.ib.length_dw;
+-	if (DRM_COPY_FROM_USER(ib, ib_chunk->user_ptr, ib_chunk->length_dw * 4)) {
++	if (copy_from_user(ib, ib_chunk->user_ptr, ib_chunk->length_dw * 4)) {
+ 		r = -EFAULT;
+ 		r600_cs_parser_fini(&parser, r);
+ 		return r;
+diff --git a/drivers/gpu/drm/radeon/radeon_cp.c b/drivers/gpu/drm/radeon/radeon_cp.c
+index 3cae2bbc1854..d73013e6f58a 100644
+--- a/drivers/gpu/drm/radeon/radeon_cp.c
++++ b/drivers/gpu/drm/radeon/radeon_cp.c
+@@ -2020,10 +2020,10 @@ static int radeon_cp_get_buffers(struct drm_device *dev,
+ 
+ 		buf->file_priv = file_priv;
+ 
+-		if (DRM_COPY_TO_USER(&d->request_indices[i], &buf->idx,
++		if (copy_to_user(&d->request_indices[i], &buf->idx,
+ 				     sizeof(buf->idx)))
+ 			return -EFAULT;
+-		if (DRM_COPY_TO_USER(&d->request_sizes[i], &buf->total,
++		if (copy_to_user(&d->request_sizes[i], &buf->total,
+ 				     sizeof(buf->total)))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_cs.c b/drivers/gpu/drm/radeon/radeon_cs.c
+index 0b366169d64d..a8e3342fd4a9 100644
+--- a/drivers/gpu/drm/radeon/radeon_cs.c
++++ b/drivers/gpu/drm/radeon/radeon_cs.c
+@@ -192,7 +192,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
+ 		return -ENOMEM;
+ 	}
+ 	chunk_array_ptr = (uint64_t *)(unsigned long)(cs->chunks);
+-	if (DRM_COPY_FROM_USER(p->chunks_array, chunk_array_ptr,
++	if (copy_from_user(p->chunks_array, chunk_array_ptr,
+ 			       sizeof(uint64_t)*cs->num_chunks)) {
+ 		return -EFAULT;
+ 	}
+@@ -208,7 +208,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
+ 		uint32_t __user *cdata;
+ 
+ 		chunk_ptr = (void __user*)(unsigned long)p->chunks_array[i];
+-		if (DRM_COPY_FROM_USER(&user_chunk, chunk_ptr,
++		if (copy_from_user(&user_chunk, chunk_ptr,
+ 				       sizeof(struct drm_radeon_cs_chunk))) {
+ 			return -EFAULT;
+ 		}
+@@ -252,7 +252,7 @@ int radeon_cs_parser_init(struct radeon_cs_parser *p, void *data)
+ 		if (p->chunks[i].kdata == NULL) {
+ 			return -ENOMEM;
+ 		}
+-		if (DRM_COPY_FROM_USER(p->chunks[i].kdata, cdata, size)) {
++		if (copy_from_user(p->chunks[i].kdata, cdata, size)) {
+ 			return -EFAULT;
+ 		}
+ 		if (p->chunks[i].chunk_id == RADEON_CHUNK_ID_FLAGS) {
+@@ -472,7 +472,7 @@ static int radeon_cs_ib_fill(struct radeon_device *rdev, struct radeon_cs_parser
+ 			}
+ 			parser->const_ib.is_const_ib = true;
+ 			parser->const_ib.length_dw = ib_chunk->length_dw;
+-			if (DRM_COPY_FROM_USER(parser->const_ib.ptr,
++			if (copy_from_user(parser->const_ib.ptr,
+ 					       ib_chunk->user_ptr,
+ 					       ib_chunk->length_dw * 4))
+ 				return -EFAULT;
+@@ -495,7 +495,7 @@ static int radeon_cs_ib_fill(struct radeon_device *rdev, struct radeon_cs_parser
+ 	parser->ib.length_dw = ib_chunk->length_dw;
+ 	if (ib_chunk->kdata)
+ 		memcpy(parser->ib.ptr, ib_chunk->kdata, ib_chunk->length_dw * 4);
+-	else if (DRM_COPY_FROM_USER(parser->ib.ptr, ib_chunk->user_ptr, ib_chunk->length_dw * 4))
++	else if (copy_from_user(parser->ib.ptr, ib_chunk->user_ptr, ib_chunk->length_dw * 4))
+ 		return -EFAULT;
+ 	return 0;
+ }
+diff --git a/drivers/gpu/drm/radeon/radeon_irq.c b/drivers/gpu/drm/radeon/radeon_irq.c
+index ded2f0564b83..244b19bab2e7 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq.c
++++ b/drivers/gpu/drm/radeon/radeon_irq.c
+@@ -302,7 +302,7 @@ int radeon_irq_emit(struct drm_device *dev, void *data, struct drm_file *file_pr
+ 
+ 	result = radeon_emit_irq(dev);
+ 
+-	if (DRM_COPY_TO_USER(emit->irq_seq, &result, sizeof(int))) {
++	if (copy_to_user(emit->irq_seq, &result, sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+ 	}
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index 55d0b474bd37..daa28b6a6832 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -223,7 +223,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 			*value = rdev->accel_working;
+ 		break;
+ 	case RADEON_INFO_CRTC_FROM_ID:
+-		if (DRM_COPY_FROM_USER(value, value_ptr, sizeof(uint32_t))) {
++		if (copy_from_user(value, value_ptr, sizeof(uint32_t))) {
+ 			DRM_ERROR("copy_from_user %s:%u\n", __func__, __LINE__);
+ 			return -EFAULT;
+ 		}
+@@ -269,7 +269,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 		 *
+ 		 * When returning, the value is 1 if filp owns hyper-z access,
+ 		 * 0 otherwise. */
+-		if (DRM_COPY_FROM_USER(value, value_ptr, sizeof(uint32_t))) {
++		if (copy_from_user(value, value_ptr, sizeof(uint32_t))) {
+ 			DRM_ERROR("copy_from_user %s:%u\n", __func__, __LINE__);
+ 			return -EFAULT;
+ 		}
+@@ -281,7 +281,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 		break;
+ 	case RADEON_INFO_WANT_CMASK:
+ 		/* The same logic as Hyper-Z. */
+-		if (DRM_COPY_FROM_USER(value, value_ptr, sizeof(uint32_t))) {
++		if (copy_from_user(value, value_ptr, sizeof(uint32_t))) {
+ 			DRM_ERROR("copy_from_user %s:%u\n", __func__, __LINE__);
+ 			return -EFAULT;
+ 		}
+@@ -417,7 +417,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 		*value = rdev->fastfb_working;
+ 		break;
+ 	case RADEON_INFO_RING_WORKING:
+-		if (DRM_COPY_FROM_USER(value, value_ptr, sizeof(uint32_t))) {
++		if (copy_from_user(value, value_ptr, sizeof(uint32_t))) {
+ 			DRM_ERROR("copy_from_user %s:%u\n", __func__, __LINE__);
+ 			return -EFAULT;
+ 		}
+@@ -465,7 +465,7 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 		DRM_DEBUG_KMS("Invalid request %d\n", info->request);
+ 		return -EINVAL;
+ 	}
+-	if (DRM_COPY_TO_USER(value_ptr, (char*)value, value_size)) {
++	if (copy_to_user(value_ptr, (char*)value, value_size)) {
+ 		DRM_ERROR("copy_to_user %s:%u\n", __func__, __LINE__);
+ 		return -EFAULT;
+ 	}
+diff --git a/drivers/gpu/drm/radeon/radeon_mem.c b/drivers/gpu/drm/radeon/radeon_mem.c
+index d54d2d7c9031..146d253f1131 100644
+--- a/drivers/gpu/drm/radeon/radeon_mem.c
++++ b/drivers/gpu/drm/radeon/radeon_mem.c
+@@ -243,7 +243,7 @@ int radeon_mem_alloc(struct drm_device *dev, void *data, struct drm_file *file_p
+ 	if (!block)
+ 		return -ENOMEM;
+ 
+-	if (DRM_COPY_TO_USER(alloc->region_offset, &block->start,
++	if (copy_to_user(alloc->region_offset, &block->start,
+ 			     sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+diff --git a/drivers/gpu/drm/radeon/radeon_state.c b/drivers/gpu/drm/radeon/radeon_state.c
+index 4d20910899d4..956ab7f14e16 100644
+--- a/drivers/gpu/drm/radeon/radeon_state.c
++++ b/drivers/gpu/drm/radeon/radeon_state.c
+@@ -1810,7 +1810,7 @@ static int radeon_cp_dispatch_texture(struct drm_device * dev,
+ 		}
+ 		if (!buf) {
+ 			DRM_DEBUG("EAGAIN\n");
+-			if (DRM_COPY_TO_USER(tex->image, image, sizeof(*image)))
++			if (copy_to_user(tex->image, image, sizeof(*image)))
+ 				return -EFAULT;
+ 			return -EAGAIN;
+ 		}
+@@ -1823,7 +1823,7 @@ static int radeon_cp_dispatch_texture(struct drm_device * dev,
+ 
+ #define RADEON_COPY_MT(_buf, _data, _width) \
+ 	do { \
+-		if (DRM_COPY_FROM_USER(_buf, _data, (_width))) {\
++		if (copy_from_user(_buf, _data, (_width))) {\
+ 			DRM_ERROR("EFAULT on pad, %d bytes\n", (_width)); \
+ 			return -EFAULT; \
+ 		} \
+@@ -2168,7 +2168,7 @@ static int radeon_cp_clear(struct drm_device *dev, void *data, struct drm_file *
+ 	if (sarea_priv->nbox > RADEON_NR_SAREA_CLIPRECTS)
+ 		sarea_priv->nbox = RADEON_NR_SAREA_CLIPRECTS;
+ 
+-	if (DRM_COPY_FROM_USER(&depth_boxes, clear->depth_boxes,
++	if (copy_from_user(&depth_boxes, clear->depth_boxes,
+ 			       sarea_priv->nbox * sizeof(depth_boxes[0])))
+ 		return -EFAULT;
+ 
+@@ -2436,7 +2436,7 @@ static int radeon_cp_texture(struct drm_device *dev, void *data, struct drm_file
+ 		return -EINVAL;
+ 	}
+ 
+-	if (DRM_COPY_FROM_USER(&image,
++	if (copy_from_user(&image,
+ 			       (drm_radeon_tex_image_t __user *) tex->image,
+ 			       sizeof(image)))
+ 		return -EFAULT;
+@@ -2460,7 +2460,7 @@ static int radeon_cp_stipple(struct drm_device *dev, void *data, struct drm_file
+ 
+ 	LOCK_TEST_WITH_RETURN(dev, file_priv);
+ 
+-	if (DRM_COPY_FROM_USER(&mask, stipple->mask, 32 * sizeof(u32)))
++	if (copy_from_user(&mask, stipple->mask, 32 * sizeof(u32)))
+ 		return -EFAULT;
+ 
+ 	RING_SPACE_TEST_WITH_RETURN(dev_priv);
+@@ -2585,13 +2585,13 @@ static int radeon_cp_vertex2(struct drm_device *dev, void *data, struct drm_file
+ 		drm_radeon_prim_t prim;
+ 		drm_radeon_tcl_prim_t tclprim;
+ 
+-		if (DRM_COPY_FROM_USER(&prim, &vertex->prim[i], sizeof(prim)))
++		if (copy_from_user(&prim, &vertex->prim[i], sizeof(prim)))
+ 			return -EFAULT;
+ 
+ 		if (prim.stateidx != laststate) {
+ 			drm_radeon_state_t state;
+ 
+-			if (DRM_COPY_FROM_USER(&state,
++			if (copy_from_user(&state,
+ 					       &vertex->state[prim.stateidx],
+ 					       sizeof(state)))
+ 				return -EFAULT;
+@@ -2799,7 +2799,7 @@ static int radeon_emit_packet3_cliprect(struct drm_device *dev,
+ 
+ 	do {
+ 		if (i < cmdbuf->nbox) {
+-			if (DRM_COPY_FROM_USER(&box, &boxes[i], sizeof(box)))
++			if (copy_from_user(&box, &boxes[i], sizeof(box)))
+ 				return -EFAULT;
+ 			/* FIXME The second and subsequent times round
+ 			 * this loop, send a WAIT_UNTIL_3D_IDLE before
+@@ -3116,7 +3116,7 @@ static int radeon_cp_getparam(struct drm_device *dev, void *data, struct drm_fil
+ 		return -EINVAL;
+ 	}
+ 
+-	if (DRM_COPY_TO_USER(param->value, &value, sizeof(int))) {
++	if (copy_to_user(param->value, &value, sizeof(int))) {
+ 		DRM_ERROR("copy_to_user\n");
+ 		return -EFAULT;
+ 	}
+diff --git a/drivers/gpu/drm/savage/savage_bci.c b/drivers/gpu/drm/savage/savage_bci.c
+index b17d0710871a..6e673fa968e5 100644
+--- a/drivers/gpu/drm/savage/savage_bci.c
++++ b/drivers/gpu/drm/savage/savage_bci.c
+@@ -990,10 +990,10 @@ static int savage_bci_get_buffers(struct drm_device *dev,
+ 
+ 		buf->file_priv = file_priv;
+ 
+-		if (DRM_COPY_TO_USER(&d->request_indices[i],
++		if (copy_to_user(&d->request_indices[i],
+ 				     &buf->idx, sizeof(buf->idx)))
+ 			return -EFAULT;
+-		if (DRM_COPY_TO_USER(&d->request_sizes[i],
++		if (copy_to_user(&d->request_sizes[i],
+ 				     &buf->total, sizeof(buf->total)))
+ 			return -EFAULT;
+ 
+diff --git a/drivers/gpu/drm/savage/savage_state.c b/drivers/gpu/drm/savage/savage_state.c
+index b35e75ed890c..2d3e56d94be3 100644
+--- a/drivers/gpu/drm/savage/savage_state.c
++++ b/drivers/gpu/drm/savage/savage_state.c
+@@ -992,7 +992,7 @@ int savage_bci_cmdbuf(struct drm_device *dev, void *data, struct drm_file *file_
+ 		if (kcmd_addr == NULL)
+ 			return -ENOMEM;
+ 
+-		if (DRM_COPY_FROM_USER(kcmd_addr, cmdbuf->cmd_addr,
++		if (copy_from_user(kcmd_addr, cmdbuf->cmd_addr,
+ 				       cmdbuf->size * 8))
+ 		{
+ 			kfree(kcmd_addr);
+@@ -1007,7 +1007,7 @@ int savage_bci_cmdbuf(struct drm_device *dev, void *data, struct drm_file *file_
+ 			goto done;
+ 		}
+ 
+-		if (DRM_COPY_FROM_USER(kvb_addr, cmdbuf->vb_addr,
++		if (copy_from_user(kvb_addr, cmdbuf->vb_addr,
+ 				       cmdbuf->vb_size)) {
+ 			ret = -EFAULT;
+ 			goto done;
+@@ -1022,7 +1022,7 @@ int savage_bci_cmdbuf(struct drm_device *dev, void *data, struct drm_file *file_
+ 			goto done;
+ 		}
+ 
+-		if (DRM_COPY_FROM_USER(kbox_addr, cmdbuf->box_addr,
++		if (copy_from_user(kbox_addr, cmdbuf->box_addr,
+ 				       cmdbuf->nbox * sizeof(struct drm_clip_rect))) {
+ 			ret = -EFAULT;
+ 			goto done;
+diff --git a/drivers/gpu/drm/via/via_dma.c b/drivers/gpu/drm/via/via_dma.c
+index 652f9b43ec9d..3436fdad22c5 100644
+--- a/drivers/gpu/drm/via/via_dma.c
++++ b/drivers/gpu/drm/via/via_dma.c
+@@ -273,7 +273,7 @@ static int via_dispatch_cmdbuffer(struct drm_device *dev, drm_via_cmdbuffer_t *c
+ 	if (cmd->size > VIA_PCI_BUF_SIZE)
+ 		return -ENOMEM;
+ 
+-	if (DRM_COPY_FROM_USER(dev_priv->pci_buf, cmd->buf, cmd->size))
++	if (copy_from_user(dev_priv->pci_buf, cmd->buf, cmd->size))
+ 		return -EFAULT;
+ 
+ 	/*
+@@ -346,7 +346,7 @@ static int via_dispatch_pci_cmdbuffer(struct drm_device *dev,
+ 
+ 	if (cmd->size > VIA_PCI_BUF_SIZE)
+ 		return -ENOMEM;
+-	if (DRM_COPY_FROM_USER(dev_priv->pci_buf, cmd->buf, cmd->size))
++	if (copy_from_user(dev_priv->pci_buf, cmd->buf, cmd->size))
+ 		return -EFAULT;
+ 
+ 	if ((ret =
+diff --git a/include/drm/drm_os_linux.h b/include/drm/drm_os_linux.h
+index cf12233ef7ed..2953b1d83022 100644
+--- a/include/drm/drm_os_linux.h
++++ b/include/drm/drm_os_linux.h
+@@ -48,13 +48,6 @@ static inline void writeq(u64 val, void __iomem *reg)
+ /** Read/write memory barrier */
+ #define DRM_MEMORYBARRIER()		mb()
+ 
+-/** Other copying of data to kernel space */
+-#define DRM_COPY_FROM_USER(arg1, arg2, arg3)		\
+-	copy_from_user(arg1, arg2, arg3)
+-/** Other copying of data from kernel space */
+-#define DRM_COPY_TO_USER(arg1, arg2, arg3)		\
+-	copy_to_user(arg1, arg2, arg3)
+-
+ #define DRM_WAIT_ON( ret, queue, timeout, condition )		\
+ do {								\
+ 	DECLARE_WAITQUEUE(entry, current);			\
+-- 
+2.17.0
+

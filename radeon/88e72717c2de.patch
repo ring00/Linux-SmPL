@@ -1,0 +1,1690 @@
+From 88e72717c2de4181d8a6de1b04315953ad2bebdf Mon Sep 17 00:00:00 2001
+From: Thierry Reding <treding@nvidia.com>
+Date: Thu, 24 Sep 2015 18:35:31 +0200
+Subject: [PATCH] drm/irq: Use unsigned int pipe in public API
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This continues the pattern started in commit cc1ef118fc09 ("drm/irq:
+Make pipe unsigned and name consistent"). This is applied to the public
+APIs and driver callbacks, so pretty much all drivers need to be updated
+to match the new prototypes.
+
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Jianwei Wang <jianwei.wang.chn@gmail.com>
+Cc: Alison Wang <alison.wang@freescale.com>
+Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Cc: Daniel Vetter <daniel.vetter@intel.com>
+Cc: Jani Nikula <jani.nikula@linux.intel.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mark Yao <mark.yao@rock-chips.com>
+Cc: Benjamin Gaignard <benjamin.gaignard@linaro.org>
+Cc: Vincent Abriou <vincent.abriou@st.com>
+Cc: Thomas Hellstrom <thellstrom@vmware.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu.h          |  8 ++---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_display.c  |  9 ++---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c      | 36 +++++++++----------
+ drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h     |  9 +++--
+ drivers/gpu/drm/armada/armada_drv.c          |  8 ++---
+ drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c |  6 ++--
+ drivers/gpu/drm/drm_irq.c                    |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_crtc.c     |  4 +--
+ drivers/gpu/drm/exynos/exynos_drm_crtc.h     |  4 +--
+ drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c    |  5 +--
+ drivers/gpu/drm/gma500/psb_drv.h             |  6 ++--
+ drivers/gpu/drm/gma500/psb_irq.c             |  8 ++---
+ drivers/gpu/drm/gma500/psb_irq.h             |  6 ++--
+ drivers/gpu/drm/i915/i915_irq.c              | 34 +++++++++---------
+ drivers/gpu/drm/imx/imx-drm-core.c           |  8 ++---
+ drivers/gpu/drm/mga/mga_drv.h                |  6 ++--
+ drivers/gpu/drm/mga/mga_irq.c                | 20 +++++------
+ drivers/gpu/drm/msm/msm_drv.c                | 12 +++----
+ drivers/gpu/drm/nouveau/nouveau_display.c    | 23 ++++++------
+ drivers/gpu/drm/nouveau/nouveau_display.h    | 12 +++----
+ drivers/gpu/drm/omapdrm/omap_drv.h           |  4 +--
+ drivers/gpu/drm/omapdrm/omap_irq.c           | 16 ++++-----
+ drivers/gpu/drm/qxl/qxl_drv.c                |  7 ++--
+ drivers/gpu/drm/r128/r128_drv.h              |  6 ++--
+ drivers/gpu/drm/r128/r128_irq.c              | 16 ++++-----
+ drivers/gpu/drm/radeon/radeon_display.c      | 25 ++++++-------
+ drivers/gpu/drm/radeon/radeon_drv.c          | 13 ++++---
+ drivers/gpu/drm/radeon/radeon_drv.h          |  6 ++--
+ drivers/gpu/drm/radeon/radeon_irq.c          | 38 ++++++++++----------
+ drivers/gpu/drm/radeon/radeon_mode.h         |  5 ++-
+ drivers/gpu/drm/rcar-du/rcar_du_drv.c        |  8 ++---
+ drivers/gpu/drm/rockchip/rockchip_drm_drv.c  |  6 ++--
+ drivers/gpu/drm/shmobile/shmob_drm_drv.c     |  4 +--
+ drivers/gpu/drm/sti/sti_crtc.c               | 16 ++++-----
+ drivers/gpu/drm/sti/sti_crtc.h               |  4 +--
+ drivers/gpu/drm/tegra/drm.c                  |  7 ++--
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c          |  4 +--
+ drivers/gpu/drm/via/via_drv.h                |  6 ++--
+ drivers/gpu/drm/via/via_irq.c                | 17 ++++-----
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h          |  6 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_kms.c          |  6 ++--
+ include/drm/drmP.h                           | 25 +++++++------
+ 42 files changed, 239 insertions(+), 232 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu.h b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+index 6647fb26ef25..5e43178d07d5 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu.h
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu.h
+@@ -2349,10 +2349,10 @@ void amdgpu_driver_preclose_kms(struct drm_device *dev,
+ 				struct drm_file *file_priv);
+ int amdgpu_suspend_kms(struct drm_device *dev, bool suspend, bool fbcon);
+ int amdgpu_resume_kms(struct drm_device *dev, bool resume, bool fbcon);
+-u32 amdgpu_get_vblank_counter_kms(struct drm_device *dev, int crtc);
+-int amdgpu_enable_vblank_kms(struct drm_device *dev, int crtc);
+-void amdgpu_disable_vblank_kms(struct drm_device *dev, int crtc);
+-int amdgpu_get_vblank_timestamp_kms(struct drm_device *dev, int crtc,
++u32 amdgpu_get_vblank_counter_kms(struct drm_device *dev, unsigned int pipe);
++int amdgpu_enable_vblank_kms(struct drm_device *dev, unsigned int pipe);
++void amdgpu_disable_vblank_kms(struct drm_device *dev, unsigned int pipe);
++int amdgpu_get_vblank_timestamp_kms(struct drm_device *dev, unsigned int pipe,
+ 				    int *max_error,
+ 				    struct timeval *vblank_time,
+ 				    unsigned flags);
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+index 9b34a3410c32..de116398fa49 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+@@ -721,7 +721,7 @@ bool amdgpu_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+  * an optional accurate timestamp of when query happened.
+  *
+  * \param dev Device to query.
+- * \param crtc Crtc to query.
++ * \param pipe Crtc to query.
+  * \param flags Flags from caller (DRM_CALLED_FROM_VBLIRQ or 0).
+  * \param *vpos Location where vertical scanout position should be stored.
+  * \param *hpos Location where horizontal scanout position should go.
+@@ -744,8 +744,9 @@ bool amdgpu_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+  * unknown small number of scanlines wrt. real scanout position.
+  *
+  */
+-int amdgpu_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int flags,
+-			       int *vpos, int *hpos, ktime_t *stime, ktime_t *etime,
++int amdgpu_get_crtc_scanoutpos(struct drm_device *dev, unsigned int pipe,
++			       unsigned int flags, int *vpos, int *hpos,
++			       ktime_t *stime, ktime_t *etime,
+ 			       const struct drm_display_mode *mode)
+ {
+ 	u32 vbl = 0, position = 0;
+@@ -760,7 +761,7 @@ int amdgpu_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int fl
+ 	if (stime)
+ 		*stime = ktime_get();
+ 
+-	if (amdgpu_display_page_flip_get_scanoutpos(adev, crtc, &vbl, &position) == 0)
++	if (amdgpu_display_page_flip_get_scanoutpos(adev, pipe, &vbl, &position) == 0)
+ 		ret |= DRM_SCANOUTPOS_VALID;
+ 
+ 	/* Get optional system timestamp after query. */
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+index 275f1c3dbba0..b9faaf800ae1 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+@@ -600,36 +600,36 @@ void amdgpu_driver_preclose_kms(struct drm_device *dev,
+  * amdgpu_get_vblank_counter_kms - get frame count
+  *
+  * @dev: drm dev pointer
+- * @crtc: crtc to get the frame count from
++ * @pipe: crtc to get the frame count from
+  *
+  * Gets the frame count on the requested crtc (all asics).
+  * Returns frame count on success, -EINVAL on failure.
+  */
+-u32 amdgpu_get_vblank_counter_kms(struct drm_device *dev, int crtc)
++u32 amdgpu_get_vblank_counter_kms(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct amdgpu_device *adev = dev->dev_private;
+ 
+-	if (crtc < 0 || crtc >= adev->mode_info.num_crtc) {
+-		DRM_ERROR("Invalid crtc %d\n", crtc);
++	if (pipe >= adev->mode_info.num_crtc) {
++		DRM_ERROR("Invalid crtc %u\n", pipe);
+ 		return -EINVAL;
+ 	}
+ 
+-	return amdgpu_display_vblank_get_counter(adev, crtc);
++	return amdgpu_display_vblank_get_counter(adev, pipe);
+ }
+ 
+ /**
+  * amdgpu_enable_vblank_kms - enable vblank interrupt
+  *
+  * @dev: drm dev pointer
+- * @crtc: crtc to enable vblank interrupt for
++ * @pipe: crtc to enable vblank interrupt for
+  *
+  * Enable the interrupt on the requested crtc (all asics).
+  * Returns 0 on success, -EINVAL on failure.
+  */
+-int amdgpu_enable_vblank_kms(struct drm_device *dev, int crtc)
++int amdgpu_enable_vblank_kms(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct amdgpu_device *adev = dev->dev_private;
+-	int idx = amdgpu_crtc_idx_to_irq_type(adev, crtc);
++	int idx = amdgpu_crtc_idx_to_irq_type(adev, pipe);
+ 
+ 	return amdgpu_irq_get(adev, &adev->crtc_irq, idx);
+ }
+@@ -638,14 +638,14 @@ int amdgpu_enable_vblank_kms(struct drm_device *dev, int crtc)
+  * amdgpu_disable_vblank_kms - disable vblank interrupt
+  *
+  * @dev: drm dev pointer
+- * @crtc: crtc to disable vblank interrupt for
++ * @pipe: crtc to disable vblank interrupt for
+  *
+  * Disable the interrupt on the requested crtc (all asics).
+  */
+-void amdgpu_disable_vblank_kms(struct drm_device *dev, int crtc)
++void amdgpu_disable_vblank_kms(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct amdgpu_device *adev = dev->dev_private;
+-	int idx = amdgpu_crtc_idx_to_irq_type(adev, crtc);
++	int idx = amdgpu_crtc_idx_to_irq_type(adev, pipe);
+ 
+ 	amdgpu_irq_put(adev, &adev->crtc_irq, idx);
+ }
+@@ -663,26 +663,26 @@ void amdgpu_disable_vblank_kms(struct drm_device *dev, int crtc)
+  * scanout position.  (all asics).
+  * Returns postive status flags on success, negative error on failure.
+  */
+-int amdgpu_get_vblank_timestamp_kms(struct drm_device *dev, int crtc,
++int amdgpu_get_vblank_timestamp_kms(struct drm_device *dev, unsigned int pipe,
+ 				    int *max_error,
+ 				    struct timeval *vblank_time,
+ 				    unsigned flags)
+ {
+-	struct drm_crtc *drmcrtc;
++	struct drm_crtc *crtc;
+ 	struct amdgpu_device *adev = dev->dev_private;
+ 
+-	if (crtc < 0 || crtc >= dev->num_crtcs) {
+-		DRM_ERROR("Invalid crtc %d\n", crtc);
++	if (pipe >= dev->num_crtcs) {
++		DRM_ERROR("Invalid crtc %u\n", pipe);
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Get associated drm_crtc: */
+-	drmcrtc = &adev->mode_info.crtcs[crtc]->base;
++	crtc = &adev->mode_info.crtcs[pipe]->base;
+ 
+ 	/* Helper routine in DRM core does all the work: */
+-	return drm_calc_vbltimestamp_from_scanoutpos(dev, crtc, max_error,
++	return drm_calc_vbltimestamp_from_scanoutpos(dev, pipe, max_error,
+ 						     vblank_time, flags,
+-						     &drmcrtc->hwmode);
++						     &crtc->hwmode);
+ }
+ 
+ const struct drm_ioctl_desc amdgpu_ioctls_kms[] = {
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h b/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+index 2b03425f9740..f6b02994442b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+@@ -540,11 +540,10 @@ bool amdgpu_ddc_probe(struct amdgpu_connector *amdgpu_connector, bool use_aux);
+ 
+ void amdgpu_encoder_set_active_device(struct drm_encoder *encoder);
+ 
+-int amdgpu_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
+-				      unsigned int flags,
+-				      int *vpos, int *hpos, ktime_t *stime,
+-				      ktime_t *etime,
+-				      const struct drm_display_mode *mode);
++int amdgpu_get_crtc_scanoutpos(struct drm_device *dev, unsigned int pipe,
++			       unsigned int flags, int *vpos, int *hpos,
++			       ktime_t *stime, ktime_t *etime,
++			       const struct drm_display_mode *mode);
+ 
+ int amdgpu_framebuffer_init(struct drm_device *dev,
+ 			     struct amdgpu_framebuffer *rfb,
+diff --git a/drivers/gpu/drm/armada/armada_drv.c b/drivers/gpu/drm/armada/armada_drv.c
+index 225034b74cda..a438886fcdb6 100644
+--- a/drivers/gpu/drm/armada/armada_drv.c
++++ b/drivers/gpu/drm/armada/armada_drv.c
+@@ -254,17 +254,17 @@ void armada_drm_vbl_event_remove(struct armada_crtc *dcrtc,
+ }
+ 
+ /* These are called under the vbl_lock. */
+-static int armada_drm_enable_vblank(struct drm_device *dev, int crtc)
++static int armada_drm_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct armada_private *priv = dev->dev_private;
+-	armada_drm_crtc_enable_irq(priv->dcrtc[crtc], VSYNC_IRQ_ENA);
++	armada_drm_crtc_enable_irq(priv->dcrtc[pipe], VSYNC_IRQ_ENA);
+ 	return 0;
+ }
+ 
+-static void armada_drm_disable_vblank(struct drm_device *dev, int crtc)
++static void armada_drm_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct armada_private *priv = dev->dev_private;
+-	armada_drm_crtc_disable_irq(priv->dcrtc[crtc], VSYNC_IRQ_ENA);
++	armada_drm_crtc_disable_irq(priv->dcrtc[pipe], VSYNC_IRQ_ENA);
+ }
+ 
+ static struct drm_ioctl_desc armada_ioctls[] = {
+diff --git a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+index 8bc62ec407f9..6dfb63ab54d2 100644
+--- a/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
++++ b/drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+@@ -656,7 +656,8 @@ static void atmel_hlcdc_dc_irq_uninstall(struct drm_device *dev)
+ 	regmap_read(dc->hlcdc->regmap, ATMEL_HLCDC_ISR, &isr);
+ }
+ 
+-static int atmel_hlcdc_dc_enable_vblank(struct drm_device *dev, int crtc)
++static int atmel_hlcdc_dc_enable_vblank(struct drm_device *dev,
++					unsigned int pipe)
+ {
+ 	struct atmel_hlcdc_dc *dc = dev->dev_private;
+ 
+@@ -666,7 +667,8 @@ static int atmel_hlcdc_dc_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-static void atmel_hlcdc_dc_disable_vblank(struct drm_device *dev, int crtc)
++static void atmel_hlcdc_dc_disable_vblank(struct drm_device *dev,
++					  unsigned int pipe)
+ {
+ 	struct atmel_hlcdc_dc *dc = dev->dev_private;
+ 
+diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
+index 6bff6d3e570e..0659d9956b7c 100644
+--- a/drivers/gpu/drm/drm_irq.c
++++ b/drivers/gpu/drm/drm_irq.c
+@@ -877,7 +877,7 @@ drm_get_last_vbltimestamp(struct drm_device *dev, unsigned int pipe,
+  * Returns:
+  * The software vblank counter.
+  */
+-u32 drm_vblank_count(struct drm_device *dev, int pipe)
++u32 drm_vblank_count(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_vblank_crtc *vblank = &dev->vblank[pipe];
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_crtc.c b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+index 0872aa2f450f..f364d694a780 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_crtc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+@@ -167,7 +167,7 @@ struct exynos_drm_crtc *exynos_drm_crtc_create(struct drm_device *drm_dev,
+ 	return ERR_PTR(ret);
+ }
+ 
+-int exynos_drm_crtc_enable_vblank(struct drm_device *dev, int pipe)
++int exynos_drm_crtc_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct exynos_drm_private *private = dev->dev_private;
+ 	struct exynos_drm_crtc *exynos_crtc =
+@@ -179,7 +179,7 @@ int exynos_drm_crtc_enable_vblank(struct drm_device *dev, int pipe)
+ 	return 0;
+ }
+ 
+-void exynos_drm_crtc_disable_vblank(struct drm_device *dev, int pipe)
++void exynos_drm_crtc_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct exynos_drm_private *private = dev->dev_private;
+ 	struct exynos_drm_crtc *exynos_crtc =
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_crtc.h b/drivers/gpu/drm/exynos/exynos_drm_crtc.h
+index f87d4abda6f7..f9f365bd0257 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_crtc.h
++++ b/drivers/gpu/drm/exynos/exynos_drm_crtc.h
+@@ -23,8 +23,8 @@ struct exynos_drm_crtc *exynos_drm_crtc_create(struct drm_device *drm_dev,
+ 					enum exynos_drm_output_type type,
+ 					const struct exynos_drm_crtc_ops *ops,
+ 					void *context);
+-int exynos_drm_crtc_enable_vblank(struct drm_device *dev, int pipe);
+-void exynos_drm_crtc_disable_vblank(struct drm_device *dev, int pipe);
++int exynos_drm_crtc_enable_vblank(struct drm_device *dev, unsigned int pipe);
++void exynos_drm_crtc_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ void exynos_drm_crtc_wait_pending_update(struct exynos_drm_crtc *exynos_crtc);
+ void exynos_drm_crtc_finish_update(struct exynos_drm_crtc *exynos_crtc,
+ 				   struct exynos_drm_plane *exynos_plane);
+diff --git a/drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c b/drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+index 9a8e2da47158..f1fd986ca332 100644
+--- a/drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
++++ b/drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+@@ -140,7 +140,7 @@ static irqreturn_t fsl_dcu_drm_irq(int irq, void *arg)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int fsl_dcu_drm_enable_vblank(struct drm_device *dev, int crtc)
++static int fsl_dcu_drm_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct fsl_dcu_drm_device *fsl_dev = dev->dev_private;
+ 	unsigned int value;
+@@ -156,7 +156,8 @@ static int fsl_dcu_drm_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-static void fsl_dcu_drm_disable_vblank(struct drm_device *dev, int crtc)
++static void fsl_dcu_drm_disable_vblank(struct drm_device *dev,
++				       unsigned int pipe)
+ {
+ 	struct fsl_dcu_drm_device *fsl_dev = dev->dev_private;
+ 	unsigned int value;
+diff --git a/drivers/gpu/drm/gma500/psb_drv.h b/drivers/gpu/drm/gma500/psb_drv.h
+index e38057b91865..e21726ecac32 100644
+--- a/drivers/gpu/drm/gma500/psb_drv.h
++++ b/drivers/gpu/drm/gma500/psb_drv.h
+@@ -687,15 +687,15 @@ extern void psb_irq_turn_off_dpst(struct drm_device *dev);
+ extern void psb_irq_uninstall_islands(struct drm_device *dev, int hw_islands);
+ extern int psb_vblank_wait2(struct drm_device *dev, unsigned int *sequence);
+ extern int psb_vblank_wait(struct drm_device *dev, unsigned int *sequence);
+-extern int psb_enable_vblank(struct drm_device *dev, int crtc);
+-extern void psb_disable_vblank(struct drm_device *dev, int crtc);
++extern int psb_enable_vblank(struct drm_device *dev, unsigned int pipe);
++extern void psb_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ void
+ psb_enable_pipestat(struct drm_psb_private *dev_priv, int pipe, u32 mask);
+ 
+ void
+ psb_disable_pipestat(struct drm_psb_private *dev_priv, int pipe, u32 mask);
+ 
+-extern u32 psb_get_vblank_counter(struct drm_device *dev, int crtc);
++extern u32 psb_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
+ 
+ /* framebuffer.c */
+ extern int psbfb_probed(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/gma500/psb_irq.c b/drivers/gpu/drm/gma500/psb_irq.c
+index 624eb36511c5..78eb10902809 100644
+--- a/drivers/gpu/drm/gma500/psb_irq.c
++++ b/drivers/gpu/drm/gma500/psb_irq.c
+@@ -510,7 +510,7 @@ int psb_irq_disable_dpst(struct drm_device *dev)
+ /*
+  * It is used to enable VBLANK interrupt
+  */
+-int psb_enable_vblank(struct drm_device *dev, int pipe)
++int psb_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_psb_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -549,7 +549,7 @@ int psb_enable_vblank(struct drm_device *dev, int pipe)
+ /*
+  * It is used to disable VBLANK interrupt
+  */
+-void psb_disable_vblank(struct drm_device *dev, int pipe)
++void psb_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_psb_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -622,7 +622,7 @@ void mdfld_disable_te(struct drm_device *dev, int pipe)
+ /* Called from drm generic code, passed a 'crtc', which
+  * we use as a pipe index
+  */
+-u32 psb_get_vblank_counter(struct drm_device *dev, int pipe)
++u32 psb_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	uint32_t high_frame = PIPEAFRAMEHIGH;
+ 	uint32_t low_frame = PIPEAFRAMEPIXEL;
+@@ -654,7 +654,7 @@ u32 psb_get_vblank_counter(struct drm_device *dev, int pipe)
+ 	reg_val = REG_READ(pipeconf_reg);
+ 
+ 	if (!(reg_val & PIPEACONF_ENABLE)) {
+-		dev_err(dev->dev, "trying to get vblank count for disabled pipe %d\n",
++		dev_err(dev->dev, "trying to get vblank count for disabled pipe %u\n",
+ 								pipe);
+ 		goto psb_get_vblank_counter_exit;
+ 	}
+diff --git a/drivers/gpu/drm/gma500/psb_irq.h b/drivers/gpu/drm/gma500/psb_irq.h
+index d0b45ffa1126..e6a81a8c9f35 100644
+--- a/drivers/gpu/drm/gma500/psb_irq.h
++++ b/drivers/gpu/drm/gma500/psb_irq.h
+@@ -38,9 +38,9 @@ int psb_irq_enable_dpst(struct drm_device *dev);
+ int psb_irq_disable_dpst(struct drm_device *dev);
+ void psb_irq_turn_on_dpst(struct drm_device *dev);
+ void psb_irq_turn_off_dpst(struct drm_device *dev);
+-int  psb_enable_vblank(struct drm_device *dev, int pipe);
+-void psb_disable_vblank(struct drm_device *dev, int pipe);
+-u32  psb_get_vblank_counter(struct drm_device *dev, int pipe);
++int  psb_enable_vblank(struct drm_device *dev, unsigned int pipe);
++void psb_disable_vblank(struct drm_device *dev, unsigned int pipe);
++u32  psb_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
+ 
+ int mdfld_enable_te(struct drm_device *dev, int pipe);
+ void mdfld_disable_te(struct drm_device *dev, int pipe);
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index 88d064e80783..bc732eb52b50 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -554,7 +554,7 @@ static void i915_enable_asle_pipestat(struct drm_device *dev)
+  *   of horizontal active on the first line of vertical active
+  */
+ 
+-static u32 i8xx_get_vblank_counter(struct drm_device *dev, int pipe)
++static u32 i8xx_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	/* Gen2 doesn't have a hardware frame counter */
+ 	return 0;
+@@ -563,7 +563,7 @@ static u32 i8xx_get_vblank_counter(struct drm_device *dev, int pipe)
+ /* Called from drm generic code, passed a 'crtc', which
+  * we use as a pipe index
+  */
+-static u32 i915_get_vblank_counter(struct drm_device *dev, int pipe)
++static u32 i915_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long high_frame;
+@@ -611,7 +611,7 @@ static u32 i915_get_vblank_counter(struct drm_device *dev, int pipe)
+ 	return (((high1 << 8) | low) + (pixel >= vbl_start)) & 0xffffff;
+ }
+ 
+-static u32 gm45_get_vblank_counter(struct drm_device *dev, int pipe)
++static u32 gm45_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	int reg = PIPE_FRMCOUNT_GM45(pipe);
+@@ -672,7 +672,7 @@ static int __intel_get_crtc_scanline(struct intel_crtc *crtc)
+ 	return (position + crtc->scanline_offset) % vtotal;
+ }
+ 
+-static int i915_get_crtc_scanoutpos(struct drm_device *dev, int pipe,
++static int i915_get_crtc_scanoutpos(struct drm_device *dev, unsigned int pipe,
+ 				    unsigned int flags, int *vpos, int *hpos,
+ 				    ktime_t *stime, ktime_t *etime,
+ 				    const struct drm_display_mode *mode)
+@@ -809,27 +809,27 @@ int intel_get_crtc_scanline(struct intel_crtc *crtc)
+ 	return position;
+ }
+ 
+-static int i915_get_vblank_timestamp(struct drm_device *dev, int pipe,
++static int i915_get_vblank_timestamp(struct drm_device *dev, unsigned int pipe,
+ 			      int *max_error,
+ 			      struct timeval *vblank_time,
+ 			      unsigned flags)
+ {
+ 	struct drm_crtc *crtc;
+ 
+-	if (pipe < 0 || pipe >= INTEL_INFO(dev)->num_pipes) {
+-		DRM_ERROR("Invalid crtc %d\n", pipe);
++	if (pipe >= INTEL_INFO(dev)->num_pipes) {
++		DRM_ERROR("Invalid crtc %u\n", pipe);
+ 		return -EINVAL;
+ 	}
+ 
+ 	/* Get drm_crtc to timestamp: */
+ 	crtc = intel_get_crtc_for_pipe(dev, pipe);
+ 	if (crtc == NULL) {
+-		DRM_ERROR("Invalid crtc %d\n", pipe);
++		DRM_ERROR("Invalid crtc %u\n", pipe);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if (!crtc->hwmode.crtc_clock) {
+-		DRM_DEBUG_KMS("crtc %d is disabled\n", pipe);
++		DRM_DEBUG_KMS("crtc %u is disabled\n", pipe);
+ 		return -EBUSY;
+ 	}
+ 
+@@ -2431,7 +2431,7 @@ void i915_handle_error(struct drm_device *dev, bool wedged,
+ /* Called from drm generic code, passed 'crtc' which
+  * we use as a pipe index
+  */
+-static int i915_enable_vblank(struct drm_device *dev, int pipe)
++static int i915_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2448,7 +2448,7 @@ static int i915_enable_vblank(struct drm_device *dev, int pipe)
+ 	return 0;
+ }
+ 
+-static int ironlake_enable_vblank(struct drm_device *dev, int pipe)
++static int ironlake_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2462,7 +2462,7 @@ static int ironlake_enable_vblank(struct drm_device *dev, int pipe)
+ 	return 0;
+ }
+ 
+-static int valleyview_enable_vblank(struct drm_device *dev, int pipe)
++static int valleyview_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2475,7 +2475,7 @@ static int valleyview_enable_vblank(struct drm_device *dev, int pipe)
+ 	return 0;
+ }
+ 
+-static int gen8_enable_vblank(struct drm_device *dev, int pipe)
++static int gen8_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2491,7 +2491,7 @@ static int gen8_enable_vblank(struct drm_device *dev, int pipe)
+ /* Called from drm generic code, passed 'crtc' which
+  * we use as a pipe index
+  */
+-static void i915_disable_vblank(struct drm_device *dev, int pipe)
++static void i915_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2503,7 +2503,7 @@ static void i915_disable_vblank(struct drm_device *dev, int pipe)
+ 	spin_unlock_irqrestore(&dev_priv->irq_lock, irqflags);
+ }
+ 
+-static void ironlake_disable_vblank(struct drm_device *dev, int pipe)
++static void ironlake_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2515,7 +2515,7 @@ static void ironlake_disable_vblank(struct drm_device *dev, int pipe)
+ 	spin_unlock_irqrestore(&dev_priv->irq_lock, irqflags);
+ }
+ 
+-static void valleyview_disable_vblank(struct drm_device *dev, int pipe)
++static void valleyview_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+@@ -2526,7 +2526,7 @@ static void valleyview_disable_vblank(struct drm_device *dev, int pipe)
+ 	spin_unlock_irqrestore(&dev_priv->irq_lock, irqflags);
+ }
+ 
+-static void gen8_disable_vblank(struct drm_device *dev, int pipe)
++static void gen8_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+ 	unsigned long irqflags;
+diff --git a/drivers/gpu/drm/imx/imx-drm-core.c b/drivers/gpu/drm/imx/imx-drm-core.c
+index 74f505b0dd02..b880c12c6521 100644
+--- a/drivers/gpu/drm/imx/imx-drm-core.c
++++ b/drivers/gpu/drm/imx/imx-drm-core.c
+@@ -145,10 +145,10 @@ void imx_drm_handle_vblank(struct imx_drm_crtc *imx_drm_crtc)
+ }
+ EXPORT_SYMBOL_GPL(imx_drm_handle_vblank);
+ 
+-static int imx_drm_enable_vblank(struct drm_device *drm, int crtc)
++static int imx_drm_enable_vblank(struct drm_device *drm, unsigned int pipe)
+ {
+ 	struct imx_drm_device *imxdrm = drm->dev_private;
+-	struct imx_drm_crtc *imx_drm_crtc = imxdrm->crtc[crtc];
++	struct imx_drm_crtc *imx_drm_crtc = imxdrm->crtc[pipe];
+ 	int ret;
+ 
+ 	if (!imx_drm_crtc)
+@@ -163,10 +163,10 @@ static int imx_drm_enable_vblank(struct drm_device *drm, int crtc)
+ 	return ret;
+ }
+ 
+-static void imx_drm_disable_vblank(struct drm_device *drm, int crtc)
++static void imx_drm_disable_vblank(struct drm_device *drm, unsigned int pipe)
+ {
+ 	struct imx_drm_device *imxdrm = drm->dev_private;
+-	struct imx_drm_crtc *imx_drm_crtc = imxdrm->crtc[crtc];
++	struct imx_drm_crtc *imx_drm_crtc = imxdrm->crtc[pipe];
+ 
+ 	if (!imx_drm_crtc)
+ 		return;
+diff --git a/drivers/gpu/drm/mga/mga_drv.h b/drivers/gpu/drm/mga/mga_drv.h
+index b4a2014917e5..bb312339e0b0 100644
+--- a/drivers/gpu/drm/mga/mga_drv.h
++++ b/drivers/gpu/drm/mga/mga_drv.h
+@@ -183,9 +183,9 @@ extern int mga_warp_install_microcode(drm_mga_private_t *dev_priv);
+ extern int mga_warp_init(drm_mga_private_t *dev_priv);
+ 
+ 				/* mga_irq.c */
+-extern int mga_enable_vblank(struct drm_device *dev, int crtc);
+-extern void mga_disable_vblank(struct drm_device *dev, int crtc);
+-extern u32 mga_get_vblank_counter(struct drm_device *dev, int crtc);
++extern int mga_enable_vblank(struct drm_device *dev, unsigned int pipe);
++extern void mga_disable_vblank(struct drm_device *dev, unsigned int pipe);
++extern u32 mga_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
+ extern int mga_driver_fence_wait(struct drm_device *dev, unsigned int *sequence);
+ extern int mga_driver_vblank_wait(struct drm_device *dev, unsigned int *sequence);
+ extern irqreturn_t mga_driver_irq_handler(int irq, void *arg);
+diff --git a/drivers/gpu/drm/mga/mga_irq.c b/drivers/gpu/drm/mga/mga_irq.c
+index 1b071b8ff9dc..693ba708cfed 100644
+--- a/drivers/gpu/drm/mga/mga_irq.c
++++ b/drivers/gpu/drm/mga/mga_irq.c
+@@ -35,12 +35,12 @@
+ #include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+-u32 mga_get_vblank_counter(struct drm_device *dev, int crtc)
++u32 mga_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	const drm_mga_private_t *const dev_priv =
+ 		(drm_mga_private_t *) dev->dev_private;
+ 
+-	if (crtc != 0)
++	if (pipe != 0)
+ 		return 0;
+ 
+ 	return atomic_read(&dev_priv->vbl_received);
+@@ -88,13 +88,13 @@ irqreturn_t mga_driver_irq_handler(int irq, void *arg)
+ 	return IRQ_NONE;
+ }
+ 
+-int mga_enable_vblank(struct drm_device *dev, int crtc)
++int mga_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_mga_private_t *dev_priv = (drm_mga_private_t *) dev->dev_private;
+ 
+-	if (crtc != 0) {
+-		DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+-			  crtc);
++	if (pipe != 0) {
++		DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
++			  pipe);
+ 		return 0;
+ 	}
+ 
+@@ -103,11 +103,11 @@ int mga_enable_vblank(struct drm_device *dev, int crtc)
+ }
+ 
+ 
+-void mga_disable_vblank(struct drm_device *dev, int crtc)
++void mga_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+-	if (crtc != 0) {
+-		DRM_ERROR("tried to disable vblank on non-existent crtc %d\n",
+-			  crtc);
++	if (pipe != 0) {
++		DRM_ERROR("tried to disable vblank on non-existent crtc %u\n",
++			  pipe);
+ 	}
+ 
+ 	/* Do *NOT* disable the vertical refresh interrupt.  MGA doesn't have
+diff --git a/drivers/gpu/drm/msm/msm_drv.c b/drivers/gpu/drm/msm/msm_drv.c
+index 0339c5d82d37..7e44511d0951 100644
+--- a/drivers/gpu/drm/msm/msm_drv.c
++++ b/drivers/gpu/drm/msm/msm_drv.c
+@@ -531,24 +531,24 @@ static void msm_irq_uninstall(struct drm_device *dev)
+ 	kms->funcs->irq_uninstall(kms);
+ }
+ 
+-static int msm_enable_vblank(struct drm_device *dev, int crtc_id)
++static int msm_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct msm_drm_private *priv = dev->dev_private;
+ 	struct msm_kms *kms = priv->kms;
+ 	if (!kms)
+ 		return -ENXIO;
+-	DBG("dev=%p, crtc=%d", dev, crtc_id);
+-	return vblank_ctrl_queue_work(priv, crtc_id, true);
++	DBG("dev=%p, crtc=%u", dev, pipe);
++	return vblank_ctrl_queue_work(priv, pipe, true);
+ }
+ 
+-static void msm_disable_vblank(struct drm_device *dev, int crtc_id)
++static void msm_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct msm_drm_private *priv = dev->dev_private;
+ 	struct msm_kms *kms = priv->kms;
+ 	if (!kms)
+ 		return;
+-	DBG("dev=%p, crtc=%d", dev, crtc_id);
+-	vblank_ctrl_queue_work(priv, crtc_id, false);
++	DBG("dev=%p, crtc=%u", dev, pipe);
++	vblank_ctrl_queue_work(priv, pipe, false);
+ }
+ 
+ /*
+diff --git a/drivers/gpu/drm/nouveau/nouveau_display.c b/drivers/gpu/drm/nouveau/nouveau_display.c
+index a82c3cbe3127..886079dd9baa 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_display.c
++++ b/drivers/gpu/drm/nouveau/nouveau_display.c
+@@ -51,12 +51,12 @@ nouveau_display_vblank_handler(struct nvif_notify *notify)
+ }
+ 
+ int
+-nouveau_display_vblank_enable(struct drm_device *dev, int head)
++nouveau_display_vblank_enable(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_crtc *crtc;
+ 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+ 		struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
+-		if (nv_crtc->index == head) {
++		if (nv_crtc->index == pipe) {
+ 			nvif_notify_get(&nv_crtc->vblank);
+ 			return 0;
+ 		}
+@@ -65,12 +65,12 @@ nouveau_display_vblank_enable(struct drm_device *dev, int head)
+ }
+ 
+ void
+-nouveau_display_vblank_disable(struct drm_device *dev, int head)
++nouveau_display_vblank_disable(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct drm_crtc *crtc;
+ 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+ 		struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
+-		if (nv_crtc->index == head) {
++		if (nv_crtc->index == pipe) {
+ 			nvif_notify_put(&nv_crtc->vblank);
+ 			return;
+ 		}
+@@ -132,14 +132,15 @@ nouveau_display_scanoutpos_head(struct drm_crtc *crtc, int *vpos, int *hpos,
+ }
+ 
+ int
+-nouveau_display_scanoutpos(struct drm_device *dev, int head, unsigned int flags,
+-			   int *vpos, int *hpos, ktime_t *stime, ktime_t *etime,
++nouveau_display_scanoutpos(struct drm_device *dev, unsigned int pipe,
++			   unsigned int flags, int *vpos, int *hpos,
++			   ktime_t *stime, ktime_t *etime,
+ 			   const struct drm_display_mode *mode)
+ {
+ 	struct drm_crtc *crtc;
+ 
+ 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+-		if (nouveau_crtc(crtc)->index == head) {
++		if (nouveau_crtc(crtc)->index == pipe) {
+ 			return nouveau_display_scanoutpos_head(crtc, vpos, hpos,
+ 							       stime, etime);
+ 		}
+@@ -149,15 +150,15 @@ nouveau_display_scanoutpos(struct drm_device *dev, int head, unsigned int flags,
+ }
+ 
+ int
+-nouveau_display_vblstamp(struct drm_device *dev, int head, int *max_error,
+-			 struct timeval *time, unsigned flags)
++nouveau_display_vblstamp(struct drm_device *dev, unsigned int pipe,
++			 int *max_error, struct timeval *time, unsigned flags)
+ {
+ 	struct drm_crtc *crtc;
+ 
+ 	list_for_each_entry(crtc, &dev->mode_config.crtc_list, head) {
+-		if (nouveau_crtc(crtc)->index == head) {
++		if (nouveau_crtc(crtc)->index == pipe) {
+ 			return drm_calc_vbltimestamp_from_scanoutpos(dev,
+-					head, max_error, time, flags,
++					pipe, max_error, time, flags,
+ 					&crtc->hwmode);
+ 		}
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_display.h b/drivers/gpu/drm/nouveau/nouveau_display.h
+index 4182d21538c5..856abe0f070d 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_display.h
++++ b/drivers/gpu/drm/nouveau/nouveau_display.h
+@@ -65,12 +65,12 @@ int  nouveau_display_init(struct drm_device *dev);
+ void nouveau_display_fini(struct drm_device *dev);
+ int  nouveau_display_suspend(struct drm_device *dev, bool runtime);
+ void nouveau_display_resume(struct drm_device *dev, bool runtime);
+-int  nouveau_display_vblank_enable(struct drm_device *, int);
+-void nouveau_display_vblank_disable(struct drm_device *, int);
+-int  nouveau_display_scanoutpos(struct drm_device *, int, unsigned int,
+-				int *, int *, ktime_t *, ktime_t *,
+-				const struct drm_display_mode *);
+-int  nouveau_display_vblstamp(struct drm_device *, int, int *,
++int  nouveau_display_vblank_enable(struct drm_device *, unsigned int);
++void nouveau_display_vblank_disable(struct drm_device *, unsigned int);
++int  nouveau_display_scanoutpos(struct drm_device *, unsigned int,
++				unsigned int, int *, int *, ktime_t *,
++				ktime_t *, const struct drm_display_mode *);
++int  nouveau_display_vblstamp(struct drm_device *, unsigned int, int *,
+ 			      struct timeval *, unsigned);
+ 
+ int  nouveau_crtc_page_flip(struct drm_crtc *crtc, struct drm_framebuffer *fb,
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 12081e61d45a..5c367aad8a6e 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -129,8 +129,8 @@ void omap_gem_describe_objects(struct list_head *list, struct seq_file *m);
+ int omap_gem_resume(struct device *dev);
+ #endif
+ 
+-int omap_irq_enable_vblank(struct drm_device *dev, int crtc_id);
+-void omap_irq_disable_vblank(struct drm_device *dev, int crtc_id);
++int omap_irq_enable_vblank(struct drm_device *dev, unsigned int pipe);
++void omap_irq_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ void __omap_irq_register(struct drm_device *dev, struct omap_drm_irq *irq);
+ void __omap_irq_unregister(struct drm_device *dev, struct omap_drm_irq *irq);
+ void omap_irq_register(struct drm_device *dev, struct omap_drm_irq *irq);
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
+index 249c0330d6ce..60e1e8016708 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.c
++++ b/drivers/gpu/drm/omapdrm/omap_irq.c
+@@ -134,7 +134,7 @@ int omap_irq_wait(struct drm_device *dev, struct omap_irq_wait *wait,
+ /**
+  * enable_vblank - enable vblank interrupt events
+  * @dev: DRM device
+- * @crtc: which irq to enable
++ * @pipe: which irq to enable
+  *
+  * Enable vblank interrupts for @crtc.  If the device doesn't have
+  * a hardware vblank counter, this routine should be a no-op, since
+@@ -144,13 +144,13 @@ int omap_irq_wait(struct drm_device *dev, struct omap_irq_wait *wait,
+  * Zero on success, appropriate errno if the given @crtc's vblank
+  * interrupt cannot be enabled.
+  */
+-int omap_irq_enable_vblank(struct drm_device *dev, int crtc_id)
++int omap_irq_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct omap_drm_private *priv = dev->dev_private;
+-	struct drm_crtc *crtc = priv->crtcs[crtc_id];
++	struct drm_crtc *crtc = priv->crtcs[pipe];
+ 	unsigned long flags;
+ 
+-	DBG("dev=%p, crtc=%d", dev, crtc_id);
++	DBG("dev=%p, crtc=%u", dev, pipe);
+ 
+ 	spin_lock_irqsave(&list_lock, flags);
+ 	priv->vblank_mask |= pipe2vbl(crtc);
+@@ -163,19 +163,19 @@ int omap_irq_enable_vblank(struct drm_device *dev, int crtc_id)
+ /**
+  * disable_vblank - disable vblank interrupt events
+  * @dev: DRM device
+- * @crtc: which irq to enable
++ * @pipe: which irq to enable
+  *
+  * Disable vblank interrupts for @crtc.  If the device doesn't have
+  * a hardware vblank counter, this routine should be a no-op, since
+  * interrupts will have to stay on to keep the count accurate.
+  */
+-void omap_irq_disable_vblank(struct drm_device *dev, int crtc_id)
++void omap_irq_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct omap_drm_private *priv = dev->dev_private;
+-	struct drm_crtc *crtc = priv->crtcs[crtc_id];
++	struct drm_crtc *crtc = priv->crtcs[pipe];
+ 	unsigned long flags;
+ 
+-	DBG("dev=%p, crtc=%d", dev, crtc_id);
++	DBG("dev=%p, crtc=%u", dev, pipe);
+ 
+ 	spin_lock_irqsave(&list_lock, flags);
+ 	priv->vblank_mask &= ~pipe2vbl(crtc);
+diff --git a/drivers/gpu/drm/qxl/qxl_drv.c b/drivers/gpu/drm/qxl/qxl_drv.c
+index 83f6f0b5e9ef..7307b07fe06b 100644
+--- a/drivers/gpu/drm/qxl/qxl_drv.c
++++ b/drivers/gpu/drm/qxl/qxl_drv.c
+@@ -196,17 +196,18 @@ static int qxl_pm_restore(struct device *dev)
+ 	return qxl_drm_resume(drm_dev, false);
+ }
+ 
+-static u32 qxl_noop_get_vblank_counter(struct drm_device *dev, int crtc)
++static u32 qxl_noop_get_vblank_counter(struct drm_device *dev,
++				       unsigned int pipe)
+ {
+ 	return 0;
+ }
+ 
+-static int qxl_noop_enable_vblank(struct drm_device *dev, int crtc)
++static int qxl_noop_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	return 0;
+ }
+ 
+-static void qxl_noop_disable_vblank(struct drm_device *dev, int crtc)
++static void qxl_noop_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ }
+ 
+diff --git a/drivers/gpu/drm/r128/r128_drv.h b/drivers/gpu/drm/r128/r128_drv.h
+index 723e5d6f10a4..09143b840482 100644
+--- a/drivers/gpu/drm/r128/r128_drv.h
++++ b/drivers/gpu/drm/r128/r128_drv.h
+@@ -154,9 +154,9 @@ extern int r128_wait_ring(drm_r128_private_t *dev_priv, int n);
+ extern int r128_do_cce_idle(drm_r128_private_t *dev_priv);
+ extern int r128_do_cleanup_cce(struct drm_device *dev);
+ 
+-extern int r128_enable_vblank(struct drm_device *dev, int crtc);
+-extern void r128_disable_vblank(struct drm_device *dev, int crtc);
+-extern u32 r128_get_vblank_counter(struct drm_device *dev, int crtc);
++extern int r128_enable_vblank(struct drm_device *dev, unsigned int pipe);
++extern void r128_disable_vblank(struct drm_device *dev, unsigned int pipe);
++extern u32 r128_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
+ extern irqreturn_t r128_driver_irq_handler(int irq, void *arg);
+ extern void r128_driver_irq_preinstall(struct drm_device *dev);
+ extern int r128_driver_irq_postinstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/r128/r128_irq.c b/drivers/gpu/drm/r128/r128_irq.c
+index c2ae496babb7..9730f4918944 100644
+--- a/drivers/gpu/drm/r128/r128_irq.c
++++ b/drivers/gpu/drm/r128/r128_irq.c
+@@ -34,11 +34,11 @@
+ #include <drm/r128_drm.h>
+ #include "r128_drv.h"
+ 
+-u32 r128_get_vblank_counter(struct drm_device *dev, int crtc)
++u32 r128_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	const drm_r128_private_t *dev_priv = dev->dev_private;
+ 
+-	if (crtc != 0)
++	if (pipe != 0)
+ 		return 0;
+ 
+ 	return atomic_read(&dev_priv->vbl_received);
+@@ -62,12 +62,12 @@ irqreturn_t r128_driver_irq_handler(int irq, void *arg)
+ 	return IRQ_NONE;
+ }
+ 
+-int r128_enable_vblank(struct drm_device *dev, int crtc)
++int r128_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_r128_private_t *dev_priv = dev->dev_private;
+ 
+-	if (crtc != 0) {
+-		DRM_ERROR("%s:  bad crtc %d\n", __func__, crtc);
++	if (pipe != 0) {
++		DRM_ERROR("%s:  bad crtc %u\n", __func__, pipe);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -75,10 +75,10 @@ int r128_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-void r128_disable_vblank(struct drm_device *dev, int crtc)
++void r128_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+-	if (crtc != 0)
+-		DRM_ERROR("%s:  bad crtc %d\n", __func__, crtc);
++	if (pipe != 0)
++		DRM_ERROR("%s:  bad crtc %u\n", __func__, pipe);
+ 
+ 	/*
+ 	 * FIXME: implement proper interrupt disable by using the vblank
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 0503af748d99..a58635c5db3d 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -1799,8 +1799,9 @@ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+  * unknown small number of scanlines wrt. real scanout position.
+  *
+  */
+-int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int flags,
+-			       int *vpos, int *hpos, ktime_t *stime, ktime_t *etime,
++int radeon_get_crtc_scanoutpos(struct drm_device *dev, unsigned int pipe,
++			       unsigned int flags, int *vpos, int *hpos,
++			       ktime_t *stime, ktime_t *etime,
+ 			       const struct drm_display_mode *mode)
+ {
+ 	u32 stat_crtc = 0, vbl = 0, position = 0;
+@@ -1816,42 +1817,42 @@ int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int fl
+ 		*stime = ktime_get();
+ 
+ 	if (ASIC_IS_DCE4(rdev)) {
+-		if (crtc == 0) {
++		if (pipe == 0) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC0_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+ 					  EVERGREEN_CRTC0_REGISTER_OFFSET);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 1) {
++		if (pipe == 1) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC1_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+ 					  EVERGREEN_CRTC1_REGISTER_OFFSET);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 2) {
++		if (pipe == 2) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC2_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+ 					  EVERGREEN_CRTC2_REGISTER_OFFSET);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 3) {
++		if (pipe == 3) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC3_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+ 					  EVERGREEN_CRTC3_REGISTER_OFFSET);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 4) {
++		if (pipe == 4) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC4_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+ 					  EVERGREEN_CRTC4_REGISTER_OFFSET);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 5) {
++		if (pipe == 5) {
+ 			vbl = RREG32(EVERGREEN_CRTC_V_BLANK_START_END +
+ 				     EVERGREEN_CRTC5_REGISTER_OFFSET);
+ 			position = RREG32(EVERGREEN_CRTC_STATUS_POSITION +
+@@ -1859,19 +1860,19 @@ int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int fl
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+ 	} else if (ASIC_IS_AVIVO(rdev)) {
+-		if (crtc == 0) {
++		if (pipe == 0) {
+ 			vbl = RREG32(AVIVO_D1CRTC_V_BLANK_START_END);
+ 			position = RREG32(AVIVO_D1CRTC_STATUS_POSITION);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 1) {
++		if (pipe == 1) {
+ 			vbl = RREG32(AVIVO_D2CRTC_V_BLANK_START_END);
+ 			position = RREG32(AVIVO_D2CRTC_STATUS_POSITION);
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+ 	} else {
+ 		/* Pre-AVIVO: Different encoding of scanout pos and vblank interval. */
+-		if (crtc == 0) {
++		if (pipe == 0) {
+ 			/* Assume vbl_end == 0, get vbl_start from
+ 			 * upper 16 bits.
+ 			 */
+@@ -1885,7 +1886,7 @@ int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc, unsigned int fl
+ 
+ 			ret |= DRM_SCANOUTPOS_VALID;
+ 		}
+-		if (crtc == 1) {
++		if (pipe == 1) {
+ 			vbl = (RREG32(RADEON_CRTC2_V_TOTAL_DISP) &
+ 				RADEON_CRTC_V_DISP) >> RADEON_CRTC_V_DISP_SHIFT;
+ 			position = (RREG32(RADEON_CRTC2_VLINE_CRNT_VLINE) >> 16) & RADEON_CRTC_V_TOTAL;
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index e30c1d73b4ca..5b6a6f5b3619 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -105,10 +105,10 @@ void radeon_driver_preclose_kms(struct drm_device *dev,
+ 				struct drm_file *file_priv);
+ int radeon_suspend_kms(struct drm_device *dev, bool suspend, bool fbcon);
+ int radeon_resume_kms(struct drm_device *dev, bool resume, bool fbcon);
+-u32 radeon_get_vblank_counter_kms(struct drm_device *dev, int crtc);
+-int radeon_enable_vblank_kms(struct drm_device *dev, int crtc);
+-void radeon_disable_vblank_kms(struct drm_device *dev, int crtc);
+-int radeon_get_vblank_timestamp_kms(struct drm_device *dev, int crtc,
++u32 radeon_get_vblank_counter_kms(struct drm_device *dev, unsigned int pipe);
++int radeon_enable_vblank_kms(struct drm_device *dev, unsigned int pipe);
++void radeon_disable_vblank_kms(struct drm_device *dev, unsigned int pipe);
++int radeon_get_vblank_timestamp_kms(struct drm_device *dev, unsigned int pipe,
+ 				    int *max_error,
+ 				    struct timeval *vblank_time,
+ 				    unsigned flags);
+@@ -124,9 +124,8 @@ void radeon_gem_object_close(struct drm_gem_object *obj,
+ struct dma_buf *radeon_gem_prime_export(struct drm_device *dev,
+ 					struct drm_gem_object *gobj,
+ 					int flags);
+-extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
+-				      unsigned int flags,
+-				      int *vpos, int *hpos,
++extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, unsigned int crtc,
++				      unsigned int flags, int *vpos, int *hpos,
+ 				      ktime_t *stime, ktime_t *etime,
+ 				      const struct drm_display_mode *mode);
+ extern bool radeon_is_px(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.h b/drivers/gpu/drm/radeon/radeon_drv.h
+index 46bd3938282c..0caafc7a6e17 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.h
++++ b/drivers/gpu/drm/radeon/radeon_drv.h
+@@ -404,9 +404,9 @@ extern int radeon_irq_emit(struct drm_device *dev, void *data, struct drm_file *
+ extern int radeon_irq_wait(struct drm_device *dev, void *data, struct drm_file *file_priv);
+ 
+ extern void radeon_do_release(struct drm_device * dev);
+-extern u32 radeon_get_vblank_counter(struct drm_device *dev, int crtc);
+-extern int radeon_enable_vblank(struct drm_device *dev, int crtc);
+-extern void radeon_disable_vblank(struct drm_device *dev, int crtc);
++extern u32 radeon_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
++extern int radeon_enable_vblank(struct drm_device *dev, unsigned int pipe);
++extern void radeon_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ extern irqreturn_t radeon_driver_irq_handler(int irq, void *arg);
+ extern void radeon_driver_irq_preinstall(struct drm_device * dev);
+ extern int radeon_driver_irq_postinstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/radeon/radeon_irq.c b/drivers/gpu/drm/radeon/radeon_irq.c
+index 244b19bab2e7..688afb62f7c4 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq.c
++++ b/drivers/gpu/drm/radeon/radeon_irq.c
+@@ -62,12 +62,12 @@ static void r500_vbl_irq_set_state(struct drm_device *dev, u32 mask, int state)
+ 		RADEON_WRITE(R500_DxMODE_INT_MASK, dev_priv->r500_disp_irq_reg);
+ }
+ 
+-int radeon_enable_vblank(struct drm_device *dev, int crtc)
++int radeon_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_radeon_private_t *dev_priv = dev->dev_private;
+ 
+ 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600) {
+-		switch (crtc) {
++		switch (pipe) {
+ 		case 0:
+ 			r500_vbl_irq_set_state(dev, R500_D1MODE_INT_MASK, 1);
+ 			break;
+@@ -75,12 +75,12 @@ int radeon_enable_vblank(struct drm_device *dev, int crtc)
+ 			r500_vbl_irq_set_state(dev, R500_D2MODE_INT_MASK, 1);
+ 			break;
+ 		default:
+-			DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+-				  crtc);
++			DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
++				  pipe);
+ 			return -EINVAL;
+ 		}
+ 	} else {
+-		switch (crtc) {
++		switch (pipe) {
+ 		case 0:
+ 			radeon_irq_set_state(dev, RADEON_CRTC_VBLANK_MASK, 1);
+ 			break;
+@@ -88,8 +88,8 @@ int radeon_enable_vblank(struct drm_device *dev, int crtc)
+ 			radeon_irq_set_state(dev, RADEON_CRTC2_VBLANK_MASK, 1);
+ 			break;
+ 		default:
+-			DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+-				  crtc);
++			DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
++				  pipe);
+ 			return -EINVAL;
+ 		}
+ 	}
+@@ -97,12 +97,12 @@ int radeon_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-void radeon_disable_vblank(struct drm_device *dev, int crtc)
++void radeon_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_radeon_private_t *dev_priv = dev->dev_private;
+ 
+ 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600) {
+-		switch (crtc) {
++		switch (pipe) {
+ 		case 0:
+ 			r500_vbl_irq_set_state(dev, R500_D1MODE_INT_MASK, 0);
+ 			break;
+@@ -110,12 +110,12 @@ void radeon_disable_vblank(struct drm_device *dev, int crtc)
+ 			r500_vbl_irq_set_state(dev, R500_D2MODE_INT_MASK, 0);
+ 			break;
+ 		default:
+-			DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+-				  crtc);
++			DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
++				  pipe);
+ 			break;
+ 		}
+ 	} else {
+-		switch (crtc) {
++		switch (pipe) {
+ 		case 0:
+ 			radeon_irq_set_state(dev, RADEON_CRTC_VBLANK_MASK, 0);
+ 			break;
+@@ -123,8 +123,8 @@ void radeon_disable_vblank(struct drm_device *dev, int crtc)
+ 			radeon_irq_set_state(dev, RADEON_CRTC2_VBLANK_MASK, 0);
+ 			break;
+ 		default:
+-			DRM_ERROR("tried to enable vblank on non-existent crtc %d\n",
+-				  crtc);
++			DRM_ERROR("tried to enable vblank on non-existent crtc %u\n",
++				  pipe);
+ 			break;
+ 		}
+ 	}
+@@ -255,7 +255,7 @@ static int radeon_wait_irq(struct drm_device * dev, int swi_nr)
+ 	return ret;
+ }
+ 
+-u32 radeon_get_vblank_counter(struct drm_device *dev, int crtc)
++u32 radeon_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_radeon_private_t *dev_priv = dev->dev_private;
+ 
+@@ -264,18 +264,18 @@ u32 radeon_get_vblank_counter(struct drm_device *dev, int crtc)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (crtc < 0 || crtc > 1) {
+-		DRM_ERROR("Invalid crtc %d\n", crtc);
++	if (pipe > 1) {
++		DRM_ERROR("Invalid crtc %u\n", pipe);
+ 		return -EINVAL;
+ 	}
+ 
+ 	if ((dev_priv->flags & RADEON_FAMILY_MASK) >= CHIP_RS600) {
+-		if (crtc == 0)
++		if (pipe == 0)
+ 			return RADEON_READ(R500_D1CRTC_FRAME_COUNT);
+ 		else
+ 			return RADEON_READ(R500_D2CRTC_FRAME_COUNT);
+ 	} else {
+-		if (crtc == 0)
++		if (pipe == 0)
+ 			return RADEON_READ(RADEON_CRTC_CRNT_FRAME);
+ 		else
+ 			return RADEON_READ(RADEON_CRTC2_CRNT_FRAME);
+diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
+index 2317d04f8a09..de18f0668bea 100644
+--- a/drivers/gpu/drm/radeon/radeon_mode.h
++++ b/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -874,9 +874,8 @@ extern int radeon_crtc_cursor_move(struct drm_crtc *crtc,
+ 				   int x, int y);
+ extern void radeon_cursor_reset(struct drm_crtc *crtc);
+ 
+-extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
+-				      unsigned int flags,
+-				      int *vpos, int *hpos,
++extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, unsigned int pipe,
++				      unsigned int flags, int *vpos, int *hpos,
+ 				      ktime_t *stime, ktime_t *etime,
+ 				      const struct drm_display_mode *mode);
+ 
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_drv.c b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+index 780ca11512ba..bb806c4c2e65 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_drv.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_drv.c
+@@ -221,20 +221,20 @@ static void rcar_du_lastclose(struct drm_device *dev)
+ 	drm_fbdev_cma_restore_mode(rcdu->fbdev);
+ }
+ 
+-static int rcar_du_enable_vblank(struct drm_device *dev, int crtc)
++static int rcar_du_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct rcar_du_device *rcdu = dev->dev_private;
+ 
+-	rcar_du_crtc_enable_vblank(&rcdu->crtcs[crtc], true);
++	rcar_du_crtc_enable_vblank(&rcdu->crtcs[pipe], true);
+ 
+ 	return 0;
+ }
+ 
+-static void rcar_du_disable_vblank(struct drm_device *dev, int crtc)
++static void rcar_du_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct rcar_du_device *rcdu = dev->dev_private;
+ 
+-	rcar_du_crtc_enable_vblank(&rcdu->crtcs[crtc], false);
++	rcar_du_crtc_enable_vblank(&rcdu->crtcs[pipe], false);
+ }
+ 
+ static const struct file_operations rcar_du_fops = {
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+index 9a0c2911272a..32c6098a99d1 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+@@ -103,7 +103,8 @@ static struct drm_crtc *rockchip_crtc_from_pipe(struct drm_device *drm,
+ 	return NULL;
+ }
+ 
+-static int rockchip_drm_crtc_enable_vblank(struct drm_device *dev, int pipe)
++static int rockchip_drm_crtc_enable_vblank(struct drm_device *dev,
++					   unsigned int pipe)
+ {
+ 	struct rockchip_drm_private *priv = dev->dev_private;
+ 	struct drm_crtc *crtc = rockchip_crtc_from_pipe(dev, pipe);
+@@ -115,7 +116,8 @@ static int rockchip_drm_crtc_enable_vblank(struct drm_device *dev, int pipe)
+ 	return 0;
+ }
+ 
+-static void rockchip_drm_crtc_disable_vblank(struct drm_device *dev, int pipe)
++static void rockchip_drm_crtc_disable_vblank(struct drm_device *dev,
++					     unsigned int pipe)
+ {
+ 	struct rockchip_drm_private *priv = dev->dev_private;
+ 	struct drm_crtc *crtc = rockchip_crtc_from_pipe(dev, pipe);
+diff --git a/drivers/gpu/drm/shmobile/shmob_drm_drv.c b/drivers/gpu/drm/shmobile/shmob_drm_drv.c
+index 666321de7b99..ca2f918a6587 100644
+--- a/drivers/gpu/drm/shmobile/shmob_drm_drv.c
++++ b/drivers/gpu/drm/shmobile/shmob_drm_drv.c
+@@ -231,7 +231,7 @@ static irqreturn_t shmob_drm_irq(int irq, void *arg)
+ 	return IRQ_HANDLED;
+ }
+ 
+-static int shmob_drm_enable_vblank(struct drm_device *dev, int crtc)
++static int shmob_drm_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct shmob_drm_device *sdev = dev->dev_private;
+ 
+@@ -240,7 +240,7 @@ static int shmob_drm_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-static void shmob_drm_disable_vblank(struct drm_device *dev, int crtc)
++static void shmob_drm_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct shmob_drm_device *sdev = dev->dev_private;
+ 
+diff --git a/drivers/gpu/drm/sti/sti_crtc.c b/drivers/gpu/drm/sti/sti_crtc.c
+index 018ffc970e96..493c4a3006ad 100644
+--- a/drivers/gpu/drm/sti/sti_crtc.c
++++ b/drivers/gpu/drm/sti/sti_crtc.c
+@@ -299,7 +299,7 @@ int sti_crtc_vblank_cb(struct notifier_block *nb,
+ 	return 0;
+ }
+ 
+-int sti_crtc_enable_vblank(struct drm_device *dev, int crtc)
++int sti_crtc_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	struct sti_private *dev_priv = dev->dev_private;
+ 	struct sti_compositor *compo = dev_priv->compo;
+@@ -307,9 +307,9 @@ int sti_crtc_enable_vblank(struct drm_device *dev, int crtc)
+ 
+ 	DRM_DEBUG_DRIVER("\n");
+ 
+-	if (sti_vtg_register_client(crtc == STI_MIXER_MAIN ?
++	if (sti_vtg_register_client(pipe == STI_MIXER_MAIN ?
+ 			compo->vtg_main : compo->vtg_aux,
+-			vtg_vblank_nb, crtc)) {
++			vtg_vblank_nb, pipe)) {
+ 		DRM_ERROR("Cannot register VTG notifier\n");
+ 		return -EINVAL;
+ 	}
+@@ -318,7 +318,7 @@ int sti_crtc_enable_vblank(struct drm_device *dev, int crtc)
+ }
+ EXPORT_SYMBOL(sti_crtc_enable_vblank);
+ 
+-void sti_crtc_disable_vblank(struct drm_device *drm_dev, int crtc)
++void sti_crtc_disable_vblank(struct drm_device *drm_dev, unsigned int pipe)
+ {
+ 	struct sti_private *priv = drm_dev->dev_private;
+ 	struct sti_compositor *compo = priv->compo;
+@@ -326,14 +326,14 @@ void sti_crtc_disable_vblank(struct drm_device *drm_dev, int crtc)
+ 
+ 	DRM_DEBUG_DRIVER("\n");
+ 
+-	if (sti_vtg_unregister_client(crtc == STI_MIXER_MAIN ?
++	if (sti_vtg_unregister_client(pipe == STI_MIXER_MAIN ?
+ 			compo->vtg_main : compo->vtg_aux, vtg_vblank_nb))
+ 		DRM_DEBUG_DRIVER("Warning: cannot unregister VTG notifier\n");
+ 
+ 	/* free the resources of the pending requests */
+-	if (compo->mixer[crtc]->pending_event) {
+-		drm_vblank_put(drm_dev, crtc);
+-		compo->mixer[crtc]->pending_event = NULL;
++	if (compo->mixer[pipe]->pending_event) {
++		drm_vblank_put(drm_dev, pipe);
++		compo->mixer[pipe]->pending_event = NULL;
+ 	}
+ }
+ EXPORT_SYMBOL(sti_crtc_disable_vblank);
+diff --git a/drivers/gpu/drm/sti/sti_crtc.h b/drivers/gpu/drm/sti/sti_crtc.h
+index 51963e6ddbe7..3f2d89a3634d 100644
+--- a/drivers/gpu/drm/sti/sti_crtc.h
++++ b/drivers/gpu/drm/sti/sti_crtc.h
+@@ -13,8 +13,8 @@ struct sti_mixer;
+ 
+ int sti_crtc_init(struct drm_device *drm_dev, struct sti_mixer *mixer,
+ 		  struct drm_plane *primary, struct drm_plane *cursor);
+-int sti_crtc_enable_vblank(struct drm_device *dev, int crtc);
+-void sti_crtc_disable_vblank(struct drm_device *dev, int crtc);
++int sti_crtc_enable_vblank(struct drm_device *dev, unsigned int pipe);
++void sti_crtc_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ int sti_crtc_vblank_cb(struct notifier_block *nb,
+ 		       unsigned long event, void *data);
+ bool sti_crtc_is_main(struct drm_crtc *drm_crtc);
+diff --git a/drivers/gpu/drm/tegra/drm.c b/drivers/gpu/drm/tegra/drm.c
+index 2486bc24bff6..759e6af91e59 100644
+--- a/drivers/gpu/drm/tegra/drm.c
++++ b/drivers/gpu/drm/tegra/drm.c
+@@ -822,7 +822,8 @@ static struct drm_crtc *tegra_crtc_from_pipe(struct drm_device *drm,
+ 	return NULL;
+ }
+ 
+-static u32 tegra_drm_get_vblank_counter(struct drm_device *drm, int pipe)
++static u32 tegra_drm_get_vblank_counter(struct drm_device *drm,
++					unsigned int pipe)
+ {
+ 	struct drm_crtc *crtc = tegra_crtc_from_pipe(drm, pipe);
+ 	struct tegra_dc *dc = to_tegra_dc(crtc);
+@@ -833,7 +834,7 @@ static u32 tegra_drm_get_vblank_counter(struct drm_device *drm, int pipe)
+ 	return tegra_dc_get_vblank_counter(dc);
+ }
+ 
+-static int tegra_drm_enable_vblank(struct drm_device *drm, int pipe)
++static int tegra_drm_enable_vblank(struct drm_device *drm, unsigned int pipe)
+ {
+ 	struct drm_crtc *crtc = tegra_crtc_from_pipe(drm, pipe);
+ 	struct tegra_dc *dc = to_tegra_dc(crtc);
+@@ -846,7 +847,7 @@ static int tegra_drm_enable_vblank(struct drm_device *drm, int pipe)
+ 	return 0;
+ }
+ 
+-static void tegra_drm_disable_vblank(struct drm_device *drm, int pipe)
++static void tegra_drm_disable_vblank(struct drm_device *drm, unsigned int pipe)
+ {
+ 	struct drm_crtc *crtc = tegra_crtc_from_pipe(drm, pipe);
+ 	struct tegra_dc *dc = to_tegra_dc(crtc);
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index 0f283a3b932c..a5b8f5d39311 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -425,13 +425,13 @@ static void enable_vblank(struct drm_device *dev, bool enable)
+ 		tilcdc_clear(dev, reg, mask);
+ }
+ 
+-static int tilcdc_enable_vblank(struct drm_device *dev, int crtc)
++static int tilcdc_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	enable_vblank(dev, true);
+ 	return 0;
+ }
+ 
+-static void tilcdc_disable_vblank(struct drm_device *dev, int crtc)
++static void tilcdc_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	enable_vblank(dev, false);
+ }
+diff --git a/drivers/gpu/drm/via/via_drv.h b/drivers/gpu/drm/via/via_drv.h
+index ef8c500b4a00..644093f5046c 100644
+--- a/drivers/gpu/drm/via/via_drv.h
++++ b/drivers/gpu/drm/via/via_drv.h
+@@ -136,9 +136,9 @@ extern int via_init_context(struct drm_device *dev, int context);
+ extern int via_final_context(struct drm_device *dev, int context);
+ 
+ extern int via_do_cleanup_map(struct drm_device *dev);
+-extern u32 via_get_vblank_counter(struct drm_device *dev, int crtc);
+-extern int via_enable_vblank(struct drm_device *dev, int crtc);
+-extern void via_disable_vblank(struct drm_device *dev, int crtc);
++extern u32 via_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
++extern int via_enable_vblank(struct drm_device *dev, unsigned int pipe);
++extern void via_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ 
+ extern irqreturn_t via_driver_irq_handler(int irq, void *arg);
+ extern void via_driver_irq_preinstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/via/via_irq.c b/drivers/gpu/drm/via/via_irq.c
+index 1319433816d3..ea8172c747a2 100644
+--- a/drivers/gpu/drm/via/via_irq.c
++++ b/drivers/gpu/drm/via/via_irq.c
+@@ -95,10 +95,11 @@ static unsigned time_diff(struct timeval *now, struct timeval *then)
+ 		1000000 - (then->tv_usec - now->tv_usec);
+ }
+ 
+-u32 via_get_vblank_counter(struct drm_device *dev, int crtc)
++u32 via_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_via_private_t *dev_priv = dev->dev_private;
+-	if (crtc != 0)
++
++	if (pipe != 0)
+ 		return 0;
+ 
+ 	return atomic_read(&dev_priv->vbl_received);
+@@ -170,13 +171,13 @@ static __inline__ void viadrv_acknowledge_irqs(drm_via_private_t *dev_priv)
+ 	}
+ }
+ 
+-int via_enable_vblank(struct drm_device *dev, int crtc)
++int via_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_via_private_t *dev_priv = dev->dev_private;
+ 	u32 status;
+ 
+-	if (crtc != 0) {
+-		DRM_ERROR("%s:  bad crtc %d\n", __func__, crtc);
++	if (pipe != 0) {
++		DRM_ERROR("%s:  bad crtc %u\n", __func__, pipe);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -189,7 +190,7 @@ int via_enable_vblank(struct drm_device *dev, int crtc)
+ 	return 0;
+ }
+ 
+-void via_disable_vblank(struct drm_device *dev, int crtc)
++void via_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	drm_via_private_t *dev_priv = dev->dev_private;
+ 	u32 status;
+@@ -200,8 +201,8 @@ void via_disable_vblank(struct drm_device *dev, int crtc)
+ 	VIA_WRITE8(0x83d4, 0x11);
+ 	VIA_WRITE8(0x83d5, VIA_READ8(0x83d5) & ~0x30);
+ 
+-	if (crtc != 0)
+-		DRM_ERROR("%s:  bad crtc %d\n", __func__, crtc);
++	if (pipe != 0)
++		DRM_ERROR("%s:  bad crtc %u\n", __func__, pipe);
+ }
+ 
+ static int
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+index f19fd39b43e1..a613bd4851ba 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+@@ -914,9 +914,9 @@ void vmw_kms_idle_workqueues(struct vmw_master *vmaster);
+ bool vmw_kms_validate_mode_vram(struct vmw_private *dev_priv,
+ 				uint32_t pitch,
+ 				uint32_t height);
+-u32 vmw_get_vblank_counter(struct drm_device *dev, int crtc);
+-int vmw_enable_vblank(struct drm_device *dev, int crtc);
+-void vmw_disable_vblank(struct drm_device *dev, int crtc);
++u32 vmw_get_vblank_counter(struct drm_device *dev, unsigned int pipe);
++int vmw_enable_vblank(struct drm_device *dev, unsigned int pipe);
++void vmw_disable_vblank(struct drm_device *dev, unsigned int pipe);
+ int vmw_kms_present(struct vmw_private *dev_priv,
+ 		    struct drm_file *file_priv,
+ 		    struct vmw_framebuffer *vfb,
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+index 15a6c01cd016..03ffab2a6a9c 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+@@ -1263,7 +1263,7 @@ bool vmw_kms_validate_mode_vram(struct vmw_private *dev_priv,
+ /**
+  * Function called by DRM code called with vbl_lock held.
+  */
+-u32 vmw_get_vblank_counter(struct drm_device *dev, int crtc)
++u32 vmw_get_vblank_counter(struct drm_device *dev, unsigned int pipe)
+ {
+ 	return 0;
+ }
+@@ -1271,7 +1271,7 @@ u32 vmw_get_vblank_counter(struct drm_device *dev, int crtc)
+ /**
+  * Function called by DRM code called with vbl_lock held.
+  */
+-int vmw_enable_vblank(struct drm_device *dev, int crtc)
++int vmw_enable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ 	return -ENOSYS;
+ }
+@@ -1279,7 +1279,7 @@ int vmw_enable_vblank(struct drm_device *dev, int crtc)
+ /**
+  * Function called by DRM code called with vbl_lock held.
+  */
+-void vmw_disable_vblank(struct drm_device *dev, int crtc)
++void vmw_disable_vblank(struct drm_device *dev, unsigned int pipe)
+ {
+ }
+ 
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 967d8a03c0e1..1cb1e842e64d 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -412,7 +412,7 @@ struct drm_driver {
+ 	/**
+ 	 * get_vblank_counter - get raw hardware vblank counter
+ 	 * @dev: DRM device
+-	 * @crtc: counter to fetch
++	 * @pipe: counter to fetch
+ 	 *
+ 	 * Driver callback for fetching a raw hardware vblank counter for @crtc.
+ 	 * If a device doesn't have a hardware counter, the driver can simply
+@@ -426,12 +426,12 @@ struct drm_driver {
+ 	 * RETURNS
+ 	 * Raw vblank counter value.
+ 	 */
+-	u32 (*get_vblank_counter) (struct drm_device *dev, int crtc);
++	u32 (*get_vblank_counter) (struct drm_device *dev, unsigned int pipe);
+ 
+ 	/**
+ 	 * enable_vblank - enable vblank interrupt events
+ 	 * @dev: DRM device
+-	 * @crtc: which irq to enable
++	 * @pipe: which irq to enable
+ 	 *
+ 	 * Enable vblank interrupts for @crtc.  If the device doesn't have
+ 	 * a hardware vblank counter, this routine should be a no-op, since
+@@ -441,18 +441,18 @@ struct drm_driver {
+ 	 * Zero on success, appropriate errno if the given @crtc's vblank
+ 	 * interrupt cannot be enabled.
+ 	 */
+-	int (*enable_vblank) (struct drm_device *dev, int crtc);
++	int (*enable_vblank) (struct drm_device *dev, unsigned int pipe);
+ 
+ 	/**
+ 	 * disable_vblank - disable vblank interrupt events
+ 	 * @dev: DRM device
+-	 * @crtc: which irq to enable
++	 * @pipe: which irq to enable
+ 	 *
+ 	 * Disable vblank interrupts for @crtc.  If the device doesn't have
+ 	 * a hardware vblank counter, this routine should be a no-op, since
+ 	 * interrupts will have to stay on to keep the count accurate.
+ 	 */
+-	void (*disable_vblank) (struct drm_device *dev, int crtc);
++	void (*disable_vblank) (struct drm_device *dev, unsigned int pipe);
+ 
+ 	/**
+ 	 * Called by \c drm_device_is_agp.  Typically used to determine if a
+@@ -474,7 +474,7 @@ struct drm_driver {
+ 	 * optional accurate ktime_get timestamp of when position was measured.
+ 	 *
+ 	 * \param dev  DRM device.
+-	 * \param crtc Id of the crtc to query.
++	 * \param pipe Id of the crtc to query.
+ 	 * \param flags Flags from the caller (DRM_CALLED_FROM_VBLIRQ or 0).
+ 	 * \param *vpos Target location for current vertical scanout position.
+ 	 * \param *hpos Target location for current horizontal scanout position.
+@@ -498,9 +498,8 @@ struct drm_driver {
+ 	 * but unknown small number of scanlines wrt. real scanout position.
+ 	 *
+ 	 */
+-	int (*get_scanout_position) (struct drm_device *dev, int crtc,
+-				     unsigned int flags,
+-				     int *vpos, int *hpos,
++	int (*get_scanout_position) (struct drm_device *dev, unsigned int pipe,
++				     unsigned int flags, int *vpos, int *hpos,
+ 				     ktime_t *stime, ktime_t *etime,
+ 				     const struct drm_display_mode *mode);
+ 
+@@ -518,7 +517,7 @@ struct drm_driver {
+ 	 * to the OpenML OML_sync_control extension specification.
+ 	 *
+ 	 * \param dev dev DRM device handle.
+-	 * \param crtc crtc for which timestamp should be returned.
++	 * \param pipe crtc for which timestamp should be returned.
+ 	 * \param *max_error Maximum allowable timestamp error in nanoseconds.
+ 	 *                   Implementation should strive to provide timestamp
+ 	 *                   with an error of at most *max_error nanoseconds.
+@@ -534,7 +533,7 @@ struct drm_driver {
+ 	 * negative number on failure. A positive status code on success,
+ 	 * which describes how the vblank_time timestamp was computed.
+ 	 */
+-	int (*get_vblank_timestamp) (struct drm_device *dev, int crtc,
++	int (*get_vblank_timestamp) (struct drm_device *dev, unsigned int pipe,
+ 				     int *max_error,
+ 				     struct timeval *vblank_time,
+ 				     unsigned flags);
+@@ -930,7 +929,7 @@ extern int drm_irq_uninstall(struct drm_device *dev);
+ extern int drm_vblank_init(struct drm_device *dev, unsigned int num_crtcs);
+ extern int drm_wait_vblank(struct drm_device *dev, void *data,
+ 			   struct drm_file *filp);
+-extern u32 drm_vblank_count(struct drm_device *dev, int pipe);
++extern u32 drm_vblank_count(struct drm_device *dev, unsigned int pipe);
+ extern u32 drm_crtc_vblank_count(struct drm_crtc *crtc);
+ extern u32 drm_vblank_count_and_time(struct drm_device *dev, unsigned int pipe,
+ 				     struct timeval *vblanktime);
+-- 
+2.17.0
+

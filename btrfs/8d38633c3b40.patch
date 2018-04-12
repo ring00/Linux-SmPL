@@ -1,0 +1,53 @@
+From 8d38633c3b4093aca7524945f1e9249d7d3a44da Mon Sep 17 00:00:00 2001
+From: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
+Date: Wed, 11 Feb 2015 15:26:55 -0800
+Subject: [PATCH] page_writeback: put account_page_redirty() after
+ set_page_dirty()
+
+Helper account_page_redirty() fixes dirty pages counter for redirtied
+pages.  This patch puts it after dirtying and prevents temporary
+underflows of dirtied pages counters on zone/bdi and current->nr_dirtied.
+
+Signed-off-by: Konstantin Khebnikov <khlebnikov@yandex-team.ru>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ fs/btrfs/extent_io.c | 2 +-
+ mm/page-writeback.c  | 5 ++++-
+ 2 files changed, 5 insertions(+), 2 deletions(-)
+
+diff --git a/fs/btrfs/extent_io.c b/fs/btrfs/extent_io.c
+index 790dbae3343c..c73df6a7c9b6 100644
+--- a/fs/btrfs/extent_io.c
++++ b/fs/btrfs/extent_io.c
+@@ -1407,8 +1407,8 @@ int extent_range_redirty_for_io(struct inode *inode, u64 start, u64 end)
+ 	while (index <= end_index) {
+ 		page = find_get_page(inode->i_mapping, index);
+ 		BUG_ON(!page); /* Pages should be in the extent_io_tree */
+-		account_page_redirty(page);
+ 		__set_page_dirty_nobuffers(page);
++		account_page_redirty(page);
+ 		page_cache_release(page);
+ 		index++;
+ 	}
+diff --git a/mm/page-writeback.c b/mm/page-writeback.c
+index fb71e9deca85..6a73e47e81c6 100644
+--- a/mm/page-writeback.c
++++ b/mm/page-writeback.c
+@@ -2168,9 +2168,12 @@ EXPORT_SYMBOL(account_page_redirty);
+  */
+ int redirty_page_for_writepage(struct writeback_control *wbc, struct page *page)
+ {
++	int ret;
++
+ 	wbc->pages_skipped++;
++	ret = __set_page_dirty_nobuffers(page);
+ 	account_page_redirty(page);
+-	return __set_page_dirty_nobuffers(page);
++	return ret;
+ }
+ EXPORT_SYMBOL(redirty_page_for_writepage);
+ 
+-- 
+2.17.0
+

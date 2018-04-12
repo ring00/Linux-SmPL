@@ -1,0 +1,135 @@
+From 789c1b626cb490acb36cf481b45040b324f60fde Mon Sep 17 00:00:00 2001
+From: Andreas Gruenbacher <agruen@linbit.com>
+Date: Mon, 6 Jun 2011 16:16:44 +0200
+Subject: [PATCH] drbd: Use the terminology suggested by the command names in
+ the source code and messages
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_nl.c | 16 ++++++++--------
+ include/linux/drbd.h         |  4 ++--
+ include/linux/drbd_genl.h    | 17 ++++-------------
+ 3 files changed, 14 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 31d27dd92924..5b4090f52f5a 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -47,8 +47,8 @@
+ int drbd_adm_add_minor(struct sk_buff *skb, struct genl_info *info);
+ int drbd_adm_delete_minor(struct sk_buff *skb, struct genl_info *info);
+ 
+-int drbd_adm_create_connection(struct sk_buff *skb, struct genl_info *info);
+-int drbd_adm_delete_connection(struct sk_buff *skb, struct genl_info *info);
++int drbd_adm_new_resource(struct sk_buff *skb, struct genl_info *info);
++int drbd_adm_del_resource(struct sk_buff *skb, struct genl_info *info);
+ int drbd_adm_down(struct sk_buff *skb, struct genl_info *info);
+ 
+ int drbd_adm_set_role(struct sk_buff *skb, struct genl_info *info);
+@@ -2972,7 +2972,7 @@ drbd_check_conn_name(const char *name)
+ 	return NO_ERROR;
+ }
+ 
+-int drbd_adm_create_connection(struct sk_buff *skb, struct genl_info *info)
++int drbd_adm_new_resource(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	enum drbd_ret_code retcode;
+ 
+@@ -2989,7 +2989,7 @@ int drbd_adm_create_connection(struct sk_buff *skb, struct genl_info *info)
+ 	if (adm_ctx.tconn) {
+ 		if (info->nlhdr->nlmsg_flags & NLM_F_EXCL) {
+ 			retcode = ERR_INVALID_REQUEST;
+-			drbd_msg_put_info("connection exists");
++			drbd_msg_put_info("resource exists");
+ 		}
+ 		/* else: still NO_ERROR */
+ 		goto out;
+@@ -3086,7 +3086,7 @@ int drbd_adm_down(struct sk_buff *skb, struct genl_info *info)
+ 		goto out;
+ 
+ 	if (!adm_ctx.tconn) {
+-		retcode = ERR_CONN_NOT_KNOWN;
++		retcode = ERR_RES_NOT_KNOWN;
+ 		goto out;
+ 	}
+ 
+@@ -3140,7 +3140,7 @@ int drbd_adm_down(struct sk_buff *skb, struct genl_info *info)
+ 		retcode = NO_ERROR;
+ 	} else {
+ 		/* "can not happen" */
+-		retcode = ERR_CONN_IN_USE;
++		retcode = ERR_RES_IN_USE;
+ 		drbd_msg_put_info("failed to delete connection");
+ 	}
+ 	goto out;
+@@ -3149,7 +3149,7 @@ int drbd_adm_down(struct sk_buff *skb, struct genl_info *info)
+ 	return 0;
+ }
+ 
+-int drbd_adm_delete_connection(struct sk_buff *skb, struct genl_info *info)
++int drbd_adm_del_resource(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	enum drbd_ret_code retcode;
+ 
+@@ -3166,7 +3166,7 @@ int drbd_adm_delete_connection(struct sk_buff *skb, struct genl_info *info)
+ 
+ 		retcode = NO_ERROR;
+ 	} else {
+-		retcode = ERR_CONN_IN_USE;
++		retcode = ERR_RES_IN_USE;
+ 	}
+ 
+ 	if (retcode == NO_ERROR)
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index fedda00374af..161cd414b036 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -155,8 +155,8 @@ enum drbd_ret_code {
+ 	ERR_CONG_NOT_PROTO_A	= 155,
+ 	ERR_PIC_AFTER_DEP	= 156,
+ 	ERR_PIC_PEER_DEP	= 157,
+-	ERR_CONN_NOT_KNOWN      = 158,
+-	ERR_CONN_IN_USE         = 159,
++	ERR_RES_NOT_KNOWN	= 158,
++	ERR_RES_IN_USE		= 159,
+ 	ERR_MINOR_CONFIGURED    = 160,
+ 	ERR_MINOR_EXISTS	= 161,
+ 	ERR_INVALID_REQUEST	= 162,
+diff --git a/include/linux/drbd_genl.h b/include/linux/drbd_genl.h
+index 4ceecb9307d9..47ef324b69db 100644
+--- a/include/linux/drbd_genl.h
++++ b/include/linux/drbd_genl.h
+@@ -253,25 +253,16 @@ GENL_op(
+ 	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_GENLA_F_MANDATORY)
+ )
+ 
+-#if 0
+-	/* TO BE DONE */
+-	/* create or destroy resources, aka replication groups */
+-GENL_op(DRBD_ADM_CREATE_RESOURCE, 3, GENL_doit(drbd_adm_create_resource),
+-	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+-GENL_op(DRBD_ADM_DELETE_RESOURCE, 4, GENL_doit(drbd_adm_delete_resource),
+-	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+-#endif
+-
+ 	/* add DRBD minor devices as volumes to resources */
+-GENL_op(DRBD_ADM_ADD_MINOR, 5, GENL_doit(drbd_adm_add_minor),
++GENL_op(DRBD_ADM_NEW_MINOR, 5, GENL_doit(drbd_adm_add_minor),
+ 	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+ GENL_op(DRBD_ADM_DEL_MINOR, 6, GENL_doit(drbd_adm_delete_minor),
+ 	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+ 
+-	/* add or delete replication links to resources */
+-GENL_op(DRBD_ADM_ADD_LINK, 7, GENL_doit(drbd_adm_create_connection),
++	/* add or delete resources */
++GENL_op(DRBD_ADM_NEW_RESOURCE, 7, GENL_doit(drbd_adm_new_resource),
+ 	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+-GENL_op(DRBD_ADM_DEL_LINK, 8, GENL_doit(drbd_adm_delete_connection),
++GENL_op(DRBD_ADM_DEL_RESOURCE, 8, GENL_doit(drbd_adm_del_resource),
+ 	GENL_tla_expected(DRBD_NLA_CFG_CONTEXT, DRBD_F_REQUIRED))
+ 
+ GENL_op(DRBD_ADM_RESOURCE_OPTS, 9,
+-- 
+2.17.0
+

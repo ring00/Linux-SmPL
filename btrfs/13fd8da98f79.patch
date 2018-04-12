@@ -1,0 +1,40 @@
+From 13fd8da98f79317d26277360d510caa1edf9bab3 Mon Sep 17 00:00:00 2001
+From: David Sterba <dsterba@suse.cz>
+Date: Tue, 3 Sep 2013 18:28:57 +0200
+Subject: [PATCH] btrfs: add lockdep and tracing annotations for uuid tree
+
+Signed-off-by: David Sterba <dsterba@suse.cz>
+Signed-off-by: Josef Bacik <jbacik@fusionio.com>
+Signed-off-by: Chris Mason <chris.mason@fusionio.com>
+---
+ fs/btrfs/disk-io.c           | 1 +
+ include/trace/events/btrfs.h | 1 +
+ 2 files changed, 2 insertions(+)
+
+diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
+index 4cbb00af92ff..72cf08b2be85 100644
+--- a/fs/btrfs/disk-io.c
++++ b/fs/btrfs/disk-io.c
+@@ -157,6 +157,7 @@ static struct btrfs_lockdep_keyset {
+ 	{ .id = BTRFS_TREE_LOG_OBJECTID,	.name_stem = "log"	},
+ 	{ .id = BTRFS_TREE_RELOC_OBJECTID,	.name_stem = "treloc"	},
+ 	{ .id = BTRFS_DATA_RELOC_TREE_OBJECTID,	.name_stem = "dreloc"	},
++	{ .id = BTRFS_UUID_TREE_OBJECTID,	.name_stem = "uuid"	},
+ 	{ .id = 0,				.name_stem = "tree"	},
+ };
+ 
+diff --git a/include/trace/events/btrfs.h b/include/trace/events/btrfs.h
+index 45702c3c3837..f18b3b76e01e 100644
+--- a/include/trace/events/btrfs.h
++++ b/include/trace/events/btrfs.h
+@@ -42,6 +42,7 @@ struct extent_buffer;
+ 		{ BTRFS_TREE_LOG_OBJECTID,	"TREE_LOG"	},	\
+ 		{ BTRFS_QUOTA_TREE_OBJECTID,	"QUOTA_TREE"	},	\
+ 		{ BTRFS_TREE_RELOC_OBJECTID,	"TREE_RELOC"	},	\
++		{ BTRFS_UUID_TREE_OBJECTID,	"UUID_RELOC"	},	\
+ 		{ BTRFS_DATA_RELOC_TREE_OBJECTID, "DATA_RELOC_TREE" })
+ 
+ #define show_root_type(obj)						\
+-- 
+2.17.0
+

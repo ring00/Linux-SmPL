@@ -1,0 +1,6094 @@
+From 760285e7e7ab282c25b5e90816f7c47000557f4f Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Tue, 2 Oct 2012 18:01:07 +0100
+Subject: [PATCH] UAPI: (Scripted) Convert #include "..." to #include
+ <path/...> in drivers/gpu/
+
+Convert #include "..." to #include <path/...> in drivers/gpu/.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Dave Airlie <airlied@redhat.com>
+Acked-by: Arnd Bergmann <arnd@arndb.de>
+Acked-by: Thomas Gleixner <tglx@linutronix.de>
+Acked-by: Paul E. McKenney <paulmck@linux.vnet.ibm.com>
+Acked-by: Dave Jones <davej@redhat.com>
+---
+ drivers/gpu/drm/ast/ast_drv.c                  |  4 ++--
+ drivers/gpu/drm/ast/ast_drv.h                  | 12 ++++++------
+ drivers/gpu/drm/ast/ast_fb.c                   |  6 +++---
+ drivers/gpu/drm/ast/ast_main.c                 |  6 +++---
+ drivers/gpu/drm/ast/ast_mode.c                 |  6 +++---
+ drivers/gpu/drm/ast/ast_post.c                 |  2 +-
+ drivers/gpu/drm/ast/ast_ttm.c                  |  2 +-
+ drivers/gpu/drm/ati_pcigart.c                  |  2 +-
+ drivers/gpu/drm/cirrus/cirrus_drv.c            |  2 +-
+ drivers/gpu/drm/cirrus/cirrus_drv.h            | 10 +++++-----
+ drivers/gpu/drm/cirrus/cirrus_fbdev.c          |  4 ++--
+ drivers/gpu/drm/cirrus/cirrus_main.c           |  4 ++--
+ drivers/gpu/drm/cirrus/cirrus_mode.c           |  4 ++--
+ drivers/gpu/drm/cirrus/cirrus_ttm.c            |  2 +-
+ drivers/gpu/drm/drm_agpsupport.c               |  2 +-
+ drivers/gpu/drm/drm_auth.c                     |  2 +-
+ drivers/gpu/drm/drm_buffer.c                   |  2 +-
+ drivers/gpu/drm/drm_bufs.c                     |  2 +-
+ drivers/gpu/drm/drm_cache.c                    |  2 +-
+ drivers/gpu/drm/drm_context.c                  |  2 +-
+ drivers/gpu/drm/drm_crtc.c                     |  8 ++++----
+ drivers/gpu/drm/drm_crtc_helper.c              | 12 ++++++------
+ drivers/gpu/drm/drm_debugfs.c                  |  2 +-
+ drivers/gpu/drm/drm_dma.c                      |  2 +-
+ drivers/gpu/drm/drm_dp_i2c_helper.c            |  4 ++--
+ drivers/gpu/drm/drm_drv.c                      |  4 ++--
+ drivers/gpu/drm/drm_edid.c                     |  4 ++--
+ drivers/gpu/drm/drm_edid_load.c                |  8 ++++----
+ drivers/gpu/drm/drm_edid_modes.h               |  4 ++--
+ drivers/gpu/drm/drm_encoder_slave.c            |  2 +-
+ drivers/gpu/drm/drm_fb_helper.c                |  8 ++++----
+ drivers/gpu/drm/drm_fops.c                     |  2 +-
+ drivers/gpu/drm/drm_gem.c                      |  2 +-
+ drivers/gpu/drm/drm_global.c                   |  2 +-
+ drivers/gpu/drm/drm_hashtab.c                  |  4 ++--
+ drivers/gpu/drm/drm_info.c                     |  2 +-
+ drivers/gpu/drm/drm_ioc32.c                    |  4 ++--
+ drivers/gpu/drm/drm_ioctl.c                    |  8 ++++----
+ drivers/gpu/drm/drm_irq.c                      |  2 +-
+ drivers/gpu/drm/drm_lock.c                     |  2 +-
+ drivers/gpu/drm/drm_memory.c                   |  2 +-
+ drivers/gpu/drm/drm_mm.c                       |  4 ++--
+ drivers/gpu/drm/drm_modes.c                    |  4 ++--
+ drivers/gpu/drm/drm_pci.c                      |  2 +-
+ drivers/gpu/drm/drm_platform.c                 |  2 +-
+ drivers/gpu/drm/drm_prime.c                    |  2 +-
+ drivers/gpu/drm/drm_proc.c                     |  2 +-
+ drivers/gpu/drm/drm_scatter.c                  |  2 +-
+ drivers/gpu/drm/drm_stub.c                     |  4 ++--
+ drivers/gpu/drm/drm_sysfs.c                    |  6 +++---
+ drivers/gpu/drm/drm_trace_points.c             |  2 +-
+ drivers/gpu/drm/drm_usb.c                      |  2 +-
+ drivers/gpu/drm/drm_vm.c                       |  2 +-
+ drivers/gpu/drm/exynos/exynos_ddc.c            |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_buf.c        |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_connector.c  |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_core.c       |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_crtc.c       |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_dmabuf.c     |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_drv.c        |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_encoder.c    |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_fb.c         |  8 ++++----
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c      |  8 ++++----
+ drivers/gpu/drm/exynos/exynos_drm_fimd.c       |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_g2d.c        |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_gem.c        |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_hdmi.c       |  2 +-
+ drivers/gpu/drm/exynos/exynos_drm_plane.c      |  4 ++--
+ drivers/gpu/drm/exynos/exynos_drm_vidi.c       |  6 +++---
+ drivers/gpu/drm/exynos/exynos_hdmi.c           |  6 +++---
+ drivers/gpu/drm/exynos/exynos_hdmiphy.c        |  2 +-
+ drivers/gpu/drm/exynos/exynos_mixer.c          |  2 +-
+ drivers/gpu/drm/gma500/cdv_device.c            |  2 +-
+ drivers/gpu/drm/gma500/gem.c                   |  2 +-
+ drivers/gpu/drm/gma500/intel_bios.c            |  2 +-
+ drivers/gpu/drm/gma500/intel_gmbus.c           |  4 ++--
+ drivers/gpu/drm/gma500/mid_bios.c              |  2 +-
+ drivers/gpu/drm/gma500/oaktrail_device.c       |  2 +-
+ drivers/gpu/drm/gma500/psb_device.c            |  2 +-
+ drivers/gpu/drm/gma500/psb_drv.c               |  2 +-
+ drivers/gpu/drm/gma500/psb_drv.h               |  4 ++--
+ drivers/gpu/drm/gma500/psb_intel_sdvo.c        |  8 ++++----
+ drivers/gpu/drm/i2c/ch7006_priv.h              |  8 ++++----
+ drivers/gpu/drm/i2c/sil164_drv.c               |  8 ++++----
+ drivers/gpu/drm/i810/i810_dma.c                |  4 ++--
+ drivers/gpu/drm/i810/i810_drv.c                |  6 +++---
+ drivers/gpu/drm/i915/dvo.h                     |  4 ++--
+ drivers/gpu/drm/i915/i915_debugfs.c            |  4 ++--
+ drivers/gpu/drm/i915/i915_dma.c                |  8 ++++----
+ drivers/gpu/drm/i915/i915_drv.c                |  6 +++---
+ drivers/gpu/drm/i915/i915_gem.c                |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_context.c        |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_debug.c          |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c         |  2 +-
+ drivers/gpu/drm/i915/i915_gem_evict.c          |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c     |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_gtt.c            |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_stolen.c         |  4 ++--
+ drivers/gpu/drm/i915/i915_gem_tiling.c         |  8 ++++----
+ drivers/gpu/drm/i915/i915_ioc32.c              |  4 ++--
+ drivers/gpu/drm/i915/i915_irq.c                |  4 ++--
+ drivers/gpu/drm/i915/i915_suspend.c            |  4 ++--
+ drivers/gpu/drm/i915/intel_acpi.c              |  2 +-
+ drivers/gpu/drm/i915/intel_bios.c              |  4 ++--
+ drivers/gpu/drm/i915/intel_bios.h              |  2 +-
+ drivers/gpu/drm/i915/intel_crt.c               | 10 +++++-----
+ drivers/gpu/drm/i915/intel_display.c           |  8 ++++----
+ drivers/gpu/drm/i915/intel_dp.c                | 12 ++++++------
+ drivers/gpu/drm/i915/intel_drv.h               |  8 ++++----
+ drivers/gpu/drm/i915/intel_dvo.c               |  6 +++---
+ drivers/gpu/drm/i915/intel_fb.c                |  8 ++++----
+ drivers/gpu/drm/i915/intel_hdmi.c              |  8 ++++----
+ drivers/gpu/drm/i915/intel_i2c.c               |  4 ++--
+ drivers/gpu/drm/i915/intel_lvds.c              |  8 ++++----
+ drivers/gpu/drm/i915/intel_modes.c             |  4 ++--
+ drivers/gpu/drm/i915/intel_opregion.c          |  4 ++--
+ drivers/gpu/drm/i915/intel_overlay.c           |  4 ++--
+ drivers/gpu/drm/i915/intel_ringbuffer.c        |  4 ++--
+ drivers/gpu/drm/i915/intel_sdvo.c              |  8 ++++----
+ drivers/gpu/drm/i915/intel_sprite.c            |  8 ++++----
+ drivers/gpu/drm/i915/intel_tv.c                |  8 ++++----
+ drivers/gpu/drm/mga/mga_dma.c                  |  4 ++--
+ drivers/gpu/drm/mga/mga_drv.c                  |  6 +++---
+ drivers/gpu/drm/mga/mga_ioc32.c                |  4 ++--
+ drivers/gpu/drm/mga/mga_irq.c                  |  4 ++--
+ drivers/gpu/drm/mga/mga_state.c                |  4 ++--
+ drivers/gpu/drm/mga/mga_warp.c                 |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_drv.c          |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_drv.h          | 12 ++++++------
+ drivers/gpu/drm/mgag200/mgag200_fb.c           |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_i2c.c          |  2 +-
+ drivers/gpu/drm/mgag200/mgag200_main.c         |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_mode.c         |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_ttm.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_abi16.c        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_acpi.c         |  6 +++---
+ drivers/gpu/drm/nouveau/nouveau_backlight.c    |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_bios.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_bo.c           |  6 +++---
+ drivers/gpu/drm/nouveau/nouveau_calc.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_channel.c      |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_connector.c    |  6 +++---
+ drivers/gpu/drm/nouveau/nouveau_connector.h    |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_debugfs.c      |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_display.c      |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_dma.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_dp.c           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_drv.c          |  6 +++---
+ drivers/gpu/drm/nouveau/nouveau_drv.h          | 12 ++++++------
+ drivers/gpu/drm/nouveau/nouveau_encoder.h      |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_fbcon.c        | 10 +++++-----
+ drivers/gpu/drm/nouveau/nouveau_fbcon.h        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_fence.c        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_gem.c          |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_gpio.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_gpuobj.c       |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_hdmi.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_hw.c           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_hw.h           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_i2c.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_i2c.h          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_ioc32.c        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_irq.c          |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_mem.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_mm.c           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_mxm.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_notifier.c     |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_perf.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_pm.c           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_prime.c        |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_ramht.c        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_sgdma.c        |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_state.c        |  6 +++---
+ drivers/gpu/drm/nouveau/nouveau_temp.c         |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_ttm.c          |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_vm.c           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_vm.h           |  2 +-
+ drivers/gpu/drm/nouveau/nouveau_volt.c         |  2 +-
+ drivers/gpu/drm/nouveau/nv04_crtc.c            |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_cursor.c          |  2 +-
+ drivers/gpu/drm/nouveau/nv04_dac.c             |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_dfp.c             |  6 +++---
+ drivers/gpu/drm/nouveau/nv04_display.c         |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_fbcon.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv04_fence.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv04_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv04_graph.c           |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_instmem.c         |  2 +-
+ drivers/gpu/drm/nouveau/nv04_mc.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_pm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv04_software.c        |  2 +-
+ drivers/gpu/drm/nouveau/nv04_timer.c           |  4 ++--
+ drivers/gpu/drm/nouveau/nv04_tv.c              |  6 +++---
+ drivers/gpu/drm/nouveau/nv10_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv10_fence.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv10_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv10_gpio.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv10_graph.c           |  4 ++--
+ drivers/gpu/drm/nouveau/nv17_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv17_tv.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv17_tv_modes.c        |  4 ++--
+ drivers/gpu/drm/nouveau/nv20_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv20_graph.c           |  4 ++--
+ drivers/gpu/drm/nouveau/nv30_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv31_mpeg.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv40_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv40_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv40_graph.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv40_grctx.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv40_mc.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv40_pm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv50_calc.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv50_crtc.c            |  4 ++--
+ drivers/gpu/drm/nouveau/nv50_cursor.c          |  2 +-
+ drivers/gpu/drm/nouveau/nv50_dac.c             |  4 ++--
+ drivers/gpu/drm/nouveau/nv50_display.c         |  2 +-
+ drivers/gpu/drm/nouveau/nv50_display.h         |  2 +-
+ drivers/gpu/drm/nouveau/nv50_evo.c             |  2 +-
+ drivers/gpu/drm/nouveau/nv50_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nv50_fbcon.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv50_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv50_gpio.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv50_graph.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv50_grctx.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv50_instmem.c         |  2 +-
+ drivers/gpu/drm/nouveau/nv50_mc.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv50_mpeg.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv50_pm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv50_software.c        |  2 +-
+ drivers/gpu/drm/nouveau/nv50_sor.c             |  4 ++--
+ drivers/gpu/drm/nouveau/nv50_vm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv50_vram.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv84_bsp.c             |  2 +-
+ drivers/gpu/drm/nouveau/nv84_crypt.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv84_fence.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv84_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nv84_vp.c              |  2 +-
+ drivers/gpu/drm/nouveau/nv98_crypt.c           |  2 +-
+ drivers/gpu/drm/nouveau/nv98_ppp.c             |  2 +-
+ drivers/gpu/drm/nouveau/nva3_copy.c            |  2 +-
+ drivers/gpu/drm/nouveau/nva3_pm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_copy.c            |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_fb.c              |  4 ++--
+ drivers/gpu/drm/nouveau/nvc0_fbcon.c           |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_fence.c           |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_graph.c           |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_grctx.c           |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_instmem.c         |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_pm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_software.c        |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_vm.c              |  2 +-
+ drivers/gpu/drm/nouveau/nvc0_vram.c            |  2 +-
+ drivers/gpu/drm/nouveau/nvd0_display.c         |  4 ++--
+ drivers/gpu/drm/nouveau/nve0_fifo.c            |  2 +-
+ drivers/gpu/drm/nouveau/nve0_graph.c           |  2 +-
+ drivers/gpu/drm/nouveau/nve0_grctx.c           |  2 +-
+ drivers/gpu/drm/r128/r128_cce.c                |  4 ++--
+ drivers/gpu/drm/r128/r128_drv.c                |  6 +++---
+ drivers/gpu/drm/r128/r128_ioc32.c              |  4 ++--
+ drivers/gpu/drm/r128/r128_irq.c                |  4 ++--
+ drivers/gpu/drm/r128/r128_state.c              |  4 ++--
+ drivers/gpu/drm/radeon/atom.h                  |  2 +-
+ drivers/gpu/drm/radeon/atombios_dp.c           |  6 +++---
+ drivers/gpu/drm/radeon/atombios_encoders.c     |  6 +++---
+ drivers/gpu/drm/radeon/atombios_i2c.c          |  4 ++--
+ drivers/gpu/drm/radeon/evergreen.c             |  4 ++--
+ drivers/gpu/drm/radeon/evergreen_blit_kms.c    |  4 ++--
+ drivers/gpu/drm/radeon/evergreen_cs.c          |  2 +-
+ drivers/gpu/drm/radeon/evergreen_hdmi.c        |  4 ++--
+ drivers/gpu/drm/radeon/ni.c                    |  4 ++--
+ drivers/gpu/drm/radeon/r100.c                  |  4 ++--
+ drivers/gpu/drm/radeon/r200.c                  |  4 ++--
+ drivers/gpu/drm/radeon/r300.c                  |  2 +-
+ drivers/gpu/drm/radeon/r300_cmdbuf.c           |  6 +++---
+ drivers/gpu/drm/radeon/r420.c                  |  2 +-
+ drivers/gpu/drm/radeon/r520.c                  |  2 +-
+ drivers/gpu/drm/radeon/r600.c                  |  4 ++--
+ drivers/gpu/drm/radeon/r600_audio.c            |  2 +-
+ drivers/gpu/drm/radeon/r600_blit.c             |  4 ++--
+ drivers/gpu/drm/radeon/r600_blit_kms.c         |  4 ++--
+ drivers/gpu/drm/radeon/r600_cp.c               |  4 ++--
+ drivers/gpu/drm/radeon/r600_cs.c               |  2 +-
+ drivers/gpu/drm/radeon/r600_hdmi.c             |  4 ++--
+ drivers/gpu/drm/radeon/radeon_acpi.c           |  4 ++--
+ drivers/gpu/drm/radeon/radeon_agp.c            |  4 ++--
+ drivers/gpu/drm/radeon/radeon_atombios.c       |  4 ++--
+ drivers/gpu/drm/radeon/radeon_bios.c           |  2 +-
+ drivers/gpu/drm/radeon/radeon_clocks.c         |  4 ++--
+ drivers/gpu/drm/radeon/radeon_combios.c        |  4 ++--
+ drivers/gpu/drm/radeon/radeon_connectors.c     | 10 +++++-----
+ drivers/gpu/drm/radeon/radeon_cp.c             |  4 ++--
+ drivers/gpu/drm/radeon/radeon_cs.c             |  4 ++--
+ drivers/gpu/drm/radeon/radeon_cursor.c         |  4 ++--
+ drivers/gpu/drm/radeon/radeon_display.c        |  8 ++++----
+ drivers/gpu/drm/radeon/radeon_drv.c            |  6 +++---
+ drivers/gpu/drm/radeon/radeon_encoders.c       |  6 +++---
+ drivers/gpu/drm/radeon/radeon_fb.c             | 10 +++++-----
+ drivers/gpu/drm/radeon/radeon_fence.c          |  2 +-
+ drivers/gpu/drm/radeon/radeon_gart.c           |  4 ++--
+ drivers/gpu/drm/radeon/radeon_gem.c            |  4 ++--
+ drivers/gpu/drm/radeon/radeon_i2c.c            |  6 +++---
+ drivers/gpu/drm/radeon/radeon_ioc32.c          |  4 ++--
+ drivers/gpu/drm/radeon/radeon_irq.c            |  4 ++--
+ drivers/gpu/drm/radeon/radeon_irq_kms.c        |  6 +++---
+ drivers/gpu/drm/radeon/radeon_kms.c            |  4 ++--
+ .../gpu/drm/radeon/radeon_legacy_encoders.c    |  6 +++---
+ drivers/gpu/drm/radeon/radeon_legacy_tv.c      |  4 ++--
+ drivers/gpu/drm/radeon/radeon_mem.c            |  4 ++--
+ drivers/gpu/drm/radeon/radeon_mode.h           | 10 +++++-----
+ drivers/gpu/drm/radeon/radeon_object.c         |  2 +-
+ drivers/gpu/drm/radeon/radeon_pm.c             |  2 +-
+ drivers/gpu/drm/radeon/radeon_prime.c          |  4 ++--
+ drivers/gpu/drm/radeon/radeon_ring.c           |  4 ++--
+ drivers/gpu/drm/radeon/radeon_sa.c             |  2 +-
+ drivers/gpu/drm/radeon/radeon_semaphore.c      |  2 +-
+ drivers/gpu/drm/radeon/radeon_state.c          |  6 +++---
+ drivers/gpu/drm/radeon/radeon_trace_points.c   |  2 +-
+ drivers/gpu/drm/radeon/rs600.c                 |  2 +-
+ drivers/gpu/drm/radeon/rs690.c                 |  2 +-
+ drivers/gpu/drm/radeon/rv515.c                 |  2 +-
+ drivers/gpu/drm/radeon/rv770.c                 |  4 ++--
+ drivers/gpu/drm/radeon/si.c                    |  4 ++--
+ drivers/gpu/drm/savage/savage_bci.c            |  4 ++--
+ drivers/gpu/drm/savage/savage_drv.c            |  6 +++---
+ drivers/gpu/drm/savage/savage_state.c          |  4 ++--
+ drivers/gpu/drm/sis/sis_drv.c                  |  6 +++---
+ drivers/gpu/drm/sis/sis_drv.h                  |  2 +-
+ drivers/gpu/drm/sis/sis_mm.c                   |  4 ++--
+ drivers/gpu/drm/tdfx/tdfx_drv.c                |  4 ++--
+ drivers/gpu/drm/ttm/ttm_agp_backend.c          |  8 ++++----
+ drivers/gpu/drm/ttm/ttm_bo.c                   |  6 +++---
+ drivers/gpu/drm/ttm/ttm_bo_manager.c           |  8 ++++----
+ drivers/gpu/drm/ttm/ttm_bo_util.c              |  4 ++--
+ drivers/gpu/drm/ttm/ttm_execbuf_util.c         |  6 +++---
+ drivers/gpu/drm/ttm/ttm_lock.c                 |  4 ++--
+ drivers/gpu/drm/ttm/ttm_memory.c               |  6 +++---
+ drivers/gpu/drm/ttm/ttm_module.c               |  4 ++--
+ drivers/gpu/drm/ttm/ttm_object.c               |  4 ++--
+ drivers/gpu/drm/ttm/ttm_page_alloc.c           |  4 ++--
+ drivers/gpu/drm/ttm/ttm_page_alloc_dma.c       |  4 ++--
+ drivers/gpu/drm/ttm/ttm_tt.c                   | 12 ++++++------
+ drivers/gpu/drm/udl/udl_connector.c            |  8 ++++----
+ drivers/gpu/drm/udl/udl_drv.c                  |  4 ++--
+ drivers/gpu/drm/udl/udl_encoder.c              |  6 +++---
+ drivers/gpu/drm/udl/udl_fb.c                   |  8 ++++----
+ drivers/gpu/drm/udl/udl_gem.c                  |  2 +-
+ drivers/gpu/drm/udl/udl_main.c                 |  2 +-
+ drivers/gpu/drm/udl/udl_modeset.c              |  6 +++---
+ drivers/gpu/drm/udl/udl_transfer.c             |  2 +-
+ drivers/gpu/drm/via/via_dma.c                  |  4 ++--
+ drivers/gpu/drm/via/via_dmablit.c              |  4 ++--
+ drivers/gpu/drm/via/via_drv.c                  |  6 +++---
+ drivers/gpu/drm/via/via_drv.h                  |  2 +-
+ drivers/gpu/drm/via/via_irq.c                  |  4 ++--
+ drivers/gpu/drm/via/via_map.c                  |  4 ++--
+ drivers/gpu/drm/via/via_mm.c                   |  4 ++--
+ drivers/gpu/drm/via/via_verifier.c             |  4 ++--
+ drivers/gpu/drm/via/via_video.c                |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c         |  6 +++---
+ drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c         |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.c            | 10 +++++-----
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h            | 18 +++++++++---------
+ drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c        |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_fb.c             |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_fence.c          |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c           |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_gmr.c            |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c  |  6 +++---
+ drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c          |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_irq.c            |  2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_kms.h            |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_overlay.c        |  4 ++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_resource.c       |  8 ++++----
+ drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c       |  2 +-
+ 376 files changed, 731 insertions(+), 731 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_drv.c b/drivers/gpu/drm/ast/ast_drv.c
+index d5749b86caec..31123b6a0be5 100644
+--- a/drivers/gpu/drm/ast/ast_drv.c
++++ b/drivers/gpu/drm/ast/ast_drv.c
+@@ -28,8 +28,8 @@
+ #include <linux/module.h>
+ #include <linux/console.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "ast_drv.h"
+ 
+diff --git a/drivers/gpu/drm/ast/ast_drv.h b/drivers/gpu/drm/ast/ast_drv.h
+index d4af9edcbb97..aea439760b60 100644
+--- a/drivers/gpu/drm/ast/ast_drv.h
++++ b/drivers/gpu/drm/ast/ast_drv.h
+@@ -28,13 +28,13 @@
+ #ifndef __AST_DRV_H__
+ #define __AST_DRV_H__
+ 
+-#include "drm_fb_helper.h"
++#include <drm/drm_fb_helper.h>
+ 
+-#include "ttm/ttm_bo_api.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_memory.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_bo_api.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_memory.h>
++#include <drm/ttm/ttm_module.h>
+ 
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+diff --git a/drivers/gpu/drm/ast/ast_fb.c b/drivers/gpu/drm/ast/ast_fb.c
+index d0d279233101..d9ec77959dff 100644
+--- a/drivers/gpu/drm/ast/ast_fb.c
++++ b/drivers/gpu/drm/ast/ast_fb.c
+@@ -37,9 +37,9 @@
+ #include <linux/init.h>
+ 
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fb_helper.h>
+ #include "ast_drv.h"
+ 
+ static void ast_dirty_update(struct ast_fbdev *afbdev,
+diff --git a/drivers/gpu/drm/ast/ast_main.c b/drivers/gpu/drm/ast/ast_main.c
+index 95ae55b8214b..f668e6cc0f7a 100644
+--- a/drivers/gpu/drm/ast/ast_main.c
++++ b/drivers/gpu/drm/ast/ast_main.c
+@@ -25,12 +25,12 @@
+ /*
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "ast_drv.h"
+ 
+ 
+-#include "drm_fb_helper.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "ast_dram_tables.h"
+ 
+diff --git a/drivers/gpu/drm/ast/ast_mode.c b/drivers/gpu/drm/ast/ast_mode.c
+index a712cafcfa1d..a6982b86df9b 100644
+--- a/drivers/gpu/drm/ast/ast_mode.c
++++ b/drivers/gpu/drm/ast/ast_mode.c
+@@ -28,9 +28,9 @@
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
+ #include "ast_drv.h"
+ 
+ #include "ast_tables.h"
+diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
+index 6edbee63b0cb..977cfb35837a 100644
+--- a/drivers/gpu/drm/ast/ast_post.c
++++ b/drivers/gpu/drm/ast/ast_post.c
+@@ -26,7 +26,7 @@
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "ast_drv.h"
+ 
+ #include "ast_dram_tables.h"
+diff --git a/drivers/gpu/drm/ast/ast_ttm.c b/drivers/gpu/drm/ast/ast_ttm.c
+index 6cf2adea66bc..1a026ac2dfb4 100644
+--- a/drivers/gpu/drm/ast/ast_ttm.c
++++ b/drivers/gpu/drm/ast/ast_ttm.c
+@@ -25,7 +25,7 @@
+ /*
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "ast_drv.h"
+ #include <ttm/ttm_page_alloc.h>
+ 
+diff --git a/drivers/gpu/drm/ati_pcigart.c b/drivers/gpu/drm/ati_pcigart.c
+index 9afe495c12c7..c399dea27a3b 100644
+--- a/drivers/gpu/drm/ati_pcigart.c
++++ b/drivers/gpu/drm/ati_pcigart.c
+@@ -32,7 +32,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ # define ATI_PCIGART_PAGE_SIZE		4096	/**< PCI GART page size */
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.c b/drivers/gpu/drm/cirrus/cirrus_drv.c
+index 781b90c5a3ca..101e423c8991 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.c
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.c
+@@ -10,7 +10,7 @@
+  */
+ #include <linux/module.h>
+ #include <linux/console.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "cirrus_drv.h"
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.h b/drivers/gpu/drm/cirrus/cirrus_drv.h
+index 64ea597cb6d3..7f0d71ffba3f 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.h
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.h
+@@ -15,11 +15,11 @@
+ 
+ #include <drm/drm_fb_helper.h>
+ 
+-#include "ttm/ttm_bo_api.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_memory.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_bo_api.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_memory.h>
++#include <drm/ttm/ttm_module.h>
+ 
+ #define DRIVER_AUTHOR		"Matthew Garrett"
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_fbdev.c b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+index 6aaada5d2b61..6c6b4c87d309 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_fbdev.c
++++ b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+@@ -9,8 +9,8 @@
+  *          Dave Airlie
+  */
+ #include <linux/module.h>
+-#include "drmP.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_fb_helper.h>
+ 
+ #include <linux/fb.h>
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_main.c b/drivers/gpu/drm/cirrus/cirrus_main.c
+index 5690d2412607..6a9b12e88d46 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_main.c
++++ b/drivers/gpu/drm/cirrus/cirrus_main.c
+@@ -8,8 +8,8 @@
+  * Authors: Matthew Garrett
+  *          Dave Airlie
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "cirrus_drv.h"
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_mode.c b/drivers/gpu/drm/cirrus/cirrus_mode.c
+index e70f782a4f29..60685b21cc36 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_mode.c
++++ b/drivers/gpu/drm/cirrus/cirrus_mode.c
+@@ -14,8 +14,8 @@
+  *
+  * Copyright 1999-2001 Jeff Garzik <jgarzik@pobox.com>
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include <video/cirrus.h>
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_ttm.c b/drivers/gpu/drm/cirrus/cirrus_ttm.c
+index 50e170f879de..bc83f835c830 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_ttm.c
++++ b/drivers/gpu/drm/cirrus/cirrus_ttm.c
+@@ -25,7 +25,7 @@
+ /*
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "cirrus_drv.h"
+ #include <ttm/ttm_page_alloc.h>
+ 
+diff --git a/drivers/gpu/drm/drm_agpsupport.c b/drivers/gpu/drm/drm_agpsupport.c
+index 0cb2ba50af53..3d8fed179797 100644
+--- a/drivers/gpu/drm/drm_agpsupport.c
++++ b/drivers/gpu/drm/drm_agpsupport.c
+@@ -31,7 +31,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+ 
+diff --git a/drivers/gpu/drm/drm_auth.c b/drivers/gpu/drm/drm_auth.c
+index ba23790450e9..3cedae12b3c1 100644
+--- a/drivers/gpu/drm/drm_auth.c
++++ b/drivers/gpu/drm/drm_auth.c
+@@ -33,7 +33,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /**
+  * Find the file with the given magic number.
+diff --git a/drivers/gpu/drm/drm_buffer.c b/drivers/gpu/drm/drm_buffer.c
+index 08ccefedb327..39a718340319 100644
+--- a/drivers/gpu/drm/drm_buffer.c
++++ b/drivers/gpu/drm/drm_buffer.c
+@@ -33,7 +33,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drm_buffer.h"
++#include <drm/drm_buffer.h>
+ 
+ /**
+  * Allocate the drm buffer object.
+diff --git a/drivers/gpu/drm/drm_bufs.c b/drivers/gpu/drm/drm_bufs.c
+index b356c719f2f1..0128147265f3 100644
+--- a/drivers/gpu/drm/drm_bufs.c
++++ b/drivers/gpu/drm/drm_bufs.c
+@@ -38,7 +38,7 @@
+ #include <linux/log2.h>
+ #include <linux/export.h>
+ #include <asm/shmparam.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ static struct drm_map_list *drm_find_matching_map(struct drm_device *dev,
+ 						  struct drm_local_map *map)
+diff --git a/drivers/gpu/drm/drm_cache.c b/drivers/gpu/drm/drm_cache.c
+index 08758e061478..ec4698246213 100644
+--- a/drivers/gpu/drm/drm_cache.c
++++ b/drivers/gpu/drm/drm_cache.c
+@@ -29,7 +29,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #if defined(CONFIG_X86)
+ static void
+diff --git a/drivers/gpu/drm/drm_context.c b/drivers/gpu/drm/drm_context.c
+index affa629589ac..45adf97e678f 100644
+--- a/drivers/gpu/drm/drm_context.c
++++ b/drivers/gpu/drm/drm_context.c
+@@ -40,7 +40,7 @@
+  *		needed by SiS driver's memory management.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /******************************************************************/
+ /** \name Context bitmap support */
+diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+index 9a6894d5a86f..271ffa4fdb47 100644
+--- a/drivers/gpu/drm/drm_crtc.c
++++ b/drivers/gpu/drm/drm_crtc.c
+@@ -32,10 +32,10 @@
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
+-#include "drm_fourcc.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_fourcc.h>
+ 
+ /* Avoid boilerplate.  I'm tired of typing. */
+ #define DRM_ENUM_NAME_FN(fnname, list)				\
+diff --git a/drivers/gpu/drm/drm_crtc_helper.c b/drivers/gpu/drm/drm_crtc_helper.c
+index 3252e7067d8b..9c936ad3d510 100644
+--- a/drivers/gpu/drm/drm_crtc_helper.c
++++ b/drivers/gpu/drm/drm_crtc_helper.c
+@@ -32,12 +32,12 @@
+ #include <linux/export.h>
+ #include <linux/moduleparam.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fourcc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fourcc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
++#include <drm/drm_edid.h>
+ 
+ static bool drm_kms_helper_poll = true;
+ module_param_named(poll, drm_kms_helper_poll, bool, 0600);
+diff --git a/drivers/gpu/drm/drm_debugfs.c b/drivers/gpu/drm/drm_debugfs.c
+index 70b13fc19396..a05087cf846d 100644
+--- a/drivers/gpu/drm/drm_debugfs.c
++++ b/drivers/gpu/drm/drm_debugfs.c
+@@ -34,7 +34,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #if defined(CONFIG_DEBUG_FS)
+ 
+diff --git a/drivers/gpu/drm/drm_dma.c b/drivers/gpu/drm/drm_dma.c
+index 08f5e5309b22..495b5fd2787c 100644
+--- a/drivers/gpu/drm/drm_dma.c
++++ b/drivers/gpu/drm/drm_dma.c
+@@ -34,7 +34,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /**
+  * Initialize the DMA data.
+diff --git a/drivers/gpu/drm/drm_dp_i2c_helper.c b/drivers/gpu/drm/drm_dp_i2c_helper.c
+index f7eba0a0973a..7f246f212457 100644
+--- a/drivers/gpu/drm/drm_dp_i2c_helper.c
++++ b/drivers/gpu/drm/drm_dp_i2c_helper.c
+@@ -27,8 +27,8 @@
+ #include <linux/errno.h>
+ #include <linux/sched.h>
+ #include <linux/i2c.h>
+-#include "drm_dp_helper.h"
+-#include "drmP.h"
++#include <drm/drm_dp_helper.h>
++#include <drm/drmP.h>
+ 
+ /* Run a single AUX_CH I2C transaction, writing/reading data as necessary */
+ static int
+diff --git a/drivers/gpu/drm/drm_drv.c b/drivers/gpu/drm/drm_drv.c
+index 9238de4009fa..c8fdf03f32c2 100644
+--- a/drivers/gpu/drm/drm_drv.c
++++ b/drivers/gpu/drm/drm_drv.c
+@@ -49,8 +49,8 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_core.h"
++#include <drm/drmP.h>
++#include <drm/drm_core.h>
+ 
+ 
+ static int drm_version(struct drm_device *dev, void *data,
+diff --git a/drivers/gpu/drm/drm_edid.c b/drivers/gpu/drm/drm_edid.c
+index b7ee230572b7..a2e54769344a 100644
+--- a/drivers/gpu/drm/drm_edid.c
++++ b/drivers/gpu/drm/drm_edid.c
+@@ -31,8 +31,8 @@
+ #include <linux/slab.h>
+ #include <linux/i2c.h>
+ #include <linux/module.h>
+-#include "drmP.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
+ #include "drm_edid_modes.h"
+ 
+ #define version_greater(edid, maj, min) \
+diff --git a/drivers/gpu/drm/drm_edid_load.c b/drivers/gpu/drm/drm_edid_load.c
+index 0303935d10e2..9d53e6503f9a 100644
+--- a/drivers/gpu/drm/drm_edid_load.c
++++ b/drivers/gpu/drm/drm_edid_load.c
+@@ -21,10 +21,10 @@
+ 
+ #include <linux/module.h>
+ #include <linux/firmware.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_edid.h>
+ 
+ static char edid_firmware[PATH_MAX];
+ module_param_string(edid_firmware, edid_firmware, sizeof(edid_firmware), 0644);
+diff --git a/drivers/gpu/drm/drm_edid_modes.h b/drivers/gpu/drm/drm_edid_modes.h
+index ff98a7eb38dd..fbd354c1f1f4 100644
+--- a/drivers/gpu/drm/drm_edid_modes.h
++++ b/drivers/gpu/drm/drm_edid_modes.h
+@@ -24,8 +24,8 @@
+  */
+ 
+ #include <linux/kernel.h>
+-#include "drmP.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
+ 
+ /*
+  * Autogenerated from the DMT spec.
+diff --git a/drivers/gpu/drm/drm_encoder_slave.c b/drivers/gpu/drm/drm_encoder_slave.c
+index fb943551060e..63e733408b6d 100644
+--- a/drivers/gpu/drm/drm_encoder_slave.c
++++ b/drivers/gpu/drm/drm_encoder_slave.c
+@@ -26,7 +26,7 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drm_encoder_slave.h"
++#include <drm/drm_encoder_slave.h>
+ 
+ /**
+  * drm_i2c_encoder_init - Initialize an I2C slave encoder
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index f546d1e8af82..dde5c345e75f 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -32,10 +32,10 @@
+ #include <linux/slab.h>
+ #include <linux/fb.h>
+ #include <linux/module.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fb_helper.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ MODULE_AUTHOR("David Airlie, Jesse Barnes");
+ MODULE_DESCRIPTION("DRM KMS helper");
+diff --git a/drivers/gpu/drm/drm_fops.c b/drivers/gpu/drm/drm_fops.c
+index 5062eec673f1..828ad9082d17 100644
+--- a/drivers/gpu/drm/drm_fops.c
++++ b/drivers/gpu/drm/drm_fops.c
+@@ -34,7 +34,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include <linux/poll.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
+index fbe0842038b5..92177d5aedee 100644
+--- a/drivers/gpu/drm/drm_gem.c
++++ b/drivers/gpu/drm/drm_gem.c
+@@ -36,7 +36,7 @@
+ #include <linux/pagemap.h>
+ #include <linux/shmem_fs.h>
+ #include <linux/dma-buf.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /** @file drm_gem.c
+  *
+diff --git a/drivers/gpu/drm/drm_global.c b/drivers/gpu/drm/drm_global.c
+index c87dc96444de..f7311162a61d 100644
+--- a/drivers/gpu/drm/drm_global.c
++++ b/drivers/gpu/drm/drm_global.c
+@@ -31,7 +31,7 @@
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+-#include "drm_global.h"
++#include <drm/drm_global.h>
+ 
+ struct drm_global_item {
+ 	struct mutex mutex;
+diff --git a/drivers/gpu/drm/drm_hashtab.c b/drivers/gpu/drm/drm_hashtab.c
+index 68dc8744b630..c3745c4d46d8 100644
+--- a/drivers/gpu/drm/drm_hashtab.c
++++ b/drivers/gpu/drm/drm_hashtab.c
+@@ -32,8 +32,8 @@
+  * Thomas Hellström <thomas-at-tungstengraphics-dot-com>
+  */
+ 
+-#include "drmP.h"
+-#include "drm_hashtab.h"
++#include <drm/drmP.h>
++#include <drm/drm_hashtab.h>
+ #include <linux/hash.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+diff --git a/drivers/gpu/drm/drm_info.c b/drivers/gpu/drm/drm_info.c
+index 8928edbb94c7..3a8b604b7438 100644
+--- a/drivers/gpu/drm/drm_info.c
++++ b/drivers/gpu/drm/drm_info.c
+@@ -34,7 +34,7 @@
+  */
+ 
+ #include <linux/seq_file.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /**
+  * Called when "/proc/dri/.../name" is read.
+diff --git a/drivers/gpu/drm/drm_ioc32.c b/drivers/gpu/drm/drm_ioc32.c
+index 637fcc3766c7..2f4c4343dfa3 100644
+--- a/drivers/gpu/drm/drm_ioc32.c
++++ b/drivers/gpu/drm/drm_ioc32.c
+@@ -31,8 +31,8 @@
+ #include <linux/ratelimit.h>
+ #include <linux/export.h>
+ 
+-#include "drmP.h"
+-#include "drm_core.h"
++#include <drm/drmP.h>
++#include <drm/drm_core.h>
+ 
+ #define DRM_IOCTL_VERSION32		DRM_IOWR(0x00, drm_version32_t)
+ #define DRM_IOCTL_GET_UNIQUE32		DRM_IOWR(0x01, drm_unique32_t)
+diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
+index 64a62c697313..aa70c0b2bfd2 100644
+--- a/drivers/gpu/drm/drm_ioctl.c
++++ b/drivers/gpu/drm/drm_ioctl.c
+@@ -33,11 +33,11 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_core.h"
++#include <drm/drmP.h>
++#include <drm/drm_core.h>
+ 
+-#include "linux/pci.h"
+-#include "linux/export.h"
++#include <linux/pci.h>
++#include <linux/export.h>
+ 
+ /**
+  * Get the bus id.
+diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
+index 03f16f352fe2..09975ba1a8f7 100644
+--- a/drivers/gpu/drm/drm_irq.c
++++ b/drivers/gpu/drm/drm_irq.c
+@@ -33,7 +33,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "drm_trace.h"
+ 
+ #include <linux/interrupt.h>	/* For task queue support */
+diff --git a/drivers/gpu/drm/drm_lock.c b/drivers/gpu/drm/drm_lock.c
+index 32039553e172..d752c96d6090 100644
+--- a/drivers/gpu/drm/drm_lock.c
++++ b/drivers/gpu/drm/drm_lock.c
+@@ -34,7 +34,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ static int drm_notifier(void *priv);
+ 
+diff --git a/drivers/gpu/drm/drm_memory.c b/drivers/gpu/drm/drm_memory.c
+index c86a0f1a435c..126d50ea181f 100644
+--- a/drivers/gpu/drm/drm_memory.c
++++ b/drivers/gpu/drm/drm_memory.c
+@@ -35,7 +35,7 @@
+ 
+ #include <linux/highmem.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #if __OS_HAS_AGP
+ static void *agp_remap(unsigned long offset, unsigned long size,
+diff --git a/drivers/gpu/drm/drm_mm.c b/drivers/gpu/drm/drm_mm.c
+index 9bb82f7f0061..0761a03cdbb2 100644
+--- a/drivers/gpu/drm/drm_mm.c
++++ b/drivers/gpu/drm/drm_mm.c
+@@ -41,8 +41,8 @@
+  * Thomas Hellström <thomas-at-tungstengraphics-dot-com>
+  */
+ 
+-#include "drmP.h"
+-#include "drm_mm.h"
++#include <drm/drmP.h>
++#include <drm/drm_mm.h>
+ #include <linux/slab.h>
+ #include <linux/seq_file.h>
+ #include <linux/export.h>
+diff --git a/drivers/gpu/drm/drm_modes.c b/drivers/gpu/drm/drm_modes.c
+index 553c42702b89..59450f39bf96 100644
+--- a/drivers/gpu/drm/drm_modes.c
++++ b/drivers/gpu/drm/drm_modes.c
+@@ -33,8 +33,8 @@
+ #include <linux/list.h>
+ #include <linux/list_sort.h>
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
+ 
+ /**
+  * drm_mode_debug_printmodeline - debug print a mode
+diff --git a/drivers/gpu/drm/drm_pci.c b/drivers/gpu/drm/drm_pci.c
+index 5320364582ce..ba33144257e5 100644
+--- a/drivers/gpu/drm/drm_pci.c
++++ b/drivers/gpu/drm/drm_pci.c
+@@ -40,7 +40,7 @@
+ #include <linux/slab.h>
+ #include <linux/dma-mapping.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /**********************************************************************/
+ /** \name PCI memory */
+diff --git a/drivers/gpu/drm/drm_platform.c b/drivers/gpu/drm/drm_platform.c
+index 82431dcae37b..aaeb6f8d69ce 100644
+--- a/drivers/gpu/drm/drm_platform.c
++++ b/drivers/gpu/drm/drm_platform.c
+@@ -26,7 +26,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /**
+  * Register.
+diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
+index f546ff98a114..7f125738f44e 100644
+--- a/drivers/gpu/drm/drm_prime.c
++++ b/drivers/gpu/drm/drm_prime.c
+@@ -28,7 +28,7 @@
+ 
+ #include <linux/export.h>
+ #include <linux/dma-buf.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /*
+  * DMA-BUF/GEM Object references and lifetime overview:
+diff --git a/drivers/gpu/drm/drm_proc.c b/drivers/gpu/drm/drm_proc.c
+index da457b18eaaf..ff5456b7df72 100644
+--- a/drivers/gpu/drm/drm_proc.c
++++ b/drivers/gpu/drm/drm_proc.c
+@@ -40,7 +40,7 @@
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ /***************************************************
+  * Initialization, etc.
+diff --git a/drivers/gpu/drm/drm_scatter.c b/drivers/gpu/drm/drm_scatter.c
+index 7525e0311e59..d87f60bbc330 100644
+--- a/drivers/gpu/drm/drm_scatter.c
++++ b/drivers/gpu/drm/drm_scatter.c
+@@ -33,7 +33,7 @@
+ 
+ #include <linux/vmalloc.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #define DEBUG_SCATTER 0
+ 
+diff --git a/drivers/gpu/drm/drm_stub.c b/drivers/gpu/drm/drm_stub.c
+index 21bcd4a555d8..c236fd27eba6 100644
+--- a/drivers/gpu/drm/drm_stub.c
++++ b/drivers/gpu/drm/drm_stub.c
+@@ -34,8 +34,8 @@
+ #include <linux/module.h>
+ #include <linux/moduleparam.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "drm_core.h"
++#include <drm/drmP.h>
++#include <drm/drm_core.h>
+ 
+ unsigned int drm_debug = 0;	/* 1 to enable debug output */
+ EXPORT_SYMBOL(drm_debug);
+diff --git a/drivers/gpu/drm/drm_sysfs.c b/drivers/gpu/drm/drm_sysfs.c
+index 45ac8d6c92b7..05cd8fe062af 100644
+--- a/drivers/gpu/drm/drm_sysfs.c
++++ b/drivers/gpu/drm/drm_sysfs.c
+@@ -18,9 +18,9 @@
+ #include <linux/err.h>
+ #include <linux/export.h>
+ 
+-#include "drm_sysfs.h"
+-#include "drm_core.h"
+-#include "drmP.h"
++#include <drm/drm_sysfs.h>
++#include <drm/drm_core.h>
++#include <drm/drmP.h>
+ 
+ #define to_drm_minor(d) container_of(d, struct drm_minor, kdev)
+ #define to_drm_connector(d) container_of(d, struct drm_connector, kdev)
+diff --git a/drivers/gpu/drm/drm_trace_points.c b/drivers/gpu/drm/drm_trace_points.c
+index 0d0eb90864ae..3bbc4deb4dbc 100644
+--- a/drivers/gpu/drm/drm_trace_points.c
++++ b/drivers/gpu/drm/drm_trace_points.c
+@@ -1,4 +1,4 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #define CREATE_TRACE_POINTS
+ #include "drm_trace.h"
+diff --git a/drivers/gpu/drm/drm_usb.c b/drivers/gpu/drm/drm_usb.c
+index 37c9a523dd1c..3cec30611417 100644
+--- a/drivers/gpu/drm/drm_usb.c
++++ b/drivers/gpu/drm/drm_usb.c
+@@ -1,4 +1,4 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include <linux/usb.h>
+ #include <linux/module.h>
+ 
+diff --git a/drivers/gpu/drm/drm_vm.c b/drivers/gpu/drm/drm_vm.c
+index 961ee08927fe..85a8fa6e09fe 100644
+--- a/drivers/gpu/drm/drm_vm.c
++++ b/drivers/gpu/drm/drm_vm.c
+@@ -33,7 +33,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include <linux/export.h>
+ #if defined(__ia64__)
+ #include <linux/efi.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_ddc.c b/drivers/gpu/drm/exynos/exynos_ddc.c
+index 7e1051d07f1f..961a1806a246 100644
+--- a/drivers/gpu/drm/exynos/exynos_ddc.c
++++ b/drivers/gpu/drm/exynos/exynos_ddc.c
+@@ -11,7 +11,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/i2c.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_buf.c b/drivers/gpu/drm/exynos/exynos_drm_buf.c
+index 8c1d0c8094ee..118c117b3226 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_buf.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_buf.c
+@@ -23,8 +23,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "exynos_drm.h"
++#include <drm/drmP.h>
++#include <drm/exynos_drm.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_gem.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_connector.c b/drivers/gpu/drm/exynos/exynos_drm_connector.c
+index d9568198c300..ad01d3a09c11 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_connector.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_connector.c
+@@ -25,8 +25,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include <drm/exynos_drm.h>
+ #include "exynos_drm_drv.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_core.c b/drivers/gpu/drm/exynos/exynos_drm_core.c
+index 84dd099eae3b..19bdf0a194eb 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_core.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_core.c
+@@ -26,7 +26,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_encoder.h"
+ #include "exynos_drm_connector.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_crtc.c b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+index abb1e2f8227f..df1e34f0f091 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_crtc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+@@ -26,8 +26,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_encoder.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+index f933fc6b767b..fae1f2ec886c 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+@@ -23,8 +23,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "exynos_drm.h"
++#include <drm/drmP.h>
++#include <drm/exynos_drm.h>
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_gem.h"
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_drv.c b/drivers/gpu/drm/exynos/exynos_drm_drv.c
+index 01331541c19f..1de7baafddd0 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_drv.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_drv.c
+@@ -25,8 +25,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include <drm/exynos_drm.h>
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_encoder.c b/drivers/gpu/drm/exynos/exynos_drm_encoder.c
+index 2c037cd7d2d4..39bd8abff3f1 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_encoder.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_encoder.c
+@@ -26,8 +26,8 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_encoder.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fb.c b/drivers/gpu/drm/exynos/exynos_drm_fb.c
+index 4ccfe4328fab..53afcc5f0945 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fb.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fb.c
+@@ -26,10 +26,10 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_fb.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index d5586cc75163..be879c079346 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -26,10 +26,10 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fb_helper.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fb_helper.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_fb.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+index b19cd93e7047..58d50e368a58 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
+@@ -11,7 +11,7 @@
+  * option) any later version.
+  *
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_g2d.c b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+index 1065e90d0919..1f4f240580dc 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_g2d.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_g2d.c
+@@ -18,8 +18,8 @@
+ #include <linux/slab.h>
+ #include <linux/workqueue.h>
+ 
+-#include "drmP.h"
+-#include "exynos_drm.h"
++#include <drm/drmP.h>
++#include <drm/exynos_drm.h>
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_gem.h"
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_gem.c b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+index 3ffa5039c9aa..fcdbe46914f7 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_gem.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_gem.c
+@@ -23,7 +23,7 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/shmem_fs.h>
+ #include <drm/exynos_drm.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+index 3fdf0b65f47e..c3d3a5e4f109 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+@@ -11,7 +11,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/wait.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_plane.c b/drivers/gpu/drm/exynos/exynos_drm_plane.c
+index e1f94b746bd7..03b472b43013 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_plane.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_plane.c
+@@ -9,9 +9,9 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+-#include "exynos_drm.h"
++#include <drm/exynos_drm.h>
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_encoder.h"
+ #include "exynos_drm_fb.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_vidi.c b/drivers/gpu/drm/exynos/exynos_drm_vidi.c
+index 537027a74fd5..3e933c911017 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_vidi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_vidi.c
+@@ -10,7 +10,7 @@
+  * option) any later version.
+  *
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/module.h>
+@@ -18,8 +18,8 @@
+ 
+ #include <drm/exynos_drm.h>
+ 
+-#include "drm_edid.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_edid.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "exynos_drm_drv.h"
+ #include "exynos_drm_crtc.h"
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index a6aea6f3ea1a..e1c53956aa27 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -14,9 +14,9 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_edid.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "regs-hdmi.h"
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmiphy.c b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
+index 9fe2995ab9f9..0a8162b7de3d 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmiphy.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmiphy.c
+@@ -11,7 +11,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/kernel.h>
+ #include <linux/i2c.h>
+diff --git a/drivers/gpu/drm/exynos/exynos_mixer.c b/drivers/gpu/drm/exynos/exynos_mixer.c
+index 25b97d5e5fcb..e6098f247a5d 100644
+--- a/drivers/gpu/drm/exynos/exynos_mixer.c
++++ b/drivers/gpu/drm/exynos/exynos_mixer.c
+@@ -14,7 +14,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "regs-mixer.h"
+ #include "regs-vp.h"
+diff --git a/drivers/gpu/drm/gma500/cdv_device.c b/drivers/gpu/drm/gma500/cdv_device.c
+index b7e7b49d8f62..7db0e3bf5a5b 100644
+--- a/drivers/gpu/drm/gma500/cdv_device.c
++++ b/drivers/gpu/drm/gma500/cdv_device.c
+@@ -20,7 +20,7 @@
+ #include <linux/backlight.h>
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_reg.h"
+ #include "psb_intel_reg.h"
+diff --git a/drivers/gpu/drm/gma500/gem.c b/drivers/gpu/drm/gma500/gem.c
+index fc7d144bc2d3..f3a1ae8eb77b 100644
+--- a/drivers/gpu/drm/gma500/gem.c
++++ b/drivers/gpu/drm/gma500/gem.c
+@@ -25,7 +25,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ 
+ int psb_gem_init_object(struct drm_gem_object *obj)
+diff --git a/drivers/gpu/drm/gma500/intel_bios.c b/drivers/gpu/drm/gma500/intel_bios.c
+index 8d7caf0f363e..a837ee97787c 100644
+--- a/drivers/gpu/drm/gma500/intel_bios.c
++++ b/drivers/gpu/drm/gma500/intel_bios.c
+@@ -20,7 +20,7 @@
+  */
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_intel_drv.h"
+ #include "psb_intel_reg.h"
+diff --git a/drivers/gpu/drm/gma500/intel_gmbus.c b/drivers/gpu/drm/gma500/intel_gmbus.c
+index f1cfdf12924b..62cd42e88f28 100644
+--- a/drivers/gpu/drm/gma500/intel_gmbus.c
++++ b/drivers/gpu/drm/gma500/intel_gmbus.c
+@@ -29,9 +29,9 @@
+ #include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "psb_intel_drv.h"
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_intel_reg.h"
+ 
+diff --git a/drivers/gpu/drm/gma500/mid_bios.c b/drivers/gpu/drm/gma500/mid_bios.c
+index b2a790bd9899..64d18a37da40 100644
+--- a/drivers/gpu/drm/gma500/mid_bios.c
++++ b/drivers/gpu/drm/gma500/mid_bios.c
+@@ -25,7 +25,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "mid_bios.h"
+ 
+diff --git a/drivers/gpu/drm/gma500/oaktrail_device.c b/drivers/gpu/drm/gma500/oaktrail_device.c
+index cf49ba5a54bf..010b820744a5 100644
+--- a/drivers/gpu/drm/gma500/oaktrail_device.c
++++ b/drivers/gpu/drm/gma500/oaktrail_device.c
+@@ -22,7 +22,7 @@
+ #include <linux/dmi.h>
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_reg.h"
+ #include "psb_intel_reg.h"
+diff --git a/drivers/gpu/drm/gma500/psb_device.c b/drivers/gpu/drm/gma500/psb_device.c
+index 5971bc82b765..7563cd51851a 100644
+--- a/drivers/gpu/drm/gma500/psb_device.c
++++ b/drivers/gpu/drm/gma500/psb_device.c
+@@ -20,7 +20,7 @@
+ #include <linux/backlight.h>
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_reg.h"
+ #include "psb_intel_reg.h"
+diff --git a/drivers/gpu/drm/gma500/psb_drv.c b/drivers/gpu/drm/gma500/psb_drv.c
+index 0c4737438530..dd1fbfa7e467 100644
+--- a/drivers/gpu/drm/gma500/psb_drv.c
++++ b/drivers/gpu/drm/gma500/psb_drv.c
+@@ -21,7 +21,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm.h>
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "framebuffer.h"
+ #include "psb_reg.h"
+diff --git a/drivers/gpu/drm/gma500/psb_drv.h b/drivers/gpu/drm/gma500/psb_drv.h
+index 1bd115ecefe1..b15282fdbf97 100644
+--- a/drivers/gpu/drm/gma500/psb_drv.h
++++ b/drivers/gpu/drm/gma500/psb_drv.h
+@@ -23,9 +23,9 @@
+ #include <linux/kref.h>
+ 
+ #include <drm/drmP.h>
+-#include "drm_global.h"
++#include <drm/drm_global.h>
+ #include "gem_glue.h"
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_reg.h"
+ #include "psb_intel_drv.h"
+ #include "gtt.h"
+diff --git a/drivers/gpu/drm/gma500/psb_intel_sdvo.c b/drivers/gpu/drm/gma500/psb_intel_sdvo.c
+index e5c868e64dc8..c148d92229fd 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_sdvo.c
++++ b/drivers/gpu/drm/gma500/psb_intel_sdvo.c
+@@ -29,11 +29,11 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
+ #include "psb_intel_drv.h"
+-#include "gma_drm.h"
++#include <drm/gma_drm.h>
+ #include "psb_drv.h"
+ #include "psb_intel_sdvo_regs.h"
+ #include "psb_intel_reg.h"
+diff --git a/drivers/gpu/drm/i2c/ch7006_priv.h b/drivers/gpu/drm/i2c/ch7006_priv.h
+index 09599f4c0c9a..ce577841f931 100644
+--- a/drivers/gpu/drm/i2c/ch7006_priv.h
++++ b/drivers/gpu/drm/i2c/ch7006_priv.h
+@@ -27,10 +27,10 @@
+ #ifndef __DRM_I2C_CH7006_PRIV_H__
+ #define __DRM_I2C_CH7006_PRIV_H__
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_encoder_slave.h"
+-#include "i2c/ch7006.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_encoder_slave.h>
++#include <drm/i2c/ch7006.h>
+ 
+ typedef int64_t fixed;
+ #define fixed1 (1LL << 32)
+diff --git a/drivers/gpu/drm/i2c/sil164_drv.c b/drivers/gpu/drm/i2c/sil164_drv.c
+index 30b8ae5e5c4a..002ce7874332 100644
+--- a/drivers/gpu/drm/i2c/sil164_drv.c
++++ b/drivers/gpu/drm/i2c/sil164_drv.c
+@@ -26,10 +26,10 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_encoder_slave.h"
+-#include "i2c/sil164.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_encoder_slave.h>
++#include <drm/i2c/sil164.h>
+ 
+ struct sil164_priv {
+ 	struct sil164_encoder_params config;
+diff --git a/drivers/gpu/drm/i810/i810_dma.c b/drivers/gpu/drm/i810/i810_dma.c
+index a9c16a5f483d..004ecdfe1b55 100644
+--- a/drivers/gpu/drm/i810/i810_dma.c
++++ b/drivers/gpu/drm/i810/i810_dma.c
+@@ -30,8 +30,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i810_drm.h"
++#include <drm/drmP.h>
++#include <drm/i810_drm.h>
+ #include "i810_drv.h"
+ #include <linux/interrupt.h>	/* For task queue support */
+ #include <linux/delay.h>
+diff --git a/drivers/gpu/drm/i810/i810_drv.c b/drivers/gpu/drm/i810/i810_drv.c
+index 51f0f0ddc022..2e91fc3580b4 100644
+--- a/drivers/gpu/drm/i810/i810_drv.c
++++ b/drivers/gpu/drm/i810/i810_drv.c
+@@ -32,11 +32,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "i810_drm.h"
++#include <drm/drmP.h>
++#include <drm/i810_drm.h>
+ #include "i810_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static struct pci_device_id pciidlist[] = {
+ 	i810_PCI_IDS
+diff --git a/drivers/gpu/drm/i915/dvo.h b/drivers/gpu/drm/i915/dvo.h
+index e72aac6c59fd..573de82c9f5a 100644
+--- a/drivers/gpu/drm/i915/dvo.h
++++ b/drivers/gpu/drm/i915/dvo.h
+@@ -24,8 +24,8 @@
+ #define _INTEL_DVO_H
+ 
+ #include <linux/i2c.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
+ #include "intel_drv.h"
+ 
+ struct intel_dvo_device {
+diff --git a/drivers/gpu/drm/i915/i915_debugfs.c b/drivers/gpu/drm/i915/i915_debugfs.c
+index 8595066ee5c2..63f01e29c1fa 100644
+--- a/drivers/gpu/drm/i915/i915_debugfs.c
++++ b/drivers/gpu/drm/i915/i915_debugfs.c
+@@ -30,10 +30,10 @@
+ #include <linux/debugfs.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "intel_drv.h"
+ #include "intel_ringbuffer.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ #define DRM_I915_RING_DEBUG 1
+diff --git a/drivers/gpu/drm/i915/i915_dma.c b/drivers/gpu/drm/i915/i915_dma.c
+index d7a9259412af..804f1c98e279 100644
+--- a/drivers/gpu/drm/i915/i915_dma.c
++++ b/drivers/gpu/drm/i915/i915_dma.c
+@@ -28,11 +28,11 @@
+ 
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include <linux/pci.h>
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index a0819f4085d3..f6825324e72d 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -28,15 +28,15 @@
+  */
+ 
+ #include <linux/device.h>
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+ 
+ #include <linux/console.h>
+ #include <linux/module.h>
+-#include "drm_crtc_helper.h"
++#include <drm/drm_crtc_helper.h>
+ 
+ static int i915_modeset __read_mostly = -1;
+ module_param_named(modeset, i915_modeset, int, 0400);
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index fca582ac94a3..e2c93f7be8ed 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -25,8 +25,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/i915_gem_context.c b/drivers/gpu/drm/i915/i915_gem_context.c
+index a9d58d72bb4d..a21c3dccf436 100644
+--- a/drivers/gpu/drm/i915/i915_gem_context.c
++++ b/drivers/gpu/drm/i915/i915_gem_context.c
+@@ -85,8 +85,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ /* This is a HW constraint. The value below is the largest known requirement
+diff --git a/drivers/gpu/drm/i915/i915_gem_debug.c b/drivers/gpu/drm/i915/i915_gem_debug.c
+index 578ab1f31737..582e6a5f3dac 100644
+--- a/drivers/gpu/drm/i915/i915_gem_debug.c
++++ b/drivers/gpu/drm/i915/i915_gem_debug.c
+@@ -25,8 +25,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ #if WATCH_LISTS
+diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+index aa308e1337db..af199596e792 100644
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
++++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -23,7 +23,7 @@
+  * Authors:
+  *	Dave Airlie <airlied@redhat.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "i915_drv.h"
+ #include <linux/dma-buf.h>
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem_evict.c b/drivers/gpu/drm/i915/i915_gem_evict.c
+index 893059953e07..fd408995a783 100644
+--- a/drivers/gpu/drm/i915/i915_gem_evict.c
++++ b/drivers/gpu/drm/i915/i915_gem_evict.c
+@@ -26,9 +26,9 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "i915_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_trace.h"
+ 
+ static bool
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index 593f377a1346..8dd9a6f47db8 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -26,8 +26,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/i915_gem_gtt.c b/drivers/gpu/drm/i915/i915_gem_gtt.c
+index 5467837bcf66..69261acb94b3 100644
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -22,8 +22,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/i915_gem_stolen.c b/drivers/gpu/drm/i915/i915_gem_stolen.c
+index de023c1cb7c1..8e91083b126f 100644
+--- a/drivers/gpu/drm/i915/i915_gem_stolen.c
++++ b/drivers/gpu/drm/i915/i915_gem_stolen.c
+@@ -26,8 +26,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ /*
+diff --git a/drivers/gpu/drm/i915/i915_gem_tiling.c b/drivers/gpu/drm/i915/i915_gem_tiling.c
+index 4e614431ef3f..c2b7b67e410d 100644
+--- a/drivers/gpu/drm/i915/i915_gem_tiling.c
++++ b/drivers/gpu/drm/i915/i915_gem_tiling.c
+@@ -25,10 +25,10 @@
+  *
+  */
+ 
+-#include "linux/string.h"
+-#include "linux/bitops.h"
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <linux/string.h>
++#include <linux/bitops.h>
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ /** @file i915_gem_tiling.c
+diff --git a/drivers/gpu/drm/i915/i915_ioc32.c b/drivers/gpu/drm/i915/i915_ioc32.c
+index 4b697bb3eb75..3c59584161c2 100644
+--- a/drivers/gpu/drm/i915/i915_ioc32.c
++++ b/drivers/gpu/drm/i915/i915_ioc32.c
+@@ -31,8 +31,8 @@
+  */
+ #include <linux/compat.h>
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ typedef struct _drm_i915_batchbuffer32 {
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index 933a171dcf58..505357886bbb 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -30,8 +30,8 @@
+ 
+ #include <linux/sysrq.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/i915_suspend.c b/drivers/gpu/drm/i915/i915_suspend.c
+index 1c0e6157fc58..5854bddb1e9f 100644
+--- a/drivers/gpu/drm/i915/i915_suspend.c
++++ b/drivers/gpu/drm/i915/i915_suspend.c
+@@ -24,8 +24,8 @@
+  * SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "intel_drv.h"
+ #include "i915_reg.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_acpi.c b/drivers/gpu/drm/i915/intel_acpi.c
+index f413899475e9..bcbbaea2a78e 100644
+--- a/drivers/gpu/drm/i915/intel_acpi.c
++++ b/drivers/gpu/drm/i915/intel_acpi.c
+@@ -8,7 +8,7 @@
+ #include <linux/vga_switcheroo.h>
+ #include <acpi/acpi_drivers.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "i915_drv.h"
+ 
+ #define INTEL_DSM_REVISION_ID 1 /* For Calpella anyway... */
+diff --git a/drivers/gpu/drm/i915/intel_bios.c b/drivers/gpu/drm/i915/intel_bios.c
+index 46d48307a3c0..0ed6baff4b0c 100644
+--- a/drivers/gpu/drm/i915/intel_bios.c
++++ b/drivers/gpu/drm/i915/intel_bios.c
+@@ -26,8 +26,8 @@
+  */
+ #include <linux/dmi.h>
+ #include <drm/drm_dp_helper.h>
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "intel_bios.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_bios.h b/drivers/gpu/drm/i915/intel_bios.h
+index 31c2107e7825..36e57f934373 100644
+--- a/drivers/gpu/drm/i915/intel_bios.h
++++ b/drivers/gpu/drm/i915/intel_bios.h
+@@ -28,7 +28,7 @@
+ #ifndef _I830_BIOS_H_
+ #define _I830_BIOS_H_
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ struct vbt_header {
+ 	u8 signature[20];		/**< Always starts with 'VBT$' */
+diff --git a/drivers/gpu/drm/i915/intel_crt.c b/drivers/gpu/drm/i915/intel_crt.c
+index 30ab432d2bfc..c8f1c0db446d 100644
+--- a/drivers/gpu/drm/i915/intel_crt.c
++++ b/drivers/gpu/drm/i915/intel_crt.c
+@@ -27,12 +27,12 @@
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ /* Here's the desired hotplug mode */
+diff --git a/drivers/gpu/drm/i915/intel_display.c b/drivers/gpu/drm/i915/intel_display.c
+index c040aee1341c..7ea9a3ceb269 100644
+--- a/drivers/gpu/drm/i915/intel_display.c
++++ b/drivers/gpu/drm/i915/intel_display.c
+@@ -32,13 +32,13 @@
+ #include <linux/slab.h>
+ #include <linux/vgaarb.h>
+ #include <drm/drm_edid.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_trace.h"
+-#include "drm_dp_helper.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_dp_helper.h>
++#include <drm/drm_crtc_helper.h>
+ #include <linux/dma_remapping.h>
+ 
+ #define HAS_eDP (intel_pipe_has_type(crtc, INTEL_OUTPUT_EDP))
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 1daf2cc1ff51..f1bd4f4cd667 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -28,14 +28,14 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+-#include "drm_dp_helper.h"
++#include <drm/drm_dp_helper.h>
+ 
+ #define DP_RECEIVER_CAP_SIZE	0xf
+ #define DP_LINK_STATUS_SIZE	6
+diff --git a/drivers/gpu/drm/i915/intel_drv.h b/drivers/gpu/drm/i915/intel_drv.h
+index cd54cf88a28f..7db849052a98 100644
+--- a/drivers/gpu/drm/i915/intel_drv.h
++++ b/drivers/gpu/drm/i915/intel_drv.h
+@@ -26,11 +26,11 @@
+ #define __INTEL_DRV_H__
+ 
+ #include <linux/i2c.h>
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
+ 
+ #define _wait_for(COND, MS, W) ({ \
+ 	unsigned long timeout__ = jiffies + msecs_to_jiffies(MS);	\
+diff --git a/drivers/gpu/drm/i915/intel_dvo.c b/drivers/gpu/drm/i915/intel_dvo.c
+index 32b315185398..ac9f2dd5648a 100644
+--- a/drivers/gpu/drm/i915/intel_dvo.c
++++ b/drivers/gpu/drm/i915/intel_dvo.c
+@@ -26,10 +26,10 @@
+  */
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "dvo.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_fb.c b/drivers/gpu/drm/i915/intel_fb.c
+index 24d436bacb5e..7b30b5c2c4ee 100644
+--- a/drivers/gpu/drm/i915/intel_fb.c
++++ b/drivers/gpu/drm/i915/intel_fb.c
+@@ -36,11 +36,11 @@
+ #include <linux/init.h>
+ #include <linux/vga_switcheroo.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fb_helper.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ static struct fb_ops intelfb_ops = {
+diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
+index 7c3e0c98e406..025be7dd2a27 100644
+--- a/drivers/gpu/drm/i915/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/intel_hdmi.c
+@@ -29,11 +29,11 @@
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ static void
+diff --git a/drivers/gpu/drm/i915/intel_i2c.c b/drivers/gpu/drm/i915/intel_i2c.c
+index 50a0887cbd9e..c2c6dbc0971c 100644
+--- a/drivers/gpu/drm/i915/intel_i2c.c
++++ b/drivers/gpu/drm/i915/intel_i2c.c
+@@ -29,9 +29,9 @@
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ #include <linux/export.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ struct gmbus_port {
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index c82c1d6a1205..8552be9f5db1 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -31,11 +31,11 @@
+ #include <linux/dmi.h>
+ #include <linux/i2c.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include <linux/acpi.h>
+ 
+diff --git a/drivers/gpu/drm/i915/intel_modes.c b/drivers/gpu/drm/i915/intel_modes.c
+index 29b72593fbb2..cc71fd9aaed5 100644
+--- a/drivers/gpu/drm/i915/intel_modes.c
++++ b/drivers/gpu/drm/i915/intel_modes.c
+@@ -27,8 +27,8 @@
+ #include <linux/i2c.h>
+ #include <linux/fb.h>
+ #include <drm/drm_edid.h>
+-#include "drmP.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+ #include "i915_drv.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_opregion.c b/drivers/gpu/drm/i915/intel_opregion.c
+index 18bd0af855dc..5cc624eb6133 100644
+--- a/drivers/gpu/drm/i915/intel_opregion.c
++++ b/drivers/gpu/drm/i915/intel_opregion.c
+@@ -31,8 +31,8 @@
+ #include <linux/acpi_io.h>
+ #include <acpi/video.h>
+ 
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "intel_drv.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_overlay.c b/drivers/gpu/drm/i915/intel_overlay.c
+index a2fe4d1688a3..10510221d763 100644
+--- a/drivers/gpu/drm/i915/intel_overlay.c
++++ b/drivers/gpu/drm/i915/intel_overlay.c
+@@ -25,8 +25,8 @@
+  *
+  * Derived from Xorg ddx, xf86-video-intel, src/i830_video.c
+  */
+-#include "drmP.h"
+-#include "i915_drm.h"
++#include <drm/drmP.h>
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "i915_reg.h"
+ #include "intel_drv.h"
+diff --git a/drivers/gpu/drm/i915/intel_ringbuffer.c b/drivers/gpu/drm/i915/intel_ringbuffer.c
+index b10c74748931..1aef516cc6fa 100644
+--- a/drivers/gpu/drm/i915/intel_ringbuffer.c
++++ b/drivers/gpu/drm/i915/intel_ringbuffer.c
+@@ -27,9 +27,9 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "i915_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_trace.h"
+ #include "intel_drv.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_sdvo.c b/drivers/gpu/drm/i915/intel_sdvo.c
+index 492773615278..d251d9d7a06c 100644
+--- a/drivers/gpu/drm/i915/intel_sdvo.c
++++ b/drivers/gpu/drm/i915/intel_sdvo.c
+@@ -29,11 +29,11 @@
+ #include <linux/slab.h>
+ #include <linux/delay.h>
+ #include <linux/export.h>
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ #include "intel_sdvo_regs.h"
+ 
+diff --git a/drivers/gpu/drm/i915/intel_sprite.c b/drivers/gpu/drm/i915/intel_sprite.c
+index 7644f31a3778..82f5e5c7009d 100644
+--- a/drivers/gpu/drm/i915/intel_sprite.c
++++ b/drivers/gpu/drm/i915/intel_sprite.c
+@@ -29,11 +29,11 @@
+  * registers; newer ones are much simpler and we can use the new DRM plane
+  * support.
+  */
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_fourcc.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_fourcc.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ static void
+diff --git a/drivers/gpu/drm/i915/intel_tv.c b/drivers/gpu/drm/i915/intel_tv.c
+index 56e5761fa780..ccfb2ff4c31d 100644
+--- a/drivers/gpu/drm/i915/intel_tv.c
++++ b/drivers/gpu/drm/i915/intel_tv.c
+@@ -30,11 +30,11 @@
+  * Integrated TV-out support for the 915GM and 945GM.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
+ #include "intel_drv.h"
+-#include "i915_drm.h"
++#include <drm/i915_drm.h>
+ #include "i915_drv.h"
+ 
+ enum tv_margin {
+diff --git a/drivers/gpu/drm/mga/mga_dma.c b/drivers/gpu/drm/mga/mga_dma.c
+index 1e5a4965724d..cc3166dd445a 100644
+--- a/drivers/gpu/drm/mga/mga_dma.c
++++ b/drivers/gpu/drm/mga/mga_dma.c
+@@ -35,8 +35,8 @@
+  * \author Gareth Hughes <gareth@valinux.com>
+  */
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+ #define MGA_DEFAULT_USEC_TIMEOUT	10000
+diff --git a/drivers/gpu/drm/mga/mga_drv.c b/drivers/gpu/drm/mga/mga_drv.c
+index 7a98a520ed92..17d0a637e4fb 100644
+--- a/drivers/gpu/drm/mga/mga_drv.c
++++ b/drivers/gpu/drm/mga/mga_drv.c
+@@ -31,11 +31,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static int mga_driver_device_is_agp(struct drm_device *dev);
+ 
+diff --git a/drivers/gpu/drm/mga/mga_ioc32.c b/drivers/gpu/drm/mga/mga_ioc32.c
+index 67cc2a96e386..709e90db8c40 100644
+--- a/drivers/gpu/drm/mga/mga_ioc32.c
++++ b/drivers/gpu/drm/mga/mga_ioc32.c
+@@ -32,8 +32,8 @@
+  */
+ #include <linux/compat.h>
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ 
+ typedef struct drm32_mga_init {
+ 	int func;
+diff --git a/drivers/gpu/drm/mga/mga_irq.c b/drivers/gpu/drm/mga/mga_irq.c
+index 89f88df7893c..598c281def0a 100644
+--- a/drivers/gpu/drm/mga/mga_irq.c
++++ b/drivers/gpu/drm/mga/mga_irq.c
+@@ -31,8 +31,8 @@
+  *    Eric Anholt <anholt@FreeBSD.org>
+  */
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+ u32 mga_get_vblank_counter(struct drm_device *dev, int crtc)
+diff --git a/drivers/gpu/drm/mga/mga_state.c b/drivers/gpu/drm/mga/mga_state.c
+index 1f9fb5a00a62..9c145143ad0f 100644
+--- a/drivers/gpu/drm/mga/mga_state.c
++++ b/drivers/gpu/drm/mga/mga_state.c
+@@ -32,8 +32,8 @@
+  *    Gareth Hughes <gareth@valinux.com>
+  */
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+ /* ================================================================
+diff --git a/drivers/gpu/drm/mga/mga_warp.c b/drivers/gpu/drm/mga/mga_warp.c
+index e38b17366635..0b76352260a9 100644
+--- a/drivers/gpu/drm/mga/mga_warp.c
++++ b/drivers/gpu/drm/mga/mga_warp.c
+@@ -32,8 +32,8 @@
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "mga_drm.h"
++#include <drm/drmP.h>
++#include <drm/mga_drm.h>
+ #include "mga_drv.h"
+ 
+ #define FIRMWARE_G200 "matrox/g200_warp.fw"
+diff --git a/drivers/gpu/drm/mgag200/mgag200_drv.c b/drivers/gpu/drm/mgag200/mgag200_drv.c
+index 7a05d6c129f0..1e910117b0a2 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_drv.c
++++ b/drivers/gpu/drm/mgag200/mgag200_drv.c
+@@ -10,11 +10,11 @@
+  */
+ #include <linux/module.h>
+ #include <linux/console.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "mgag200_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ /*
+  * This is the generic driver code. This binds the driver to the drm core,
+diff --git a/drivers/gpu/drm/mgag200/mgag200_drv.h b/drivers/gpu/drm/mgag200/mgag200_drv.h
+index 6f13b3563234..73868d0c25ae 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_drv.h
++++ b/drivers/gpu/drm/mgag200/mgag200_drv.h
+@@ -15,12 +15,12 @@
+ 
+ #include <video/vga.h>
+ 
+-#include "drm/drm_fb_helper.h"
+-#include "ttm/ttm_bo_api.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_memory.h"
+-#include "ttm/ttm_module.h"
++#include <drm/drm_fb_helper.h>
++#include <drm/ttm/ttm_bo_api.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_memory.h>
++#include <drm/ttm/ttm_module.h>
+ 
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+diff --git a/drivers/gpu/drm/mgag200/mgag200_fb.c b/drivers/gpu/drm/mgag200/mgag200_fb.c
+index 601517437380..2f486481d79a 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_fb.c
++++ b/drivers/gpu/drm/mgag200/mgag200_fb.c
+@@ -11,8 +11,8 @@
+  *          Dave Airlie
+  */
+ #include <linux/module.h>
+-#include "drmP.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_fb_helper.h>
+ 
+ #include <linux/fb.h>
+ 
+diff --git a/drivers/gpu/drm/mgag200/mgag200_i2c.c b/drivers/gpu/drm/mgag200/mgag200_i2c.c
+index 946da5a05a30..5a88ec51b513 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_i2c.c
++++ b/drivers/gpu/drm/mgag200/mgag200_i2c.c
+@@ -28,7 +28,7 @@
+ #include <linux/export.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "mgag200_drv.h"
+ 
+diff --git a/drivers/gpu/drm/mgag200/mgag200_main.c b/drivers/gpu/drm/mgag200/mgag200_main.c
+index d65cb5e3ffa5..d6a1aae33701 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_main.c
++++ b/drivers/gpu/drm/mgag200/mgag200_main.c
+@@ -10,8 +10,8 @@
+  *          Matt Turner
+  *          Dave Airlie
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "mgag200_drv.h"
+ 
+ static void mga_user_framebuffer_destroy(struct drm_framebuffer *fb)
+diff --git a/drivers/gpu/drm/mgag200/mgag200_mode.c b/drivers/gpu/drm/mgag200/mgag200_mode.c
+index 79078faeb3ee..3d429de0771a 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_mode.c
++++ b/drivers/gpu/drm/mgag200/mgag200_mode.c
+@@ -13,8 +13,8 @@
+ 
+ #include <linux/delay.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "mgag200_drv.h"
+ 
+diff --git a/drivers/gpu/drm/mgag200/mgag200_ttm.c b/drivers/gpu/drm/mgag200/mgag200_ttm.c
+index b223dcb7a710..1504699666c4 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_ttm.c
++++ b/drivers/gpu/drm/mgag200/mgag200_ttm.c
+@@ -25,7 +25,7 @@
+ /*
+  * Authors: Dave Airlie <airlied@redhat.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "mgag200_drv.h"
+ #include <ttm/ttm_page_alloc.h>
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_abi16.c b/drivers/gpu/drm/nouveau/nouveau_abi16.c
+index 3ca240b4413d..111d9eba7065 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_abi16.c
++++ b/drivers/gpu/drm/nouveau/nouveau_abi16.c
+@@ -21,7 +21,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_acpi.c b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+index fb2f77d74f77..dea42bc515ec 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_acpi.c
++++ b/drivers/gpu/drm/nouveau/nouveau_acpi.c
+@@ -7,10 +7,10 @@
+ #include <acpi/acpi.h>
+ #include <linux/mxm-wmi.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nv50_display.h"
+ #include "nouveau_connector.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_backlight.c b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+index fa22b28e8777..2036748e56b4 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_backlight.c
++++ b/drivers/gpu/drm/nouveau/nouveau_backlight.c
+@@ -33,9 +33,9 @@
+ #include <linux/backlight.h>
+ #include <linux/acpi.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_reg.h"
+ #include "nouveau_encoder.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bios.c b/drivers/gpu/drm/nouveau/nouveau_bios.c
+index a0a3fe3c016b..a84290562ca7 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bios.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bios.c
+@@ -22,7 +22,7 @@
+  * SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #define NV_DEBUG_NOTRACE
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index 7f80ed523562..4ee2e7ff92d2 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -27,10 +27,10 @@
+  *	    Jeremy Kolb  <jkolb@brandeis.edu>
+  */
+ 
+-#include "drmP.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/drmP.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ 
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_calc.c b/drivers/gpu/drm/nouveau/nouveau_calc.c
+index dad96cce5e39..2c5eb5d8d556 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_calc.c
++++ b/drivers/gpu/drm/nouveau/nouveau_calc.c
+@@ -21,7 +21,7 @@
+  * SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_channel.c b/drivers/gpu/drm/nouveau/nouveau_channel.c
+index 0c407261c2a8..cd180c678c13 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_channel.c
++++ b/drivers/gpu/drm/nouveau/nouveau_channel.c
+@@ -22,9 +22,9 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_dma.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.c b/drivers/gpu/drm/nouveau/nouveau_connector.c
+index 7b11edb077d0..abb92de98573 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_connector.c
++++ b/drivers/gpu/drm/nouveau/nouveau_connector.c
+@@ -26,9 +26,9 @@
+ 
+ #include <acpi/button.h>
+ 
+-#include "drmP.h"
+-#include "drm_edid.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_reg.h"
+ #include "nouveau_drv.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_connector.h b/drivers/gpu/drm/nouveau/nouveau_connector.h
+index e4857021304c..e1c1567c0c1a 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_connector.h
++++ b/drivers/gpu/drm/nouveau/nouveau_connector.h
+@@ -27,7 +27,7 @@
+ #ifndef __NOUVEAU_CONNECTOR_H__
+ #define __NOUVEAU_CONNECTOR_H__
+ 
+-#include "drm_edid.h"
++#include <drm/drm_edid.h>
+ #include "nouveau_i2c.h"
+ 
+ enum nouveau_underscan_type {
+diff --git a/drivers/gpu/drm/nouveau/nouveau_debugfs.c b/drivers/gpu/drm/nouveau/nouveau_debugfs.c
+index 188c92b327e2..f68cb5e71893 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_debugfs.c
++++ b/drivers/gpu/drm/nouveau/nouveau_debugfs.c
+@@ -30,7 +30,7 @@
+ 
+ #include <linux/debugfs.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ 
+ #include <ttm/ttm_page_alloc.h>
+diff --git a/drivers/gpu/drm/nouveau/nouveau_display.c b/drivers/gpu/drm/nouveau/nouveau_display.c
+index 7e16dc5e6467..e4eeeaf20fdf 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_display.c
++++ b/drivers/gpu/drm/nouveau/nouveau_display.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fb.h"
+ #include "nouveau_fbcon.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dma.c b/drivers/gpu/drm/nouveau/nouveau_dma.c
+index fe1196104ec1..47d041269f65 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dma.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dma.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_dp.c b/drivers/gpu/drm/nouveau/nouveau_dp.c
+index 7e289d2ad8e4..898e5e32293c 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_dp.c
++++ b/drivers/gpu/drm/nouveau/nouveau_dp.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_i2c.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.c b/drivers/gpu/drm/nouveau/nouveau_drv.c
+index 44969e1e831a..8b5e558d7c73 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.c
++++ b/drivers/gpu/drm/nouveau/nouveau_drv.c
+@@ -25,8 +25,8 @@
+ #include <linux/console.h>
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_abi16.h"
+ #include "nouveau_hw.h"
+@@ -36,7 +36,7 @@
+ #include "nouveau_fifo.h"
+ #include "nv50_display.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ MODULE_PARM_DESC(agpmode, "AGP mode (0 to disable AGP)");
+ int nouveau_agpmode = -1;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_drv.h b/drivers/gpu/drm/nouveau/nouveau_drv.h
+index 4f2cc95ce264..543c79bd958c 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_drv.h
++++ b/drivers/gpu/drm/nouveau/nouveau_drv.h
+@@ -39,11 +39,11 @@
+ #define NOUVEAU_FAMILY   0x0000FFFF
+ #define NOUVEAU_FLAGS    0xFFFF0000
+ 
+-#include "ttm/ttm_bo_api.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_memory.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_bo_api.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_memory.h>
++#include <drm/ttm/ttm_module.h>
+ 
+ struct nouveau_fpriv {
+ 	spinlock_t lock;
+@@ -59,7 +59,7 @@ nouveau_fpriv(struct drm_file *file_priv)
+ 
+ #define DRM_FILE_PAGE_OFFSET (0x100000000ULL >> PAGE_SHIFT)
+ 
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_reg.h"
+ #include "nouveau_bios.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_encoder.h b/drivers/gpu/drm/nouveau/nouveau_encoder.h
+index 3dc14a3dcc4c..db07b978946e 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_encoder.h
++++ b/drivers/gpu/drm/nouveau/nouveau_encoder.h
+@@ -27,7 +27,7 @@
+ #ifndef __NOUVEAU_ENCODER_H__
+ #define __NOUVEAU_ENCODER_H__
+ 
+-#include "drm_encoder_slave.h"
++#include <drm/drm_encoder_slave.h>
+ #include "nouveau_drv.h"
+ 
+ #define NV_DPMS_CLEARED 0x80
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.c b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+index b1dd07d1f4c9..7e41a4006087 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+@@ -38,12 +38,12 @@
+ #include <linux/vga_switcheroo.h>
+ #include <linux/console.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_crtc.h"
+ #include "nouveau_fb.h"
+ #include "nouveau_fbcon.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.h b/drivers/gpu/drm/nouveau/nouveau_fbcon.h
+index b73c29f87fc3..1f2d27893438 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.h
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.h
+@@ -27,7 +27,7 @@
+ #ifndef __NOUVEAU_FBCON_H__
+ #define __NOUVEAU_FBCON_H__
+ 
+-#include "drm_fb_helper.h"
++#include <drm/drm_fb_helper.h>
+ 
+ #include "nouveau_fb.h"
+ struct nouveau_fbdev {
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fence.c b/drivers/gpu/drm/nouveau/nouveau_fence.c
+index 2568b7650b16..614df7b958ca 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fence.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fence.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include <linux/ktime.h>
+ #include <linux/hrtimer.h>
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.c b/drivers/gpu/drm/nouveau/nouveau_gem.c
+index d882a4865d84..8461a4f5710f 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -24,10 +24,10 @@
+  *
+  */
+ #include <linux/dma-buf.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_dma.h"
+ #include "nouveau_fence.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gpio.c b/drivers/gpu/drm/nouveau/nouveau_gpio.c
+index 82c19e82ff02..8881182a4723 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gpio.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gpio.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_i2c.h"
+ #include "nouveau_gpio.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gpuobj.c b/drivers/gpu/drm/nouveau/nouveau_gpuobj.c
+index ce4d062cb471..1af7a39e0350 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gpuobj.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gpuobj.c
+@@ -30,9 +30,9 @@
+  *   Ben Skeggs <darktama@iinet.net.au>
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+ #include "nouveau_software.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_hdmi.c b/drivers/gpu/drm/nouveau/nouveau_hdmi.c
+index c3de36384522..1e942cfb9644 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_hdmi.c
++++ b/drivers/gpu/drm/nouveau/nouveau_hdmi.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_connector.h"
+ #include "nouveau_encoder.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_hw.c b/drivers/gpu/drm/nouveau/nouveau_hw.c
+index b87ad3bd7739..6eabc2ea0c7d 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_hw.c
++++ b/drivers/gpu/drm/nouveau/nouveau_hw.c
+@@ -22,7 +22,7 @@
+  * SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_hw.h b/drivers/gpu/drm/nouveau/nouveau_hw.h
+index 2989090b9434..06a66bc84a81 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_hw.h
++++ b/drivers/gpu/drm/nouveau/nouveau_hw.h
+@@ -23,7 +23,7 @@
+ #ifndef __NOUVEAU_HW_H__
+ #define __NOUVEAU_HW_H__
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ 
+ #define MASK(field) ( \
+diff --git a/drivers/gpu/drm/nouveau/nouveau_i2c.c b/drivers/gpu/drm/nouveau/nouveau_i2c.c
+index 240cf962c999..baf2fa25d077 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_i2c.c
++++ b/drivers/gpu/drm/nouveau/nouveau_i2c.c
+@@ -24,7 +24,7 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_i2c.h"
+ #include "nouveau_hw.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_i2c.h b/drivers/gpu/drm/nouveau/nouveau_i2c.h
+index 1d083893a4d7..326bf5e2035a 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_i2c.h
++++ b/drivers/gpu/drm/nouveau/nouveau_i2c.h
+@@ -25,7 +25,7 @@
+ 
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+-#include "drm_dp_helper.h"
++#include <drm/drm_dp_helper.h>
+ 
+ #define NV_I2C_PORT(n)    (0x00 + (n))
+ #define NV_I2C_PORT_NUM    0x10
+diff --git a/drivers/gpu/drm/nouveau/nouveau_ioc32.c b/drivers/gpu/drm/nouveau/nouveau_ioc32.c
+index 1d35fa82eb2c..aa3a067c707b 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_ioc32.c
++++ b/drivers/gpu/drm/nouveau/nouveau_ioc32.c
+@@ -33,7 +33,7 @@
+ 
+ #include <linux/compat.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_irq.c b/drivers/gpu/drm/nouveau/nouveau_irq.c
+index b422b9f43c88..6273b7763cd6 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_irq.c
++++ b/drivers/gpu/drm/nouveau/nouveau_irq.c
+@@ -30,8 +30,8 @@
+  *   Ben Skeggs <darktama@iinet.net.au>
+  */
+ 
+-#include "drmP.h"
+-#include "nouveau_drm.h"
++#include <drm/drmP.h>
++#include <drm/nouveau_drm.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_reg.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_mem.c b/drivers/gpu/drm/nouveau/nouveau_mem.c
+index 788e3a265979..7f0afad13653 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_mem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_mem.c
+@@ -31,7 +31,7 @@
+  */
+ 
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_mm.c b/drivers/gpu/drm/nouveau/nouveau_mm.c
+index b29ffb3d1408..3e98806dd76f 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_mm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_mm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_mxm.c b/drivers/gpu/drm/nouveau/nouveau_mxm.c
+index 07d0d1e03690..d07f4a3310b9 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_mxm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_mxm.c
+@@ -24,7 +24,7 @@
+ 
+ #include <linux/acpi.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ 
+ #define MXM_DBG(dev, fmt, args...) NV_DEBUG((dev), "MXM: " fmt, ##args)
+diff --git a/drivers/gpu/drm/nouveau/nouveau_notifier.c b/drivers/gpu/drm/nouveau/nouveau_notifier.c
+index 03ad50e78509..1ad3e6c8c432 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_notifier.c
++++ b/drivers/gpu/drm/nouveau/nouveau_notifier.c
+@@ -25,7 +25,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_perf.c b/drivers/gpu/drm/nouveau/nouveau_perf.c
+index ea6acf1c4a78..4946d308a362 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_perf.c
++++ b/drivers/gpu/drm/nouveau/nouveau_perf.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_pm.c b/drivers/gpu/drm/nouveau/nouveau_pm.c
+index da3e7c3abab7..7cf95b20b7a4 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_pm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_prime.c b/drivers/gpu/drm/nouveau/nouveau_prime.c
+index 6fcb5edfe37c..aef7181415a8 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_prime.c
++++ b/drivers/gpu/drm/nouveau/nouveau_prime.c
+@@ -22,10 +22,10 @@
+  * Authors: Dave Airlie
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_dma.h"
+ 
+ #include <linux/dma-buf.h>
+diff --git a/drivers/gpu/drm/nouveau/nouveau_ramht.c b/drivers/gpu/drm/nouveau/nouveau_ramht.c
+index a24a81f5a89e..0ebb62f1fc80 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_ramht.c
++++ b/drivers/gpu/drm/nouveau/nouveau_ramht.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_sgdma.c b/drivers/gpu/drm/nouveau/nouveau_sgdma.c
+index 38483a042bc2..9d76a82d3c90 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_sgdma.c
++++ b/drivers/gpu/drm/nouveau/nouveau_sgdma.c
+@@ -1,4 +1,4 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include <linux/pagemap.h>
+ #include <linux/slab.h>
+diff --git a/drivers/gpu/drm/nouveau/nouveau_state.c b/drivers/gpu/drm/nouveau/nouveau_state.c
+index 9df8a4f073d0..30fe9291d17e 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_state.c
++++ b/drivers/gpu/drm/nouveau/nouveau_state.c
+@@ -25,13 +25,13 @@
+ 
+ #include <linux/swab.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include <linux/vgaarb.h>
+ #include <linux/vga_switcheroo.h>
+ 
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_fbcon.h"
+ #include "nouveau_ramht.h"
+ #include "nouveau_gpio.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_temp.c b/drivers/gpu/drm/nouveau/nouveau_temp.c
+index 0f5a30160556..1ad411dcc57a 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_temp.c
++++ b/drivers/gpu/drm/nouveau/nouveau_temp.c
+@@ -24,7 +24,7 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_ttm.c b/drivers/gpu/drm/nouveau/nouveau_ttm.c
+index bd35f930568c..48de8dd69583 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_ttm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_ttm.c
+@@ -24,7 +24,7 @@
+  * USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_vm.c b/drivers/gpu/drm/nouveau/nouveau_vm.c
+index 11edd5e91a0a..4c8d13965dd1 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_vm.c
++++ b/drivers/gpu/drm/nouveau/nouveau_vm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_vm.h b/drivers/gpu/drm/nouveau/nouveau_vm.h
+index a8246e7e4a89..3cdf6001d635 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_vm.h
++++ b/drivers/gpu/drm/nouveau/nouveau_vm.h
+@@ -25,7 +25,7 @@
+ #ifndef __NOUVEAU_VM_H__
+ #define __NOUVEAU_VM_H__
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nouveau_volt.c b/drivers/gpu/drm/nouveau/nouveau_volt.c
+index b010cb997b34..fbc3a1efd501 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_volt.c
++++ b/drivers/gpu/drm/nouveau/nouveau_volt.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_crtc.c b/drivers/gpu/drm/nouveau/nv04_crtc.c
+index 43accc11102f..37d5b5bf7587 100644
+--- a/drivers/gpu/drm/nouveau/nv04_crtc.c
++++ b/drivers/gpu/drm/nouveau/nv04_crtc.c
+@@ -23,8 +23,8 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_cursor.c b/drivers/gpu/drm/nouveau/nv04_cursor.c
+index 2efa40e263f3..6463870ef19e 100644
+--- a/drivers/gpu/drm/nouveau/nv04_cursor.c
++++ b/drivers/gpu/drm/nouveau/nv04_cursor.c
+@@ -1,4 +1,4 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_reg.h"
+ #include "nouveau_drv.h"
+ #include "nouveau_crtc.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_dac.c b/drivers/gpu/drm/nouveau/nv04_dac.c
+index 38f19479417c..981e6d4f4c76 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dac.c
++++ b/drivers/gpu/drm/nouveau/nv04_dac.c
+@@ -24,8 +24,8 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_dfp.c b/drivers/gpu/drm/nouveau/nv04_dfp.c
+index c2675623b7cd..55ad2dd653fc 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dfp.c
++++ b/drivers/gpu/drm/nouveau/nv04_dfp.c
+@@ -24,8 +24,8 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+@@ -34,7 +34,7 @@
+ #include "nouveau_hw.h"
+ #include "nvreg.h"
+ 
+-#include "i2c/sil164.h"
++#include <drm/i2c/sil164.h>
+ 
+ #define FP_TG_CONTROL_ON  (NV_PRAMDAC_FP_TG_CONTROL_DISPEN_POS |	\
+ 			   NV_PRAMDAC_FP_TG_CONTROL_HSYNC_POS |		\
+diff --git a/drivers/gpu/drm/nouveau/nv04_display.c b/drivers/gpu/drm/nouveau/nv04_display.c
+index 5da848e3e7fa..ea1e47a34ddf 100644
+--- a/drivers/gpu/drm/nouveau/nv04_display.c
++++ b/drivers/gpu/drm/nouveau/nv04_display.c
+@@ -22,8 +22,8 @@
+  * Author: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_fb.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_fb.c b/drivers/gpu/drm/nouveau/nv04_fb.c
+index c36c2c8f70c5..375f5533c313 100644
+--- a/drivers/gpu/drm/nouveau/nv04_fb.c
++++ b/drivers/gpu/drm/nouveau/nv04_fb.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ int
+ nv04_fb_vram_init(struct drm_device *dev)
+diff --git a/drivers/gpu/drm/nouveau/nv04_fbcon.c b/drivers/gpu/drm/nouveau/nv04_fbcon.c
+index 7cd7857347ef..fc53a3922bce 100644
+--- a/drivers/gpu/drm/nouveau/nv04_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nv04_fbcon.c
+@@ -22,7 +22,7 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_fence.c b/drivers/gpu/drm/nouveau/nv04_fence.c
+index abe89db6de24..aa6859270662 100644
+--- a/drivers/gpu/drm/nouveau/nv04_fence.c
++++ b/drivers/gpu/drm/nouveau/nv04_fence.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_fifo.c b/drivers/gpu/drm/nouveau/nv04_fifo.c
+index fe627aca68e0..65f966deeee6 100644
+--- a/drivers/gpu/drm/nouveau/nv04_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv04_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_graph.c b/drivers/gpu/drm/nouveau/nv04_graph.c
+index e055c4e49dfa..68cce6023461 100644
+--- a/drivers/gpu/drm/nouveau/nv04_graph.c
++++ b/drivers/gpu/drm/nouveau/nv04_graph.c
+@@ -22,8 +22,8 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "nouveau_drm.h"
++#include <drm/drmP.h>
++#include <drm/nouveau_drm.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_instmem.c b/drivers/gpu/drm/nouveau/nv04_instmem.c
+index 97353d304c52..a9e380040fea 100644
+--- a/drivers/gpu/drm/nouveau/nv04_instmem.c
++++ b/drivers/gpu/drm/nouveau/nv04_instmem.c
+@@ -1,4 +1,4 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_mc.c b/drivers/gpu/drm/nouveau/nv04_mc.c
+index f30e1d82fa55..83751e7a3309 100644
+--- a/drivers/gpu/drm/nouveau/nv04_mc.c
++++ b/drivers/gpu/drm/nouveau/nv04_mc.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ int
+ nv04_mc_init(struct drm_device *dev)
+diff --git a/drivers/gpu/drm/nouveau/nv04_pm.c b/drivers/gpu/drm/nouveau/nv04_pm.c
+index 6e7589918fa9..435b5a832da3 100644
+--- a/drivers/gpu/drm/nouveau/nv04_pm.c
++++ b/drivers/gpu/drm/nouveau/nv04_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_software.c b/drivers/gpu/drm/nouveau/nv04_software.c
+index 0c41abf48774..02509e715693 100644
+--- a/drivers/gpu/drm/nouveau/nv04_software.c
++++ b/drivers/gpu/drm/nouveau/nv04_software.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv04_timer.c b/drivers/gpu/drm/nouveau/nv04_timer.c
+index ffbe30fed136..71ad319affcb 100644
+--- a/drivers/gpu/drm/nouveau/nv04_timer.c
++++ b/drivers/gpu/drm/nouveau/nv04_timer.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_hw.h"
+ 
+ int
+diff --git a/drivers/gpu/drm/nouveau/nv04_tv.c b/drivers/gpu/drm/nouveau/nv04_tv.c
+index 3eb605ddfd03..7157d403ed59 100644
+--- a/drivers/gpu/drm/nouveau/nv04_tv.c
++++ b/drivers/gpu/drm/nouveau/nv04_tv.c
+@@ -24,15 +24,15 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+ #include "nouveau_connector.h"
+ #include "nouveau_crtc.h"
+ #include "nouveau_hw.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_crtc_helper.h>
+ 
+-#include "i2c/ch7006.h"
++#include <drm/i2c/ch7006.h>
+ 
+ static struct i2c_board_info nv04_tv_encoder_info[] = {
+ 	{
+diff --git a/drivers/gpu/drm/nouveau/nv10_fb.c b/drivers/gpu/drm/nouveau/nv10_fb.c
+index 55fdbc2ae5a5..510e90f34482 100644
+--- a/drivers/gpu/drm/nouveau/nv10_fb.c
++++ b/drivers/gpu/drm/nouveau/nv10_fb.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ void
+ nv10_fb_init_tile_region(struct drm_device *dev, int i, uint32_t addr,
+diff --git a/drivers/gpu/drm/nouveau/nv10_fence.c b/drivers/gpu/drm/nouveau/nv10_fence.c
+index 8a1b75009185..d30f752464ef 100644
+--- a/drivers/gpu/drm/nouveau/nv10_fence.c
++++ b/drivers/gpu/drm/nouveau/nv10_fence.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs <bskeggs@redhat.com>
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv10_fifo.c b/drivers/gpu/drm/nouveau/nv10_fifo.c
+index e192bbaa22d3..05a2499b7a4d 100644
+--- a/drivers/gpu/drm/nouveau/nv10_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv10_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv10_gpio.c b/drivers/gpu/drm/nouveau/nv10_gpio.c
+index 9d79180069df..ecc1b62dd751 100644
+--- a/drivers/gpu/drm/nouveau/nv10_gpio.c
++++ b/drivers/gpu/drm/nouveau/nv10_gpio.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ #include "nouveau_gpio.h"
+diff --git a/drivers/gpu/drm/nouveau/nv10_graph.c b/drivers/gpu/drm/nouveau/nv10_graph.c
+index f3ef22a31557..75dd51bbe64d 100644
+--- a/drivers/gpu/drm/nouveau/nv10_graph.c
++++ b/drivers/gpu/drm/nouveau/nv10_graph.c
+@@ -22,8 +22,8 @@
+  * DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "nouveau_drm.h"
++#include <drm/drmP.h>
++#include <drm/nouveau_drm.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv17_fifo.c b/drivers/gpu/drm/nouveau/nv17_fifo.c
+index 7128e66c82f9..4ae61aeea741 100644
+--- a/drivers/gpu/drm/nouveau/nv17_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv17_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv17_tv.c b/drivers/gpu/drm/nouveau/nv17_tv.c
+index 67be5db021f5..6331e79b0124 100644
+--- a/drivers/gpu/drm/nouveau/nv17_tv.c
++++ b/drivers/gpu/drm/nouveau/nv17_tv.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+ #include "nouveau_connector.h"
+diff --git a/drivers/gpu/drm/nouveau/nv17_tv_modes.c b/drivers/gpu/drm/nouveau/nv17_tv_modes.c
+index 4d1d29f60307..96e428641672 100644
+--- a/drivers/gpu/drm/nouveau/nv17_tv_modes.c
++++ b/drivers/gpu/drm/nouveau/nv17_tv_modes.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_encoder.h"
+ #include "nouveau_crtc.h"
+diff --git a/drivers/gpu/drm/nouveau/nv20_fb.c b/drivers/gpu/drm/nouveau/nv20_fb.c
+index 522e4dade32f..5fffc2150b8e 100644
+--- a/drivers/gpu/drm/nouveau/nv20_fb.c
++++ b/drivers/gpu/drm/nouveau/nv20_fb.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ static struct drm_mm_node *
+ nv20_fb_alloc_tag(struct drm_device *dev, uint32_t size)
+diff --git a/drivers/gpu/drm/nouveau/nv20_graph.c b/drivers/gpu/drm/nouveau/nv20_graph.c
+index 1856caa10f02..ffaab0ba76b9 100644
+--- a/drivers/gpu/drm/nouveau/nv20_graph.c
++++ b/drivers/gpu/drm/nouveau/nv20_graph.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ /*
+  * NV20
+diff --git a/drivers/gpu/drm/nouveau/nv30_fb.c b/drivers/gpu/drm/nouveau/nv30_fb.c
+index bbc5a8a17b46..9cc4de8de5ca 100644
+--- a/drivers/gpu/drm/nouveau/nv30_fb.c
++++ b/drivers/gpu/drm/nouveau/nv30_fb.c
+@@ -24,9 +24,9 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ void
+ nv30_fb_init_tile_region(struct drm_device *dev, int i, uint32_t addr,
+diff --git a/drivers/gpu/drm/nouveau/nv31_mpeg.c b/drivers/gpu/drm/nouveau/nv31_mpeg.c
+index 5f239bf658c4..818deb67588e 100644
+--- a/drivers/gpu/drm/nouveau/nv31_mpeg.c
++++ b/drivers/gpu/drm/nouveau/nv31_mpeg.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv40_fb.c b/drivers/gpu/drm/nouveau/nv40_fb.c
+index c901cef36477..88b4f7c43992 100644
+--- a/drivers/gpu/drm/nouveau/nv40_fb.c
++++ b/drivers/gpu/drm/nouveau/nv40_fb.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ void
+ nv40_fb_set_tile_region(struct drm_device *dev, int i)
+diff --git a/drivers/gpu/drm/nouveau/nv40_fifo.c b/drivers/gpu/drm/nouveau/nv40_fifo.c
+index c75ff45ce94e..cf952d2048ed 100644
+--- a/drivers/gpu/drm/nouveau/nv40_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv40_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv40_graph.c b/drivers/gpu/drm/nouveau/nv40_graph.c
+index d2951e7278d0..5489201bec0b 100644
+--- a/drivers/gpu/drm/nouveau/nv40_graph.c
++++ b/drivers/gpu/drm/nouveau/nv40_graph.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv40_grctx.c b/drivers/gpu/drm/nouveau/nv40_grctx.c
+index be0a74750fb1..cf115ad4dad1 100644
+--- a/drivers/gpu/drm/nouveau/nv40_grctx.c
++++ b/drivers/gpu/drm/nouveau/nv40_grctx.c
+@@ -109,7 +109,7 @@
+ #define CP_LOAD_MAGIC_NV44TCL    0x00800029 /* per-vs state (0x4497) */
+ #define CP_LOAD_MAGIC_NV40TCL    0x00800041 /* per-vs state (0x4097) */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_grctx.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv40_mc.c b/drivers/gpu/drm/nouveau/nv40_mc.c
+index 61a2424e12b4..788584364853 100644
+--- a/drivers/gpu/drm/nouveau/nv40_mc.c
++++ b/drivers/gpu/drm/nouveau/nv40_mc.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ int
+ nv40_mc_init(struct drm_device *dev)
+diff --git a/drivers/gpu/drm/nouveau/nv40_pm.c b/drivers/gpu/drm/nouveau/nv40_pm.c
+index e66273aff493..b94dd87d592c 100644
+--- a/drivers/gpu/drm/nouveau/nv40_pm.c
++++ b/drivers/gpu/drm/nouveau/nv40_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_bios.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_calc.c b/drivers/gpu/drm/nouveau/nv50_calc.c
+index 8cf63a8b30cd..4d019eb76f7d 100644
+--- a/drivers/gpu/drm/nouveau/nv50_calc.c
++++ b/drivers/gpu/drm/nouveau/nv50_calc.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv50_crtc.c b/drivers/gpu/drm/nouveau/nv50_crtc.c
+index 8edea2321b9d..7f3ae75032d6 100644
+--- a/drivers/gpu/drm/nouveau/nv50_crtc.c
++++ b/drivers/gpu/drm/nouveau/nv50_crtc.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #define NOUVEAU_DMA_DEBUG (nouveau_reg_debug & NOUVEAU_REG_DEBUG_EVO)
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_cursor.c b/drivers/gpu/drm/nouveau/nv50_cursor.c
+index 01434c03840e..b290b7b1f65d 100644
+--- a/drivers/gpu/drm/nouveau/nv50_cursor.c
++++ b/drivers/gpu/drm/nouveau/nv50_cursor.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #define NOUVEAU_DMA_DEBUG (nouveau_reg_debug & NOUVEAU_REG_DEBUG_EVO)
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_dac.c b/drivers/gpu/drm/nouveau/nv50_dac.c
+index 2c36a6b92c53..2bff2e588d87 100644
+--- a/drivers/gpu/drm/nouveau/nv50_dac.c
++++ b/drivers/gpu/drm/nouveau/nv50_dac.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #define NOUVEAU_DMA_DEBUG (nouveau_reg_debug & NOUVEAU_REG_DEBUG_EVO)
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_display.c b/drivers/gpu/drm/nouveau/nv50_display.c
+index b244d9968c5d..f868a13e5c2d 100644
+--- a/drivers/gpu/drm/nouveau/nv50_display.c
++++ b/drivers/gpu/drm/nouveau/nv50_display.c
+@@ -33,7 +33,7 @@
+ #include "nouveau_fbcon.h"
+ #include "nouveau_ramht.h"
+ #include "nouveau_software.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_crtc_helper.h>
+ 
+ static void nv50_display_isr(struct drm_device *);
+ static void nv50_display_bh(unsigned long);
+diff --git a/drivers/gpu/drm/nouveau/nv50_display.h b/drivers/gpu/drm/nouveau/nv50_display.h
+index 016f57494868..009ec2a811c4 100644
+--- a/drivers/gpu/drm/nouveau/nv50_display.h
++++ b/drivers/gpu/drm/nouveau/nv50_display.h
+@@ -27,7 +27,7 @@
+ #ifndef __NV50_DISPLAY_H__
+ #define __NV50_DISPLAY_H__
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_evo.c b/drivers/gpu/drm/nouveau/nv50_evo.c
+index ddcd55595824..dabcd8787176 100644
+--- a/drivers/gpu/drm/nouveau/nv50_evo.c
++++ b/drivers/gpu/drm/nouveau/nv50_evo.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_fb.c b/drivers/gpu/drm/nouveau/nv50_fb.c
+index a33f98b8fd5e..befd5fb7155f 100644
+--- a/drivers/gpu/drm/nouveau/nv50_fb.c
++++ b/drivers/gpu/drm/nouveau/nv50_fb.c
+@@ -1,6 +1,6 @@
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ #include "nouveau_fifo.h"
+ 
+ struct nv50_fb_priv {
+diff --git a/drivers/gpu/drm/nouveau/nv50_fbcon.c b/drivers/gpu/drm/nouveau/nv50_fbcon.c
+index e3c8b05dcae4..ec24959e67a2 100644
+--- a/drivers/gpu/drm/nouveau/nv50_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nv50_fbcon.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_fifo.c b/drivers/gpu/drm/nouveau/nv50_fifo.c
+index a61fa1351ac2..5a440e89e918 100644
+--- a/drivers/gpu/drm/nouveau/nv50_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv50_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_gpio.c b/drivers/gpu/drm/nouveau/nv50_gpio.c
+index c399d510b27a..c86a5fcc5e69 100644
+--- a/drivers/gpu/drm/nouveau/nv50_gpio.c
++++ b/drivers/gpu/drm/nouveau/nv50_gpio.c
+@@ -23,7 +23,7 @@
+  */
+ 
+ #include <linux/dmi.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_hw.h"
+ #include "nouveau_gpio.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_graph.c b/drivers/gpu/drm/nouveau/nv50_graph.c
+index 78843c00e0b1..f8a9c8095297 100644
+--- a/drivers/gpu/drm/nouveau/nv50_graph.c
++++ b/drivers/gpu/drm/nouveau/nv50_graph.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_grctx.c b/drivers/gpu/drm/nouveau/nv50_grctx.c
+index 881e22b249fc..3bb96a029d66 100644
+--- a/drivers/gpu/drm/nouveau/nv50_grctx.c
++++ b/drivers/gpu/drm/nouveau/nv50_grctx.c
+@@ -105,7 +105,7 @@
+ #define CP_SEEK_1      0x00c000ff
+ #define CP_SEEK_2      0x00c800ff
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_grctx.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv50_instmem.c b/drivers/gpu/drm/nouveau/nv50_instmem.c
+index 126fbb62eb39..05eff577f053 100644
+--- a/drivers/gpu/drm/nouveau/nv50_instmem.c
++++ b/drivers/gpu/drm/nouveau/nv50_instmem.c
+@@ -25,7 +25,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_mc.c b/drivers/gpu/drm/nouveau/nv50_mc.c
+index c07490f285d8..a739c2afae90 100644
+--- a/drivers/gpu/drm/nouveau/nv50_mc.c
++++ b/drivers/gpu/drm/nouveau/nv50_mc.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ 
+ int
+diff --git a/drivers/gpu/drm/nouveau/nv50_mpeg.c b/drivers/gpu/drm/nouveau/nv50_mpeg.c
+index 90e8ed22cfcb..e11bb540727b 100644
+--- a/drivers/gpu/drm/nouveau/nv50_mpeg.c
++++ b/drivers/gpu/drm/nouveau/nv50_mpeg.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv50_pm.c b/drivers/gpu/drm/nouveau/nv50_pm.c
+index d020ed4979b4..07593fd73af3 100644
+--- a/drivers/gpu/drm/nouveau/nv50_pm.c
++++ b/drivers/gpu/drm/nouveau/nv50_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_bios.h"
+ #include "nouveau_hw.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_software.c b/drivers/gpu/drm/nouveau/nv50_software.c
+index df554d9dacb8..5497a6ce25b4 100644
+--- a/drivers/gpu/drm/nouveau/nv50_software.c
++++ b/drivers/gpu/drm/nouveau/nv50_software.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_sor.c b/drivers/gpu/drm/nouveau/nv50_sor.c
+index 93240bde891b..63ece8503a11 100644
+--- a/drivers/gpu/drm/nouveau/nv50_sor.c
++++ b/drivers/gpu/drm/nouveau/nv50_sor.c
+@@ -24,8 +24,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #define NOUVEAU_DMA_DEBUG (nouveau_reg_debug & NOUVEAU_REG_DEBUG_EVO)
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_vm.c b/drivers/gpu/drm/nouveau/nv50_vm.c
+index 179bb42a635c..c9fdfb48270b 100644
+--- a/drivers/gpu/drm/nouveau/nv50_vm.c
++++ b/drivers/gpu/drm/nouveau/nv50_vm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_vram.c b/drivers/gpu/drm/nouveau/nv50_vram.c
+index 9ed9ae397d75..e2a1af7b9eef 100644
+--- a/drivers/gpu/drm/nouveau/nv50_vram.c
++++ b/drivers/gpu/drm/nouveau/nv50_vram.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nv84_bsp.c b/drivers/gpu/drm/nouveau/nv84_bsp.c
+index 74875739bcc0..a4f4d4a0a755 100644
+--- a/drivers/gpu/drm/nouveau/nv84_bsp.c
++++ b/drivers/gpu/drm/nouveau/nv84_bsp.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv84_crypt.c b/drivers/gpu/drm/nouveau/nv84_crypt.c
+index bbfcc73b6708..dc2bc5cc536d 100644
+--- a/drivers/gpu/drm/nouveau/nv84_crypt.c
++++ b/drivers/gpu/drm/nouveau/nv84_crypt.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv84_fence.c b/drivers/gpu/drm/nouveau/nv84_fence.c
+index c2f889b0d340..60dd73d532e7 100644
+--- a/drivers/gpu/drm/nouveau/nv84_fence.c
++++ b/drivers/gpu/drm/nouveau/nv84_fence.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_fifo.h"
+diff --git a/drivers/gpu/drm/nouveau/nv84_fifo.c b/drivers/gpu/drm/nouveau/nv84_fifo.c
+index b3a032afdf00..9844a65491c3 100644
+--- a/drivers/gpu/drm/nouveau/nv84_fifo.c
++++ b/drivers/gpu/drm/nouveau/nv84_fifo.c
+@@ -24,7 +24,7 @@
+  *
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_fifo.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nv84_vp.c b/drivers/gpu/drm/nouveau/nv84_vp.c
+index 6570d300ab85..0dec4958eb5f 100644
+--- a/drivers/gpu/drm/nouveau/nv84_vp.c
++++ b/drivers/gpu/drm/nouveau/nv84_vp.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nv98_crypt.c b/drivers/gpu/drm/nouveau/nv98_crypt.c
+index e25e13fb894e..6f4c15345b9b 100644
+--- a/drivers/gpu/drm/nouveau/nv98_crypt.c
++++ b/drivers/gpu/drm/nouveau/nv98_crypt.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+diff --git a/drivers/gpu/drm/nouveau/nv98_ppp.c b/drivers/gpu/drm/nouveau/nv98_ppp.c
+index a987dd6e0036..1847963e27f3 100644
+--- a/drivers/gpu/drm/nouveau/nv98_ppp.c
++++ b/drivers/gpu/drm/nouveau/nv98_ppp.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nva3_copy.c b/drivers/gpu/drm/nouveau/nva3_copy.c
+index 0387dc7f4f42..7801cbd057fa 100644
+--- a/drivers/gpu/drm/nouveau/nva3_copy.c
++++ b/drivers/gpu/drm/nouveau/nva3_copy.c
+@@ -23,7 +23,7 @@
+  */
+ 
+ #include <linux/firmware.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nva3_pm.c b/drivers/gpu/drm/nouveau/nva3_pm.c
+index 798829353fb6..9258524e4c80 100644
+--- a/drivers/gpu/drm/nouveau/nva3_pm.c
++++ b/drivers/gpu/drm/nouveau/nva3_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_bios.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_copy.c b/drivers/gpu/drm/nouveau/nvc0_copy.c
+index dddf006f6d88..88a922d60822 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_copy.c
++++ b/drivers/gpu/drm/nouveau/nvc0_copy.c
+@@ -23,7 +23,7 @@
+  */
+ 
+ #include <linux/firmware.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_util.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_fb.c b/drivers/gpu/drm/nouveau/nvc0_fb.c
+index 25557bd0a282..7da32a9ef08e 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_fb.c
++++ b/drivers/gpu/drm/nouveau/nvc0_fb.c
+@@ -22,9 +22,9 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+-#include "nouveau_drm.h"
++#include <drm/nouveau_drm.h>
+ 
+ struct nvc0_fb_priv {
+ 	struct page *r100c10_page;
+diff --git a/drivers/gpu/drm/nouveau/nvc0_fbcon.c b/drivers/gpu/drm/nouveau/nvc0_fbcon.c
+index 797159e7b7a6..ade005fa9de1 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nvc0_fbcon.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_fence.c b/drivers/gpu/drm/nouveau/nvc0_fence.c
+index 47ab388a606e..2e666d0c4048 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_fence.c
++++ b/drivers/gpu/drm/nouveau/nvc0_fence.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_dma.h"
+ #include "nouveau_fifo.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_fifo.c b/drivers/gpu/drm/nouveau/nvc0_fifo.c
+index cd39eb99f5b1..d03ba8631a69 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_fifo.c
++++ b/drivers/gpu/drm/nouveau/nvc0_fifo.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_graph.c b/drivers/gpu/drm/nouveau/nvc0_graph.c
+index 2a01e6e47724..59670acad7b9 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_graph.c
++++ b/drivers/gpu/drm/nouveau/nvc0_graph.c
+@@ -25,7 +25,7 @@
+ #include <linux/firmware.h>
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_grctx.c b/drivers/gpu/drm/nouveau/nvc0_grctx.c
+index de77842b31c0..2f17654e79a6 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_grctx.c
++++ b/drivers/gpu/drm/nouveau/nvc0_grctx.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ #include "nvc0_graph.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_instmem.c b/drivers/gpu/drm/nouveau/nvc0_instmem.c
+index b701c439c92e..f5fac7cbb78d 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_instmem.c
++++ b/drivers/gpu/drm/nouveau/nvc0_instmem.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_pm.c b/drivers/gpu/drm/nouveau/nvc0_pm.c
+index 4e712b10ebdb..51cee2103544 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_pm.c
++++ b/drivers/gpu/drm/nouveau/nvc0_pm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_bios.h"
+ #include "nouveau_pm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_software.c b/drivers/gpu/drm/nouveau/nvc0_software.c
+index 93e8c164fec6..940652e7fafa 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_software.c
++++ b/drivers/gpu/drm/nouveau/nvc0_software.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_ramht.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_vm.c b/drivers/gpu/drm/nouveau/nvc0_vm.c
+index 30d2bd58828f..fad338314881 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_vm.c
++++ b/drivers/gpu/drm/nouveau/nvc0_vm.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_vm.h"
+diff --git a/drivers/gpu/drm/nouveau/nvc0_vram.c b/drivers/gpu/drm/nouveau/nvc0_vram.c
+index a7eef8934c07..4d62a1d95782 100644
+--- a/drivers/gpu/drm/nouveau/nvc0_vram.c
++++ b/drivers/gpu/drm/nouveau/nvc0_vram.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/nvd0_display.c b/drivers/gpu/drm/nouveau/nvd0_display.c
+index 8a2fc89b7763..4b44a3250d4b 100644
+--- a/drivers/gpu/drm/nouveau/nvd0_display.c
++++ b/drivers/gpu/drm/nouveau/nvd0_display.c
+@@ -24,8 +24,8 @@
+ 
+ #include <linux/dma-mapping.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_connector.h"
+diff --git a/drivers/gpu/drm/nouveau/nve0_fifo.c b/drivers/gpu/drm/nouveau/nve0_fifo.c
+index 281bece751b6..0eba15b2201a 100644
+--- a/drivers/gpu/drm/nouveau/nve0_fifo.c
++++ b/drivers/gpu/drm/nouveau/nve0_fifo.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nve0_graph.c b/drivers/gpu/drm/nouveau/nve0_graph.c
+index 8a8051b68f10..b784a8b32458 100644
+--- a/drivers/gpu/drm/nouveau/nve0_graph.c
++++ b/drivers/gpu/drm/nouveau/nve0_graph.c
+@@ -25,7 +25,7 @@
+ #include <linux/firmware.h>
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+diff --git a/drivers/gpu/drm/nouveau/nve0_grctx.c b/drivers/gpu/drm/nouveau/nve0_grctx.c
+index d8cb360e92c1..d3a802987972 100644
+--- a/drivers/gpu/drm/nouveau/nve0_grctx.c
++++ b/drivers/gpu/drm/nouveau/nve0_grctx.c
+@@ -22,7 +22,7 @@
+  * Authors: Ben Skeggs
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "nouveau_drv.h"
+ #include "nouveau_mm.h"
+ #include "nve0_graph.h"
+diff --git a/drivers/gpu/drm/r128/r128_cce.c b/drivers/gpu/drm/r128/r128_cce.c
+index 47d3b1c2c776..d4660cf942a5 100644
+--- a/drivers/gpu/drm/r128/r128_cce.c
++++ b/drivers/gpu/drm/r128/r128_cce.c
+@@ -34,8 +34,8 @@
+ #include <linux/slab.h>
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "r128_drm.h"
++#include <drm/drmP.h>
++#include <drm/r128_drm.h>
+ #include "r128_drv.h"
+ 
+ #define R128_FIFO_DEBUG		0
+diff --git a/drivers/gpu/drm/r128/r128_drv.c b/drivers/gpu/drm/r128/r128_drv.c
+index f97865656409..472c38fe123f 100644
+--- a/drivers/gpu/drm/r128/r128_drv.c
++++ b/drivers/gpu/drm/r128/r128_drv.c
+@@ -31,11 +31,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "r128_drm.h"
++#include <drm/drmP.h>
++#include <drm/r128_drm.h>
+ #include "r128_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static struct pci_device_id pciidlist[] = {
+ 	r128_PCI_IDS
+diff --git a/drivers/gpu/drm/r128/r128_ioc32.c b/drivers/gpu/drm/r128/r128_ioc32.c
+index b7fe63814226..a954c548201e 100644
+--- a/drivers/gpu/drm/r128/r128_ioc32.c
++++ b/drivers/gpu/drm/r128/r128_ioc32.c
+@@ -31,8 +31,8 @@
+  */
+ #include <linux/compat.h>
+ 
+-#include "drmP.h"
+-#include "r128_drm.h"
++#include <drm/drmP.h>
++#include <drm/r128_drm.h>
+ 
+ typedef struct drm_r128_init32 {
+ 	int func;
+diff --git a/drivers/gpu/drm/r128/r128_irq.c b/drivers/gpu/drm/r128/r128_irq.c
+index 4d8fdb6b994e..2ea4f09d2691 100644
+--- a/drivers/gpu/drm/r128/r128_irq.c
++++ b/drivers/gpu/drm/r128/r128_irq.c
+@@ -30,8 +30,8 @@
+  *    Eric Anholt <anholt@FreeBSD.org>
+  */
+ 
+-#include "drmP.h"
+-#include "r128_drm.h"
++#include <drm/drmP.h>
++#include <drm/r128_drm.h>
+ #include "r128_drv.h"
+ 
+ u32 r128_get_vblank_counter(struct drm_device *dev, int crtc)
+diff --git a/drivers/gpu/drm/r128/r128_state.c b/drivers/gpu/drm/r128/r128_state.c
+index 9fd939da6ab8..19bb7e6f3d9a 100644
+--- a/drivers/gpu/drm/r128/r128_state.c
++++ b/drivers/gpu/drm/r128/r128_state.c
+@@ -28,8 +28,8 @@
+  *    Gareth Hughes <gareth@valinux.com>
+  */
+ 
+-#include "drmP.h"
+-#include "r128_drm.h"
++#include <drm/drmP.h>
++#include <drm/r128_drm.h>
+ #include "r128_drv.h"
+ 
+ /* ================================================================
+diff --git a/drivers/gpu/drm/radeon/atom.h b/drivers/gpu/drm/radeon/atom.h
+index 25fea631dad2..feba6b8d36b3 100644
+--- a/drivers/gpu/drm/radeon/atom.h
++++ b/drivers/gpu/drm/radeon/atom.h
+@@ -26,7 +26,7 @@
+ #define ATOM_H
+ 
+ #include <linux/types.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #define ATOM_BIOS_MAGIC		0xAA55
+ #define ATOM_ATI_MAGIC_PTR	0x30
+diff --git a/drivers/gpu/drm/radeon/atombios_dp.c b/drivers/gpu/drm/radeon/atombios_dp.c
+index 3623b98ed3fe..ea8e2d471c35 100644
+--- a/drivers/gpu/drm/radeon/atombios_dp.c
++++ b/drivers/gpu/drm/radeon/atombios_dp.c
+@@ -24,13 +24,13 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #include "atom.h"
+ #include "atom-bits.h"
+-#include "drm_dp_helper.h"
++#include <drm/drm_dp_helper.h>
+ 
+ /* move these to drm_dp_helper.c/h */
+ #define DP_LINK_CONFIGURATION_SIZE 9
+diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
+index 6e8803a1170c..8e2ee98e69d2 100644
+--- a/drivers/gpu/drm/radeon/atombios_encoders.c
++++ b/drivers/gpu/drm/radeon/atombios_encoders.c
+@@ -23,9 +23,9 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/atombios_i2c.c b/drivers/gpu/drm/radeon/atombios_i2c.c
+index 44d87b6b4220..082338df708a 100644
+--- a/drivers/gpu/drm/radeon/atombios_i2c.c
++++ b/drivers/gpu/drm/radeon/atombios_i2c.c
+@@ -22,8 +22,8 @@
+  * Authors: Alex Deucher
+  *
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/evergreen.c b/drivers/gpu/drm/radeon/evergreen.c
+index ed3340adeb6f..c548dd75ca8b 100644
+--- a/drivers/gpu/drm/radeon/evergreen.c
++++ b/drivers/gpu/drm/radeon/evergreen.c
+@@ -24,10 +24,10 @@
+ #include <linux/firmware.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "evergreend.h"
+ #include "atom.h"
+ #include "avivod.h"
+diff --git a/drivers/gpu/drm/radeon/evergreen_blit_kms.c b/drivers/gpu/drm/radeon/evergreen_blit_kms.c
+index 820c1f3945d1..057c87b6515a 100644
+--- a/drivers/gpu/drm/radeon/evergreen_blit_kms.c
++++ b/drivers/gpu/drm/radeon/evergreen_blit_kms.c
+@@ -24,8 +24,8 @@
+  *     Alex Deucher <alexander.deucher@amd.com>
+  */
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #include "evergreend.h"
+diff --git a/drivers/gpu/drm/radeon/evergreen_cs.c b/drivers/gpu/drm/radeon/evergreen_cs.c
+index e44a62a07fe3..101acd618f67 100644
+--- a/drivers/gpu/drm/radeon/evergreen_cs.c
++++ b/drivers/gpu/drm/radeon/evergreen_cs.c
+@@ -25,7 +25,7 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "evergreend.h"
+ #include "evergreen_reg_safe.h"
+diff --git a/drivers/gpu/drm/radeon/evergreen_hdmi.c b/drivers/gpu/drm/radeon/evergreen_hdmi.c
+index 65c54160028b..327c08b54180 100644
+--- a/drivers/gpu/drm/radeon/evergreen_hdmi.c
++++ b/drivers/gpu/drm/radeon/evergreen_hdmi.c
+@@ -24,8 +24,8 @@
+  * Authors: Christian König
+  *          Rafał Miłecki
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "evergreend.h"
+diff --git a/drivers/gpu/drm/radeon/ni.c b/drivers/gpu/drm/radeon/ni.c
+index 853800e8582f..174462519f15 100644
+--- a/drivers/gpu/drm/radeon/ni.c
++++ b/drivers/gpu/drm/radeon/ni.c
+@@ -25,10 +25,10 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "nid.h"
+ #include "atom.h"
+ #include "ni_reg.h"
+diff --git a/drivers/gpu/drm/radeon/r100.c b/drivers/gpu/drm/radeon/r100.c
+index cda72de0d73e..3183a815f71c 100644
+--- a/drivers/gpu/drm/radeon/r100.c
++++ b/drivers/gpu/drm/radeon/r100.c
+@@ -27,8 +27,8 @@
+  */
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "radeon_asic.h"
+diff --git a/drivers/gpu/drm/radeon/r200.c b/drivers/gpu/drm/radeon/r200.c
+index 05bb612267bb..98143a5c5b73 100644
+--- a/drivers/gpu/drm/radeon/r200.c
++++ b/drivers/gpu/drm/radeon/r200.c
+@@ -25,8 +25,8 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "radeon_asic.h"
+diff --git a/drivers/gpu/drm/radeon/r300.c b/drivers/gpu/drm/radeon/r300.c
+index 646a1927dda7..1e10df214271 100644
+--- a/drivers/gpu/drm/radeon/r300.c
++++ b/drivers/gpu/drm/radeon/r300.c
+@@ -33,7 +33,7 @@
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "radeon_asic.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "r100_track.h"
+ #include "r300d.h"
+ #include "rv350d.h"
+diff --git a/drivers/gpu/drm/radeon/r300_cmdbuf.c b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+index 535d11a8e833..002ab038d2ab 100644
+--- a/drivers/gpu/drm/radeon/r300_cmdbuf.c
++++ b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+@@ -31,9 +31,9 @@
+  *    Nicolai Haehnle <prefect_@gmx.net>
+  */
+ 
+-#include "drmP.h"
+-#include "drm_buffer.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_buffer.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ #include "r300_reg.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/r420.c b/drivers/gpu/drm/radeon/r420.c
+index f2f5bf6d339f..6fce2eb4dd16 100644
+--- a/drivers/gpu/drm/radeon/r420.c
++++ b/drivers/gpu/drm/radeon/r420.c
+@@ -27,7 +27,7 @@
+  */
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "radeon_asic.h"
+diff --git a/drivers/gpu/drm/radeon/r520.c b/drivers/gpu/drm/radeon/r520.c
+index 079d3c52c08a..90703d539e04 100644
+--- a/drivers/gpu/drm/radeon/r520.c
++++ b/drivers/gpu/drm/radeon/r520.c
+@@ -25,7 +25,7 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/r600.c b/drivers/gpu/drm/radeon/r600.c
+index d79c639ae739..9f2cafd10f4a 100644
+--- a/drivers/gpu/drm/radeon/r600.c
++++ b/drivers/gpu/drm/radeon/r600.c
+@@ -30,8 +30,8 @@
+ #include <linux/firmware.h>
+ #include <linux/platform_device.h>
+ #include <linux/module.h>
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "radeon_mode.h"
+diff --git a/drivers/gpu/drm/radeon/r600_audio.c b/drivers/gpu/drm/radeon/r600_audio.c
+index 79b55916cf90..cb03fe22b0ab 100644
+--- a/drivers/gpu/drm/radeon/r600_audio.c
++++ b/drivers/gpu/drm/radeon/r600_audio.c
+@@ -23,7 +23,7 @@
+  *
+  * Authors: Christian König
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_reg.h"
+ #include "radeon_asic.h"
+diff --git a/drivers/gpu/drm/radeon/r600_blit.c b/drivers/gpu/drm/radeon/r600_blit.c
+index 689a631f9801..26ace5623dc7 100644
+--- a/drivers/gpu/drm/radeon/r600_blit.c
++++ b/drivers/gpu/drm/radeon/r600_blit.c
+@@ -23,8 +23,8 @@
+  * Authors:
+  *     Alex Deucher <alexander.deucher@amd.com>
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ #include "r600_blit_shaders.h"
+diff --git a/drivers/gpu/drm/radeon/r600_blit_kms.c b/drivers/gpu/drm/radeon/r600_blit_kms.c
+index 5ab2106952d2..aec8487662c4 100644
+--- a/drivers/gpu/drm/radeon/r600_blit_kms.c
++++ b/drivers/gpu/drm/radeon/r600_blit_kms.c
+@@ -23,8 +23,8 @@
+  *
+  */
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #include "r600d.h"
+diff --git a/drivers/gpu/drm/radeon/r600_cp.c b/drivers/gpu/drm/radeon/r600_cp.c
+index 44376bbcc2b6..2514123d2d00 100644
+--- a/drivers/gpu/drm/radeon/r600_cp.c
++++ b/drivers/gpu/drm/radeon/r600_cp.c
+@@ -28,8 +28,8 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ #define PFP_UCODE_SIZE 576
+diff --git a/drivers/gpu/drm/radeon/r600_cs.c b/drivers/gpu/drm/radeon/r600_cs.c
+index f37676d7f217..cb92646a5e55 100644
+--- a/drivers/gpu/drm/radeon/r600_cs.c
++++ b/drivers/gpu/drm/radeon/r600_cs.c
+@@ -26,7 +26,7 @@
+  *          Jerome Glisse
+  */
+ #include <linux/kernel.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "r600d.h"
+ #include "r600_reg_safe.h"
+diff --git a/drivers/gpu/drm/radeon/r600_hdmi.c b/drivers/gpu/drm/radeon/r600_hdmi.c
+index e3558c3ef24a..23be9319c729 100644
+--- a/drivers/gpu/drm/radeon/r600_hdmi.c
++++ b/drivers/gpu/drm/radeon/r600_hdmi.c
+@@ -23,8 +23,8 @@
+  *
+  * Authors: Christian König
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "r600d.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_acpi.c b/drivers/gpu/drm/radeon/radeon_acpi.c
+index bbe3e251370d..215063e1a292 100644
+--- a/drivers/gpu/drm/radeon/radeon_acpi.c
++++ b/drivers/gpu/drm/radeon/radeon_acpi.c
+@@ -4,8 +4,8 @@
+ #include <acpi/acpi_drivers.h>
+ #include <acpi/acpi_bus.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "radeon.h"
+ 
+ #include <linux/vga_switcheroo.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_agp.c b/drivers/gpu/drm/radeon/radeon_agp.c
+index 6ecd6f68e760..10ea17a6b2a6 100644
+--- a/drivers/gpu/drm/radeon/radeon_agp.c
++++ b/drivers/gpu/drm/radeon/radeon_agp.c
+@@ -24,9 +24,9 @@
+  *    Dave Airlie
+  *    Jerome Glisse <glisse@freedesktop.org>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ 
+ #if __OS_HAS_AGP
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_atombios.c b/drivers/gpu/drm/radeon/radeon_atombios.c
+index d67d4f3eb6f4..c4b5d0542ee2 100644
+--- a/drivers/gpu/drm/radeon/radeon_atombios.c
++++ b/drivers/gpu/drm/radeon/radeon_atombios.c
+@@ -23,8 +23,8 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
+index d306cc8fdeaa..b8015913d382 100644
+--- a/drivers/gpu/drm/radeon/radeon_bios.c
++++ b/drivers/gpu/drm/radeon/radeon_bios.c
+@@ -25,7 +25,7 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_clocks.c b/drivers/gpu/drm/radeon/radeon_clocks.c
+index 9c6b29a41927..38e396dae0a9 100644
+--- a/drivers/gpu/drm/radeon/radeon_clocks.c
++++ b/drivers/gpu/drm/radeon/radeon_clocks.c
+@@ -25,8 +25,8 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_combios.c b/drivers/gpu/drm/radeon/radeon_combios.c
+index f75247d42ffd..a3900e7bd77b 100644
+--- a/drivers/gpu/drm/radeon/radeon_combios.c
++++ b/drivers/gpu/drm/radeon/radeon_combios.c
+@@ -24,8 +24,8 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_connectors.c b/drivers/gpu/drm/radeon/radeon_connectors.c
+index 895e628b60f8..3bc22e341719 100644
+--- a/drivers/gpu/drm/radeon/radeon_connectors.c
++++ b/drivers/gpu/drm/radeon/radeon_connectors.c
+@@ -23,11 +23,11 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "drm_edid.h"
+-#include "drm_crtc_helper.h"
+-#include "drm_fb_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_fb_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_cp.c b/drivers/gpu/drm/radeon/radeon_cp.c
+index 0c6f0c34bfbb..8b2797dc7b64 100644
+--- a/drivers/gpu/drm/radeon/radeon_cp.c
++++ b/drivers/gpu/drm/radeon/radeon_cp.c
+@@ -31,8 +31,8 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ #include "r300_reg.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_cs.c b/drivers/gpu/drm/radeon/radeon_cs.c
+index b4a0db24f4dd..891fff52ab65 100644
+--- a/drivers/gpu/drm/radeon/radeon_cs.c
++++ b/drivers/gpu/drm/radeon/radeon_cs.c
+@@ -24,8 +24,8 @@
+  * Authors:
+  *    Jerome Glisse <glisse@freedesktop.org>
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_cursor.c b/drivers/gpu/drm/radeon/radeon_cursor.c
+index 8794744cdf1a..0fe56c9f64bd 100644
+--- a/drivers/gpu/drm/radeon/radeon_cursor.c
++++ b/drivers/gpu/drm/radeon/radeon_cursor.c
+@@ -23,8 +23,8 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #define CURSOR_WIDTH 64
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 7ddef8f30d0e..bfa2a6015727 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -23,15 +23,15 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #include "atom.h"
+ #include <asm/div64.h>
+ 
+-#include "drm_crtc_helper.h"
+-#include "drm_edid.h"
++#include <drm/drm_crtc_helper.h>
++#include <drm/drm_edid.h>
+ 
+ static void avivo_crtc_load_lut(struct drm_crtc *crtc)
+ {
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index 204a878f4cd3..97f3fe7dd040 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -29,11 +29,11 @@
+  * OTHER DEALINGS IN THE SOFTWARE.
+  */
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ #include <linux/console.h>
+ #include <linux/module.h>
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_encoders.c b/drivers/gpu/drm/radeon/radeon_encoders.c
+index 74670696277d..5a1bae3a2426 100644
+--- a/drivers/gpu/drm/radeon/radeon_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_encoders.c
+@@ -23,9 +23,9 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index 36a412cc232d..fae493710ebf 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -27,13 +27,13 @@
+ #include <linux/slab.h>
+ #include <linux/fb.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+-#include "drm_fb_helper.h"
++#include <drm/drm_fb_helper.h>
+ 
+ #include <linux/vga_switcheroo.h>
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_fence.c b/drivers/gpu/drm/radeon/radeon_fence.c
+index f1f67e3929ae..5cd47ff03e48 100644
+--- a/drivers/gpu/drm/radeon/radeon_fence.c
++++ b/drivers/gpu/drm/radeon/radeon_fence.c
+@@ -34,7 +34,7 @@
+ #include <linux/list.h>
+ #include <linux/kref.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "radeon_trace.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_gart.c b/drivers/gpu/drm/radeon/radeon_gart.c
+index bb3b7fe05ccd..33cc03e310fd 100644
+--- a/drivers/gpu/drm/radeon/radeon_gart.c
++++ b/drivers/gpu/drm/radeon/radeon_gart.c
+@@ -25,8 +25,8 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "radeon_reg.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_gem.c b/drivers/gpu/drm/radeon/radeon_gem.c
+index 7b21b630bc13..04c212da6f65 100644
+--- a/drivers/gpu/drm/radeon/radeon_gem.c
++++ b/drivers/gpu/drm/radeon/radeon_gem.c
+@@ -25,8 +25,8 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ int radeon_gem_object_init(struct drm_gem_object *obj)
+diff --git a/drivers/gpu/drm/radeon/radeon_i2c.c b/drivers/gpu/drm/radeon/radeon_i2c.c
+index 3edec1c198e3..c5bddd630eb9 100644
+--- a/drivers/gpu/drm/radeon/radeon_i2c.c
++++ b/drivers/gpu/drm/radeon/radeon_i2c.c
+@@ -25,9 +25,9 @@
+  */
+ #include <linux/export.h>
+ 
+-#include "drmP.h"
+-#include "drm_edid.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_edid.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_ioc32.c b/drivers/gpu/drm/radeon/radeon_ioc32.c
+index 5f2f401921e3..8fc81a26438a 100644
+--- a/drivers/gpu/drm/radeon/radeon_ioc32.c
++++ b/drivers/gpu/drm/radeon/radeon_ioc32.c
+@@ -29,8 +29,8 @@
+  */
+ #include <linux/compat.h>
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ typedef struct drm_radeon_init32 {
+diff --git a/drivers/gpu/drm/radeon/radeon_irq.c b/drivers/gpu/drm/radeon/radeon_irq.c
+index 9d0f1a9df08e..e7710339a6a7 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq.c
++++ b/drivers/gpu/drm/radeon/radeon_irq.c
+@@ -30,8 +30,8 @@
+  *    Michel D�zer <michel@daenzer.net>
+  */
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ void radeon_irq_set_state(struct drm_device *dev, u32 mask, int state)
+diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+index afaa1727abd2..d6f27a89a9fe 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+@@ -25,9 +25,9 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index 2d45244ef64f..8a7f87f17c13 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -25,9 +25,9 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "radeon_asic.h"
+ 
+ #include <linux/vga_switcheroo.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+index 670e9910f869..757b08f07195 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -23,9 +23,9 @@
+  * Authors: Dave Airlie
+  *          Alex Deucher
+  */
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "atom.h"
+ #include <linux/backlight.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_tv.c b/drivers/gpu/drm/radeon/radeon_legacy_tv.c
+index b37ec0f1413a..49750d07ab7d 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_tv.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_tv.c
+@@ -1,5 +1,5 @@
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "radeon.h"
+ 
+ /*
+diff --git a/drivers/gpu/drm/radeon/radeon_mem.c b/drivers/gpu/drm/radeon/radeon_mem.c
+index 64f59a03eb5a..b9f067241633 100644
+--- a/drivers/gpu/drm/radeon/radeon_mem.c
++++ b/drivers/gpu/drm/radeon/radeon_mem.c
+@@ -29,8 +29,8 @@
+  *    Keith Whitwell <keith@tungstengraphics.com>
+  */
+ 
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ /* Very simple allocator for GART memory, working on a static range
+diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
+index c34078fb850f..0c28ca3964b1 100644
+--- a/drivers/gpu/drm/radeon/radeon_mode.h
++++ b/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -30,11 +30,11 @@
+ #ifndef RADEON_MODE_H
+ #define RADEON_MODE_H
+ 
+-#include <drm_crtc.h>
+-#include <drm_edid.h>
+-#include <drm_dp_helper.h>
+-#include <drm_fixed.h>
+-#include <drm_crtc_helper.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_dp_helper.h>
++#include <drm/drm_fixed.h>
++#include <drm/drm_crtc_helper.h>
+ #include <linux/i2c.h>
+ #include <linux/i2c-algo-bit.h>
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index 9024e7222839..56ed724b398d 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -32,7 +32,7 @@
+ #include <linux/list.h>
+ #include <linux/slab.h>
+ #include <drm/drmP.h>
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ #include "radeon_trace.h"
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_pm.c b/drivers/gpu/drm/radeon/radeon_pm.c
+index 7ae606600107..3ef0319981d3 100644
+--- a/drivers/gpu/drm/radeon/radeon_pm.c
++++ b/drivers/gpu/drm/radeon/radeon_pm.c
+@@ -20,7 +20,7 @@
+  * Authors: Rafał Miłecki <zajec5@gmail.com>
+  *          Alex Deucher <alexdeucher@gmail.com>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "avivod.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
+index a8cd2d538ded..e09521858f64 100644
+--- a/drivers/gpu/drm/radeon/radeon_prime.c
++++ b/drivers/gpu/drm/radeon/radeon_prime.c
+@@ -23,10 +23,10 @@
+  *
+  * Authors: Alex Deucher
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ 
+ #include "radeon.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ 
+ #include <linux/dma-buf.h>
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_ring.c b/drivers/gpu/drm/radeon/radeon_ring.c
+index 43c431a2686d..fc209c8b8666 100644
+--- a/drivers/gpu/drm/radeon/radeon_ring.c
++++ b/drivers/gpu/drm/radeon/radeon_ring.c
+@@ -28,8 +28,8 @@
+  */
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/radeon_sa.c b/drivers/gpu/drm/radeon/radeon_sa.c
+index d5ae437bbd79..83e889b9420b 100644
+--- a/drivers/gpu/drm/radeon/radeon_sa.c
++++ b/drivers/gpu/drm/radeon/radeon_sa.c
+@@ -41,7 +41,7 @@
+  * If we are asked to block we wait on all the oldest fence of all
+  * rings. We just wait for any of those fence to complete.
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ 
+ static void radeon_sa_bo_remove_locked(struct radeon_sa_bo *sa_bo);
+diff --git a/drivers/gpu/drm/radeon/radeon_semaphore.c b/drivers/gpu/drm/radeon/radeon_semaphore.c
+index 67f9a081236f..97f3ece81cd2 100644
+--- a/drivers/gpu/drm/radeon/radeon_semaphore.c
++++ b/drivers/gpu/drm/radeon/radeon_semaphore.c
+@@ -27,7 +27,7 @@
+  * Authors:
+  *    Christian König <deathsimple@vodafone.de>
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ 
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_state.c b/drivers/gpu/drm/radeon/radeon_state.c
+index 2a56d4542d6f..8e9057b6a365 100644
+--- a/drivers/gpu/drm/radeon/radeon_state.c
++++ b/drivers/gpu/drm/radeon/radeon_state.c
+@@ -27,9 +27,9 @@
+  *    Kevin E. Martin <martin@valinux.com>
+  */
+ 
+-#include "drmP.h"
+-#include "drm_buffer.h"
+-#include "radeon_drm.h"
++#include <drm/drmP.h>
++#include <drm/drm_buffer.h>
++#include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ 
+ /* ================================================================
+diff --git a/drivers/gpu/drm/radeon/radeon_trace_points.c b/drivers/gpu/drm/radeon/radeon_trace_points.c
+index 8175993df84d..e51d3575976b 100644
+--- a/drivers/gpu/drm/radeon/radeon_trace_points.c
++++ b/drivers/gpu/drm/radeon/radeon_trace_points.c
+@@ -2,7 +2,7 @@
+  * Author : Dave Airlie <airlied@redhat.com>
+  */
+ #include <drm/drmP.h>
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "radeon.h"
+ 
+ #define CREATE_TRACE_POINTS
+diff --git a/drivers/gpu/drm/radeon/rs600.c b/drivers/gpu/drm/radeon/rs600.c
+index 5301b3df8466..6590cc128f36 100644
+--- a/drivers/gpu/drm/radeon/rs600.c
++++ b/drivers/gpu/drm/radeon/rs600.c
+@@ -35,7 +35,7 @@
+  * close to the one of the R600 family (R600 likely being an evolution
+  * of the RS600 GART block).
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/rs690.c b/drivers/gpu/drm/radeon/rs690.c
+index 3b663fcfe061..dfb9f0fe6f38 100644
+--- a/drivers/gpu/drm/radeon/rs690.c
++++ b/drivers/gpu/drm/radeon/rs690.c
+@@ -25,7 +25,7 @@
+  *          Alex Deucher
+  *          Jerome Glisse
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+ #include "atom.h"
+diff --git a/drivers/gpu/drm/radeon/rv515.c b/drivers/gpu/drm/radeon/rv515.c
+index aa8ef491ef3c..ae4f93e2f135 100644
+--- a/drivers/gpu/drm/radeon/rv515.c
++++ b/drivers/gpu/drm/radeon/rv515.c
+@@ -27,7 +27,7 @@
+  */
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "rv515d.h"
+ #include "radeon.h"
+ #include "radeon_asic.h"
+diff --git a/drivers/gpu/drm/radeon/rv770.c b/drivers/gpu/drm/radeon/rv770.c
+index ca8ffec10ff6..35a4152bb1ad 100644
+--- a/drivers/gpu/drm/radeon/rv770.c
++++ b/drivers/gpu/drm/radeon/rv770.c
+@@ -28,10 +28,10 @@
+ #include <linux/firmware.h>
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "rv770d.h"
+ #include "atom.h"
+ #include "avivod.h"
+diff --git a/drivers/gpu/drm/radeon/si.c b/drivers/gpu/drm/radeon/si.c
+index 0139e227e3c7..d883cae56378 100644
+--- a/drivers/gpu/drm/radeon/si.c
++++ b/drivers/gpu/drm/radeon/si.c
+@@ -25,10 +25,10 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ #include <linux/module.h>
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "radeon.h"
+ #include "radeon_asic.h"
+-#include "radeon_drm.h"
++#include <drm/radeon_drm.h>
+ #include "sid.h"
+ #include "atom.h"
+ #include "si_blit_shaders.h"
+diff --git a/drivers/gpu/drm/savage/savage_bci.c b/drivers/gpu/drm/savage/savage_bci.c
+index 1efbb9075837..b88a42154e16 100644
+--- a/drivers/gpu/drm/savage/savage_bci.c
++++ b/drivers/gpu/drm/savage/savage_bci.c
+@@ -22,8 +22,8 @@
+  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+-#include "drmP.h"
+-#include "savage_drm.h"
++#include <drm/drmP.h>
++#include <drm/savage_drm.h>
+ #include "savage_drv.h"
+ 
+ /* Need a long timeout for shadow status updates can take a while
+diff --git a/drivers/gpu/drm/savage/savage_drv.c b/drivers/gpu/drm/savage/savage_drv.c
+index c5a164337bd5..71b2081e7835 100644
+--- a/drivers/gpu/drm/savage/savage_drv.c
++++ b/drivers/gpu/drm/savage/savage_drv.c
+@@ -25,11 +25,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "savage_drm.h"
++#include <drm/drmP.h>
++#include <drm/savage_drm.h>
+ #include "savage_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static struct pci_device_id pciidlist[] = {
+ 	savage_PCI_IDS
+diff --git a/drivers/gpu/drm/savage/savage_state.c b/drivers/gpu/drm/savage/savage_state.c
+index b6d8608375cd..b35e75ed890c 100644
+--- a/drivers/gpu/drm/savage/savage_state.c
++++ b/drivers/gpu/drm/savage/savage_state.c
+@@ -22,8 +22,8 @@
+  * CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+  * WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+  */
+-#include "drmP.h"
+-#include "savage_drm.h"
++#include <drm/drmP.h>
++#include <drm/savage_drm.h>
+ #include "savage_drv.h"
+ 
+ void savage_emit_clip_rect_s3d(drm_savage_private_t * dev_priv,
+diff --git a/drivers/gpu/drm/sis/sis_drv.c b/drivers/gpu/drm/sis/sis_drv.c
+index 867dc03000e6..841065b998a1 100644
+--- a/drivers/gpu/drm/sis/sis_drv.c
++++ b/drivers/gpu/drm/sis/sis_drv.c
+@@ -27,11 +27,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "sis_drm.h"
++#include <drm/drmP.h>
++#include <drm/sis_drm.h>
+ #include "sis_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static struct pci_device_id pciidlist[] = {
+ 	sisdrv_PCI_IDS
+diff --git a/drivers/gpu/drm/sis/sis_drv.h b/drivers/gpu/drm/sis/sis_drv.h
+index 573758b2d2d6..13b527bb83be 100644
+--- a/drivers/gpu/drm/sis/sis_drv.h
++++ b/drivers/gpu/drm/sis/sis_drv.h
+@@ -44,7 +44,7 @@ enum sis_family {
+ 	SIS_CHIP_315 = 1,
+ };
+ 
+-#include "drm_mm.h"
++#include <drm/drm_mm.h>
+ 
+ 
+ #define SIS_BASE (dev_priv->mmio)
+diff --git a/drivers/gpu/drm/sis/sis_mm.c b/drivers/gpu/drm/sis/sis_mm.c
+index 2c231070d250..2b2f78c428af 100644
+--- a/drivers/gpu/drm/sis/sis_mm.c
++++ b/drivers/gpu/drm/sis/sis_mm.c
+@@ -31,8 +31,8 @@
+  *    Thomas Hellström <thomas-at-tungstengraphics-dot-com>
+  */
+ 
+-#include "drmP.h"
+-#include "sis_drm.h"
++#include <drm/drmP.h>
++#include <drm/sis_drm.h>
+ #include "sis_drv.h"
+ 
+ #include <video/sisfb.h>
+diff --git a/drivers/gpu/drm/tdfx/tdfx_drv.c b/drivers/gpu/drm/tdfx/tdfx_drv.c
+index a7f4d6bd1330..ddfa743459d0 100644
+--- a/drivers/gpu/drm/tdfx/tdfx_drv.c
++++ b/drivers/gpu/drm/tdfx/tdfx_drv.c
+@@ -32,10 +32,10 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "tdfx_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static struct pci_device_id pciidlist[] = {
+ 	tdfx_PCI_IDS
+diff --git a/drivers/gpu/drm/ttm/ttm_agp_backend.c b/drivers/gpu/drm/ttm/ttm_agp_backend.c
+index 4a8728291361..3302f99e7497 100644
+--- a/drivers/gpu/drm/ttm/ttm_agp_backend.c
++++ b/drivers/gpu/drm/ttm/ttm_agp_backend.c
+@@ -31,11 +31,11 @@
+ 
+ #define pr_fmt(fmt) "[TTM] " fmt
+ 
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ #ifdef TTM_HAS_AGP
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_placement.h>
+ #include <linux/agp_backend.h>
+ #include <linux/module.h>
+ #include <linux/slab.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_bo.c b/drivers/gpu/drm/ttm/ttm_bo.c
+index 36f4b28c1b90..402ab69f9f99 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo.c
++++ b/drivers/gpu/drm/ttm/ttm_bo.c
+@@ -30,9 +30,9 @@
+ 
+ #define pr_fmt(fmt) "[TTM] " fmt
+ 
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
+ #include <linux/jiffies.h>
+ #include <linux/slab.h>
+ #include <linux/sched.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_manager.c b/drivers/gpu/drm/ttm/ttm_bo_manager.c
+index 038e947d00f9..9212494e9072 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_manager.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_manager.c
+@@ -28,10 +28,10 @@
+  * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+  */
+ 
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "drm_mm.h"
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/drm_mm.h>
+ #include <linux/slab.h>
+ #include <linux/spinlock.h>
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_util.c b/drivers/gpu/drm/ttm/ttm_bo_util.c
+index f8187ead7b37..2a4aa57779e7 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -28,8 +28,8 @@
+  * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+  */
+ 
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
+ #include <linux/io.h>
+ #include <linux/highmem.h>
+ #include <linux/wait.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_execbuf_util.c b/drivers/gpu/drm/ttm/ttm_execbuf_util.c
+index 3832fe10b4df..1937069432c5 100644
+--- a/drivers/gpu/drm/ttm/ttm_execbuf_util.c
++++ b/drivers/gpu/drm/ttm/ttm_execbuf_util.c
+@@ -25,9 +25,9 @@
+  *
+  **************************************************************************/
+ 
+-#include "ttm/ttm_execbuf_util.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_execbuf_util.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
+ #include <linux/wait.h>
+ #include <linux/sched.h>
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_lock.c b/drivers/gpu/drm/ttm/ttm_lock.c
+index 075daf44bce4..3daa9a3930b8 100644
+--- a/drivers/gpu/drm/ttm/ttm_lock.c
++++ b/drivers/gpu/drm/ttm/ttm_lock.c
+@@ -28,8 +28,8 @@
+  * Authors: Thomas Hellstrom <thellstrom-at-vmware-dot-com>
+  */
+ 
+-#include "ttm/ttm_lock.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_lock.h>
++#include <drm/ttm/ttm_module.h>
+ #include <linux/atomic.h>
+ #include <linux/errno.h>
+ #include <linux/wait.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_memory.c b/drivers/gpu/drm/ttm/ttm_memory.c
+index 23d2ecbaed59..479c6b0467ca 100644
+--- a/drivers/gpu/drm/ttm/ttm_memory.c
++++ b/drivers/gpu/drm/ttm/ttm_memory.c
+@@ -27,9 +27,9 @@
+ 
+ #define pr_fmt(fmt) "[TTM] " fmt
+ 
+-#include "ttm/ttm_memory.h"
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/ttm/ttm_memory.h>
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ #include <linux/spinlock.h>
+ #include <linux/sched.h>
+ #include <linux/wait.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_module.c b/drivers/gpu/drm/ttm/ttm_module.c
+index 902d7cf9fb4e..d7f92fe9d904 100644
+--- a/drivers/gpu/drm/ttm/ttm_module.c
++++ b/drivers/gpu/drm/ttm/ttm_module.c
+@@ -31,8 +31,8 @@
+ #include <linux/module.h>
+ #include <linux/device.h>
+ #include <linux/sched.h>
+-#include "ttm/ttm_module.h"
+-#include "drm_sysfs.h"
++#include <drm/ttm/ttm_module.h>
++#include <drm/drm_sysfs.h>
+ 
+ static DECLARE_WAIT_QUEUE_HEAD(exit_q);
+ atomic_t device_released;
+diff --git a/drivers/gpu/drm/ttm/ttm_object.c b/drivers/gpu/drm/ttm/ttm_object.c
+index 68daca412cbd..c7857874956a 100644
+--- a/drivers/gpu/drm/ttm/ttm_object.c
++++ b/drivers/gpu/drm/ttm/ttm_object.c
+@@ -51,8 +51,8 @@
+ 
+ #define pr_fmt(fmt) "[TTM] " fmt
+ 
+-#include "ttm/ttm_object.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_object.h>
++#include <drm/ttm/ttm_module.h>
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+ #include <linux/slab.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_page_alloc.c b/drivers/gpu/drm/ttm/ttm_page_alloc.c
+index ebc6fac96e36..860dc4813e99 100644
+--- a/drivers/gpu/drm/ttm/ttm_page_alloc.c
++++ b/drivers/gpu/drm/ttm/ttm_page_alloc.c
+@@ -45,8 +45,8 @@
+ 
+ #include <linux/atomic.h>
+ 
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ 
+ #ifdef TTM_HAS_AGP
+ #include <asm/agp.h>
+diff --git a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c b/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
+index 4f9e548b2eec..d4aa5a82ab1b 100644
+--- a/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
++++ b/drivers/gpu/drm/ttm/ttm_page_alloc_dma.c
+@@ -47,8 +47,8 @@
+ #include <linux/atomic.h>
+ #include <linux/device.h>
+ #include <linux/kthread.h>
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ #ifdef TTM_HAS_AGP
+ #include <asm/agp.h>
+ #endif
+diff --git a/drivers/gpu/drm/ttm/ttm_tt.c b/drivers/gpu/drm/ttm/ttm_tt.c
+index fa09daf9a50c..82a529e45afe 100644
+--- a/drivers/gpu/drm/ttm/ttm_tt.c
++++ b/drivers/gpu/drm/ttm/ttm_tt.c
+@@ -38,12 +38,12 @@
+ #include <linux/swap.h>
+ #include <linux/slab.h>
+ #include <linux/export.h>
+-#include "drm_cache.h"
+-#include "drm_mem_util.h"
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/drm_cache.h>
++#include <drm/drm_mem_util.h>
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ 
+ /**
+  * Allocates storage for pointers to the pages that back the ttm.
+diff --git a/drivers/gpu/drm/udl/udl_connector.c b/drivers/gpu/drm/udl/udl_connector.c
+index 8d9dc44f1f94..627cd85521b1 100644
+--- a/drivers/gpu/drm/udl/udl_connector.c
++++ b/drivers/gpu/drm/udl/udl_connector.c
+@@ -10,10 +10,10 @@
+  * more details.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_edid.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_edid.h>
++#include <drm/drm_crtc_helper.h>
+ #include "udl_drv.h"
+ 
+ /* dummy connector to just get EDID,
+diff --git a/drivers/gpu/drm/udl/udl_drv.c b/drivers/gpu/drm/udl/udl_drv.c
+index 9f84128505bb..c0770dbba74a 100644
+--- a/drivers/gpu/drm/udl/udl_drv.c
++++ b/drivers/gpu/drm/udl/udl_drv.c
+@@ -7,8 +7,8 @@
+  */
+ 
+ #include <linux/module.h>
+-#include "drm_usb.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drm_usb.h>
++#include <drm/drm_crtc_helper.h>
+ #include "udl_drv.h"
+ 
+ static struct drm_driver driver;
+diff --git a/drivers/gpu/drm/udl/udl_encoder.c b/drivers/gpu/drm/udl/udl_encoder.c
+index 0731ab2e6c06..610538308f19 100644
+--- a/drivers/gpu/drm/udl/udl_encoder.c
++++ b/drivers/gpu/drm/udl/udl_encoder.c
+@@ -10,9 +10,9 @@
+  * more details.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
+ #include "udl_drv.h"
+ 
+ /* dummy encoder */
+diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
+index f7593dc54155..877df059a76f 100644
+--- a/drivers/gpu/drm/udl/udl_fb.c
++++ b/drivers/gpu/drm/udl/udl_fb.c
+@@ -14,12 +14,12 @@
+ #include <linux/slab.h>
+ #include <linux/fb.h>
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
+ #include "udl_drv.h"
+ 
+-#include "drm_fb_helper.h"
++#include <drm/drm_fb_helper.h>
+ 
+ #define DL_DEFIO_WRITE_DELAY    5 /* fb_deferred_io.delay in jiffies */
+ 
+diff --git a/drivers/gpu/drm/udl/udl_gem.c b/drivers/gpu/drm/udl/udl_gem.c
+index 291ecc145585..4acc8c7431cd 100644
+--- a/drivers/gpu/drm/udl/udl_gem.c
++++ b/drivers/gpu/drm/udl/udl_gem.c
+@@ -6,7 +6,7 @@
+  * more details.
+  */
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "udl_drv.h"
+ #include <linux/shmem_fs.h>
+ #include <linux/dma-buf.h>
+diff --git a/drivers/gpu/drm/udl/udl_main.c b/drivers/gpu/drm/udl/udl_main.c
+index 4c2d836a0893..1f6dbfd62c2a 100644
+--- a/drivers/gpu/drm/udl/udl_main.c
++++ b/drivers/gpu/drm/udl/udl_main.c
+@@ -10,7 +10,7 @@
+  * License v2. See the file COPYING in the main directory of this archive for
+  * more details.
+  */
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "udl_drv.h"
+ 
+ /* -BULK_SIZE as per usb-skeleton. Can we get full page and avoid overhead? */
+diff --git a/drivers/gpu/drm/udl/udl_modeset.c b/drivers/gpu/drm/udl/udl_modeset.c
+index 9159d48d1dfd..52ac2b2d9b73 100644
+--- a/drivers/gpu/drm/udl/udl_modeset.c
++++ b/drivers/gpu/drm/udl/udl_modeset.c
+@@ -11,9 +11,9 @@
+  * more details.
+  */
+ 
+-#include "drmP.h"
+-#include "drm_crtc.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc.h>
++#include <drm/drm_crtc_helper.h>
+ #include "udl_drv.h"
+ 
+ /*
+diff --git a/drivers/gpu/drm/udl/udl_transfer.c b/drivers/gpu/drm/udl/udl_transfer.c
+index b9320e2608dd..e96348143a4e 100644
+--- a/drivers/gpu/drm/udl/udl_transfer.c
++++ b/drivers/gpu/drm/udl/udl_transfer.c
+@@ -15,7 +15,7 @@
+ #include <linux/fb.h>
+ #include <linux/prefetch.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "udl_drv.h"
+ 
+ #define MAX_CMD_PIXELS		255
+diff --git a/drivers/gpu/drm/via/via_dma.c b/drivers/gpu/drm/via/via_dma.c
+index aa1dd5560141..13558f5a2422 100644
+--- a/drivers/gpu/drm/via/via_dma.c
++++ b/drivers/gpu/drm/via/via_dma.c
+@@ -34,8 +34,8 @@
+  *    Thomas Hellstrom.
+  */
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ #include "via_3d_reg.h"
+ 
+diff --git a/drivers/gpu/drm/via/via_dmablit.c b/drivers/gpu/drm/via/via_dmablit.c
+index 3e038a394c51..8b0f25904e6d 100644
+--- a/drivers/gpu/drm/via/via_dmablit.c
++++ b/drivers/gpu/drm/via/via_dmablit.c
+@@ -34,8 +34,8 @@
+  * the same DMA mappings?
+  */
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ #include "via_dmablit.h"
+ 
+diff --git a/drivers/gpu/drm/via/via_drv.c b/drivers/gpu/drm/via/via_drv.c
+index af1b914b17e3..f4ae20327941 100644
+--- a/drivers/gpu/drm/via/via_drv.c
++++ b/drivers/gpu/drm/via/via_drv.c
+@@ -24,11 +24,11 @@
+ 
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ 
+-#include "drm_pciids.h"
++#include <drm/drm_pciids.h>
+ 
+ static int via_driver_open(struct drm_device *dev, struct drm_file *file)
+ {
+diff --git a/drivers/gpu/drm/via/via_drv.h b/drivers/gpu/drm/via/via_drv.h
+index 88edacc93006..893a65090c36 100644
+--- a/drivers/gpu/drm/via/via_drv.h
++++ b/drivers/gpu/drm/via/via_drv.h
+@@ -24,7 +24,7 @@
+ #ifndef _VIA_DRV_H_
+ #define _VIA_DRV_H_
+ 
+-#include "drm_mm.h"
++#include <drm/drm_mm.h>
+ #define DRIVER_AUTHOR	"Various"
+ 
+ #define DRIVER_NAME		"via"
+diff --git a/drivers/gpu/drm/via/via_irq.c b/drivers/gpu/drm/via/via_irq.c
+index 6f2638aab0ed..ac98964297cf 100644
+--- a/drivers/gpu/drm/via/via_irq.c
++++ b/drivers/gpu/drm/via/via_irq.c
+@@ -35,8 +35,8 @@
+  * The refresh rate is also calculated for video playback sync purposes.
+  */
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ 
+ #define VIA_REG_INTERRUPT       0x200
+diff --git a/drivers/gpu/drm/via/via_map.c b/drivers/gpu/drm/via/via_map.c
+index c126182ac07e..c0f1cc7f5ca9 100644
+--- a/drivers/gpu/drm/via/via_map.c
++++ b/drivers/gpu/drm/via/via_map.c
+@@ -21,8 +21,8 @@
+  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+  * DEALINGS IN THE SOFTWARE.
+  */
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ 
+ static int via_do_init_map(struct drm_device *dev, drm_via_init_t *init)
+diff --git a/drivers/gpu/drm/via/via_mm.c b/drivers/gpu/drm/via/via_mm.c
+index acfcb358e7b7..0d55432e02a2 100644
+--- a/drivers/gpu/drm/via/via_mm.c
++++ b/drivers/gpu/drm/via/via_mm.c
+@@ -25,8 +25,8 @@
+  * Authors: Thomas Hellström <thomas-at-tungstengraphics-dot-com>
+  */
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ 
+ #define VIA_MM_ALIGN_SHIFT 4
+diff --git a/drivers/gpu/drm/via/via_verifier.c b/drivers/gpu/drm/via/via_verifier.c
+index 6cedb552582f..9dbc92bd1512 100644
+--- a/drivers/gpu/drm/via/via_verifier.c
++++ b/drivers/gpu/drm/via/via_verifier.c
+@@ -29,8 +29,8 @@
+  */
+ 
+ #include "via_3d_reg.h"
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_verifier.h"
+ #include "via_drv.h"
+ 
+diff --git a/drivers/gpu/drm/via/via_video.c b/drivers/gpu/drm/via/via_video.c
+index 675d311f038f..6569efa2ff6e 100644
+--- a/drivers/gpu/drm/via/via_video.c
++++ b/drivers/gpu/drm/via/via_video.c
+@@ -25,8 +25,8 @@
+  * Video and XvMC related functions.
+  */
+ 
+-#include "drmP.h"
+-#include "via_drm.h"
++#include <drm/drmP.h>
++#include <drm/via_drm.h>
+ #include "via_drv.h"
+ 
+ void via_init_futex(drm_via_private_t *dev_priv)
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c b/drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c
+index 1e2c0fb7f786..9826fbc88154 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c
+@@ -26,9 +26,9 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_drv.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_page_alloc.h"
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_page_alloc.h>
+ 
+ static uint32_t vram_placement_flags = TTM_PL_FLAG_VRAM |
+ 	TTM_PL_FLAG_CACHED;
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c b/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
+index 3fa884db08ab..3ce68a2e312d 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_dmabuf.c
+@@ -25,9 +25,9 @@
+  *
+  **************************************************************************/
+ 
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_placement.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+ 
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+index ba2c35dbf10e..c84d9ba66f3b 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+@@ -26,12 +26,12 @@
+  **************************************************************************/
+ #include <linux/module.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+-#include "ttm/ttm_placement.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_object.h"
+-#include "ttm/ttm_module.h"
++#include <drm/ttm/ttm_placement.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_object.h>
++#include <drm/ttm/ttm_module.h>
+ 
+ #define VMWGFX_DRIVER_NAME "vmwgfx"
+ #define VMWGFX_DRIVER_DESC "Linux drm driver for VMware graphics devices"
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+index 29c984ff7f23..88a179e26de9 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+@@ -29,15 +29,15 @@
+ #define _VMWGFX_DRV_H_
+ 
+ #include "vmwgfx_reg.h"
+-#include "drmP.h"
+-#include "vmwgfx_drm.h"
+-#include "drm_hashtab.h"
+-#include "linux/suspend.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_object.h"
+-#include "ttm/ttm_lock.h"
+-#include "ttm/ttm_execbuf_util.h"
+-#include "ttm/ttm_module.h"
++#include <drm/drmP.h>
++#include <drm/vmwgfx_drm.h>
++#include <drm/drm_hashtab.h>
++#include <linux/suspend.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_object.h>
++#include <drm/ttm/ttm_lock.h>
++#include <drm/ttm/ttm_execbuf_util.h>
++#include <drm/ttm/ttm_module.h>
+ #include "vmwgfx_fence.h"
+ 
+ #define VMWGFX_DRIVER_DATE "20120209"
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+index 4acced44a623..30654b4cc972 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+@@ -27,8 +27,8 @@
+ 
+ #include "vmwgfx_drv.h"
+ #include "vmwgfx_reg.h"
+-#include "ttm/ttm_bo_api.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_bo_api.h>
++#include <drm/ttm/ttm_placement.h>
+ 
+ static int vmw_cmd_invalid(struct vmw_private *dev_priv,
+ 			   struct vmw_sw_context *sw_context,
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+index 3c447bf317cb..568dc0ef1035 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+@@ -28,10 +28,10 @@
+ 
+ #include <linux/export.h>
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_placement.h>
+ 
+ #define VMW_DIRTY_DELAY (HZ / 30)
+ 
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+index 7e0743358dff..bc187fafd58c 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+@@ -25,7 +25,7 @@
+  *
+  **************************************************************************/
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+ #define VMW_FENCE_WRAP (1 << 31)
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c b/drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c
+index a0c2f12b1e1b..3eb148667d63 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_fifo.c
+@@ -26,8 +26,8 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_drv.h"
+-#include "drmP.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/drmP.h>
++#include <drm/ttm/ttm_placement.h>
+ 
+ bool vmw_fifo_have_3d(struct vmw_private *dev_priv)
+ {
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_gmr.c b/drivers/gpu/drm/vmwgfx/vmwgfx_gmr.c
+index 21ee78226560..3751730764a5 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmr.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_gmr.c
+@@ -26,8 +26,8 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_drv.h"
+-#include "drmP.h"
+-#include "ttm/ttm_bo_driver.h"
++#include <drm/drmP.h>
++#include <drm/ttm/ttm_bo_driver.h>
+ 
+ #define VMW_PPN_SIZE sizeof(unsigned long)
+ 
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c b/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+index 5f717152cff5..c5c054ae9056 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_gmrid_manager.c
+@@ -29,9 +29,9 @@
+  */
+ 
+ #include "vmwgfx_drv.h"
+-#include "ttm/ttm_module.h"
+-#include "ttm/ttm_bo_driver.h"
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_module.h>
++#include <drm/ttm/ttm_bo_driver.h>
++#include <drm/ttm/ttm_placement.h>
+ #include <linux/idr.h>
+ #include <linux/spinlock.h>
+ #include <linux/kernel.h>
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c b/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c
+index 66917c6c3813..b07ca2e4d04b 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ioctl.c
+@@ -26,7 +26,7 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_drv.h"
+-#include "vmwgfx_drm.h"
++#include <drm/vmwgfx_drm.h>
+ #include "vmwgfx_kms.h"
+ 
+ int vmw_getparam_ioctl(struct drm_device *dev, void *data,
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c b/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
+index cabc95f7517e..4640adbcaf91 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
+@@ -25,7 +25,7 @@
+  *
+  **************************************************************************/
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+ #define VMW_FENCE_WRAP (1 << 24)
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+index 8184bc5b1730..6fa89c9d6214 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+@@ -28,8 +28,8 @@
+ #ifndef VMWGFX_KMS_H_
+ #define VMWGFX_KMS_H_
+ 
+-#include "drmP.h"
+-#include "drm_crtc_helper.h"
++#include <drm/drmP.h>
++#include <drm/drm_crtc_helper.h>
+ #include "vmwgfx_drv.h"
+ 
+ #define VMWGFX_NUM_DISPLAY_UNITS 8
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_overlay.c b/drivers/gpu/drm/vmwgfx/vmwgfx_overlay.c
+index 14399eec9c3c..cb55b7b66377 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_overlay.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_overlay.c
+@@ -26,10 +26,10 @@
+  **************************************************************************/
+ 
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+-#include "ttm/ttm_placement.h"
++#include <drm/ttm/ttm_placement.h>
+ 
+ #include "svga_overlay.h"
+ #include "svga_escape.h"
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c b/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+index 2c6ffe0e2c07..da3c6b5b98a1 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+@@ -26,10 +26,10 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_drv.h"
+-#include "vmwgfx_drm.h"
+-#include "ttm/ttm_object.h"
+-#include "ttm/ttm_placement.h"
+-#include "drmP.h"
++#include <drm/vmwgfx_drm.h>
++#include <drm/ttm/ttm_object.h>
++#include <drm/ttm/ttm_placement.h>
++#include <drm/drmP.h>
+ 
+ struct vmw_user_context {
+ 	struct ttm_base_object base;
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
+index d3c11f5184f3..98d6bfb3a997 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ttm_glue.c
+@@ -25,7 +25,7 @@
+  *
+  **************************************************************************/
+ 
+-#include "drmP.h"
++#include <drm/drmP.h>
+ #include "vmwgfx_drv.h"
+ 
+ int vmw_mmap(struct file *filp, struct vm_area_struct *vma)
+-- 
+2.17.0
+

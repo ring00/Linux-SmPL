@@ -1,0 +1,315 @@
+From 58ffa580a748dd16b1e5ab260bea39cdbd1e94ef Mon Sep 17 00:00:00 2001
+From: Lars Ellenberg <lars.ellenberg@linbit.com>
+Date: Thu, 26 Jul 2012 14:09:49 +0200
+Subject: [PATCH] drbd: introduce stop-sector to online verify
+
+We now can schedule only a specific range of sectors for online verify,
+or interrupt a running verify without interrupting the connection.
+
+Had to bump the protocol version differently, we are now 101.
+Added verify_can_do_stop_sector() { protocol >= 97 && protocol != 100; }
+
+Also, the return value convention for worker callbacks has changed,
+we returned "true/false" for "keep the connection up" in 8.3,
+we return 0 for success and <= for failure in 8.4.
+Affected: receive_state()
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_int.h      |  7 +++++++
+ drivers/block/drbd/drbd_nl.c       | 14 ++++++++-----
+ drivers/block/drbd/drbd_proc.c     | 12 ++++++++---
+ drivers/block/drbd/drbd_receiver.c | 10 ++++++++-
+ drivers/block/drbd/drbd_state.c    | 17 +++++++++++----
+ drivers/block/drbd/drbd_worker.c   | 33 ++++++++++++++++++++++++------
+ include/linux/drbd.h               |  2 +-
+ include/linux/drbd_genl.h          |  1 +
+ 8 files changed, 76 insertions(+), 20 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index 22adfc7189de..eddc4388a1b1 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -971,6 +971,7 @@ struct drbd_conf {
+ 
+ 	/* where does the admin want us to start? (sector) */
+ 	sector_t ov_start_sector;
++	sector_t ov_stop_sector;
+ 	/* where are we now? (sector) */
+ 	sector_t ov_position;
+ 	/* Start sector of out of sync range (to merge printk reporting). */
+@@ -2264,6 +2265,12 @@ static inline void dec_ap_bio(struct drbd_conf *mdev)
+ 		wake_up(&mdev->misc_wait);
+ }
+ 
++static inline bool verify_can_do_stop_sector(struct drbd_conf *mdev)
++{
++	return mdev->tconn->agreed_pro_version >= 97 &&
++		mdev->tconn->agreed_pro_version != 100;
++}
++
+ static inline int drbd_set_ed_uuid(struct drbd_conf *mdev, u64 val)
+ {
+ 	int changed = mdev->ed_uuid != val;
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 4afd626ca3dc..eefb56308aea 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -2939,6 +2939,7 @@ int drbd_adm_start_ov(struct sk_buff *skb, struct genl_info *info)
+ {
+ 	struct drbd_conf *mdev;
+ 	enum drbd_ret_code retcode;
++	struct start_ov_parms parms;
+ 
+ 	retcode = drbd_adm_prepare(skb, info, DRBD_ADM_NEED_MINOR);
+ 	if (!adm_ctx.reply_skb)
+@@ -2947,19 +2948,22 @@ int drbd_adm_start_ov(struct sk_buff *skb, struct genl_info *info)
+ 		goto out;
+ 
+ 	mdev = adm_ctx.mdev;
++
++	/* resume from last known position, if possible */
++	parms.ov_start_sector = mdev->ov_start_sector;
++	parms.ov_stop_sector = ULLONG_MAX;
+ 	if (info->attrs[DRBD_NLA_START_OV_PARMS]) {
+-		/* resume from last known position, if possible */
+-		struct start_ov_parms parms =
+-			{ .ov_start_sector = mdev->ov_start_sector };
+ 		int err = start_ov_parms_from_attrs(&parms, info);
+ 		if (err) {
+ 			retcode = ERR_MANDATORY_TAG;
+ 			drbd_msg_put_info(from_attrs_err_to_txt(err));
+ 			goto out;
+ 		}
+-		/* w_make_ov_request expects position to be aligned */
+-		mdev->ov_start_sector = parms.ov_start_sector & ~BM_SECT_PER_BIT;
+ 	}
++	/* w_make_ov_request expects position to be aligned */
++	mdev->ov_start_sector = parms.ov_start_sector & ~(BM_SECT_PER_BIT-1);
++	mdev->ov_stop_sector = parms.ov_stop_sector;
++
+ 	/* If there is still bitmap IO pending, e.g. previous resync or verify
+ 	 * just being finished, wait for it before requesting a new resync. */
+ 	drbd_suspend_io(mdev);
+diff --git a/drivers/block/drbd/drbd_proc.c b/drivers/block/drbd/drbd_proc.c
+index e0f0d2a6d538..56672a61eb94 100644
+--- a/drivers/block/drbd/drbd_proc.c
++++ b/drivers/block/drbd/drbd_proc.c
+@@ -167,18 +167,24 @@ static void drbd_syncer_progress(struct drbd_conf *mdev, struct seq_file *seq)
+ 		 * we convert to sectors in the display below. */
+ 		unsigned long bm_bits = drbd_bm_bits(mdev);
+ 		unsigned long bit_pos;
++		unsigned long long stop_sector = 0;
+ 		if (mdev->state.conn == C_VERIFY_S ||
+-		    mdev->state.conn == C_VERIFY_T)
++		    mdev->state.conn == C_VERIFY_T) {
+ 			bit_pos = bm_bits - mdev->ov_left;
+-		else
++			if (verify_can_do_stop_sector(mdev))
++				stop_sector = mdev->ov_stop_sector;
++		} else
+ 			bit_pos = mdev->bm_resync_fo;
+ 		/* Total sectors may be slightly off for oddly
+ 		 * sized devices. So what. */
+ 		seq_printf(seq,
+-			"\t%3d%% sector pos: %llu/%llu\n",
++			"\t%3d%% sector pos: %llu/%llu",
+ 			(int)(bit_pos / (bm_bits/100+1)),
+ 			(unsigned long long)bit_pos * BM_SECT_PER_BIT,
+ 			(unsigned long long)bm_bits * BM_SECT_PER_BIT);
++		if (stop_sector != 0 && stop_sector != ULLONG_MAX)
++			seq_printf(seq, " stop sector: %llu", stop_sector);
++		seq_printf(seq, "\n");
+ 	}
+ }
+ 
+diff --git a/drivers/block/drbd/drbd_receiver.c b/drivers/block/drbd/drbd_receiver.c
+index 7fe6b01618d4..8fddec96dfbe 100644
+--- a/drivers/block/drbd/drbd_receiver.c
++++ b/drivers/block/drbd/drbd_receiver.c
+@@ -3843,7 +3843,7 @@ static int receive_state(struct drbd_tconn *tconn, struct packet_info *pi)
+ 	 * already decided to close the connection again,
+ 	 * we must not "re-establish" it here. */
+ 	if (os.conn <= C_TEAR_DOWN)
+-		return false;
++		return -ECONNRESET;
+ 
+ 	/* If this is the "end of sync" confirmation, usually the peer disk
+ 	 * transitions from D_INCONSISTENT to D_UP_TO_DATE. For empty (0 bits
+@@ -3875,6 +3875,14 @@ static int receive_state(struct drbd_tconn *tconn, struct packet_info *pi)
+ 		}
+ 	}
+ 
++	/* explicit verify finished notification, stop sector reached. */
++	if (os.conn == C_VERIFY_T && os.disk == D_UP_TO_DATE &&
++	    peer_state.conn == C_CONNECTED && real_peer_disk == D_UP_TO_DATE) {
++		ov_out_of_sync_print(mdev);
++		drbd_resync_finished(mdev);
++		return 0;
++	}
++
+ 	/* peer says his disk is inconsistent, while we think it is uptodate,
+ 	 * and this happens while the peer still thinks we have a sync going on,
+ 	 * but we think we are already done with the sync.
+diff --git a/drivers/block/drbd/drbd_state.c b/drivers/block/drbd/drbd_state.c
+index 444581828d70..12f2b4fbe559 100644
+--- a/drivers/block/drbd/drbd_state.c
++++ b/drivers/block/drbd/drbd_state.c
+@@ -975,13 +975,15 @@ __drbd_set_state(struct drbd_conf *mdev, union drbd_state ns,
+ 	wake_up(&mdev->state_wait);
+ 	wake_up(&mdev->tconn->ping_wait);
+ 
+-	/* aborted verify run. log the last position */
++	/* Aborted verify run, or we reached the stop sector.
++	 * Log the last position, unless end-of-device. */
+ 	if ((os.conn == C_VERIFY_S || os.conn == C_VERIFY_T) &&
+-	    ns.conn < C_CONNECTED) {
++	    ns.conn <= C_CONNECTED) {
+ 		mdev->ov_start_sector =
+ 			BM_BIT_TO_SECT(drbd_bm_bits(mdev) - mdev->ov_left);
+-		dev_info(DEV, "Online Verify reached sector %llu\n",
+-			(unsigned long long)mdev->ov_start_sector);
++		if (mdev->ov_left)
++			dev_info(DEV, "Online Verify reached sector %llu\n",
++				(unsigned long long)mdev->ov_start_sector);
+ 	}
+ 
+ 	if ((os.conn == C_PAUSED_SYNC_T || os.conn == C_PAUSED_SYNC_S) &&
+@@ -1422,6 +1424,13 @@ static void after_state_ch(struct drbd_conf *mdev, union drbd_state os,
+ 	if (os.disk < D_UP_TO_DATE && os.conn >= C_SYNC_SOURCE && ns.conn == C_CONNECTED)
+ 		drbd_send_state(mdev, ns);
+ 
++	/* Verify finished, or reached stop sector.  Peer did not know about
++	 * the stop sector, and we may even have changed the stop sector during
++	 * verify to interrupt/stop early.  Send the new state. */
++	if (os.conn == C_VERIFY_S && ns.conn == C_CONNECTED
++	&& verify_can_do_stop_sector(mdev))
++		drbd_send_state(mdev, ns);
++
+ 	/* Wake up role changes, that were delayed because of connection establishing */
+ 	if (os.conn == C_WF_REPORT_PARAMS && ns.conn != C_WF_REPORT_PARAMS) {
+ 		if (test_and_clear_bit(STATE_SENT, &mdev->tconn->flags))
+diff --git a/drivers/block/drbd/drbd_worker.c b/drivers/block/drbd/drbd_worker.c
+index 9d7e1fb0f431..1c9c6fd332c3 100644
+--- a/drivers/block/drbd/drbd_worker.c
++++ b/drivers/block/drbd/drbd_worker.c
+@@ -692,6 +692,7 @@ static int w_make_ov_request(struct drbd_work *w, int cancel)
+ 	int number, i, size;
+ 	sector_t sector;
+ 	const sector_t capacity = drbd_get_capacity(mdev->this_bdev);
++	bool stop_sector_reached = false;
+ 
+ 	if (unlikely(cancel))
+ 		return 1;
+@@ -700,9 +701,17 @@ static int w_make_ov_request(struct drbd_work *w, int cancel)
+ 
+ 	sector = mdev->ov_position;
+ 	for (i = 0; i < number; i++) {
+-		if (sector >= capacity) {
++		if (sector >= capacity)
+ 			return 1;
+-		}
++
++		/* We check for "finished" only in the reply path:
++		 * w_e_end_ov_reply().
++		 * We need to send at least one request out. */
++		stop_sector_reached = i > 0
++			&& verify_can_do_stop_sector(mdev)
++			&& sector >= mdev->ov_stop_sector;
++		if (stop_sector_reached)
++			break;
+ 
+ 		size = BM_BLOCK_SIZE;
+ 
+@@ -726,7 +735,8 @@ static int w_make_ov_request(struct drbd_work *w, int cancel)
+ 
+  requeue:
+ 	mdev->rs_in_flight += (i << (BM_BLOCK_SHIFT - 9));
+-	mod_timer(&mdev->resync_timer, jiffies + SLEEP_TIME);
++	if (i == 0 || !stop_sector_reached)
++		mod_timer(&mdev->resync_timer, jiffies + SLEEP_TIME);
+ 	return 1;
+ }
+ 
+@@ -792,7 +802,12 @@ int drbd_resync_finished(struct drbd_conf *mdev)
+ 	dt = (jiffies - mdev->rs_start - mdev->rs_paused) / HZ;
+ 	if (dt <= 0)
+ 		dt = 1;
++	
+ 	db = mdev->rs_total;
++	/* adjust for verify start and stop sectors, respective reached position */
++	if (mdev->state.conn == C_VERIFY_S || mdev->state.conn == C_VERIFY_T)
++		db -= mdev->ov_left;
++
+ 	dbdt = Bit2KB(db/dt);
+ 	mdev->rs_paused /= HZ;
+ 
+@@ -815,7 +830,7 @@ int drbd_resync_finished(struct drbd_conf *mdev)
+ 	ns.conn = C_CONNECTED;
+ 
+ 	dev_info(DEV, "%s done (total %lu sec; paused %lu sec; %lu K/sec)\n",
+-	     verify_done ? "Online verify " : "Resync",
++	     verify_done ? "Online verify" : "Resync",
+ 	     dt + mdev->rs_paused, mdev->rs_paused, dbdt);
+ 
+ 	n_oos = drbd_bm_total_weight(mdev);
+@@ -896,7 +911,9 @@ int drbd_resync_finished(struct drbd_conf *mdev)
+ 	mdev->rs_total  = 0;
+ 	mdev->rs_failed = 0;
+ 	mdev->rs_paused = 0;
+-	if (verify_done)
++
++	/* reset start sector, if we reached end of device */
++	if (verify_done && mdev->ov_left == 0)
+ 		mdev->ov_start_sector = 0;
+ 
+ 	drbd_md_sync(mdev);
+@@ -1144,6 +1161,7 @@ int w_e_end_ov_reply(struct drbd_work *w, int cancel)
+ 	unsigned int size = peer_req->i.size;
+ 	int digest_size;
+ 	int err, eq = 0;
++	bool stop_sector_reached = false;
+ 
+ 	if (unlikely(cancel)) {
+ 		drbd_free_peer_req(mdev, peer_req);
+@@ -1194,7 +1212,10 @@ int w_e_end_ov_reply(struct drbd_work *w, int cancel)
+ 	if ((mdev->ov_left & 0x200) == 0x200)
+ 		drbd_advance_rs_marks(mdev, mdev->ov_left);
+ 
+-	if (mdev->ov_left == 0) {
++	stop_sector_reached = verify_can_do_stop_sector(mdev) &&
++		(sector + (size>>9)) >= mdev->ov_stop_sector;
++
++	if (mdev->ov_left == 0 || stop_sector_reached) {
+ 		ov_out_of_sync_print(mdev);
+ 		drbd_resync_finished(mdev);
+ 	}
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 36ae7dd28d90..5171c3530886 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -55,7 +55,7 @@ extern const char *drbd_buildtag(void);
+ #define REL_VERSION "8.3.11"
+ #define API_VERSION 88
+ #define PRO_VERSION_MIN 86
+-#define PRO_VERSION_MAX 100
++#define PRO_VERSION_MAX 101
+ 
+ 
+ enum drbd_io_error_p {
+diff --git a/include/linux/drbd_genl.h b/include/linux/drbd_genl.h
+index 92ec4b50a885..9430e9ab37a8 100644
+--- a/include/linux/drbd_genl.h
++++ b/include/linux/drbd_genl.h
+@@ -215,6 +215,7 @@ GENL_struct(DRBD_NLA_STATE_INFO, 8, state_info,
+ 
+ GENL_struct(DRBD_NLA_START_OV_PARMS, 9, start_ov_parms,
+ 	__u64_field(1, DRBD_GENLA_F_MANDATORY,	ov_start_sector)
++	__u64_field(2, DRBD_GENLA_F_MANDATORY,	ov_stop_sector)
+ )
+ 
+ GENL_struct(DRBD_NLA_NEW_C_UUID_PARMS, 10, new_c_uuid_parms,
+-- 
+2.17.0
+

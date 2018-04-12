@@ -1,0 +1,327 @@
+From 3cb9ae4fd82ebc9759bc59998c88c385d35496fe Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 29 Oct 2014 10:03:57 +0100
+Subject: [PATCH] drm: Move drm_crtc_init from drm_crtc.h to drm_plane_helper.h
+
+Just a bit of OCD cleanup on headers - this function isn't the core
+interface any more but just a helper for drivers who haven't yet
+transitioned to universal planes. Put the declaration at the right
+spot and sprinkle necessary #includes over all drivers.
+
+Maybe this helps to encourage driver maintainers to do the switch.
+
+v2: Fix #include ordering for tegra, reported by 0-day builder.
+
+v3: Include required headers, reported by Thierry.
+
+Cc: Matt Roper <matthew.d.roper@intel.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Matt Roper <matthew.d.roper@intel.com>
+Reviewed-by: Sean Paul <seanpaul@chromium.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+---
+ drivers/gpu/drm/armada/armada_crtc.c       | 1 +
+ drivers/gpu/drm/ast/ast_mode.c             | 1 +
+ drivers/gpu/drm/bochs/bochs_kms.c          | 1 +
+ drivers/gpu/drm/cirrus/cirrus_mode.c       | 1 +
+ drivers/gpu/drm/gma500/psb_intel_display.c | 1 +
+ drivers/gpu/drm/mgag200/mgag200_mode.c     | 1 +
+ drivers/gpu/drm/nouveau/dispnv04/crtc.c    | 1 +
+ drivers/gpu/drm/nouveau/nv50_display.c     | 1 +
+ drivers/gpu/drm/omapdrm/omap_crtc.c        | 1 +
+ drivers/gpu/drm/qxl/qxl_display.c          | 1 +
+ drivers/gpu/drm/radeon/radeon_display.c    | 1 +
+ drivers/gpu/drm/rcar-du/rcar_du_crtc.c     | 1 +
+ drivers/gpu/drm/shmobile/shmob_drm_crtc.c  | 1 +
+ drivers/gpu/drm/sti/sti_drm_crtc.c         | 1 +
+ drivers/gpu/drm/tegra/dc.c                 | 2 ++
+ drivers/gpu/drm/tilcdc/tilcdc_crtc.c       | 1 +
+ drivers/gpu/drm/udl/udl_modeset.c          | 1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c        | 1 +
+ drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c       | 1 +
+ drivers/staging/imx-drm/imx-drm-core.c     | 1 +
+ include/drm/drm_crtc.h                     | 3 ---
+ include/drm/drm_plane_helper.h             | 5 +++++
+ 22 files changed, 26 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/armada/armada_crtc.c b/drivers/gpu/drm/armada/armada_crtc.c
+index 9a0cc09e6653..0b164fb1c107 100644
+--- a/drivers/gpu/drm/armada/armada_crtc.c
++++ b/drivers/gpu/drm/armada/armada_crtc.c
+@@ -12,6 +12,7 @@
+ #include <linux/platform_device.h>
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ #include "armada_crtc.h"
+ #include "armada_drm.h"
+ #include "armada_fb.h"
+diff --git a/drivers/gpu/drm/ast/ast_mode.c b/drivers/gpu/drm/ast/ast_mode.c
+index 9dc0fd5c1ea4..b7ee2634e47c 100644
+--- a/drivers/gpu/drm/ast/ast_mode.c
++++ b/drivers/gpu/drm/ast/ast_mode.c
+@@ -31,6 +31,7 @@
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ #include "ast_drv.h"
+ 
+ #include "ast_tables.h"
+diff --git a/drivers/gpu/drm/bochs/bochs_kms.c b/drivers/gpu/drm/bochs/bochs_kms.c
+index 6b7efcf363d6..5ffd4895d040 100644
+--- a/drivers/gpu/drm/bochs/bochs_kms.c
++++ b/drivers/gpu/drm/bochs/bochs_kms.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include "bochs.h"
++#include <drm/drm_plane_helper.h>
+ 
+ static int defx = 1024;
+ static int defy = 768;
+diff --git a/drivers/gpu/drm/cirrus/cirrus_mode.c b/drivers/gpu/drm/cirrus/cirrus_mode.c
+index c7c5a9d91fa0..99d4a74ffeaf 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_mode.c
++++ b/drivers/gpu/drm/cirrus/cirrus_mode.c
+@@ -16,6 +16,7 @@
+  */
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include <video/cirrus.h>
+ 
+diff --git a/drivers/gpu/drm/gma500/psb_intel_display.c b/drivers/gpu/drm/gma500/psb_intel_display.c
+index 87b50ba64ed4..b21a09451d1d 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_display.c
++++ b/drivers/gpu/drm/gma500/psb_intel_display.c
+@@ -21,6 +21,7 @@
+ #include <linux/i2c.h>
+ 
+ #include <drm/drmP.h>
++#include <drm/drm_plane_helper.h>
+ #include "framebuffer.h"
+ #include "psb_drv.h"
+ #include "psb_intel_drv.h"
+diff --git a/drivers/gpu/drm/mgag200/mgag200_mode.c b/drivers/gpu/drm/mgag200/mgag200_mode.c
+index 83485ab81ce8..9872ba9abf1a 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_mode.c
++++ b/drivers/gpu/drm/mgag200/mgag200_mode.c
+@@ -15,6 +15,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include "mgag200_drv.h"
+ 
+diff --git a/drivers/gpu/drm/nouveau/dispnv04/crtc.c b/drivers/gpu/drm/nouveau/dispnv04/crtc.c
+index fca6a1f9c20c..2a03e77abef4 100644
+--- a/drivers/gpu/drm/nouveau/dispnv04/crtc.c
++++ b/drivers/gpu/drm/nouveau/dispnv04/crtc.c
+@@ -26,6 +26,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include "nouveau_drm.h"
+ #include "nouveau_reg.h"
+diff --git a/drivers/gpu/drm/nouveau/nv50_display.c b/drivers/gpu/drm/nouveau/nv50_display.c
+index ae873d1a8d46..76b8c4f980ea 100644
+--- a/drivers/gpu/drm/nouveau/nv50_display.c
++++ b/drivers/gpu/drm/nouveau/nv50_display.c
+@@ -26,6 +26,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ #include <drm/drm_dp_helper.h>
+ 
+ #include <nvif/class.h>
+diff --git a/drivers/gpu/drm/omapdrm/omap_crtc.c b/drivers/gpu/drm/omapdrm/omap_crtc.c
+index 2d28dc337cfb..b0566a1ca28f 100644
+--- a/drivers/gpu/drm/omapdrm/omap_crtc.c
++++ b/drivers/gpu/drm/omapdrm/omap_crtc.c
+@@ -20,6 +20,7 @@
+ #include "omap_drv.h"
+ 
+ #include <drm/drm_mode.h>
++#include <drm/drm_plane_helper.h>
+ #include "drm_crtc.h"
+ #include "drm_crtc_helper.h"
+ 
+diff --git a/drivers/gpu/drm/qxl/qxl_display.c b/drivers/gpu/drm/qxl/qxl_display.c
+index 0d1396266857..8b7892880ad2 100644
+--- a/drivers/gpu/drm/qxl/qxl_display.c
++++ b/drivers/gpu/drm/qxl/qxl_display.c
+@@ -29,6 +29,7 @@
+ #include "qxl_drv.h"
+ #include "qxl_object.h"
+ #include "drm_crtc_helper.h"
++#include <drm/drm_plane_helper.h>
+ 
+ static bool qxl_head_enabled(struct qxl_head *head)
+ {
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 00ead8c2758a..f1b0fa1285bb 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -32,6 +32,7 @@
+ 
+ #include <linux/pm_runtime.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ #include <drm/drm_edid.h>
+ 
+ #include <linux/gcd.h>
+diff --git a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+index 148b50589181..088bfd875d29 100644
+--- a/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
++++ b/drivers/gpu/drm/rcar-du/rcar_du_crtc.c
+@@ -19,6 +19,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include "rcar_du_crtc.h"
+ #include "rcar_du_drv.h"
+diff --git a/drivers/gpu/drm/shmobile/shmob_drm_crtc.c b/drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+index 0ddce4d046d9..859ccb658601 100644
+--- a/drivers/gpu/drm/shmobile/shmob_drm_crtc.c
++++ b/drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+@@ -19,6 +19,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include <video/sh_mobile_meram.h>
+ 
+diff --git a/drivers/gpu/drm/sti/sti_drm_crtc.c b/drivers/gpu/drm/sti/sti_drm_crtc.c
+index d2ae0c0e13be..36a1ad3c4823 100644
+--- a/drivers/gpu/drm/sti/sti_drm_crtc.c
++++ b/drivers/gpu/drm/sti/sti_drm_crtc.c
+@@ -10,6 +10,7 @@
+ 
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include "sti_compositor.h"
+ #include "sti_drm_drv.h"
+diff --git a/drivers/gpu/drm/tegra/dc.c b/drivers/gpu/drm/tegra/dc.c
+index 6553fd238685..cdfa126a4725 100644
+--- a/drivers/gpu/drm/tegra/dc.c
++++ b/drivers/gpu/drm/tegra/dc.c
+@@ -15,6 +15,8 @@
+ #include "drm.h"
+ #include "gem.h"
+ 
++#include <drm/drm_plane_helper.h>
++
+ struct tegra_dc_soc_info {
+ 	bool supports_interlacing;
+ 	bool supports_cursor;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+index d642d4a02134..29ec98baffd1 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+@@ -16,6 +16,7 @@
+  */
+ 
+ #include "drm_flip_work.h"
++#include <drm/drm_plane_helper.h>
+ 
+ #include "tilcdc_drv.h"
+ #include "tilcdc_regs.h"
+diff --git a/drivers/gpu/drm/udl/udl_modeset.c b/drivers/gpu/drm/udl/udl_modeset.c
+index dc145d320b25..1701f1dfb23f 100644
+--- a/drivers/gpu/drm/udl/udl_modeset.c
++++ b/drivers/gpu/drm/udl/udl_modeset.c
+@@ -14,6 +14,7 @@
+ #include <drm/drmP.h>
+ #include <drm/drm_crtc.h>
+ #include <drm/drm_crtc_helper.h>
++#include <drm/drm_plane_helper.h>
+ #include "udl_drv.h"
+ 
+ /*
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c b/drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+index 15e185ae4c99..5c289f748ab4 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+@@ -26,6 +26,7 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_kms.h"
++#include <drm/drm_plane_helper.h>
+ 
+ 
+ #define vmw_crtc_to_ldu(x) \
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c b/drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+index b295463a60b3..7dc591d04d9a 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+@@ -26,6 +26,7 @@
+  **************************************************************************/
+ 
+ #include "vmwgfx_kms.h"
++#include <drm/drm_plane_helper.h>
+ 
+ 
+ #define vmw_crtc_to_sou(x) \
+diff --git a/drivers/staging/imx-drm/imx-drm-core.c b/drivers/staging/imx-drm/imx-drm-core.c
+index 9cb222e2996f..2f8007241734 100644
+--- a/drivers/staging/imx-drm/imx-drm-core.c
++++ b/drivers/staging/imx-drm/imx-drm-core.c
+@@ -24,6 +24,7 @@
+ #include <drm/drm_crtc_helper.h>
+ #include <drm/drm_gem_cma_helper.h>
+ #include <drm/drm_fb_cma_helper.h>
++#include <drm/drm_plane_helper.h>
+ 
+ #include "imx-drm.h"
+ 
+diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+index c40070a92d6b..c3baaee09498 100644
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -880,9 +880,6 @@ extern int drm_crtc_init_with_planes(struct drm_device *dev,
+ 				     struct drm_plane *primary,
+ 				     struct drm_plane *cursor,
+ 				     const struct drm_crtc_funcs *funcs);
+-extern int drm_crtc_init(struct drm_device *dev,
+-			 struct drm_crtc *crtc,
+-			 const struct drm_crtc_funcs *funcs);
+ extern void drm_crtc_cleanup(struct drm_crtc *crtc);
+ extern unsigned int drm_crtc_index(struct drm_crtc *crtc);
+ 
+diff --git a/include/drm/drm_plane_helper.h b/include/drm/drm_plane_helper.h
+index 52e6870534b2..fa60d19f91c0 100644
+--- a/include/drm/drm_plane_helper.h
++++ b/include/drm/drm_plane_helper.h
+@@ -25,6 +25,7 @@
+ #define DRM_PLANE_HELPER_H
+ 
+ #include <drm/drm_rect.h>
++#include <drm/drm_crtc.h>
+ 
+ /*
+  * Drivers that don't allow primary plane scaling may pass this macro in place
+@@ -42,6 +43,10 @@
+  * planes.
+  */
+ 
++extern int drm_crtc_init(struct drm_device *dev,
++			 struct drm_crtc *crtc,
++			 const struct drm_crtc_funcs *funcs);
++
+ extern int drm_plane_helper_check_update(struct drm_plane *plane,
+ 					 struct drm_crtc *crtc,
+ 					 struct drm_framebuffer *fb,
+-- 
+2.17.0
+

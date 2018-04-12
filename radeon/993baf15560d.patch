@@ -1,0 +1,138 @@
+From 993baf15560d2e8153f715cec677e6576b35662e Mon Sep 17 00:00:00 2001
+From: Roger He <Hongbo.He@amd.com>
+Date: Thu, 21 Dec 2017 17:42:51 +0800
+Subject: [PATCH] drm/ttm: use an operation ctx for ttm_tt_bind
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+forward the operation context to ttm_tt_bind as well,
+and the ultimate goal is swapout enablement for reserved BOs.
+
+v2: use common term rather than amd specific
+
+Reviewed-by: Thomas Hellström <thellstrom@vmware.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+Reviewed-by: Chuming Zhou <david1.zhou@amd.com>
+Signed-off-by: Roger He <Hongbo.He@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c | 2 +-
+ drivers/gpu/drm/nouveau/nouveau_bo.c    | 2 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c     | 2 +-
+ drivers/gpu/drm/ttm/ttm_bo.c            | 2 +-
+ drivers/gpu/drm/ttm/ttm_bo_util.c       | 2 +-
+ drivers/gpu/drm/ttm/ttm_tt.c            | 9 +++------
+ include/drm/ttm/ttm_bo_driver.h         | 3 ++-
+ 7 files changed, 10 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+index 044f5b57e197..e4bb435e614b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+@@ -497,7 +497,7 @@ static int amdgpu_move_vram_ram(struct ttm_buffer_object *bo, bool evict,
+ 		goto out_cleanup;
+ 	}
+ 
+-	r = ttm_tt_bind(bo->ttm, &tmp_mem);
++	r = ttm_tt_bind(bo->ttm, &tmp_mem, ctx);
+ 	if (unlikely(r)) {
+ 		goto out_cleanup;
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index a7df632b88cf..ce328edee7a1 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -1218,7 +1218,7 @@ nouveau_bo_move_flipd(struct ttm_buffer_object *bo, bool evict, bool intr,
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = ttm_tt_bind(bo->ttm, &tmp_reg);
++	ret = ttm_tt_bind(bo->ttm, &tmp_reg, &ctx);
+ 	if (ret)
+ 		goto out;
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index afc5eedddd8f..a0a839bc39bf 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -339,7 +339,7 @@ static int radeon_move_vram_ram(struct ttm_buffer_object *bo,
+ 		goto out_cleanup;
+ 	}
+ 
+-	r = ttm_tt_bind(bo->ttm, &tmp_mem);
++	r = ttm_tt_bind(bo->ttm, &tmp_mem, &ctx);
+ 	if (unlikely(r)) {
+ 		goto out_cleanup;
+ 	}
+diff --git a/drivers/gpu/drm/ttm/ttm_bo.c b/drivers/gpu/drm/ttm/ttm_bo.c
+index 4424bf2db8ad..b3a71acad6a8 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo.c
++++ b/drivers/gpu/drm/ttm/ttm_bo.c
+@@ -300,7 +300,7 @@ static int ttm_bo_handle_move_mem(struct ttm_buffer_object *bo,
+ 			goto out_err;
+ 
+ 		if (mem->mem_type != TTM_PL_SYSTEM) {
+-			ret = ttm_tt_bind(bo->ttm, mem);
++			ret = ttm_tt_bind(bo->ttm, mem, ctx);
+ 			if (ret)
+ 				goto out_err;
+ 		}
+diff --git a/drivers/gpu/drm/ttm/ttm_bo_util.c b/drivers/gpu/drm/ttm/ttm_bo_util.c
+index b7eb507aaf40..153de1bf0232 100644
+--- a/drivers/gpu/drm/ttm/ttm_bo_util.c
++++ b/drivers/gpu/drm/ttm/ttm_bo_util.c
+@@ -73,7 +73,7 @@ int ttm_bo_move_ttm(struct ttm_buffer_object *bo,
+ 		return ret;
+ 
+ 	if (new_mem->mem_type != TTM_PL_SYSTEM) {
+-		ret = ttm_tt_bind(ttm, new_mem);
++		ret = ttm_tt_bind(ttm, new_mem, ctx);
+ 		if (unlikely(ret != 0))
+ 			return ret;
+ 	}
+diff --git a/drivers/gpu/drm/ttm/ttm_tt.c b/drivers/gpu/drm/ttm/ttm_tt.c
+index b48d7a011cb1..5a046a3c543a 100644
+--- a/drivers/gpu/drm/ttm/ttm_tt.c
++++ b/drivers/gpu/drm/ttm/ttm_tt.c
+@@ -261,12 +261,9 @@ void ttm_tt_unbind(struct ttm_tt *ttm)
+ 	}
+ }
+ 
+-int ttm_tt_bind(struct ttm_tt *ttm, struct ttm_mem_reg *bo_mem)
++int ttm_tt_bind(struct ttm_tt *ttm, struct ttm_mem_reg *bo_mem,
++		struct ttm_operation_ctx *ctx)
+ {
+-	struct ttm_operation_ctx ctx = {
+-		.interruptible = false,
+-		.no_wait_gpu = false
+-	};
+ 	int ret = 0;
+ 
+ 	if (!ttm)
+@@ -275,7 +272,7 @@ int ttm_tt_bind(struct ttm_tt *ttm, struct ttm_mem_reg *bo_mem)
+ 	if (ttm->state == tt_bound)
+ 		return 0;
+ 
+-	ret = ttm->bdev->driver->ttm_tt_populate(ttm, &ctx);
++	ret = ttm->bdev->driver->ttm_tt_populate(ttm, ctx);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/include/drm/ttm/ttm_bo_driver.h b/include/drm/ttm/ttm_bo_driver.h
+index 84860ece77eb..94064b126e8e 100644
+--- a/include/drm/ttm/ttm_bo_driver.h
++++ b/include/drm/ttm/ttm_bo_driver.h
+@@ -650,7 +650,8 @@ void ttm_dma_tt_fini(struct ttm_dma_tt *ttm_dma);
+  *
+  * Bind the pages of @ttm to an aperture location identified by @bo_mem
+  */
+-int ttm_tt_bind(struct ttm_tt *ttm, struct ttm_mem_reg *bo_mem);
++int ttm_tt_bind(struct ttm_tt *ttm, struct ttm_mem_reg *bo_mem,
++		struct ttm_operation_ctx *ctx);
+ 
+ /**
+  * ttm_ttm_destroy:
+-- 
+2.17.0
+

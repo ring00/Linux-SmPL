@@ -1,0 +1,217 @@
+From 076bb0c82a44fbe46fe2c8527a5b5b64b69f679d Mon Sep 17 00:00:00 2001
+From: Eliezer Tamir <eliezer.tamir@linux.intel.com>
+Date: Wed, 10 Jul 2013 17:13:17 +0300
+Subject: [PATCH] net: rename include/net/ll_poll.h to include/net/busy_poll.h
+
+Rename the file and correct all the places where it is included.
+
+Signed-off-by: Eliezer Tamir <eliezer.tamir@linux.intel.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c | 2 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe.h        | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c  | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_rx.c      | 2 +-
+ fs/select.c                                     | 2 +-
+ include/net/{ll_poll.h => busy_poll.h}          | 0
+ net/core/datagram.c                             | 2 +-
+ net/core/sock.c                                 | 2 +-
+ net/core/sysctl_net_core.c                      | 2 +-
+ net/ipv4/tcp.c                                  | 2 +-
+ net/ipv4/tcp_ipv4.c                             | 2 +-
+ net/ipv4/udp.c                                  | 2 +-
+ net/ipv6/tcp_ipv6.c                             | 2 +-
+ net/ipv6/udp.c                                  | 2 +-
+ net/socket.c                                    | 2 +-
+ 15 files changed, 14 insertions(+), 14 deletions(-)
+ rename include/net/{ll_poll.h => busy_poll.h} (100%)
+
+diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+index ec3aa1d451e8..05b6b4e8b073 100644
+--- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
++++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+@@ -24,7 +24,7 @@
+ #include <net/tcp.h>
+ #include <net/ipv6.h>
+ #include <net/ip6_checksum.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ #include <linux/prefetch.h>
+ #include "bnx2x_cmn.h"
+ #include "bnx2x_init.h"
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe.h b/drivers/net/ethernet/intel/ixgbe/ixgbe.h
+index fb098b46c6a6..7be725cdfea8 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe.h
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe.h
+@@ -52,7 +52,7 @@
+ #include <linux/dca.h>
+ #endif
+ 
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #ifdef CONFIG_NET_LL_RX_POLL
+ #define LL_EXTENDED_STATS
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index caf204770569..0fb2438dc2c7 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -38,7 +38,7 @@
+ #include <linux/slab.h>
+ #include <linux/hash.h>
+ #include <net/ip.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #include <linux/mlx4/driver.h>
+ #include <linux/mlx4/device.h>
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_rx.c b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+index 76997b93fdfe..90746d37ac9b 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_rx.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_rx.c
+@@ -31,7 +31,7 @@
+  *
+  */
+ 
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ #include <linux/mlx4/cq.h>
+ #include <linux/slab.h>
+ #include <linux/mlx4/qp.h>
+diff --git a/fs/select.c b/fs/select.c
+index f9f49c40cfd4..35d4adc749d9 100644
+--- a/fs/select.c
++++ b/fs/select.c
+@@ -28,7 +28,7 @@
+ #include <linux/hrtimer.h>
+ #include <linux/sched/rt.h>
+ #include <linux/freezer.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #include <asm/uaccess.h>
+ 
+diff --git a/include/net/ll_poll.h b/include/net/busy_poll.h
+similarity index 100%
+rename from include/net/ll_poll.h
+rename to include/net/busy_poll.h
+diff --git a/net/core/datagram.c b/net/core/datagram.c
+index 6e9ab31e457e..8ab48cd89559 100644
+--- a/net/core/datagram.c
++++ b/net/core/datagram.c
+@@ -56,7 +56,7 @@
+ #include <net/sock.h>
+ #include <net/tcp_states.h>
+ #include <trace/events/skb.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ /*
+  *	Is a socket 'connection oriented' ?
+diff --git a/net/core/sock.c b/net/core/sock.c
+index ab06b719f5b1..9bfe83f4d670 100644
+--- a/net/core/sock.c
++++ b/net/core/sock.c
+@@ -139,7 +139,7 @@
+ #include <net/tcp.h>
+ #endif
+ 
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ static DEFINE_MUTEX(proto_list_mutex);
+ static LIST_HEAD(proto_list);
+diff --git a/net/core/sysctl_net_core.c b/net/core/sysctl_net_core.c
+index afc677eadd93..1a298cb3daee 100644
+--- a/net/core/sysctl_net_core.c
++++ b/net/core/sysctl_net_core.c
+@@ -19,7 +19,7 @@
+ #include <net/ip.h>
+ #include <net/sock.h>
+ #include <net/net_ratelimit.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ static int one = 1;
+ 
+diff --git a/net/ipv4/tcp.c b/net/ipv4/tcp.c
+index 15cbfa94bd8e..5423223e93c2 100644
+--- a/net/ipv4/tcp.c
++++ b/net/ipv4/tcp.c
+@@ -279,7 +279,7 @@
+ 
+ #include <asm/uaccess.h>
+ #include <asm/ioctls.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ int sysctl_tcp_fin_timeout __read_mostly = TCP_FIN_TIMEOUT;
+ 
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index 35675e46aff8..3a261b41a00c 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -75,7 +75,7 @@
+ #include <net/netdma.h>
+ #include <net/secure_seq.h>
+ #include <net/tcp_memcontrol.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #include <linux/inet.h>
+ #include <linux/ipv6.h>
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index 6b270e53c207..bcc0ff2c16da 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -109,7 +109,7 @@
+ #include <trace/events/udp.h>
+ #include <linux/static_key.h>
+ #include <trace/events/skb.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ #include "udp_impl.h"
+ 
+ struct udp_table udp_table __read_mostly;
+diff --git a/net/ipv6/tcp_ipv6.c b/net/ipv6/tcp_ipv6.c
+index 5cffa5c3e6b8..345bd92d4ddb 100644
+--- a/net/ipv6/tcp_ipv6.c
++++ b/net/ipv6/tcp_ipv6.c
+@@ -63,7 +63,7 @@
+ #include <net/inet_common.h>
+ #include <net/secure_seq.h>
+ #include <net/tcp_memcontrol.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #include <asm/uaccess.h>
+ 
+diff --git a/net/ipv6/udp.c b/net/ipv6/udp.c
+index b6f31437a1f8..40e72034da07 100644
+--- a/net/ipv6/udp.c
++++ b/net/ipv6/udp.c
+@@ -46,7 +46,7 @@
+ #include <net/ip6_checksum.h>
+ #include <net/xfrm.h>
+ #include <net/inet6_hashtables.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #include <linux/proc_fs.h>
+ #include <linux/seq_file.h>
+diff --git a/net/socket.c b/net/socket.c
+index 45afa648364a..6a3e9a3f50ad 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -104,7 +104,7 @@
+ #include <linux/route.h>
+ #include <linux/sockios.h>
+ #include <linux/atalk.h>
+-#include <net/ll_poll.h>
++#include <net/busy_poll.h>
+ 
+ #ifdef CONFIG_NET_LL_RX_POLL
+ unsigned int sysctl_net_ll_read __read_mostly;
+-- 
+2.17.0
+

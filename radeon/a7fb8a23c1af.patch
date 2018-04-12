@@ -1,0 +1,619 @@
+From a7fb8a23c1afa607ec8ce9f61df645f37c529434 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 9 Sep 2015 16:45:52 +0200
+Subject: [PATCH] drm: Remove __OS_HAS_AGP
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+We already express the drm/agp depencies correctly in Kconfig, so we
+can rip this remnant from the shared drm core days.
+
+Aside: Pretty much all the #ifdefs in radeon/nouveau could be killed
+if ttm would provide dummy functions. I'm not going to volunteer for
+that though.
+
+v2: Use IS_ENABLED(CONFIG_AGP) as suggested by Ville
+
+v3: Polish from Ville's review.
+
+Cc: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+Reviewed-by: Christian König <christian.koenig@amd.com> (v2)
+Reviewed-by: David Herrmann <dh.herrmann@gmail.com>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/Makefile             |  3 ++-
+ drivers/gpu/drm/drm_agpsupport.c     |  4 ----
+ drivers/gpu/drm/drm_bufs.c           |  6 +++---
+ drivers/gpu/drm/drm_ioc32.c          |  6 +++---
+ drivers/gpu/drm/drm_ioctl.c          |  2 +-
+ drivers/gpu/drm/drm_memory.c         |  6 +++---
+ drivers/gpu/drm/drm_vm.c             |  8 ++++----
+ drivers/gpu/drm/mga/mga_dma.c        |  4 ++--
+ drivers/gpu/drm/nouveau/nouveau_bo.c |  8 ++++----
+ drivers/gpu/drm/r128/r128_cce.c      | 12 ++++++------
+ drivers/gpu/drm/radeon/r600_cp.c     | 14 +++++++-------
+ drivers/gpu/drm/radeon/radeon_agp.c  |  8 ++++----
+ drivers/gpu/drm/radeon/radeon_cp.c   | 16 ++++++++--------
+ drivers/gpu/drm/radeon/radeon_ttm.c  | 10 +++++-----
+ include/drm/drm_agpsupport.h         |  9 +++------
+ 15 files changed, 55 insertions(+), 61 deletions(-)
+
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 45e7719846b1..f458d6e33655 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -6,7 +6,7 @@ drm-y       :=	drm_auth.o drm_bufs.o drm_cache.o \
+ 		drm_context.o drm_dma.o \
+ 		drm_fops.o drm_gem.o drm_ioctl.o drm_irq.o \
+ 		drm_lock.o drm_memory.o drm_drv.o drm_vm.o \
+-		drm_agpsupport.o drm_scatter.o drm_pci.o \
++		drm_scatter.o drm_pci.o \
+ 		drm_platform.o drm_sysfs.o drm_hashtab.o drm_mm.o \
+ 		drm_crtc.o drm_modes.o drm_edid.o \
+ 		drm_info.o drm_debugfs.o drm_encoder_slave.o \
+@@ -19,6 +19,7 @@ drm-$(CONFIG_DRM_GEM_CMA_HELPER) += drm_gem_cma_helper.o
+ drm-$(CONFIG_PCI) += ati_pcigart.o
+ drm-$(CONFIG_DRM_PANEL) += drm_panel.o
+ drm-$(CONFIG_OF) += drm_of.o
++drm-$(CONFIG_AGP) += drm_agpsupport.o
+ 
+ drm_kms_helper-y := drm_crtc_helper.o drm_dp_helper.o drm_probe_helper.o \
+ 		drm_plane_helper.o drm_dp_mst_topology.o drm_atomic_helper.o
+diff --git a/drivers/gpu/drm/drm_agpsupport.c b/drivers/gpu/drm/drm_agpsupport.c
+index 4b2b4aa5033b..a10ea6aec629 100644
+--- a/drivers/gpu/drm/drm_agpsupport.c
++++ b/drivers/gpu/drm/drm_agpsupport.c
+@@ -36,8 +36,6 @@
+ #include <linux/slab.h>
+ #include "drm_legacy.h"
+ 
+-#if __OS_HAS_AGP
+-
+ #include <asm/agp.h>
+ 
+ /**
+@@ -502,5 +500,3 @@ drm_agp_bind_pages(struct drm_device *dev,
+ 	return mem;
+ }
+ EXPORT_SYMBOL(drm_agp_bind_pages);
+-
+-#endif /* __OS_HAS_AGP */
+diff --git a/drivers/gpu/drm/drm_bufs.c b/drivers/gpu/drm/drm_bufs.c
+index 569064a00693..f1a204d253cc 100644
+--- a/drivers/gpu/drm/drm_bufs.c
++++ b/drivers/gpu/drm/drm_bufs.c
+@@ -582,7 +582,7 @@ static void drm_cleanup_buf_error(struct drm_device * dev,
+ 	}
+ }
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ /**
+  * Add AGP buffers for DMA transfers.
+  *
+@@ -756,7 +756,7 @@ int drm_legacy_addbufs_agp(struct drm_device *dev,
+ 	return 0;
+ }
+ EXPORT_SYMBOL(drm_legacy_addbufs_agp);
+-#endif				/* __OS_HAS_AGP */
++#endif /* CONFIG_AGP */
+ 
+ int drm_legacy_addbufs_pci(struct drm_device *dev,
+ 			   struct drm_buf_desc *request)
+@@ -1145,7 +1145,7 @@ int drm_legacy_addbufs(struct drm_device *dev, void *data,
+ 	if (!drm_core_check_feature(dev, DRIVER_HAVE_DMA))
+ 		return -EINVAL;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (request->flags & _DRM_AGP_BUFFER)
+ 		ret = drm_legacy_addbufs_agp(dev, request);
+ 	else
+diff --git a/drivers/gpu/drm/drm_ioc32.c b/drivers/gpu/drm/drm_ioc32.c
+index ddfa6014c2c2..57676f8d7ecf 100644
+--- a/drivers/gpu/drm/drm_ioc32.c
++++ b/drivers/gpu/drm/drm_ioc32.c
+@@ -720,7 +720,7 @@ static int compat_drm_dma(struct file *file, unsigned int cmd,
+ 	return 0;
+ }
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ typedef struct drm_agp_mode32 {
+ 	u32 mode;	/**< AGP mode */
+ } drm_agp_mode32_t;
+@@ -882,7 +882,7 @@ static int compat_drm_agp_unbind(struct file *file, unsigned int cmd,
+ 
+ 	return drm_ioctl(file, DRM_IOCTL_AGP_UNBIND, (unsigned long)request);
+ }
+-#endif				/* __OS_HAS_AGP */
++#endif /* CONFIG_AGP */
+ 
+ typedef struct drm_scatter_gather32 {
+ 	u32 size;	/**< In bytes -- will round to page boundary */
+@@ -1090,7 +1090,7 @@ static drm_ioctl_compat_t *drm_compat_ioctls[] = {
+ 	[DRM_IOCTL_NR(DRM_IOCTL_GET_SAREA_CTX32)] = compat_drm_getsareactx,
+ 	[DRM_IOCTL_NR(DRM_IOCTL_RES_CTX32)] = compat_drm_resctx,
+ 	[DRM_IOCTL_NR(DRM_IOCTL_DMA32)] = compat_drm_dma,
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	[DRM_IOCTL_NR(DRM_IOCTL_AGP_ENABLE32)] = compat_drm_agp_enable,
+ 	[DRM_IOCTL_NR(DRM_IOCTL_AGP_INFO32)] = compat_drm_agp_info,
+ 	[DRM_IOCTL_NR(DRM_IOCTL_AGP_ALLOC32)] = compat_drm_agp_alloc,
+diff --git a/drivers/gpu/drm/drm_ioctl.c b/drivers/gpu/drm/drm_ioctl.c
+index d93e7378c077..cc94ecc8af7e 100644
+--- a/drivers/gpu/drm/drm_ioctl.c
++++ b/drivers/gpu/drm/drm_ioctl.c
+@@ -571,7 +571,7 @@ static const struct drm_ioctl_desc drm_ioctls[] = {
+ 
+ 	DRM_IOCTL_DEF(DRM_IOCTL_CONTROL, drm_control, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ACQUIRE, drm_agp_acquire_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+ 	DRM_IOCTL_DEF(DRM_IOCTL_AGP_RELEASE, drm_agp_release_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+ 	DRM_IOCTL_DEF(DRM_IOCTL_AGP_ENABLE, drm_agp_enable_ioctl, DRM_AUTH|DRM_MASTER|DRM_ROOT_ONLY),
+diff --git a/drivers/gpu/drm/drm_memory.c b/drivers/gpu/drm/drm_memory.c
+index a521ef6ff807..87a8cb73366f 100644
+--- a/drivers/gpu/drm/drm_memory.c
++++ b/drivers/gpu/drm/drm_memory.c
+@@ -38,7 +38,7 @@
+ #include <drm/drmP.h>
+ #include "drm_legacy.h"
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 
+ #ifdef HAVE_PAGE_AGP
+ # include <asm/agp.h>
+@@ -111,14 +111,14 @@ int drm_unbind_agp(struct agp_memory * handle)
+ 	return agp_unbind_memory(handle);
+ }
+ 
+-#else  /*  __OS_HAS_AGP  */
++#else /*  CONFIG_AGP  */
+ static inline void *agp_remap(unsigned long offset, unsigned long size,
+ 			      struct drm_device * dev)
+ {
+ 	return NULL;
+ }
+ 
+-#endif				/* agp */
++#endif /* CONFIG_AGP */
+ 
+ void drm_legacy_ioremap(struct drm_local_map *map, struct drm_device *dev)
+ {
+diff --git a/drivers/gpu/drm/drm_vm.c b/drivers/gpu/drm/drm_vm.c
+index aab49ee4ed40..f90bd5fe35ba 100644
+--- a/drivers/gpu/drm/drm_vm.c
++++ b/drivers/gpu/drm/drm_vm.c
+@@ -95,7 +95,7 @@ static pgprot_t drm_dma_prot(uint32_t map_type, struct vm_area_struct *vma)
+  * Find the right map and if it's AGP memory find the real physical page to
+  * map, get the page, increment the use count and return it.
+  */
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	struct drm_file *priv = vma->vm_file->private_data;
+@@ -168,12 +168,12 @@ static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ vm_fault_error:
+ 	return VM_FAULT_SIGBUS;	/* Disallow mremap */
+ }
+-#else				/* __OS_HAS_AGP */
++#else
+ static int drm_do_vm_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ {
+ 	return VM_FAULT_SIGBUS;
+ }
+-#endif				/* __OS_HAS_AGP */
++#endif
+ 
+ /**
+  * \c nopage method for shared virtual memory.
+@@ -556,7 +556,7 @@ static int drm_mmap_locked(struct file *filp, struct vm_area_struct *vma)
+ 	 * --BenH.
+ 	 */
+ 	if (!vma->vm_pgoff
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	    && (!dev->agp
+ 		|| dev->agp->agp_info.device->vendor != PCI_VENDOR_ID_APPLE)
+ #endif
+diff --git a/drivers/gpu/drm/mga/mga_dma.c b/drivers/gpu/drm/mga/mga_dma.c
+index 8cfa9cb74c86..1f2f9ca25901 100644
+--- a/drivers/gpu/drm/mga/mga_dma.c
++++ b/drivers/gpu/drm/mga/mga_dma.c
+@@ -416,7 +416,7 @@ int mga_driver_load(struct drm_device *dev, unsigned long flags)
+ 	return 0;
+ }
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ /**
+  * Bootstrap the driver for AGP DMA.
+  *
+@@ -947,7 +947,7 @@ static int mga_do_cleanup_dma(struct drm_device *dev, int full_cleanup)
+ 			drm_legacy_ioremapfree(dev->agp_buffer_map, dev);
+ 
+ 		if (dev_priv->used_new_dma_init) {
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 			if (dev_priv->agp_handle != 0) {
+ 				struct drm_agp_binding unbind_req;
+ 				struct drm_agp_buffer free_req;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_bo.c b/drivers/gpu/drm/nouveau/nouveau_bo.c
+index 15057b39491c..78f520d05de9 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_bo.c
++++ b/drivers/gpu/drm/nouveau/nouveau_bo.c
+@@ -574,7 +574,7 @@ static struct ttm_tt *
+ nouveau_ttm_tt_create(struct ttm_bo_device *bdev, unsigned long size,
+ 		      uint32_t page_flags, struct page *dummy_read)
+ {
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	struct nouveau_drm *drm = nouveau_bdev(bdev);
+ 
+ 	if (drm->agp.bridge) {
+@@ -1366,7 +1366,7 @@ nouveau_ttm_io_mem_reserve(struct ttm_bo_device *bdev, struct ttm_mem_reg *mem)
+ 		/* System memory */
+ 		return 0;
+ 	case TTM_PL_TT:
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		if (drm->agp.bridge) {
+ 			mem->bus.offset = mem->start << PAGE_SHIFT;
+ 			mem->bus.base = drm->agp.base;
+@@ -1496,7 +1496,7 @@ nouveau_ttm_tt_populate(struct ttm_tt *ttm)
+ 	    ttm->caching_state == tt_uncached)
+ 		return ttm_dma_populate(ttm_dma, dev->dev);
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (drm->agp.bridge) {
+ 		return ttm_agp_tt_populate(ttm);
+ 	}
+@@ -1563,7 +1563,7 @@ nouveau_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ 		return;
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (drm->agp.bridge) {
+ 		ttm_agp_tt_unpopulate(ttm);
+ 		return;
+diff --git a/drivers/gpu/drm/r128/r128_cce.c b/drivers/gpu/drm/r128/r128_cce.c
+index 2c45ac9c1dc3..14fd83b5f497 100644
+--- a/drivers/gpu/drm/r128/r128_cce.c
++++ b/drivers/gpu/drm/r128/r128_cce.c
+@@ -311,7 +311,7 @@ static void r128_cce_init_ring_buffer(struct drm_device *dev,
+ 	/* The manual (p. 2) says this address is in "VM space".  This
+ 	 * means it's an offset from the start of AGP space.
+ 	 */
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (!dev_priv->is_pci)
+ 		ring_start = dev_priv->cce_ring->offset - dev->agp->base;
+ 	else
+@@ -505,7 +505,7 @@ static int r128_do_init_cce(struct drm_device *dev, drm_r128_init_t *init)
+ 	    (drm_r128_sarea_t *) ((u8 *) dev_priv->sarea->handle +
+ 				  init->sarea_priv_offset);
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (!dev_priv->is_pci) {
+ 		drm_legacy_ioremap_wc(dev_priv->cce_ring, dev);
+ 		drm_legacy_ioremap_wc(dev_priv->ring_rptr, dev);
+@@ -529,7 +529,7 @@ static int r128_do_init_cce(struct drm_device *dev, drm_r128_init_t *init)
+ 			(void *)(unsigned long)dev->agp_buffer_map->offset;
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (!dev_priv->is_pci)
+ 		dev_priv->cce_buffers_offset = dev->agp->base;
+ 	else
+@@ -552,7 +552,7 @@ static int r128_do_init_cce(struct drm_device *dev, drm_r128_init_t *init)
+ 	dev_priv->sarea_priv->last_dispatch = 0;
+ 	R128_WRITE(R128_LAST_DISPATCH_REG, dev_priv->sarea_priv->last_dispatch);
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->is_pci) {
+ #endif
+ 		dev_priv->gart_info.table_mask = DMA_BIT_MASK(32);
+@@ -568,7 +568,7 @@ static int r128_do_init_cce(struct drm_device *dev, drm_r128_init_t *init)
+ 			return -ENOMEM;
+ 		}
+ 		R128_WRITE(R128_PCI_GART_PAGE, dev_priv->gart_info.bus_addr);
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	}
+ #endif
+ 
+@@ -600,7 +600,7 @@ int r128_do_cleanup_cce(struct drm_device *dev)
+ 	if (dev->dev_private) {
+ 		drm_r128_private_t *dev_priv = dev->dev_private;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		if (!dev_priv->is_pci) {
+ 			if (dev_priv->cce_ring != NULL)
+ 				drm_legacy_ioremapfree(dev_priv->cce_ring, dev);
+diff --git a/drivers/gpu/drm/radeon/r600_cp.c b/drivers/gpu/drm/radeon/r600_cp.c
+index 98f9adaccc3d..e231eeafef23 100644
+--- a/drivers/gpu/drm/radeon/r600_cp.c
++++ b/drivers/gpu/drm/radeon/r600_cp.c
+@@ -1837,7 +1837,7 @@ static void r600_cp_init_ring_buffer(struct drm_device *dev,
+ 	SET_RING_HEAD(dev_priv, 0);
+ 	dev_priv->ring.tail = 0;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		rptr_addr = dev_priv->ring_rptr->offset
+ 			- dev->agp->base +
+@@ -1863,7 +1863,7 @@ static void r600_cp_init_ring_buffer(struct drm_device *dev,
+ 		     dev_priv->ring.size_l2qw);
+ #endif
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		/* XXX */
+ 		radeon_write_agp_base(dev_priv, dev->agp->base);
+@@ -1946,7 +1946,7 @@ int r600_do_cleanup_cp(struct drm_device *dev)
+ 	if (dev->irq_enabled)
+ 		drm_irq_uninstall(dev);
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		if (dev_priv->cp_ring != NULL) {
+ 			drm_legacy_ioremapfree(dev_priv->cp_ring, dev);
+@@ -2089,7 +2089,7 @@ int r600_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 		}
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	/* XXX */
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		drm_legacy_ioremap_wc(dev_priv->cp_ring, dev);
+@@ -2148,7 +2148,7 @@ int r600_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 		 * location in the card and on the bus, though we have to
+ 		 * align it down.
+ 		 */
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		/* XXX */
+ 		if (dev_priv->flags & RADEON_IS_AGP) {
+ 			base = dev->agp->base;
+@@ -2175,7 +2175,7 @@ int r600_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 				 base, dev_priv->gart_vm_start);
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	/* XXX */
+ 	if (dev_priv->flags & RADEON_IS_AGP)
+ 		dev_priv->gart_buffers_offset = (dev->agp_buffer_map->offset
+@@ -2212,7 +2212,7 @@ int r600_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 
+ 	dev_priv->ring.high_mark = RADEON_RING_HIGH_MARK;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		/* XXX turn off pcie gart */
+ 	} else
+diff --git a/drivers/gpu/drm/radeon/radeon_agp.c b/drivers/gpu/drm/radeon/radeon_agp.c
+index a9297b2c3524..fe994aac3b04 100644
+--- a/drivers/gpu/drm/radeon/radeon_agp.c
++++ b/drivers/gpu/drm/radeon/radeon_agp.c
+@@ -28,7 +28,7 @@
+ #include "radeon.h"
+ #include <drm/radeon_drm.h>
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 
+ struct radeon_agpmode_quirk {
+ 	u32 hostbridge_vendor;
+@@ -123,7 +123,7 @@ static struct radeon_agpmode_quirk radeon_agpmode_quirk_list[] = {
+ 
+ int radeon_agp_init(struct radeon_device *rdev)
+ {
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	struct radeon_agpmode_quirk *p = radeon_agpmode_quirk_list;
+ 	struct drm_agp_mode mode;
+ 	struct drm_agp_info info;
+@@ -257,7 +257,7 @@ int radeon_agp_init(struct radeon_device *rdev)
+ 
+ void radeon_agp_resume(struct radeon_device *rdev)
+ {
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	int r;
+ 	if (rdev->flags & RADEON_IS_AGP) {
+ 		r = radeon_agp_init(rdev);
+@@ -269,7 +269,7 @@ void radeon_agp_resume(struct radeon_device *rdev)
+ 
+ void radeon_agp_fini(struct radeon_device *rdev)
+ {
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (rdev->ddev->agp && rdev->ddev->agp->acquired) {
+ 		drm_agp_release(rdev->ddev);
+ 	}
+diff --git a/drivers/gpu/drm/radeon/radeon_cp.c b/drivers/gpu/drm/radeon/radeon_cp.c
+index ea134a7d51a5..500287eff55d 100644
+--- a/drivers/gpu/drm/radeon/radeon_cp.c
++++ b/drivers/gpu/drm/radeon/radeon_cp.c
+@@ -762,7 +762,7 @@ static void radeon_cp_init_ring_buffer(struct drm_device * dev,
+ 			     ((dev_priv->gart_vm_start - 1) & 0xffff0000)
+ 			     | (dev_priv->fb_location >> 16));
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		radeon_write_agp_base(dev_priv, dev->agp->base);
+ 
+@@ -791,7 +791,7 @@ static void radeon_cp_init_ring_buffer(struct drm_device * dev,
+ 	SET_RING_HEAD(dev_priv, cur_read_ptr);
+ 	dev_priv->ring.tail = cur_read_ptr;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		RADEON_WRITE(RADEON_CP_RB_RPTR_ADDR,
+ 			     dev_priv->ring_rptr->offset
+@@ -1335,7 +1335,7 @@ static int radeon_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 		}
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		drm_legacy_ioremap_wc(dev_priv->cp_ring, dev);
+ 		drm_legacy_ioremap_wc(dev_priv->ring_rptr, dev);
+@@ -1394,7 +1394,7 @@ static int radeon_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 		 * location in the card and on the bus, though we have to
+ 		 * align it down.
+ 		 */
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		if (dev_priv->flags & RADEON_IS_AGP) {
+ 			base = dev->agp->base;
+ 			/* Check if valid */
+@@ -1424,7 +1424,7 @@ static int radeon_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 			RADEON_READ(RADEON_CONFIG_APER_SIZE);
+ 	}
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP)
+ 		dev_priv->gart_buffers_offset = (dev->agp_buffer_map->offset
+ 						 - dev->agp->base
+@@ -1455,7 +1455,7 @@ static int radeon_do_init_cp(struct drm_device *dev, drm_radeon_init_t *init,
+ 
+ 	dev_priv->ring.high_mark = RADEON_RING_HIGH_MARK;
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		/* Turn off PCI GART */
+ 		radeon_set_pcigart(dev_priv, 0);
+@@ -1566,7 +1566,7 @@ static int radeon_do_cleanup_cp(struct drm_device * dev)
+ 	if (dev->irq_enabled)
+ 		drm_irq_uninstall(dev);
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		if (dev_priv->cp_ring != NULL) {
+ 			drm_legacy_ioremapfree(dev_priv->cp_ring, dev);
+@@ -1625,7 +1625,7 @@ static int radeon_do_resume_cp(struct drm_device *dev, struct drm_file *file_pri
+ 
+ 	DRM_DEBUG("Starting radeon_do_resume_cp()\n");
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (dev_priv->flags & RADEON_IS_AGP) {
+ 		/* Turn off PCI GART */
+ 		radeon_set_pcigart(dev_priv, 0);
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index 06ac59fe332a..e34307459e50 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -144,7 +144,7 @@ static int radeon_init_mem_type(struct ttm_bo_device *bdev, uint32_t type,
+ 		man->available_caching = TTM_PL_MASK_CACHING;
+ 		man->default_caching = TTM_PL_FLAG_CACHED;
+ 		man->flags = TTM_MEMTYPE_FLAG_MAPPABLE | TTM_MEMTYPE_FLAG_CMA;
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		if (rdev->flags & RADEON_IS_AGP) {
+ 			if (!rdev->ddev->agp) {
+ 				DRM_ERROR("AGP is not enabled for memory type %u\n",
+@@ -461,7 +461,7 @@ static int radeon_ttm_io_mem_reserve(struct ttm_bo_device *bdev, struct ttm_mem_
+ 		/* system memory */
+ 		return 0;
+ 	case TTM_PL_TT:
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 		if (rdev->flags & RADEON_IS_AGP) {
+ 			/* RADEON_IS_AGP is set only if AGP is active */
+ 			mem->bus.offset = mem->start << PAGE_SHIFT;
+@@ -680,7 +680,7 @@ static struct ttm_tt *radeon_ttm_tt_create(struct ttm_bo_device *bdev,
+ 	struct radeon_ttm_tt *gtt;
+ 
+ 	rdev = radeon_get_rdev(bdev);
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (rdev->flags & RADEON_IS_AGP) {
+ 		return ttm_agp_tt_create(bdev, rdev->ddev->agp->bridge,
+ 					 size, page_flags, dummy_read_page);
+@@ -736,7 +736,7 @@ static int radeon_ttm_tt_populate(struct ttm_tt *ttm)
+ 	}
+ 
+ 	rdev = radeon_get_rdev(ttm->bdev);
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (rdev->flags & RADEON_IS_AGP) {
+ 		return ttm_agp_tt_populate(ttm);
+ 	}
+@@ -787,7 +787,7 @@ static void radeon_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ 		return;
+ 
+ 	rdev = radeon_get_rdev(ttm->bdev);
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 	if (rdev->flags & RADEON_IS_AGP) {
+ 		ttm_agp_tt_unpopulate(ttm);
+ 		return;
+diff --git a/include/drm/drm_agpsupport.h b/include/drm/drm_agpsupport.h
+index 055dc058d147..b0ec72fc0f1f 100644
+--- a/include/drm/drm_agpsupport.h
++++ b/include/drm/drm_agpsupport.h
+@@ -12,9 +12,6 @@
+ struct drm_device;
+ struct drm_file;
+ 
+-#define __OS_HAS_AGP (defined(CONFIG_AGP) || (defined(CONFIG_AGP_MODULE) && \
+-					      defined(MODULE)))
+-
+ struct drm_agp_head {
+ 	struct agp_kern_info agp_info;
+ 	struct list_head memory;
+@@ -28,7 +25,7 @@ struct drm_agp_head {
+ 	unsigned long page_mask;
+ };
+ 
+-#if __OS_HAS_AGP
++#if IS_ENABLED(CONFIG_AGP)
+ 
+ void drm_free_agp(struct agp_memory * handle, int pages);
+ int drm_bind_agp(struct agp_memory * handle, unsigned int start);
+@@ -66,7 +63,7 @@ int drm_agp_bind(struct drm_device *dev, struct drm_agp_binding *request);
+ int drm_agp_bind_ioctl(struct drm_device *dev, void *data,
+ 		       struct drm_file *file_priv);
+ 
+-#else /* __OS_HAS_AGP */
++#else /* CONFIG_AGP */
+ 
+ static inline void drm_free_agp(struct agp_memory * handle, int pages)
+ {
+@@ -194,6 +191,6 @@ static inline int drm_agp_bind_ioctl(struct drm_device *dev, void *data,
+ 	return -ENODEV;
+ }
+ 
+-#endif /* __OS_HAS_AGP */
++#endif /* CONFIG_AGP */
+ 
+ #endif /* _DRM_AGPSUPPORT_H_ */
+-- 
+2.17.0
+

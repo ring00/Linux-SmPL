@@ -1,0 +1,654 @@
+From b0b0382bb4904965a9e9fca77ad87514dfda0d1c Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 2 Apr 2012 14:34:06 -0400
+Subject: [PATCH] ->encode_fh() API change
+
+pass inode + parent's inode or NULL instead of dentry + bool saying
+whether we want the parent or not.
+
+NOTE: that needs ceph fix folded in.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/export.c        | 15 ++++-----------
+ fs/ceph/export.c         |  2 ++
+ fs/exportfs/expfs.c      | 33 +++++++++++++++++++--------------
+ fs/fat/inode.c           |  9 ++++-----
+ fs/fuse/inode.c          | 17 +++++------------
+ fs/gfs2/export.c         | 17 +++++------------
+ fs/isofs/export.c        | 13 ++++---------
+ fs/nilfs2/namei.c        | 22 ++++++++++------------
+ fs/ocfs2/export.c        | 19 +++++++------------
+ fs/reiserfs/inode.c      | 30 ++++++++++++------------------
+ fs/reiserfs/reiserfs.h   |  4 ++--
+ fs/udf/namei.c           | 14 +++++---------
+ fs/xfs/xfs_export.c      | 23 +++++++++--------------
+ include/linux/exportfs.h |  4 ++--
+ mm/cleancache.c          |  6 ++----
+ mm/shmem.c               |  6 ++----
+ 16 files changed, 94 insertions(+), 140 deletions(-)
+
+diff --git a/fs/btrfs/export.c b/fs/btrfs/export.c
+index e887ee62b6d4..614f34a899c2 100644
+--- a/fs/btrfs/export.c
++++ b/fs/btrfs/export.c
+@@ -13,15 +13,14 @@
+ 					     parent_root_objectid) / 4)
+ #define BTRFS_FID_SIZE_CONNECTABLE_ROOT (sizeof(struct btrfs_fid) / 4)
+ 
+-static int btrfs_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
+-			   int connectable)
++static int btrfs_encode_fh(struct inode *inode, u32 *fh, int *max_len,
++			   struct inode *parent)
+ {
+ 	struct btrfs_fid *fid = (struct btrfs_fid *)fh;
+-	struct inode *inode = dentry->d_inode;
+ 	int len = *max_len;
+ 	int type;
+ 
+-	if (connectable && (len < BTRFS_FID_SIZE_CONNECTABLE)) {
++	if (parent && (len < BTRFS_FID_SIZE_CONNECTABLE)) {
+ 		*max_len = BTRFS_FID_SIZE_CONNECTABLE;
+ 		return 255;
+ 	} else if (len < BTRFS_FID_SIZE_NON_CONNECTABLE) {
+@@ -36,19 +35,13 @@ static int btrfs_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
+ 	fid->root_objectid = BTRFS_I(inode)->root->objectid;
+ 	fid->gen = inode->i_generation;
+ 
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		struct inode *parent;
++	if (parent) {
+ 		u64 parent_root_id;
+ 
+-		spin_lock(&dentry->d_lock);
+-
+-		parent = dentry->d_parent->d_inode;
+ 		fid->parent_objectid = BTRFS_I(parent)->location.objectid;
+ 		fid->parent_gen = parent->i_generation;
+ 		parent_root_id = BTRFS_I(parent)->root->objectid;
+ 
+-		spin_unlock(&dentry->d_lock);
+-
+ 		if (parent_root_id != fid->root_objectid) {
+ 			fid->parent_root_objectid = parent_root_id;
+ 			len = BTRFS_FID_SIZE_CONNECTABLE_ROOT;
+diff --git a/fs/ceph/export.c b/fs/ceph/export.c
+index fbb2a643ef10..4f9234c6da61 100644
+--- a/fs/ceph/export.c
++++ b/fs/ceph/export.c
+@@ -247,7 +247,9 @@ static struct dentry *ceph_fh_to_parent(struct super_block *sb,
+ }
+ 
+ const struct export_operations ceph_export_ops = {
++#ifdef CEPH_BREAKAGE_FIXED
+ 	.encode_fh = ceph_encode_fh,
++#endif
+ 	.fh_to_dentry = ceph_fh_to_dentry,
+ 	.fh_to_parent = ceph_fh_to_parent,
+ };
+diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
+index b05acb796135..b0201ca6e9c6 100644
+--- a/fs/exportfs/expfs.c
++++ b/fs/exportfs/expfs.c
+@@ -304,24 +304,23 @@ static int get_name(struct vfsmount *mnt, struct dentry *dentry,
+ 
+ /**
+  * export_encode_fh - default export_operations->encode_fh function
+- * @dentry:  the dentry to encode
++ * @inode:   the object to encode
+  * @fh:      where to store the file handle fragment
+  * @max_len: maximum length to store there
+- * @connectable: whether to store parent information
++ * @parent:  parent directory inode, if wanted
+  *
+  * This default encode_fh function assumes that the 32 inode number
+  * is suitable for locating an inode, and that the generation number
+  * can be used to check that it is still valid.  It places them in the
+  * filehandle fragment where export_decode_fh expects to find them.
+  */
+-static int export_encode_fh(struct dentry *dentry, struct fid *fid,
+-		int *max_len, int connectable)
++static int export_encode_fh(struct inode *inode, struct fid *fid,
++		int *max_len, struct inode *parent)
+ {
+-	struct inode * inode = dentry->d_inode;
+ 	int len = *max_len;
+ 	int type = FILEID_INO32_GEN;
+ 
+-	if (connectable && (len < 4)) {
++	if (parent && (len < 4)) {
+ 		*max_len = 4;
+ 		return 255;
+ 	} else if (len < 2) {
+@@ -332,14 +331,9 @@ static int export_encode_fh(struct dentry *dentry, struct fid *fid,
+ 	len = 2;
+ 	fid->i32.ino = inode->i_ino;
+ 	fid->i32.gen = inode->i_generation;
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		struct inode *parent;
+-
+-		spin_lock(&dentry->d_lock);
+-		parent = dentry->d_parent->d_inode;
++	if (parent) {
+ 		fid->i32.parent_ino = parent->i_ino;
+ 		fid->i32.parent_gen = parent->i_generation;
+-		spin_unlock(&dentry->d_lock);
+ 		len = 4;
+ 		type = FILEID_INO32_GEN_PARENT;
+ 	}
+@@ -352,11 +346,22 @@ int exportfs_encode_fh(struct dentry *dentry, struct fid *fid, int *max_len,
+ {
+ 	const struct export_operations *nop = dentry->d_sb->s_export_op;
+ 	int error;
++	struct dentry *p = NULL;
++	struct inode *inode = dentry->d_inode, *parent = NULL;
+ 
++	if (connectable && !S_ISDIR(inode->i_mode)) {
++		p = dget_parent(dentry);
++		/*
++		 * note that while p might've ceased to be our parent already,
++		 * it's still pinned by and still positive.
++		 */
++		parent = p->d_inode;
++	}
+ 	if (nop->encode_fh)
+-		error = nop->encode_fh(dentry, fid->raw, max_len, connectable);
++		error = nop->encode_fh(inode, fid->raw, max_len, parent);
+ 	else
+-		error = export_encode_fh(dentry, fid, max_len, connectable);
++		error = export_encode_fh(inode, fid, max_len, parent);
++	dput(p);
+ 
+ 	return error;
+ }
+diff --git a/fs/fat/inode.c b/fs/fat/inode.c
+index b3d290c1b513..7edfaadc0787 100644
+--- a/fs/fat/inode.c
++++ b/fs/fat/inode.c
+@@ -752,10 +752,9 @@ static struct dentry *fat_fh_to_dentry(struct super_block *sb,
+ }
+ 
+ static int
+-fat_encode_fh(struct dentry *de, __u32 *fh, int *lenp, int connectable)
++fat_encode_fh(struct inode *inode, __u32 *fh, int *lenp, struct inode *parent)
+ {
+ 	int len = *lenp;
+-	struct inode *inode =  de->d_inode;
+ 	u32 ipos_h, ipos_m, ipos_l;
+ 
+ 	if (len < 5) {
+@@ -771,9 +770,9 @@ fat_encode_fh(struct dentry *de, __u32 *fh, int *lenp, int connectable)
+ 	fh[1] = inode->i_generation;
+ 	fh[2] = ipos_h;
+ 	fh[3] = ipos_m | MSDOS_I(inode)->i_logstart;
+-	spin_lock(&de->d_lock);
+-	fh[4] = ipos_l | MSDOS_I(de->d_parent->d_inode)->i_logstart;
+-	spin_unlock(&de->d_lock);
++	fh[4] = ipos_l;
++	if (parent)
++		fh[4] |= MSDOS_I(parent)->i_logstart;
+ 	return 3;
+ }
+ 
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 56f6dcf30768..42678a33b7bb 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -627,12 +627,10 @@ static struct dentry *fuse_get_dentry(struct super_block *sb,
+ 	return ERR_PTR(err);
+ }
+ 
+-static int fuse_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
+-			   int connectable)
++static int fuse_encode_fh(struct inode *inode, u32 *fh, int *max_len,
++			   struct inode *parent)
+ {
+-	struct inode *inode = dentry->d_inode;
+-	bool encode_parent = connectable && !S_ISDIR(inode->i_mode);
+-	int len = encode_parent ? 6 : 3;
++	int len = parent ? 6 : 3;
+ 	u64 nodeid;
+ 	u32 generation;
+ 
+@@ -648,14 +646,9 @@ static int fuse_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
+ 	fh[1] = (u32)(nodeid & 0xffffffff);
+ 	fh[2] = generation;
+ 
+-	if (encode_parent) {
+-		struct inode *parent;
+-
+-		spin_lock(&dentry->d_lock);
+-		parent = dentry->d_parent->d_inode;
++	if (parent) {
+ 		nodeid = get_fuse_inode(parent)->nodeid;
+ 		generation = parent->i_generation;
+-		spin_unlock(&dentry->d_lock);
+ 
+ 		fh[3] = (u32)(nodeid >> 32);
+ 		fh[4] = (u32)(nodeid & 0xffffffff);
+@@ -663,7 +656,7 @@ static int fuse_encode_fh(struct dentry *dentry, u32 *fh, int *max_len,
+ 	}
+ 
+ 	*max_len = len;
+-	return encode_parent ? 0x82 : 0x81;
++	return parent ? 0x82 : 0x81;
+ }
+ 
+ static struct dentry *fuse_fh_to_dentry(struct super_block *sb,
+diff --git a/fs/gfs2/export.c b/fs/gfs2/export.c
+index 70ba891654f8..e8ed6d4a6181 100644
+--- a/fs/gfs2/export.c
++++ b/fs/gfs2/export.c
+@@ -28,15 +28,14 @@
+ #define GFS2_LARGE_FH_SIZE 8
+ #define GFS2_OLD_FH_SIZE 10
+ 
+-static int gfs2_encode_fh(struct dentry *dentry, __u32 *p, int *len,
+-			  int connectable)
++static int gfs2_encode_fh(struct inode *inode, __u32 *p, int *len,
++			  struct inode *parent)
+ {
+ 	__be32 *fh = (__force __be32 *)p;
+-	struct inode *inode = dentry->d_inode;
+ 	struct super_block *sb = inode->i_sb;
+ 	struct gfs2_inode *ip = GFS2_I(inode);
+ 
+-	if (connectable && (*len < GFS2_LARGE_FH_SIZE)) {
++	if (parent && (*len < GFS2_LARGE_FH_SIZE)) {
+ 		*len = GFS2_LARGE_FH_SIZE;
+ 		return 255;
+ 	} else if (*len < GFS2_SMALL_FH_SIZE) {
+@@ -50,14 +49,10 @@ static int gfs2_encode_fh(struct dentry *dentry, __u32 *p, int *len,
+ 	fh[3] = cpu_to_be32(ip->i_no_addr & 0xFFFFFFFF);
+ 	*len = GFS2_SMALL_FH_SIZE;
+ 
+-	if (!connectable || inode == sb->s_root->d_inode)
++	if (!parent || inode == sb->s_root->d_inode)
+ 		return *len;
+ 
+-	spin_lock(&dentry->d_lock);
+-	inode = dentry->d_parent->d_inode;
+-	ip = GFS2_I(inode);
+-	igrab(inode);
+-	spin_unlock(&dentry->d_lock);
++	ip = GFS2_I(parent);
+ 
+ 	fh[4] = cpu_to_be32(ip->i_no_formal_ino >> 32);
+ 	fh[5] = cpu_to_be32(ip->i_no_formal_ino & 0xFFFFFFFF);
+@@ -65,8 +60,6 @@ static int gfs2_encode_fh(struct dentry *dentry, __u32 *p, int *len,
+ 	fh[7] = cpu_to_be32(ip->i_no_addr & 0xFFFFFFFF);
+ 	*len = GFS2_LARGE_FH_SIZE;
+ 
+-	iput(inode);
+-
+ 	return *len;
+ }
+ 
+diff --git a/fs/isofs/export.c b/fs/isofs/export.c
+index dd4687ff30d0..aa4356d09eee 100644
+--- a/fs/isofs/export.c
++++ b/fs/isofs/export.c
+@@ -107,12 +107,11 @@ static struct dentry *isofs_export_get_parent(struct dentry *child)
+ }
+ 
+ static int
+-isofs_export_encode_fh(struct dentry *dentry,
++isofs_export_encode_fh(struct inode *inode,
+ 		       __u32 *fh32,
+ 		       int *max_len,
+-		       int connectable)
++		       struct inode *parent)
+ {
+-	struct inode * inode = dentry->d_inode;
+ 	struct iso_inode_info * ei = ISOFS_I(inode);
+ 	int len = *max_len;
+ 	int type = 1;
+@@ -124,7 +123,7 @@ isofs_export_encode_fh(struct dentry *dentry,
+ 	 * offset of the inode and the upper 16 bits of fh32[1] to
+ 	 * hold the offset of the parent.
+ 	 */
+-	if (connectable && (len < 5)) {
++	if (parent && (len < 5)) {
+ 		*max_len = 5;
+ 		return 255;
+ 	} else if (len < 3) {
+@@ -136,16 +135,12 @@ isofs_export_encode_fh(struct dentry *dentry,
+ 	fh32[0] = ei->i_iget5_block;
+  	fh16[2] = (__u16)ei->i_iget5_offset;  /* fh16 [sic] */
+ 	fh32[2] = inode->i_generation;
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		struct inode *parent;
++	if (parent) {
+ 		struct iso_inode_info *eparent;
+-		spin_lock(&dentry->d_lock);
+-		parent = dentry->d_parent->d_inode;
+ 		eparent = ISOFS_I(parent);
+ 		fh32[3] = eparent->i_iget5_block;
+ 		fh16[3] = (__u16)eparent->i_iget5_offset;  /* fh16 [sic] */
+ 		fh32[4] = parent->i_generation;
+-		spin_unlock(&dentry->d_lock);
+ 		len = 5;
+ 		type = 2;
+ 	}
+diff --git a/fs/nilfs2/namei.c b/fs/nilfs2/namei.c
+index 0bb2c2010b95..b72847988b78 100644
+--- a/fs/nilfs2/namei.c
++++ b/fs/nilfs2/namei.c
+@@ -508,31 +508,29 @@ static struct dentry *nilfs_fh_to_parent(struct super_block *sb, struct fid *fh,
+ 	return nilfs_get_dentry(sb, fid->cno, fid->parent_ino, fid->parent_gen);
+ }
+ 
+-static int nilfs_encode_fh(struct dentry *dentry, __u32 *fh, int *lenp,
+-			   int connectable)
++static int nilfs_encode_fh(struct inode *inode, __u32 *fh, int *lenp,
++			   struct inode *parent)
+ {
+ 	struct nilfs_fid *fid = (struct nilfs_fid *)fh;
+-	struct inode *inode = dentry->d_inode;
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 	int type;
+ 
+-	if (*lenp < NILFS_FID_SIZE_NON_CONNECTABLE ||
+-	    (connectable && *lenp < NILFS_FID_SIZE_CONNECTABLE))
++	if (parent && *lenp < NILFS_FID_SIZE_CONNECTABLE) {
++		*lenp = NILFS_FID_SIZE_CONNECTABLE;
++		return 255;
++	}
++	if (*lenp < NILFS_FID_SIZE_NON_CONNECTABLE) {
++		*lenp = NILFS_FID_SIZE_NON_CONNECTABLE;
+ 		return 255;
++	}
+ 
+ 	fid->cno = root->cno;
+ 	fid->ino = inode->i_ino;
+ 	fid->gen = inode->i_generation;
+ 
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		struct inode *parent;
+-
+-		spin_lock(&dentry->d_lock);
+-		parent = dentry->d_parent->d_inode;
++	if (parent) {
+ 		fid->parent_ino = parent->i_ino;
+ 		fid->parent_gen = parent->i_generation;
+-		spin_unlock(&dentry->d_lock);
+-
+ 		type = FILEID_NILFS_WITH_PARENT;
+ 		*lenp = NILFS_FID_SIZE_CONNECTABLE;
+ 	} else {
+diff --git a/fs/ocfs2/export.c b/fs/ocfs2/export.c
+index 745db42528d5..322216a5f0dd 100644
+--- a/fs/ocfs2/export.c
++++ b/fs/ocfs2/export.c
+@@ -177,21 +177,23 @@ static struct dentry *ocfs2_get_parent(struct dentry *child)
+ 	return parent;
+ }
+ 
+-static int ocfs2_encode_fh(struct dentry *dentry, u32 *fh_in, int *max_len,
+-			   int connectable)
++static int ocfs2_encode_fh(struct inode *inode, u32 *fh_in, int *max_len,
++			   struct inode *parent)
+ {
+-	struct inode *inode = dentry->d_inode;
+ 	int len = *max_len;
+ 	int type = 1;
+ 	u64 blkno;
+ 	u32 generation;
+ 	__le32 *fh = (__force __le32 *) fh_in;
+ 
++#ifdef TRACE_HOOKS_ARE_NOT_BRAINDEAD_IN_YOUR_OPINION
++#error "You go ahead and fix that mess, then.  Somehow"
+ 	trace_ocfs2_encode_fh_begin(dentry, dentry->d_name.len,
+ 				    dentry->d_name.name,
+ 				    fh, len, connectable);
++#endif
+ 
+-	if (connectable && (len < 6)) {
++	if (parent && (len < 6)) {
+ 		*max_len = 6;
+ 		type = 255;
+ 		goto bail;
+@@ -211,12 +213,7 @@ static int ocfs2_encode_fh(struct dentry *dentry, u32 *fh_in, int *max_len,
+ 	fh[1] = cpu_to_le32((u32)(blkno & 0xffffffff));
+ 	fh[2] = cpu_to_le32(generation);
+ 
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		struct inode *parent;
+-
+-		spin_lock(&dentry->d_lock);
+-
+-		parent = dentry->d_parent->d_inode;
++	if (parent) {
+ 		blkno = OCFS2_I(parent)->ip_blkno;
+ 		generation = parent->i_generation;
+ 
+@@ -224,8 +221,6 @@ static int ocfs2_encode_fh(struct dentry *dentry, u32 *fh_in, int *max_len,
+ 		fh[4] = cpu_to_le32((u32)(blkno & 0xffffffff));
+ 		fh[5] = cpu_to_le32(generation);
+ 
+-		spin_unlock(&dentry->d_lock);
+-
+ 		len = 6;
+ 		type = 2;
+ 
+diff --git a/fs/reiserfs/inode.c b/fs/reiserfs/inode.c
+index 59d06871a850..a6d4268fb6c1 100644
+--- a/fs/reiserfs/inode.c
++++ b/fs/reiserfs/inode.c
+@@ -1592,13 +1592,12 @@ struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
+ 		(fh_type == 6) ? fid->raw[5] : 0);
+ }
+ 
+-int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
+-		       int need_parent)
++int reiserfs_encode_fh(struct inode *inode, __u32 * data, int *lenp,
++		       struct inode *parent)
+ {
+-	struct inode *inode = dentry->d_inode;
+ 	int maxlen = *lenp;
+ 
+-	if (need_parent && (maxlen < 5)) {
++	if (parent && (maxlen < 5)) {
+ 		*lenp = 5;
+ 		return 255;
+ 	} else if (maxlen < 3) {
+@@ -1610,20 +1609,15 @@ int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
+ 	data[1] = le32_to_cpu(INODE_PKEY(inode)->k_dir_id);
+ 	data[2] = inode->i_generation;
+ 	*lenp = 3;
+-	/* no room for directory info? return what we've stored so far */
+-	if (maxlen < 5 || !need_parent)
+-		return 3;
+-
+-	spin_lock(&dentry->d_lock);
+-	inode = dentry->d_parent->d_inode;
+-	data[3] = inode->i_ino;
+-	data[4] = le32_to_cpu(INODE_PKEY(inode)->k_dir_id);
+-	*lenp = 5;
+-	if (maxlen >= 6) {
+-		data[5] = inode->i_generation;
+-		*lenp = 6;
+-	}
+-	spin_unlock(&dentry->d_lock);
++	if (parent) {
++		data[3] = parent->i_ino;
++		data[4] = le32_to_cpu(INODE_PKEY(parent)->k_dir_id);
++		*lenp = 5;
++		if (maxlen >= 6) {
++			data[5] = parent->i_generation;
++			*lenp = 6;
++		}
++	}
+ 	return *lenp;
+ }
+ 
+diff --git a/fs/reiserfs/reiserfs.h b/fs/reiserfs/reiserfs.h
+index a59d27126338..14a4f9dfb171 100644
+--- a/fs/reiserfs/reiserfs.h
++++ b/fs/reiserfs/reiserfs.h
+@@ -2611,8 +2611,8 @@ struct dentry *reiserfs_fh_to_dentry(struct super_block *sb, struct fid *fid,
+ 				     int fh_len, int fh_type);
+ struct dentry *reiserfs_fh_to_parent(struct super_block *sb, struct fid *fid,
+ 				     int fh_len, int fh_type);
+-int reiserfs_encode_fh(struct dentry *dentry, __u32 * data, int *lenp,
+-		       int connectable);
++int reiserfs_encode_fh(struct inode *inode, __u32 * data, int *lenp,
++		       struct inode *parent);
+ 
+ int reiserfs_truncate_file(struct inode *, int update_timestamps);
+ void make_cpu_key(struct cpu_key *cpu_key, struct inode *inode, loff_t offset,
+diff --git a/fs/udf/namei.c b/fs/udf/namei.c
+index a165c66e3eef..18024178ac4c 100644
+--- a/fs/udf/namei.c
++++ b/fs/udf/namei.c
+@@ -1260,16 +1260,15 @@ static struct dentry *udf_fh_to_parent(struct super_block *sb,
+ 				 fid->udf.parent_partref,
+ 				 fid->udf.parent_generation);
+ }
+-static int udf_encode_fh(struct dentry *de, __u32 *fh, int *lenp,
+-			 int connectable)
++static int udf_encode_fh(struct inode *inode, __u32 *fh, int *lenp,
++			 struct inode *parent)
+ {
+ 	int len = *lenp;
+-	struct inode *inode =  de->d_inode;
+ 	struct kernel_lb_addr location = UDF_I(inode)->i_location;
+ 	struct fid *fid = (struct fid *)fh;
+ 	int type = FILEID_UDF_WITHOUT_PARENT;
+ 
+-	if (connectable && (len < 5)) {
++	if (parent && (len < 5)) {
+ 		*lenp = 5;
+ 		return 255;
+ 	} else if (len < 3) {
+@@ -1282,14 +1281,11 @@ static int udf_encode_fh(struct dentry *de, __u32 *fh, int *lenp,
+ 	fid->udf.partref = location.partitionReferenceNum;
+ 	fid->udf.generation = inode->i_generation;
+ 
+-	if (connectable && !S_ISDIR(inode->i_mode)) {
+-		spin_lock(&de->d_lock);
+-		inode = de->d_parent->d_inode;
+-		location = UDF_I(inode)->i_location;
++	if (parent) {
++		location = UDF_I(parent)->i_location;
+ 		fid->udf.parent_block = location.logicalBlockNum;
+ 		fid->udf.parent_partref = location.partitionReferenceNum;
+ 		fid->udf.parent_generation = inode->i_generation;
+-		spin_unlock(&de->d_lock);
+ 		*lenp = 5;
+ 		type = FILEID_UDF_WITH_PARENT;
+ 	}
+diff --git a/fs/xfs/xfs_export.c b/fs/xfs/xfs_export.c
+index 2d25d19c4ea1..42679223a0fd 100644
+--- a/fs/xfs/xfs_export.c
++++ b/fs/xfs/xfs_export.c
+@@ -52,19 +52,18 @@ static int xfs_fileid_length(int fileid_type)
+ 
+ STATIC int
+ xfs_fs_encode_fh(
+-	struct dentry		*dentry,
+-	__u32			*fh,
+-	int			*max_len,
+-	int			connectable)
++	struct inode	*inode,
++	__u32		*fh,
++	int		*max_len,
++	struct inode	*parent)
+ {
+ 	struct fid		*fid = (struct fid *)fh;
+ 	struct xfs_fid64	*fid64 = (struct xfs_fid64 *)fh;
+-	struct inode		*inode = dentry->d_inode;
+ 	int			fileid_type;
+ 	int			len;
+ 
+ 	/* Directories don't need their parent encoded, they have ".." */
+-	if (S_ISDIR(inode->i_mode) || !connectable)
++	if (!parent)
+ 		fileid_type = FILEID_INO32_GEN;
+ 	else
+ 		fileid_type = FILEID_INO32_GEN_PARENT;
+@@ -96,20 +95,16 @@ xfs_fs_encode_fh(
+ 
+ 	switch (fileid_type) {
+ 	case FILEID_INO32_GEN_PARENT:
+-		spin_lock(&dentry->d_lock);
+-		fid->i32.parent_ino = XFS_I(dentry->d_parent->d_inode)->i_ino;
+-		fid->i32.parent_gen = dentry->d_parent->d_inode->i_generation;
+-		spin_unlock(&dentry->d_lock);
++		fid->i32.parent_ino = XFS_I(parent)->i_ino;
++		fid->i32.parent_gen = parent->i_generation;
+ 		/*FALLTHRU*/
+ 	case FILEID_INO32_GEN:
+ 		fid->i32.ino = XFS_I(inode)->i_ino;
+ 		fid->i32.gen = inode->i_generation;
+ 		break;
+ 	case FILEID_INO32_GEN_PARENT | XFS_FILEID_TYPE_64FLAG:
+-		spin_lock(&dentry->d_lock);
+-		fid64->parent_ino = XFS_I(dentry->d_parent->d_inode)->i_ino;
+-		fid64->parent_gen = dentry->d_parent->d_inode->i_generation;
+-		spin_unlock(&dentry->d_lock);
++		fid64->parent_ino = XFS_I(parent)->i_ino;
++		fid64->parent_gen = parent->i_generation;
+ 		/*FALLTHRU*/
+ 	case FILEID_INO32_GEN | XFS_FILEID_TYPE_64FLAG:
+ 		fid64->ino = XFS_I(inode)->i_ino;
+diff --git a/include/linux/exportfs.h b/include/linux/exportfs.h
+index 3a4cef5322dc..12291a7ee275 100644
+--- a/include/linux/exportfs.h
++++ b/include/linux/exportfs.h
+@@ -165,8 +165,8 @@ struct fid {
+  */
+ 
+ struct export_operations {
+-	int (*encode_fh)(struct dentry *de, __u32 *fh, int *max_len,
+-			int connectable);
++	int (*encode_fh)(struct inode *inode, __u32 *fh, int *max_len,
++			struct inode *parent);
+ 	struct dentry * (*fh_to_dentry)(struct super_block *sb, struct fid *fid,
+ 			int fh_len, int fh_type);
+ 	struct dentry * (*fh_to_parent)(struct super_block *sb, struct fid *fid,
+diff --git a/mm/cleancache.c b/mm/cleancache.c
+index 5646c740f613..32e6f4136fa2 100644
+--- a/mm/cleancache.c
++++ b/mm/cleancache.c
+@@ -80,7 +80,7 @@ EXPORT_SYMBOL(__cleancache_init_shared_fs);
+ static int cleancache_get_key(struct inode *inode,
+ 			      struct cleancache_filekey *key)
+ {
+-	int (*fhfn)(struct dentry *, __u32 *fh, int *, int);
++	int (*fhfn)(struct inode *, __u32 *fh, int *, struct inode *);
+ 	int len = 0, maxlen = CLEANCACHE_KEY_MAX;
+ 	struct super_block *sb = inode->i_sb;
+ 
+@@ -88,9 +88,7 @@ static int cleancache_get_key(struct inode *inode,
+ 	if (sb->s_export_op != NULL) {
+ 		fhfn = sb->s_export_op->encode_fh;
+ 		if  (fhfn) {
+-			struct dentry d;
+-			d.d_inode = inode;
+-			len = (*fhfn)(&d, &key->u.fh[0], &maxlen, 0);
++			len = (*fhfn)(inode, &key->u.fh[0], &maxlen, NULL);
+ 			if (len <= 0 || len == 255)
+ 				return -1;
+ 			if (maxlen > CLEANCACHE_KEY_MAX)
+diff --git a/mm/shmem.c b/mm/shmem.c
+index be5af34a070d..3711422c3172 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -2033,11 +2033,9 @@ static struct dentry *shmem_fh_to_dentry(struct super_block *sb,
+ 	return dentry;
+ }
+ 
+-static int shmem_encode_fh(struct dentry *dentry, __u32 *fh, int *len,
+-				int connectable)
++static int shmem_encode_fh(struct inode *inode, __u32 *fh, int *len,
++				struct inode *parent)
+ {
+-	struct inode *inode = dentry->d_inode;
+-
+ 	if (*len < 3) {
+ 		*len = 3;
+ 		return 255;
+-- 
+2.17.0
+

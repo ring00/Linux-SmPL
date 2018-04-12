@@ -1,0 +1,629 @@
+From 10556cb21a0d0b24d95f00ea6df16f599a3345b2 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 20 Jun 2011 19:28:19 -0400
+Subject: [PATCH] ->permission() sanitizing: don't pass flags to ->permission()
+
+not used by the instances anymore.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/vfs.txt |  4 ++--
+ fs/afs/internal.h                 |  2 +-
+ fs/afs/security.c                 |  4 ++--
+ fs/bad_inode.c                    |  2 +-
+ fs/btrfs/inode.c                  |  2 +-
+ fs/ceph/inode.c                   |  4 ++--
+ fs/ceph/super.h                   |  2 +-
+ fs/cifs/cifsfs.c                  |  2 +-
+ fs/coda/coda_linux.h              |  2 +-
+ fs/coda/dir.c                     |  4 ++--
+ fs/coda/pioctl.c                  |  4 ++--
+ fs/ecryptfs/inode.c               |  4 ++--
+ fs/fuse/dir.c                     | 14 +++++++-------
+ fs/gfs2/file.c                    |  2 +-
+ fs/gfs2/inode.c                   | 16 ++++++++--------
+ fs/gfs2/inode.h                   |  2 +-
+ fs/hostfs/hostfs_kern.c           |  4 ++--
+ fs/namei.c                        |  4 ++--
+ fs/nfs/dir.c                      |  4 ++--
+ fs/nilfs2/inode.c                 |  2 +-
+ fs/nilfs2/nilfs.h                 |  2 +-
+ fs/ocfs2/file.c                   |  4 ++--
+ fs/ocfs2/file.h                   |  2 +-
+ fs/proc/base.c                    |  2 +-
+ fs/proc/proc_sysctl.c             |  2 +-
+ fs/reiserfs/xattr.c               |  2 +-
+ fs/sysfs/inode.c                  |  4 ++--
+ fs/sysfs/sysfs.h                  |  2 +-
+ include/linux/fs.h                |  2 +-
+ include/linux/nfs_fs.h            |  2 +-
+ include/linux/reiserfs_xattr.h    |  2 +-
+ 31 files changed, 55 insertions(+), 55 deletions(-)
+
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 8b4c8e04d879..d56151fe77dc 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -333,7 +333,7 @@ struct inode_operations {
+         void * (*follow_link) (struct dentry *, struct nameidata *);
+         void (*put_link) (struct dentry *, struct nameidata *, void *);
+ 	void (*truncate) (struct inode *);
+-	int (*permission) (struct inode *, int, unsigned int);
++	int (*permission) (struct inode *, int);
+ 	int (*check_acl)(struct inode *, int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+ 	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
+@@ -423,7 +423,7 @@ otherwise noted.
+   permission: called by the VFS to check for access rights on a POSIX-like
+   	filesystem.
+ 
+-	May be called in rcu-walk mode (flags & IPERM_FLAG_RCU). If in rcu-walk
++	May be called in rcu-walk mode (mask & MAY_NOT_BLOCK). If in rcu-walk
+         mode, the filesystem must check the permission without blocking or
+ 	storing to the inode.
+ 
+diff --git a/fs/afs/internal.h b/fs/afs/internal.h
+index 5a9b6843bac1..f396d337b817 100644
+--- a/fs/afs/internal.h
++++ b/fs/afs/internal.h
+@@ -627,7 +627,7 @@ extern void afs_clear_permits(struct afs_vnode *);
+ extern void afs_cache_permit(struct afs_vnode *, struct key *, long);
+ extern void afs_zap_permits(struct rcu_head *);
+ extern struct key *afs_request_key(struct afs_cell *);
+-extern int afs_permission(struct inode *, int, unsigned int);
++extern int afs_permission(struct inode *, int);
+ 
+ /*
+  * server.c
+diff --git a/fs/afs/security.c b/fs/afs/security.c
+index ab6b3147f05f..8d010422dc89 100644
+--- a/fs/afs/security.c
++++ b/fs/afs/security.c
+@@ -285,14 +285,14 @@ static int afs_check_permit(struct afs_vnode *vnode, struct key *key,
+  * - AFS ACLs are attached to directories only, and a file is controlled by its
+  *   parent directory's ACL
+  */
+-int afs_permission(struct inode *inode, int mask, unsigned int flags)
++int afs_permission(struct inode *inode, int mask)
+ {
+ 	struct afs_vnode *vnode = AFS_FS_I(inode);
+ 	afs_access_t uninitialized_var(access);
+ 	struct key *key;
+ 	int ret;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	_enter("{{%x:%u},%lx},%x,",
+diff --git a/fs/bad_inode.c b/fs/bad_inode.c
+index bfcb18feb1df..f024d8aaddef 100644
+--- a/fs/bad_inode.c
++++ b/fs/bad_inode.c
+@@ -229,7 +229,7 @@ static int bad_inode_readlink(struct dentry *dentry, char __user *buffer,
+ 	return -EIO;
+ }
+ 
+-static int bad_inode_permission(struct inode *inode, int mask, unsigned int flags)
++static int bad_inode_permission(struct inode *inode, int mask)
+ {
+ 	return -EIO;
+ }
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index b61b0477a8ac..cb170ca51c64 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -7331,7 +7331,7 @@ static int btrfs_set_page_dirty(struct page *page)
+ 	return __set_page_dirty_nobuffers(page);
+ }
+ 
+-static int btrfs_permission(struct inode *inode, int mask, unsigned int flags)
++static int btrfs_permission(struct inode *inode, int mask)
+ {
+ 	struct btrfs_root *root = BTRFS_I(inode)->root;
+ 
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index 9c169741b416..dfb2831d8d85 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -1795,11 +1795,11 @@ int ceph_do_getattr(struct inode *inode, int mask)
+  * Check inode permissions.  We verify we have a valid value for
+  * the AUTH cap, then call the generic handler.
+  */
+-int ceph_permission(struct inode *inode, int mask, unsigned int flags)
++int ceph_permission(struct inode *inode, int mask)
+ {
+ 	int err;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	err = ceph_do_getattr(inode, CEPH_CAP_AUTH_SHARED);
+diff --git a/fs/ceph/super.h b/fs/ceph/super.h
+index f5cabefa98dc..56c41ef47cad 100644
+--- a/fs/ceph/super.h
++++ b/fs/ceph/super.h
+@@ -692,7 +692,7 @@ extern void ceph_queue_invalidate(struct inode *inode);
+ extern void ceph_queue_writeback(struct inode *inode);
+ 
+ extern int ceph_do_getattr(struct inode *inode, int mask);
+-extern int ceph_permission(struct inode *inode, int mask, unsigned int flags);
++extern int ceph_permission(struct inode *inode, int mask);
+ extern int ceph_setattr(struct dentry *dentry, struct iattr *attr);
+ extern int ceph_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 			struct kstat *stat);
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index b285b5bcf711..cbbb55e781d3 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -224,7 +224,7 @@ cifs_statfs(struct dentry *dentry, struct kstatfs *buf)
+ 	return 0;
+ }
+ 
+-static int cifs_permission(struct inode *inode, int mask, unsigned int flags)
++static int cifs_permission(struct inode *inode, int mask)
+ {
+ 	struct cifs_sb_info *cifs_sb;
+ 
+diff --git a/fs/coda/coda_linux.h b/fs/coda/coda_linux.h
+index 9b0c5323890b..44e17e9c21ae 100644
+--- a/fs/coda/coda_linux.h
++++ b/fs/coda/coda_linux.h
+@@ -39,7 +39,7 @@ extern const struct file_operations coda_ioctl_operations;
+ /* operations shared over more than one file */
+ int coda_open(struct inode *i, struct file *f);
+ int coda_release(struct inode *i, struct file *f);
+-int coda_permission(struct inode *inode, int mask, unsigned int flags);
++int coda_permission(struct inode *inode, int mask);
+ int coda_revalidate_inode(struct dentry *);
+ int coda_getattr(struct vfsmount *, struct dentry *, struct kstat *);
+ int coda_setattr(struct dentry *, struct iattr *);
+diff --git a/fs/coda/dir.c b/fs/coda/dir.c
+index 2b8dae4d121e..cd5532398c15 100644
+--- a/fs/coda/dir.c
++++ b/fs/coda/dir.c
+@@ -132,11 +132,11 @@ static struct dentry *coda_lookup(struct inode *dir, struct dentry *entry, struc
+ }
+ 
+ 
+-int coda_permission(struct inode *inode, int mask, unsigned int flags)
++int coda_permission(struct inode *inode, int mask)
+ {
+ 	int error;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC;
+diff --git a/fs/coda/pioctl.c b/fs/coda/pioctl.c
+index cb140ef293e4..ee0981f1375b 100644
+--- a/fs/coda/pioctl.c
++++ b/fs/coda/pioctl.c
+@@ -24,7 +24,7 @@
+ #include "coda_linux.h"
+ 
+ /* pioctl ops */
+-static int coda_ioctl_permission(struct inode *inode, int mask, unsigned int flags);
++static int coda_ioctl_permission(struct inode *inode, int mask);
+ static long coda_pioctl(struct file *filp, unsigned int cmd,
+ 			unsigned long user_data);
+ 
+@@ -41,7 +41,7 @@ const struct file_operations coda_ioctl_operations = {
+ };
+ 
+ /* the coda pioctl inode ops */
+-static int coda_ioctl_permission(struct inode *inode, int mask, unsigned int flags)
++static int coda_ioctl_permission(struct inode *inode, int mask)
+ {
+ 	return (mask & MAY_EXEC) ? -EACCES : 0;
+ }
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 7349ade17de6..bec75f8e91ac 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -942,9 +942,9 @@ int ecryptfs_truncate(struct dentry *dentry, loff_t new_length)
+ }
+ 
+ static int
+-ecryptfs_permission(struct inode *inode, int mask, unsigned int flags)
++ecryptfs_permission(struct inode *inode, int mask)
+ {
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 	return inode_permission(ecryptfs_inode_to_lower(inode), mask);
+ }
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 0df56b6c26e2..e2b14001cea5 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -971,9 +971,9 @@ static int fuse_access(struct inode *inode, int mask)
+ 	return err;
+ }
+ 
+-static int fuse_perm_getattr(struct inode *inode, int flags)
++static int fuse_perm_getattr(struct inode *inode, int mask)
+ {
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	return fuse_do_getattr(inode, NULL, NULL);
+@@ -992,7 +992,7 @@ static int fuse_perm_getattr(struct inode *inode, int flags)
+  * access request is sent.  Execute permission is still checked
+  * locally based on file mode.
+  */
+-static int fuse_permission(struct inode *inode, int mask, unsigned int flags)
++static int fuse_permission(struct inode *inode, int mask)
+ {
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	bool refreshed = false;
+@@ -1011,7 +1011,7 @@ static int fuse_permission(struct inode *inode, int mask, unsigned int flags)
+ 		if (fi->i_time < get_jiffies_64()) {
+ 			refreshed = true;
+ 
+-			err = fuse_perm_getattr(inode, flags);
++			err = fuse_perm_getattr(inode, mask);
+ 			if (err)
+ 				return err;
+ 		}
+@@ -1024,7 +1024,7 @@ static int fuse_permission(struct inode *inode, int mask, unsigned int flags)
+ 		   attributes.  This is also needed, because the root
+ 		   node will at first have no permissions */
+ 		if (err == -EACCES && !refreshed) {
+-			err = fuse_perm_getattr(inode, flags);
++			err = fuse_perm_getattr(inode, mask);
+ 			if (!err)
+ 				err = generic_permission(inode, mask);
+ 		}
+@@ -1034,7 +1034,7 @@ static int fuse_permission(struct inode *inode, int mask, unsigned int flags)
+ 		   noticed immediately, only after the attribute
+ 		   timeout has expired */
+ 	} else if (mask & (MAY_ACCESS | MAY_CHDIR)) {
+-		if (flags & IPERM_FLAG_RCU)
++		if (mask & MAY_NOT_BLOCK)
+ 			return -ECHILD;
+ 
+ 		err = fuse_access(inode, mask);
+@@ -1043,7 +1043,7 @@ static int fuse_permission(struct inode *inode, int mask, unsigned int flags)
+ 			if (refreshed)
+ 				return -EACCES;
+ 
+-			err = fuse_perm_getattr(inode, flags);
++			err = fuse_perm_getattr(inode, mask);
+ 			if (!err && !(inode->i_mode & S_IXUGO))
+ 				return -EACCES;
+ 		}
+diff --git a/fs/gfs2/file.c b/fs/gfs2/file.c
+index a9f5cbe45cd9..89c39e53760d 100644
+--- a/fs/gfs2/file.c
++++ b/fs/gfs2/file.c
+@@ -243,7 +243,7 @@ static int do_gfs2_set_flags(struct file *filp, u32 reqflags, u32 mask)
+ 	    !capable(CAP_LINUX_IMMUTABLE))
+ 		goto out;
+ 	if (!IS_IMMUTABLE(inode)) {
+-		error = gfs2_permission(inode, MAY_WRITE, 0);
++		error = gfs2_permission(inode, MAY_WRITE);
+ 		if (error)
+ 			goto out;
+ 	}
+diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
+index b776ec8f9c19..b1090d66a6fd 100644
+--- a/fs/gfs2/inode.c
++++ b/fs/gfs2/inode.c
+@@ -307,7 +307,7 @@ struct inode *gfs2_lookupi(struct inode *dir, const struct qstr *name,
+ 	}
+ 
+ 	if (!is_root) {
+-		error = gfs2_permission(dir, MAY_EXEC, 0);
++		error = gfs2_permission(dir, MAY_EXEC);
+ 		if (error)
+ 			goto out;
+ 	}
+@@ -337,7 +337,7 @@ static int create_ok(struct gfs2_inode *dip, const struct qstr *name,
+ {
+ 	int error;
+ 
+-	error = gfs2_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC, 0);
++	error = gfs2_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC);
+ 	if (error)
+ 		return error;
+ 
+@@ -857,7 +857,7 @@ static int gfs2_link(struct dentry *old_dentry, struct inode *dir,
+ 	if (inode->i_nlink == 0)
+ 		goto out_gunlock;
+ 
+-	error = gfs2_permission(dir, MAY_WRITE | MAY_EXEC, 0);
++	error = gfs2_permission(dir, MAY_WRITE | MAY_EXEC);
+ 	if (error)
+ 		goto out_gunlock;
+ 
+@@ -990,7 +990,7 @@ static int gfs2_unlink_ok(struct gfs2_inode *dip, const struct qstr *name,
+ 	if (IS_APPEND(&dip->i_inode))
+ 		return -EPERM;
+ 
+-	error = gfs2_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC, 0);
++	error = gfs2_permission(&dip->i_inode, MAY_WRITE | MAY_EXEC);
+ 	if (error)
+ 		return error;
+ 
+@@ -1336,7 +1336,7 @@ static int gfs2_rename(struct inode *odir, struct dentry *odentry,
+ 			}
+ 		}
+ 	} else {
+-		error = gfs2_permission(ndir, MAY_WRITE | MAY_EXEC, 0);
++		error = gfs2_permission(ndir, MAY_WRITE | MAY_EXEC);
+ 		if (error)
+ 			goto out_gunlock;
+ 
+@@ -1371,7 +1371,7 @@ static int gfs2_rename(struct inode *odir, struct dentry *odentry,
+ 	/* Check out the dir to be renamed */
+ 
+ 	if (dir_rename) {
+-		error = gfs2_permission(odentry->d_inode, MAY_WRITE, 0);
++		error = gfs2_permission(odentry->d_inode, MAY_WRITE);
+ 		if (error)
+ 			goto out_gunlock;
+ 	}
+@@ -1543,7 +1543,7 @@ static void gfs2_put_link(struct dentry *dentry, struct nameidata *nd, void *p)
+  * Returns: errno
+  */
+ 
+-int gfs2_permission(struct inode *inode, int mask, unsigned int flags)
++int gfs2_permission(struct inode *inode, int mask)
+ {
+ 	struct gfs2_inode *ip;
+ 	struct gfs2_holder i_gh;
+@@ -1553,7 +1553,7 @@ int gfs2_permission(struct inode *inode, int mask, unsigned int flags)
+ 
+ 	ip = GFS2_I(inode);
+ 	if (gfs2_glock_is_locked_by_me(ip->i_gl) == NULL) {
+-		if (flags & IPERM_FLAG_RCU)
++		if (mask & MAY_NOT_BLOCK)
+ 			return -ECHILD;
+ 		error = gfs2_glock_nq_init(ip->i_gl, LM_ST_SHARED, LM_FLAG_ANY, &i_gh);
+ 		if (error)
+diff --git a/fs/gfs2/inode.h b/fs/gfs2/inode.h
+index 31606076f701..8d90e0c07672 100644
+--- a/fs/gfs2/inode.h
++++ b/fs/gfs2/inode.h
+@@ -108,7 +108,7 @@ extern int gfs2_inode_refresh(struct gfs2_inode *ip);
+ 
+ extern struct inode *gfs2_lookupi(struct inode *dir, const struct qstr *name,
+ 				  int is_root);
+-extern int gfs2_permission(struct inode *inode, int mask, unsigned int flags);
++extern int gfs2_permission(struct inode *inode, int mask);
+ extern int gfs2_setattr_simple(struct gfs2_inode *ip, struct iattr *attr);
+ extern struct inode *gfs2_lookup_simple(struct inode *dip, const char *name);
+ extern void gfs2_dinode_out(const struct gfs2_inode *ip, void *buf);
+diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
+index b1bc31bde833..6e449c599b9d 100644
+--- a/fs/hostfs/hostfs_kern.c
++++ b/fs/hostfs/hostfs_kern.c
+@@ -748,12 +748,12 @@ int hostfs_rename(struct inode *from_ino, struct dentry *from,
+ 	return err;
+ }
+ 
+-int hostfs_permission(struct inode *ino, int desired, unsigned int flags)
++int hostfs_permission(struct inode *ino, int desired)
+ {
+ 	char *name;
+ 	int r = 0, w = 0, x = 0, err;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (desired & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	if (desired & MAY_READ) r = 1;
+diff --git a/fs/namei.c b/fs/namei.c
+index 684e0f30cf4c..c5c382620a86 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -287,7 +287,7 @@ int inode_permission(struct inode *inode, int mask)
+ 	}
+ 
+ 	if (inode->i_op->permission)
+-		retval = inode->i_op->permission(inode, mask, 0);
++		retval = inode->i_op->permission(inode, mask);
+ 	else
+ 		retval = generic_permission(inode, mask);
+ 
+@@ -323,7 +323,7 @@ static inline int exec_permission(struct inode *inode, unsigned int flags)
+ 		mask |= MAY_NOT_BLOCK;
+ 
+ 	if (inode->i_op->permission) {
+-		ret = inode->i_op->permission(inode, mask, flags);
++		ret = inode->i_op->permission(inode, mask);
+ 		if (likely(!ret))
+ 			goto ok;
+ 	} else {
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index 16cf84b4afb9..a86acd6d0cb4 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -2273,12 +2273,12 @@ int nfs_may_open(struct inode *inode, struct rpc_cred *cred, int openflags)
+ 	return nfs_do_access(inode, cred, nfs_open_permission_mask(openflags));
+ }
+ 
+-int nfs_permission(struct inode *inode, int mask, unsigned int flags)
++int nfs_permission(struct inode *inode, int mask)
+ {
+ 	struct rpc_cred *cred;
+ 	int res = 0;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	nfs_inc_stats(inode, NFSIOS_VFSACCESS);
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index 0df6de58bbcb..be8664c6a825 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -799,7 +799,7 @@ int nilfs_setattr(struct dentry *dentry, struct iattr *iattr)
+ 	return err;
+ }
+ 
+-int nilfs_permission(struct inode *inode, int mask, unsigned int flags)
++int nilfs_permission(struct inode *inode, int mask)
+ {
+ 	struct nilfs_root *root = NILFS_I(inode)->i_root;
+ 	if ((mask & MAY_WRITE) && root &&
+diff --git a/fs/nilfs2/nilfs.h b/fs/nilfs2/nilfs.h
+index f02b9ad43a21..6fb7511c0328 100644
+--- a/fs/nilfs2/nilfs.h
++++ b/fs/nilfs2/nilfs.h
+@@ -264,7 +264,7 @@ extern void nilfs_update_inode(struct inode *, struct buffer_head *);
+ extern void nilfs_truncate(struct inode *);
+ extern void nilfs_evict_inode(struct inode *);
+ extern int nilfs_setattr(struct dentry *, struct iattr *);
+-int nilfs_permission(struct inode *inode, int mask, unsigned int flags);
++int nilfs_permission(struct inode *inode, int mask);
+ int nilfs_load_inode_block(struct inode *inode, struct buffer_head **pbh);
+ extern int nilfs_inode_dirty(struct inode *);
+ int nilfs_set_file_dirty(struct inode *inode, unsigned nr_dirty);
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index ecb52b028964..1406c37a5722 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -1279,11 +1279,11 @@ int ocfs2_getattr(struct vfsmount *mnt,
+ 	return err;
+ }
+ 
+-int ocfs2_permission(struct inode *inode, int mask, unsigned int flags)
++int ocfs2_permission(struct inode *inode, int mask)
+ {
+ 	int ret;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	ret = ocfs2_inode_lock(inode, NULL, 0);
+diff --git a/fs/ocfs2/file.h b/fs/ocfs2/file.h
+index f5afbbef6703..97bf761c9e7c 100644
+--- a/fs/ocfs2/file.h
++++ b/fs/ocfs2/file.h
+@@ -61,7 +61,7 @@ int ocfs2_zero_extend(struct inode *inode, struct buffer_head *di_bh,
+ int ocfs2_setattr(struct dentry *dentry, struct iattr *attr);
+ int ocfs2_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 		  struct kstat *stat);
+-int ocfs2_permission(struct inode *inode, int mask, unsigned int flags);
++int ocfs2_permission(struct inode *inode, int mask);
+ 
+ int ocfs2_should_update_atime(struct inode *inode,
+ 			      struct vfsmount *vfsmnt);
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index 53a1a961b25f..be1ff932033b 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -2167,7 +2167,7 @@ static const struct file_operations proc_fd_operations = {
+  * /proc/pid/fd needs a special permission handler so that a process can still
+  * access /proc/self/fd after it has executed a setuid().
+  */
+-static int proc_fd_permission(struct inode *inode, int mask, unsigned int flags)
++static int proc_fd_permission(struct inode *inode, int mask)
+ {
+ 	int rv = generic_permission(inode, mask);
+ 	if (rv == 0)
+diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
+index 349b22f434d8..1a77dbef226f 100644
+--- a/fs/proc/proc_sysctl.c
++++ b/fs/proc/proc_sysctl.c
+@@ -294,7 +294,7 @@ static int proc_sys_readdir(struct file *filp, void *dirent, filldir_t filldir)
+ 	return ret;
+ }
+ 
+-static int proc_sys_permission(struct inode *inode, int mask,unsigned int flags)
++static int proc_sys_permission(struct inode *inode, int mask)
+ {
+ 	/*
+ 	 * sysctl entries that are not writeable,
+diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
+index f17319613a85..4ea2ab41fdee 100644
+--- a/fs/reiserfs/xattr.c
++++ b/fs/reiserfs/xattr.c
+@@ -958,7 +958,7 @@ static int xattr_mount_check(struct super_block *s)
+ 	return 0;
+ }
+ 
+-int reiserfs_permission(struct inode *inode, int mask, unsigned int flags)
++int reiserfs_permission(struct inode *inode, int mask)
+ {
+ 	/*
+ 	 * We don't do permission checks on the internal objects.
+diff --git a/fs/sysfs/inode.c b/fs/sysfs/inode.c
+index 04c81e5ba6f7..e3f091a81c72 100644
+--- a/fs/sysfs/inode.c
++++ b/fs/sysfs/inode.c
+@@ -349,11 +349,11 @@ int sysfs_hash_and_remove(struct sysfs_dirent *dir_sd, const void *ns, const cha
+ 		return -ENOENT;
+ }
+ 
+-int sysfs_permission(struct inode *inode, int mask, unsigned int flags)
++int sysfs_permission(struct inode *inode, int mask)
+ {
+ 	struct sysfs_dirent *sd;
+ 
+-	if (flags & IPERM_FLAG_RCU)
++	if (mask & MAY_NOT_BLOCK)
+ 		return -ECHILD;
+ 
+ 	sd = inode->i_private;
+diff --git a/fs/sysfs/sysfs.h b/fs/sysfs/sysfs.h
+index 2ed2404f3113..845ab3ad229d 100644
+--- a/fs/sysfs/sysfs.h
++++ b/fs/sysfs/sysfs.h
+@@ -201,7 +201,7 @@ static inline void __sysfs_put(struct sysfs_dirent *sd)
+ struct inode *sysfs_get_inode(struct super_block *sb, struct sysfs_dirent *sd);
+ void sysfs_evict_inode(struct inode *inode);
+ int sysfs_sd_setattr(struct sysfs_dirent *sd, struct iattr *iattr);
+-int sysfs_permission(struct inode *inode, int mask, unsigned int flags);
++int sysfs_permission(struct inode *inode, int mask);
+ int sysfs_setattr(struct dentry *dentry, struct iattr *iattr);
+ int sysfs_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat);
+ int sysfs_setxattr(struct dentry *dentry, const char *name, const void *value,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index a1689c13eb77..1fdefe3995fd 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1578,7 +1578,7 @@ struct file_operations {
+ struct inode_operations {
+ 	struct dentry * (*lookup) (struct inode *,struct dentry *, struct nameidata *);
+ 	void * (*follow_link) (struct dentry *, struct nameidata *);
+-	int (*permission) (struct inode *, int, unsigned int);
++	int (*permission) (struct inode *, int);
+ 	int (*check_acl)(struct inode *, int);
+ 
+ 	int (*readlink) (struct dentry *, char __user *,int);
+diff --git a/include/linux/nfs_fs.h b/include/linux/nfs_fs.h
+index 1b93b9c60e55..86014811a0fb 100644
+--- a/include/linux/nfs_fs.h
++++ b/include/linux/nfs_fs.h
+@@ -360,7 +360,7 @@ extern int nfs_refresh_inode(struct inode *, struct nfs_fattr *);
+ extern int nfs_post_op_update_inode(struct inode *inode, struct nfs_fattr *fattr);
+ extern int nfs_post_op_update_inode_force_wcc(struct inode *inode, struct nfs_fattr *fattr);
+ extern int nfs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
+-extern int nfs_permission(struct inode *, int, unsigned int);
++extern int nfs_permission(struct inode *, int);
+ extern int nfs_open(struct inode *, struct file *);
+ extern int nfs_release(struct inode *, struct file *);
+ extern int nfs_attribute_timeout(struct inode *inode);
+diff --git a/include/linux/reiserfs_xattr.h b/include/linux/reiserfs_xattr.h
+index 424ba6416e7c..57958c0e1d38 100644
+--- a/include/linux/reiserfs_xattr.h
++++ b/include/linux/reiserfs_xattr.h
+@@ -41,7 +41,7 @@ int reiserfs_xattr_init(struct super_block *sb, int mount_flags);
+ int reiserfs_lookup_privroot(struct super_block *sb);
+ int reiserfs_delete_xattrs(struct inode *inode);
+ int reiserfs_chown_xattrs(struct inode *inode, struct iattr *attrs);
+-int reiserfs_permission(struct inode *inode, int mask, unsigned int flags);
++int reiserfs_permission(struct inode *inode, int mask);
+ 
+ #ifdef CONFIG_REISERFS_FS_XATTR
+ #define has_xattr_dir(inode) (REISERFS_I(inode)->i_flags & i_has_xattr_dir)
+-- 
+2.17.0
+

@@ -1,0 +1,45 @@
+From 22801f76fa59870aed2c0b8a4eb6c8d6993347ae Mon Sep 17 00:00:00 2001
+From: Oded Gabbay <oded.gabbay@gmail.com>
+Date: Mon, 19 Jan 2015 16:20:21 +0200
+Subject: [PATCH] drm/radeon: Modify kgd_engine_type enum to match CZ
+
+This patch splits the KGD_ENGINE_SDMA to KGD_ENGINE_SDMA1 and
+KGD_ENGINE_SDMA2 to match CZ definitions.
+
+Signed-off-by: Oded Gabbay <oded.gabbay@gmail.com>
+---
+ drivers/gpu/drm/amd/include/kgd_kfd_interface.h | 3 ++-
+ drivers/gpu/drm/radeon/radeon_kfd.c             | 3 ++-
+ 2 files changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+index 9080daa116b6..888250b33ea8 100644
+--- a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
++++ b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+@@ -52,7 +52,8 @@ enum kgd_engine_type {
+ 	KGD_ENGINE_MEC1,
+ 	KGD_ENGINE_MEC2,
+ 	KGD_ENGINE_RLC,
+-	KGD_ENGINE_SDMA,
++	KGD_ENGINE_SDMA1,
++	KGD_ENGINE_SDMA2,
+ 	KGD_ENGINE_MAX
+ };
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_kfd.c b/drivers/gpu/drm/radeon/radeon_kfd.c
+index e476c331f3fa..9a4d69e59401 100644
+--- a/drivers/gpu/drm/radeon/radeon_kfd.c
++++ b/drivers/gpu/drm/radeon/radeon_kfd.c
+@@ -845,7 +845,8 @@ static uint16_t get_fw_version(struct kgd_dev *kgd, enum kgd_engine_type type)
+ 		hdr = (const union radeon_firmware_header *) rdev->rlc_fw->data;
+ 		break;
+ 
+-	case KGD_ENGINE_SDMA:
++	case KGD_ENGINE_SDMA1:
++	case KGD_ENGINE_SDMA2:
+ 		hdr = (const union radeon_firmware_header *)
+ 							rdev->sdma_fw->data;
+ 		break;
+-- 
+2.17.0
+

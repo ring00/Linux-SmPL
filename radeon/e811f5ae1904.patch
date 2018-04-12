@@ -1,0 +1,918 @@
+From e811f5ae19043b2ac2c28e147a4274038e655598 Mon Sep 17 00:00:00 2001
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date: Tue, 17 Jul 2012 17:56:50 +0200
+Subject: [PATCH] drm: Make the .mode_fixup() operations mode argument a const
+ pointer
+
+The passed mode must not be modified by the operation, make it const.
+
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/ast/ast_mode.c                  | 6 +++---
+ drivers/gpu/drm/cirrus/cirrus_mode.c            | 6 +++---
+ drivers/gpu/drm/exynos/exynos_drm_crtc.c        | 2 +-
+ drivers/gpu/drm/exynos/exynos_drm_drv.h         | 2 +-
+ drivers/gpu/drm/exynos/exynos_drm_encoder.c     | 2 +-
+ drivers/gpu/drm/exynos/exynos_drm_hdmi.c        | 2 +-
+ drivers/gpu/drm/exynos/exynos_drm_hdmi.h        | 2 +-
+ drivers/gpu/drm/exynos/exynos_hdmi.c            | 2 +-
+ drivers/gpu/drm/gma500/cdv_intel_crt.c          | 2 +-
+ drivers/gpu/drm/gma500/cdv_intel_display.c      | 2 +-
+ drivers/gpu/drm/gma500/cdv_intel_hdmi.c         | 2 +-
+ drivers/gpu/drm/gma500/cdv_intel_lvds.c         | 2 +-
+ drivers/gpu/drm/gma500/mdfld_dsi_dpi.c          | 2 +-
+ drivers/gpu/drm/gma500/mdfld_dsi_dpi.h          | 2 +-
+ drivers/gpu/drm/gma500/mdfld_intel_display.c    | 2 +-
+ drivers/gpu/drm/gma500/oaktrail_crtc.c          | 2 +-
+ drivers/gpu/drm/gma500/oaktrail_hdmi.c          | 2 +-
+ drivers/gpu/drm/gma500/psb_intel_display.c      | 2 +-
+ drivers/gpu/drm/gma500/psb_intel_drv.h          | 2 +-
+ drivers/gpu/drm/gma500/psb_intel_lvds.c         | 2 +-
+ drivers/gpu/drm/gma500/psb_intel_sdvo.c         | 6 +++---
+ drivers/gpu/drm/i2c/ch7006_drv.c                | 2 +-
+ drivers/gpu/drm/i2c/ch7006_mode.c               | 2 +-
+ drivers/gpu/drm/i2c/ch7006_priv.h               | 2 +-
+ drivers/gpu/drm/i2c/sil164_drv.c                | 2 +-
+ drivers/gpu/drm/i915/dvo.h                      | 2 +-
+ drivers/gpu/drm/i915/intel_crt.c                | 2 +-
+ drivers/gpu/drm/i915/intel_dp.c                 | 3 ++-
+ drivers/gpu/drm/i915/intel_dvo.c                | 2 +-
+ drivers/gpu/drm/i915/intel_hdmi.c               | 2 +-
+ drivers/gpu/drm/i915/intel_lvds.c               | 2 +-
+ drivers/gpu/drm/i915/intel_sdvo.c               | 6 +++---
+ drivers/gpu/drm/i915/intel_tv.c                 | 3 ++-
+ drivers/gpu/drm/mgag200/mgag200_mode.c          | 8 ++++----
+ drivers/gpu/drm/nouveau/nv04_crtc.c             | 2 +-
+ drivers/gpu/drm/nouveau/nv04_dac.c              | 2 +-
+ drivers/gpu/drm/nouveau/nv04_dfp.c              | 2 +-
+ drivers/gpu/drm/nouveau/nv17_tv.c               | 2 +-
+ drivers/gpu/drm/nouveau/nv50_crtc.c             | 2 +-
+ drivers/gpu/drm/nouveau/nv50_dac.c              | 3 ++-
+ drivers/gpu/drm/nouveau/nv50_sor.c              | 3 ++-
+ drivers/gpu/drm/nouveau/nvd0_display.c          | 8 +++++---
+ drivers/gpu/drm/radeon/atombios_crtc.c          | 2 +-
+ drivers/gpu/drm/radeon/atombios_dp.c            | 2 +-
+ drivers/gpu/drm/radeon/atombios_encoders.c      | 4 ++--
+ drivers/gpu/drm/radeon/radeon_display.c         | 4 ++--
+ drivers/gpu/drm/radeon/radeon_legacy_crtc.c     | 2 +-
+ drivers/gpu/drm/radeon/radeon_legacy_encoders.c | 2 +-
+ drivers/gpu/drm/radeon/radeon_mode.h            | 4 ++--
+ drivers/gpu/drm/udl/udl_encoder.c               | 2 +-
+ drivers/gpu/drm/udl/udl_modeset.c               | 2 +-
+ drivers/staging/omapdrm/omap_crtc.c             | 2 +-
+ drivers/staging/omapdrm/omap_encoder.c          | 2 +-
+ include/drm/drm_crtc_helper.h                   | 4 ++--
+ include/drm/drm_encoder_slave.h                 | 2 +-
+ 55 files changed, 78 insertions(+), 72 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_mode.c b/drivers/gpu/drm/ast/ast_mode.c
+index 65f9d231af14..7282c081fb53 100644
+--- a/drivers/gpu/drm/ast/ast_mode.c
++++ b/drivers/gpu/drm/ast/ast_mode.c
+@@ -460,8 +460,8 @@ static void ast_crtc_dpms(struct drm_crtc *crtc, int mode)
+ }
+ 
+ static bool ast_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
+-				  struct drm_display_mode *adjusted_mode)
++				const struct drm_display_mode *mode,
++				struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+ }
+@@ -680,7 +680,7 @@ static void ast_encoder_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ static bool ast_mode_fixup(struct drm_encoder *encoder,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/cirrus/cirrus_mode.c b/drivers/gpu/drm/cirrus/cirrus_mode.c
+index 100f6308c509..a44d31aa4e3c 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_mode.c
++++ b/drivers/gpu/drm/cirrus/cirrus_mode.c
+@@ -97,7 +97,7 @@ static void cirrus_crtc_dpms(struct drm_crtc *crtc, int mode)
+  * to just pass that straight through, so this does nothing
+  */
+ static bool cirrus_crtc_mode_fixup(struct drm_crtc *crtc,
+-				   struct drm_display_mode *mode,
++				   const struct drm_display_mode *mode,
+ 				   struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+@@ -429,8 +429,8 @@ void cirrus_crtc_fb_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green,
+ 
+ 
+ static bool cirrus_encoder_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
+-				  struct drm_display_mode *adjusted_mode)
++				      const struct drm_display_mode *mode,
++				      struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+ }
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_crtc.c b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+index 4afb625128d7..32a34c85899b 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_crtc.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_crtc.c
+@@ -237,7 +237,7 @@ static void exynos_drm_crtc_commit(struct drm_crtc *crtc)
+ 
+ static bool
+ exynos_drm_crtc_mode_fixup(struct drm_crtc *crtc,
+-			    struct drm_display_mode *mode,
++			    const struct drm_display_mode *mode,
+ 			    struct drm_display_mode *adjusted_mode)
+ {
+ 	DRM_DEBUG_KMS("%s\n", __FILE__);
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_drv.h b/drivers/gpu/drm/exynos/exynos_drm_drv.h
+index c82c90c443e7..277653d5fda0 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_drv.h
++++ b/drivers/gpu/drm/exynos/exynos_drm_drv.h
+@@ -174,7 +174,7 @@ struct exynos_drm_manager_ops {
+ 	void (*apply)(struct device *subdrv_dev);
+ 	void (*mode_fixup)(struct device *subdrv_dev,
+ 				struct drm_connector *connector,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode);
+ 	void (*mode_set)(struct device *subdrv_dev, void *mode);
+ 	void (*get_max_resol)(struct device *subdrv_dev, unsigned int *width,
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_encoder.c b/drivers/gpu/drm/exynos/exynos_drm_encoder.c
+index 23d5ad379f86..4a13a747f5d4 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_encoder.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_encoder.c
+@@ -108,7 +108,7 @@ static void exynos_drm_encoder_dpms(struct drm_encoder *encoder, int mode)
+ 
+ static bool
+ exynos_drm_encoder_mode_fixup(struct drm_encoder *encoder,
+-			       struct drm_display_mode *mode,
++			       const struct drm_display_mode *mode,
+ 			       struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+index 5d9d2c2f8f3f..8ffcdf8b9e22 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_hdmi.c
+@@ -142,7 +142,7 @@ static void drm_hdmi_disable_vblank(struct device *subdrv_dev)
+ 
+ static void drm_hdmi_mode_fixup(struct device *subdrv_dev,
+ 				struct drm_connector *connector,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_hdmi_context *ctx = to_context(subdrv_dev);
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_hdmi.h b/drivers/gpu/drm/exynos/exynos_drm_hdmi.h
+index bd8126996e52..a91c42088e42 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_hdmi.h
++++ b/drivers/gpu/drm/exynos/exynos_drm_hdmi.h
+@@ -51,7 +51,7 @@ struct exynos_hdmi_ops {
+ 
+ 	/* manager */
+ 	void (*mode_fixup)(void *ctx, struct drm_connector *connector,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode);
+ 	void (*mode_set)(void *ctx, void *mode);
+ 	void (*get_max_resol)(void *ctx, unsigned int *width,
+diff --git a/drivers/gpu/drm/exynos/exynos_hdmi.c b/drivers/gpu/drm/exynos/exynos_hdmi.c
+index a137e9e39a33..066bde3f19c4 100644
+--- a/drivers/gpu/drm/exynos/exynos_hdmi.c
++++ b/drivers/gpu/drm/exynos/exynos_hdmi.c
+@@ -1940,7 +1940,7 @@ static void hdmi_conf_apply(struct hdmi_context *hdata)
+ }
+ 
+ static void hdmi_mode_fixup(void *ctx, struct drm_connector *connector,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_display_mode *m;
+diff --git a/drivers/gpu/drm/gma500/cdv_intel_crt.c b/drivers/gpu/drm/gma500/cdv_intel_crt.c
+index 187422018601..8c175345d85c 100644
+--- a/drivers/gpu/drm/gma500/cdv_intel_crt.c
++++ b/drivers/gpu/drm/gma500/cdv_intel_crt.c
+@@ -82,7 +82,7 @@ static int cdv_intel_crt_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool cdv_intel_crt_mode_fixup(struct drm_encoder *encoder,
+-				 struct drm_display_mode *mode,
++				 const struct drm_display_mode *mode,
+ 				 struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/cdv_intel_display.c b/drivers/gpu/drm/gma500/cdv_intel_display.c
+index c3e9a0f701df..a68509ba22a8 100644
+--- a/drivers/gpu/drm/gma500/cdv_intel_display.c
++++ b/drivers/gpu/drm/gma500/cdv_intel_display.c
+@@ -913,7 +913,7 @@ static void cdv_intel_crtc_commit(struct drm_crtc *crtc)
+ }
+ 
+ static bool cdv_intel_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/cdv_intel_hdmi.c b/drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+index 88b59d4a7b7f..a86f87b9ddde 100644
+--- a/drivers/gpu/drm/gma500/cdv_intel_hdmi.c
++++ b/drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+@@ -90,7 +90,7 @@ static void cdv_hdmi_mode_set(struct drm_encoder *encoder,
+ }
+ 
+ static bool cdv_hdmi_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/cdv_intel_lvds.c b/drivers/gpu/drm/gma500/cdv_intel_lvds.c
+index ff5b58eb878c..c7f9468b74ba 100644
+--- a/drivers/gpu/drm/gma500/cdv_intel_lvds.c
++++ b/drivers/gpu/drm/gma500/cdv_intel_lvds.c
+@@ -270,7 +270,7 @@ static int cdv_intel_lvds_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool cdv_intel_lvds_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
+index b34ff097b979..d4813e03f5ee 100644
+--- a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
++++ b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
+@@ -684,7 +684,7 @@ void mdfld_dsi_dpi_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ bool mdfld_dsi_dpi_mode_fixup(struct drm_encoder *encoder,
+-				     struct drm_display_mode *mode,
++				     const struct drm_display_mode *mode,
+ 				     struct drm_display_mode *adjusted_mode)
+ {
+ 	struct mdfld_dsi_encoder *dsi_encoder = mdfld_dsi_encoder(encoder);
+diff --git a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.h b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.h
+index 6f762478b959..2b40663e1696 100644
+--- a/drivers/gpu/drm/gma500/mdfld_dsi_dpi.h
++++ b/drivers/gpu/drm/gma500/mdfld_dsi_dpi.h
+@@ -65,7 +65,7 @@ extern struct mdfld_dsi_encoder *mdfld_dsi_dpi_init(struct drm_device *dev,
+ /* MDFLD DPI helper functions */
+ extern void mdfld_dsi_dpi_dpms(struct drm_encoder *encoder, int mode);
+ extern bool mdfld_dsi_dpi_mode_fixup(struct drm_encoder *encoder,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode);
+ extern void mdfld_dsi_dpi_prepare(struct drm_encoder *encoder);
+ extern void mdfld_dsi_dpi_commit(struct drm_encoder *encoder);
+diff --git a/drivers/gpu/drm/gma500/mdfld_intel_display.c b/drivers/gpu/drm/gma500/mdfld_intel_display.c
+index 3f3cd619c79f..dec6a9aea3c6 100644
+--- a/drivers/gpu/drm/gma500/mdfld_intel_display.c
++++ b/drivers/gpu/drm/gma500/mdfld_intel_display.c
+@@ -117,7 +117,7 @@ static void psb_intel_crtc_commit(struct drm_crtc *crtc)
+ }
+ 
+ static bool psb_intel_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/oaktrail_crtc.c b/drivers/gpu/drm/gma500/oaktrail_crtc.c
+index f821c835ca90..cdafd2acc72f 100644
+--- a/drivers/gpu/drm/gma500/oaktrail_crtc.c
++++ b/drivers/gpu/drm/gma500/oaktrail_crtc.c
+@@ -487,7 +487,7 @@ static int oaktrail_crtc_mode_set(struct drm_crtc *crtc,
+ }
+ 
+ static bool oaktrail_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/oaktrail_hdmi.c b/drivers/gpu/drm/gma500/oaktrail_hdmi.c
+index c10899c953b9..2eb3dc4e9c9b 100644
+--- a/drivers/gpu/drm/gma500/oaktrail_hdmi.c
++++ b/drivers/gpu/drm/gma500/oaktrail_hdmi.c
+@@ -191,7 +191,7 @@ static int oaktrail_hdmi_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool oaktrail_hdmi_mode_fixup(struct drm_encoder *encoder,
+-				 struct drm_display_mode *mode,
++				 const struct drm_display_mode *mode,
+ 				 struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/psb_intel_display.c b/drivers/gpu/drm/gma500/psb_intel_display.c
+index 36c3c99612f6..30dc22a7156c 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_display.c
++++ b/drivers/gpu/drm/gma500/psb_intel_display.c
+@@ -543,7 +543,7 @@ void psb_intel_encoder_destroy(struct drm_encoder *encoder)
+ }
+ 
+ static bool psb_intel_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/gma500/psb_intel_drv.h b/drivers/gpu/drm/gma500/psb_intel_drv.h
+index 2515f83248cb..ebe1a28f60e1 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_drv.h
++++ b/drivers/gpu/drm/gma500/psb_intel_drv.h
+@@ -268,7 +268,7 @@ extern struct drm_framebuffer *psb_intel_framebuffer_create(struct drm_device
+ 							*mode_cmd,
+ 							void *mm_private);
+ extern bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
+-				      struct drm_display_mode *mode,
++				      const struct drm_display_mode *mode,
+ 				      struct drm_display_mode *adjusted_mode);
+ extern int psb_intel_lvds_mode_valid(struct drm_connector *connector,
+ 				     struct drm_display_mode *mode);
+diff --git a/drivers/gpu/drm/gma500/psb_intel_lvds.c b/drivers/gpu/drm/gma500/psb_intel_lvds.c
+index c83f5b5d1057..37adc9edf974 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_lvds.c
++++ b/drivers/gpu/drm/gma500/psb_intel_lvds.c
+@@ -375,7 +375,7 @@ int psb_intel_lvds_mode_valid(struct drm_connector *connector,
+ }
+ 
+ bool psb_intel_lvds_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/gma500/psb_intel_sdvo.c b/drivers/gpu/drm/gma500/psb_intel_sdvo.c
+index d39b15be7649..0466c7b985f8 100644
+--- a/drivers/gpu/drm/gma500/psb_intel_sdvo.c
++++ b/drivers/gpu/drm/gma500/psb_intel_sdvo.c
+@@ -901,7 +901,7 @@ static bool psb_intel_sdvo_set_tv_format(struct psb_intel_sdvo *psb_intel_sdvo)
+ 
+ static bool
+ psb_intel_sdvo_set_output_timings_from_mode(struct psb_intel_sdvo *psb_intel_sdvo,
+-					struct drm_display_mode *mode)
++					const struct drm_display_mode *mode)
+ {
+ 	struct psb_intel_sdvo_dtd output_dtd;
+ 
+@@ -918,7 +918,7 @@ psb_intel_sdvo_set_output_timings_from_mode(struct psb_intel_sdvo *psb_intel_sdv
+ 
+ static bool
+ psb_intel_sdvo_set_input_timings_for_mode(struct psb_intel_sdvo *psb_intel_sdvo,
+-					struct drm_display_mode *mode,
++					const struct drm_display_mode *mode,
+ 					struct drm_display_mode *adjusted_mode)
+ {
+ 	/* Reset the input timing to the screen. Assume always input 0. */
+@@ -942,7 +942,7 @@ psb_intel_sdvo_set_input_timings_for_mode(struct psb_intel_sdvo *psb_intel_sdvo,
+ }
+ 
+ static bool psb_intel_sdvo_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct psb_intel_sdvo *psb_intel_sdvo = to_psb_intel_sdvo(encoder);
+diff --git a/drivers/gpu/drm/i2c/ch7006_drv.c b/drivers/gpu/drm/i2c/ch7006_drv.c
+index d3f2e8785010..36d952280c50 100644
+--- a/drivers/gpu/drm/i2c/ch7006_drv.c
++++ b/drivers/gpu/drm/i2c/ch7006_drv.c
+@@ -88,7 +88,7 @@ static void ch7006_encoder_restore(struct drm_encoder *encoder)
+ }
+ 
+ static bool ch7006_encoder_mode_fixup(struct drm_encoder *encoder,
+-				      struct drm_display_mode *mode,
++				      const struct drm_display_mode *mode,
+ 				      struct drm_display_mode *adjusted_mode)
+ {
+ 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
+diff --git a/drivers/gpu/drm/i2c/ch7006_mode.c b/drivers/gpu/drm/i2c/ch7006_mode.c
+index c860f24a5afc..9b83574141a6 100644
+--- a/drivers/gpu/drm/i2c/ch7006_mode.c
++++ b/drivers/gpu/drm/i2c/ch7006_mode.c
+@@ -172,7 +172,7 @@ struct ch7006_mode ch7006_modes[] = {
+ };
+ 
+ struct ch7006_mode *ch7006_lookup_mode(struct drm_encoder *encoder,
+-				       struct drm_display_mode *drm_mode)
++				       const struct drm_display_mode *drm_mode)
+ {
+ 	struct ch7006_priv *priv = to_ch7006_priv(encoder);
+ 	struct ch7006_mode *mode;
+diff --git a/drivers/gpu/drm/i2c/ch7006_priv.h b/drivers/gpu/drm/i2c/ch7006_priv.h
+index 17667b7d57e7..09599f4c0c9a 100644
+--- a/drivers/gpu/drm/i2c/ch7006_priv.h
++++ b/drivers/gpu/drm/i2c/ch7006_priv.h
+@@ -111,7 +111,7 @@ extern struct ch7006_tv_norm_info ch7006_tv_norms[];
+ extern struct ch7006_mode ch7006_modes[];
+ 
+ struct ch7006_mode *ch7006_lookup_mode(struct drm_encoder *encoder,
+-				       struct drm_display_mode *drm_mode);
++				       const struct drm_display_mode *drm_mode);
+ 
+ void ch7006_setup_levels(struct drm_encoder *encoder);
+ void ch7006_setup_subcarrier(struct drm_encoder *encoder);
+diff --git a/drivers/gpu/drm/i2c/sil164_drv.c b/drivers/gpu/drm/i2c/sil164_drv.c
+index b7d45ab4ba69..30b8ae5e5c4a 100644
+--- a/drivers/gpu/drm/i2c/sil164_drv.c
++++ b/drivers/gpu/drm/i2c/sil164_drv.c
+@@ -254,7 +254,7 @@ sil164_encoder_restore(struct drm_encoder *encoder)
+ 
+ static bool
+ sil164_encoder_mode_fixup(struct drm_encoder *encoder,
+-			  struct drm_display_mode *mode,
++			  const struct drm_display_mode *mode,
+ 			  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/i915/dvo.h b/drivers/gpu/drm/i915/dvo.h
+index 8c2ad014c47f..58914691a77b 100644
+--- a/drivers/gpu/drm/i915/dvo.h
++++ b/drivers/gpu/drm/i915/dvo.h
+@@ -86,7 +86,7 @@ struct intel_dvo_dev_ops {
+ 	 * buses with clock limitations.
+ 	 */
+ 	bool (*mode_fixup)(struct intel_dvo_device *dvo,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode);
+ 
+ 	/*
+diff --git a/drivers/gpu/drm/i915/intel_crt.c b/drivers/gpu/drm/i915/intel_crt.c
+index 61d55d3141c7..48e3b76e0ab2 100644
+--- a/drivers/gpu/drm/i915/intel_crt.c
++++ b/drivers/gpu/drm/i915/intel_crt.c
+@@ -132,7 +132,7 @@ static int intel_crt_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool intel_crt_mode_fixup(struct drm_encoder *encoder,
+-				 struct drm_display_mode *mode,
++				 const struct drm_display_mode *mode,
+ 				 struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/i915/intel_dp.c b/drivers/gpu/drm/i915/intel_dp.c
+index 95817c4edbe9..2bc1505132c3 100644
+--- a/drivers/gpu/drm/i915/intel_dp.c
++++ b/drivers/gpu/drm/i915/intel_dp.c
+@@ -703,7 +703,8 @@ intel_dp_i2c_init(struct intel_dp *intel_dp,
+ }
+ 
+ static bool
+-intel_dp_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++intel_dp_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/i915/intel_dvo.c b/drivers/gpu/drm/i915/intel_dvo.c
+index 60ba50b956f2..36c542e5036b 100644
+--- a/drivers/gpu/drm/i915/intel_dvo.c
++++ b/drivers/gpu/drm/i915/intel_dvo.c
+@@ -136,7 +136,7 @@ static int intel_dvo_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool intel_dvo_mode_fixup(struct drm_encoder *encoder,
+-				 struct drm_display_mode *mode,
++				 const struct drm_display_mode *mode,
+ 				 struct drm_display_mode *adjusted_mode)
+ {
+ 	struct intel_dvo *intel_dvo = enc_to_intel_dvo(encoder);
+diff --git a/drivers/gpu/drm/i915/intel_hdmi.c b/drivers/gpu/drm/i915/intel_hdmi.c
+index 5b2c88ca6edb..98f602427eb8 100644
+--- a/drivers/gpu/drm/i915/intel_hdmi.c
++++ b/drivers/gpu/drm/i915/intel_hdmi.c
+@@ -685,7 +685,7 @@ static int intel_hdmi_mode_valid(struct drm_connector *connector,
+ }
+ 
+ static bool intel_hdmi_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/i915/intel_lvds.c b/drivers/gpu/drm/i915/intel_lvds.c
+index 9b706a540d70..49f09a8b05e9 100644
+--- a/drivers/gpu/drm/i915/intel_lvds.c
++++ b/drivers/gpu/drm/i915/intel_lvds.c
+@@ -229,7 +229,7 @@ static inline u32 panel_fitter_scaling(u32 source, u32 target)
+ }
+ 
+ static bool intel_lvds_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/i915/intel_sdvo.c b/drivers/gpu/drm/i915/intel_sdvo.c
+index 2f5106a488c5..26a6a4d0d078 100644
+--- a/drivers/gpu/drm/i915/intel_sdvo.c
++++ b/drivers/gpu/drm/i915/intel_sdvo.c
+@@ -935,7 +935,7 @@ static bool intel_sdvo_set_tv_format(struct intel_sdvo *intel_sdvo)
+ 
+ static bool
+ intel_sdvo_set_output_timings_from_mode(struct intel_sdvo *intel_sdvo,
+-					struct drm_display_mode *mode)
++					const struct drm_display_mode *mode)
+ {
+ 	struct intel_sdvo_dtd output_dtd;
+ 
+@@ -954,7 +954,7 @@ intel_sdvo_set_output_timings_from_mode(struct intel_sdvo *intel_sdvo,
+  * Unfortunately we have to set up the full output mode to do that. */
+ static bool
+ intel_sdvo_get_preferred_input_mode(struct intel_sdvo *intel_sdvo,
+-				    struct drm_display_mode *mode,
++				    const struct drm_display_mode *mode,
+ 				    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct intel_sdvo_dtd input_dtd;
+@@ -979,7 +979,7 @@ intel_sdvo_get_preferred_input_mode(struct intel_sdvo *intel_sdvo,
+ }
+ 
+ static bool intel_sdvo_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct intel_sdvo *intel_sdvo = to_intel_sdvo(encoder);
+diff --git a/drivers/gpu/drm/i915/intel_tv.c b/drivers/gpu/drm/i915/intel_tv.c
+index 3b413c9042c0..befce6c49704 100644
+--- a/drivers/gpu/drm/i915/intel_tv.c
++++ b/drivers/gpu/drm/i915/intel_tv.c
+@@ -891,7 +891,8 @@ intel_tv_mode_valid(struct drm_connector *connector,
+ 
+ 
+ static bool
+-intel_tv_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++intel_tv_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = encoder->dev;
+diff --git a/drivers/gpu/drm/mgag200/mgag200_mode.c b/drivers/gpu/drm/mgag200/mgag200_mode.c
+index d303061b251e..a4d7c500c97b 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_mode.c
++++ b/drivers/gpu/drm/mgag200/mgag200_mode.c
+@@ -78,8 +78,8 @@ static inline void mga_wait_busy(struct mga_device *mdev)
+  * to just pass that straight through, so this does nothing
+  */
+ static bool mga_crtc_mode_fixup(struct drm_crtc *crtc,
+-				   struct drm_display_mode *mode,
+-				   struct drm_display_mode *adjusted_mode)
++				const struct drm_display_mode *mode,
++				struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+ }
+@@ -1322,8 +1322,8 @@ void mga_crtc_fb_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green,
+  * to handle any encoder-specific limitations
+  */
+ static bool mga_encoder_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
+-				  struct drm_display_mode *adjusted_mode)
++				   const struct drm_display_mode *mode,
++				   struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+ }
+diff --git a/drivers/gpu/drm/nouveau/nv04_crtc.c b/drivers/gpu/drm/nouveau/nv04_crtc.c
+index 4c31c63e5528..43accc11102f 100644
+--- a/drivers/gpu/drm/nouveau/nv04_crtc.c
++++ b/drivers/gpu/drm/nouveau/nv04_crtc.c
+@@ -215,7 +215,7 @@ nv_crtc_dpms(struct drm_crtc *crtc, int mode)
+ }
+ 
+ static bool
+-nv_crtc_mode_fixup(struct drm_crtc *crtc, struct drm_display_mode *mode,
++nv_crtc_mode_fixup(struct drm_crtc *crtc, const struct drm_display_mode *mode,
+ 		   struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/nouveau/nv04_dac.c b/drivers/gpu/drm/nouveau/nv04_dac.c
+index 8300266ffaea..38f19479417c 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dac.c
++++ b/drivers/gpu/drm/nouveau/nv04_dac.c
+@@ -332,7 +332,7 @@ nv17_dac_detect(struct drm_encoder *encoder, struct drm_connector *connector)
+ }
+ 
+ static bool nv04_dac_mode_fixup(struct drm_encoder *encoder,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode)
+ {
+ 	if (nv04_dac_in_use(encoder))
+diff --git a/drivers/gpu/drm/nouveau/nv04_dfp.c b/drivers/gpu/drm/nouveau/nv04_dfp.c
+index 2258746016f8..c2675623b7cd 100644
+--- a/drivers/gpu/drm/nouveau/nv04_dfp.c
++++ b/drivers/gpu/drm/nouveau/nv04_dfp.c
+@@ -179,7 +179,7 @@ static struct drm_encoder *get_tmds_slave(struct drm_encoder *encoder)
+ }
+ 
+ static bool nv04_dfp_mode_fixup(struct drm_encoder *encoder,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+diff --git a/drivers/gpu/drm/nouveau/nv17_tv.c b/drivers/gpu/drm/nouveau/nv17_tv.c
+index 696d7e7dc2a0..67be5db021f5 100644
+--- a/drivers/gpu/drm/nouveau/nv17_tv.c
++++ b/drivers/gpu/drm/nouveau/nv17_tv.c
+@@ -338,7 +338,7 @@ static int nv17_tv_mode_valid(struct drm_encoder *encoder,
+ }
+ 
+ static bool nv17_tv_mode_fixup(struct drm_encoder *encoder,
+-			       struct drm_display_mode *mode,
++			       const struct drm_display_mode *mode,
+ 			       struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nv17_tv_norm_params *tv_norm = get_tv_norm(encoder);
+diff --git a/drivers/gpu/drm/nouveau/nv50_crtc.c b/drivers/gpu/drm/nouveau/nv50_crtc.c
+index 97a477b3d52d..22cebd5dd694 100644
+--- a/drivers/gpu/drm/nouveau/nv50_crtc.c
++++ b/drivers/gpu/drm/nouveau/nv50_crtc.c
+@@ -527,7 +527,7 @@ nv50_crtc_commit(struct drm_crtc *crtc)
+ }
+ 
+ static bool
+-nv50_crtc_mode_fixup(struct drm_crtc *crtc, struct drm_display_mode *mode,
++nv50_crtc_mode_fixup(struct drm_crtc *crtc, const struct drm_display_mode *mode,
+ 		     struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/nouveau/nv50_dac.c b/drivers/gpu/drm/nouveau/nv50_dac.c
+index eb216a446b89..2c36a6b92c53 100644
+--- a/drivers/gpu/drm/nouveau/nv50_dac.c
++++ b/drivers/gpu/drm/nouveau/nv50_dac.c
+@@ -175,7 +175,8 @@ nv50_dac_restore(struct drm_encoder *encoder)
+ }
+ 
+ static bool
+-nv50_dac_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++nv50_dac_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+diff --git a/drivers/gpu/drm/nouveau/nv50_sor.c b/drivers/gpu/drm/nouveau/nv50_sor.c
+index a9514eaa74c1..93240bde891b 100644
+--- a/drivers/gpu/drm/nouveau/nv50_sor.c
++++ b/drivers/gpu/drm/nouveau/nv50_sor.c
+@@ -327,7 +327,8 @@ nv50_sor_restore(struct drm_encoder *encoder)
+ }
+ 
+ static bool
+-nv50_sor_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++nv50_sor_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+diff --git a/drivers/gpu/drm/nouveau/nvd0_display.c b/drivers/gpu/drm/nouveau/nvd0_display.c
+index c486d3ce3c2c..d0d60e1e7f95 100644
+--- a/drivers/gpu/drm/nouveau/nvd0_display.c
++++ b/drivers/gpu/drm/nouveau/nvd0_display.c
+@@ -607,7 +607,7 @@ nvd0_crtc_commit(struct drm_crtc *crtc)
+ }
+ 
+ static bool
+-nvd0_crtc_mode_fixup(struct drm_crtc *crtc, struct drm_display_mode *mode,
++nvd0_crtc_mode_fixup(struct drm_crtc *crtc, const struct drm_display_mode *mode,
+ 		     struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+@@ -938,7 +938,8 @@ nvd0_dac_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ static bool
+-nvd0_dac_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++nvd0_dac_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+@@ -1377,7 +1378,8 @@ nvd0_sor_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ static bool
+-nvd0_sor_mode_fixup(struct drm_encoder *encoder, struct drm_display_mode *mode,
++nvd0_sor_mode_fixup(struct drm_encoder *encoder,
++		    const struct drm_display_mode *mode,
+ 		    struct drm_display_mode *adjusted_mode)
+ {
+ 	struct nouveau_encoder *nv_encoder = nouveau_encoder(encoder);
+diff --git a/drivers/gpu/drm/radeon/atombios_crtc.c b/drivers/gpu/drm/radeon/atombios_crtc.c
+index a4664e015a6f..9e6f76fec527 100644
+--- a/drivers/gpu/drm/radeon/atombios_crtc.c
++++ b/drivers/gpu/drm/radeon/atombios_crtc.c
+@@ -1624,7 +1624,7 @@ int atombios_crtc_mode_set(struct drm_crtc *crtc,
+ }
+ 
+ static bool atombios_crtc_mode_fixup(struct drm_crtc *crtc,
+-				     struct drm_display_mode *mode,
++				     const struct drm_display_mode *mode,
+ 				     struct drm_display_mode *adjusted_mode)
+ {
+ 	if (!radeon_crtc_scaling_mode_fixup(crtc, mode, adjusted_mode))
+diff --git a/drivers/gpu/drm/radeon/atombios_dp.c b/drivers/gpu/drm/radeon/atombios_dp.c
+index 5131b3b0f7d2..0355536f61e4 100644
+--- a/drivers/gpu/drm/radeon/atombios_dp.c
++++ b/drivers/gpu/drm/radeon/atombios_dp.c
+@@ -608,7 +608,7 @@ int radeon_dp_get_panel_mode(struct drm_encoder *encoder,
+ }
+ 
+ void radeon_dp_set_link_config(struct drm_connector *connector,
+-			       struct drm_display_mode *mode)
++			       const struct drm_display_mode *mode)
+ {
+ 	struct radeon_connector *radeon_connector = to_radeon_connector(connector);
+ 	struct radeon_connector_atom_dig *dig_connector;
+diff --git a/drivers/gpu/drm/radeon/atombios_encoders.c b/drivers/gpu/drm/radeon/atombios_encoders.c
+index 486ccdf4aacd..7dfc62fae6a6 100644
+--- a/drivers/gpu/drm/radeon/atombios_encoders.c
++++ b/drivers/gpu/drm/radeon/atombios_encoders.c
+@@ -58,7 +58,7 @@ static inline bool radeon_encoder_is_digital(struct drm_encoder *encoder)
+ }
+ 
+ static bool radeon_atom_mode_fixup(struct drm_encoder *encoder,
+-				   struct drm_display_mode *mode,
++				   const struct drm_display_mode *mode,
+ 				   struct drm_display_mode *adjusted_mode)
+ {
+ 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
+@@ -2234,7 +2234,7 @@ radeon_atom_ext_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ static bool radeon_atom_ext_mode_fixup(struct drm_encoder *encoder,
+-				       struct drm_display_mode *mode,
++				       const struct drm_display_mode *mode,
+ 				       struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 64a008d14493..7ddef8f30d0e 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -1401,7 +1401,7 @@ void radeon_modeset_fini(struct radeon_device *rdev)
+ 	radeon_i2c_fini(rdev);
+ }
+ 
+-static bool is_hdtv_mode(struct drm_display_mode *mode)
++static bool is_hdtv_mode(const struct drm_display_mode *mode)
+ {
+ 	/* try and guess if this is a tv or a monitor */
+ 	if ((mode->vdisplay == 480 && mode->hdisplay == 720) || /* 480p */
+@@ -1414,7 +1414,7 @@ static bool is_hdtv_mode(struct drm_display_mode *mode)
+ }
+ 
+ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+-				struct drm_display_mode *mode,
++				const struct drm_display_mode *mode,
+ 				struct drm_display_mode *adjusted_mode)
+ {
+ 	struct drm_device *dev = crtc->dev;
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_crtc.c b/drivers/gpu/drm/radeon/radeon_legacy_crtc.c
+index 210317c7045e..d5fd615897ec 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_crtc.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_crtc.c
+@@ -990,7 +990,7 @@ static void radeon_set_pll(struct drm_crtc *crtc, struct drm_display_mode *mode)
+ }
+ 
+ static bool radeon_crtc_mode_fixup(struct drm_crtc *crtc,
+-				   struct drm_display_mode *mode,
++				   const struct drm_display_mode *mode,
+ 				   struct drm_display_mode *adjusted_mode)
+ {
+ 	if (!radeon_crtc_scaling_mode_fixup(crtc, mode, adjusted_mode))
+diff --git a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+index a0c82229e8f0..670e9910f869 100644
+--- a/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
++++ b/drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+@@ -244,7 +244,7 @@ static void radeon_legacy_lvds_mode_set(struct drm_encoder *encoder,
+ }
+ 
+ static bool radeon_legacy_mode_fixup(struct drm_encoder *encoder,
+-				     struct drm_display_mode *mode,
++				     const struct drm_display_mode *mode,
+ 				     struct drm_display_mode *adjusted_mode)
+ {
+ 	struct radeon_encoder *radeon_encoder = to_radeon_encoder(encoder);
+diff --git a/drivers/gpu/drm/radeon/radeon_mode.h b/drivers/gpu/drm/radeon/radeon_mode.h
+index 5b10ffd7bb2f..f380d59c5763 100644
+--- a/drivers/gpu/drm/radeon/radeon_mode.h
++++ b/drivers/gpu/drm/radeon/radeon_mode.h
+@@ -488,7 +488,7 @@ extern void radeon_connector_hotplug(struct drm_connector *connector);
+ extern int radeon_dp_mode_valid_helper(struct drm_connector *connector,
+ 				       struct drm_display_mode *mode);
+ extern void radeon_dp_set_link_config(struct drm_connector *connector,
+-				      struct drm_display_mode *mode);
++				      const struct drm_display_mode *mode);
+ extern void radeon_dp_link_train(struct drm_encoder *encoder,
+ 				 struct drm_connector *connector);
+ extern bool radeon_dp_needs_link_train(struct radeon_connector *radeon_connector);
+@@ -678,7 +678,7 @@ void radeon_enc_destroy(struct drm_encoder *encoder);
+ void radeon_copy_fb(struct drm_device *dev, struct drm_gem_object *dst_obj);
+ void radeon_combios_asic_init(struct drm_device *dev);
+ bool radeon_crtc_scaling_mode_fixup(struct drm_crtc *crtc,
+-					struct drm_display_mode *mode,
++					const struct drm_display_mode *mode,
+ 					struct drm_display_mode *adjusted_mode);
+ void radeon_panel_mode_fixup(struct drm_encoder *encoder,
+ 			     struct drm_display_mode *adjusted_mode);
+diff --git a/drivers/gpu/drm/udl/udl_encoder.c b/drivers/gpu/drm/udl/udl_encoder.c
+index 56e75f0f1df5..0731ab2e6c06 100644
+--- a/drivers/gpu/drm/udl/udl_encoder.c
++++ b/drivers/gpu/drm/udl/udl_encoder.c
+@@ -27,7 +27,7 @@ static void udl_encoder_disable(struct drm_encoder *encoder)
+ }
+ 
+ static bool udl_mode_fixup(struct drm_encoder *encoder,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/gpu/drm/udl/udl_modeset.c b/drivers/gpu/drm/udl/udl_modeset.c
+index 0d7816789da1..ac2d717714ce 100644
+--- a/drivers/gpu/drm/udl/udl_modeset.c
++++ b/drivers/gpu/drm/udl/udl_modeset.c
+@@ -251,7 +251,7 @@ static void udl_crtc_dpms(struct drm_crtc *crtc, int mode)
+ }
+ 
+ static bool udl_crtc_mode_fixup(struct drm_crtc *crtc,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ 
+ {
+diff --git a/drivers/staging/omapdrm/omap_crtc.c b/drivers/staging/omapdrm/omap_crtc.c
+index 8b864afb40b6..62e0022561bc 100644
+--- a/drivers/staging/omapdrm/omap_crtc.c
++++ b/drivers/staging/omapdrm/omap_crtc.c
+@@ -60,7 +60,7 @@ static void omap_crtc_dpms(struct drm_crtc *crtc, int mode)
+ }
+ 
+ static bool omap_crtc_mode_fixup(struct drm_crtc *crtc,
+-		struct drm_display_mode *mode,
++		const struct drm_display_mode *mode,
+ 		struct drm_display_mode *adjusted_mode)
+ {
+ 	return true;
+diff --git a/drivers/staging/omapdrm/omap_encoder.c b/drivers/staging/omapdrm/omap_encoder.c
+index 06c52cb62d2f..31c735d39217 100644
+--- a/drivers/staging/omapdrm/omap_encoder.c
++++ b/drivers/staging/omapdrm/omap_encoder.c
+@@ -48,7 +48,7 @@ static void omap_encoder_dpms(struct drm_encoder *encoder, int mode)
+ }
+ 
+ static bool omap_encoder_mode_fixup(struct drm_encoder *encoder,
+-				  struct drm_display_mode *mode,
++				  const struct drm_display_mode *mode,
+ 				  struct drm_display_mode *adjusted_mode)
+ {
+ 	struct omap_encoder *omap_encoder = to_omap_encoder(encoder);
+diff --git a/include/drm/drm_crtc_helper.h b/include/drm/drm_crtc_helper.h
+index 7988e55c98d0..e01cc80c9c30 100644
+--- a/include/drm/drm_crtc_helper.h
++++ b/include/drm/drm_crtc_helper.h
+@@ -62,7 +62,7 @@ struct drm_crtc_helper_funcs {
+ 
+ 	/* Provider can fixup or change mode timings before modeset occurs */
+ 	bool (*mode_fixup)(struct drm_crtc *crtc,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode);
+ 	/* Actually set the mode */
+ 	int (*mode_set)(struct drm_crtc *crtc, struct drm_display_mode *mode,
+@@ -96,7 +96,7 @@ struct drm_encoder_helper_funcs {
+ 	void (*restore)(struct drm_encoder *encoder);
+ 
+ 	bool (*mode_fixup)(struct drm_encoder *encoder,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode);
+ 	void (*prepare)(struct drm_encoder *encoder);
+ 	void (*commit)(struct drm_encoder *encoder);
+diff --git a/include/drm/drm_encoder_slave.h b/include/drm/drm_encoder_slave.h
+index 2f65633d28a7..7dc385233805 100644
+--- a/include/drm/drm_encoder_slave.h
++++ b/include/drm/drm_encoder_slave.h
+@@ -54,7 +54,7 @@ struct drm_encoder_slave_funcs {
+ 	void (*save)(struct drm_encoder *encoder);
+ 	void (*restore)(struct drm_encoder *encoder);
+ 	bool (*mode_fixup)(struct drm_encoder *encoder,
+-			   struct drm_display_mode *mode,
++			   const struct drm_display_mode *mode,
+ 			   struct drm_display_mode *adjusted_mode);
+ 	int (*mode_valid)(struct drm_encoder *encoder,
+ 			  struct drm_display_mode *mode);
+-- 
+2.17.0
+

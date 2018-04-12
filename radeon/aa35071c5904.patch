@@ -1,0 +1,167 @@
+From aa35071c590461f95d0179cc8e730d49d610f773 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Date: Wed, 3 Dec 2014 15:46:48 +0100
+Subject: [PATCH] drm/ttm: optionally move duplicates to a separate list
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch adds an optional list_head parameter to ttm_eu_reserve_buffers.
+If specified duplicates in the execbuf list are no longer reported as errors,
+but moved to this list instead.
+
+Reviewed-by: Thomas Hellstrom <thellstrom@vmware.com>
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/qxl/qxl_release.c        |  3 ++-
+ drivers/gpu/drm/radeon/radeon_gem.c      |  2 +-
+ drivers/gpu/drm/radeon/radeon_object.c   |  2 +-
+ drivers/gpu/drm/ttm/ttm_execbuf_util.c   | 10 +++++++++-
+ drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c  |  6 ++++--
+ drivers/gpu/drm/vmwgfx/vmwgfx_resource.c |  2 +-
+ include/drm/ttm/ttm_execbuf_util.h       |  9 ++++++++-
+ 7 files changed, 26 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/qxl/qxl_release.c b/drivers/gpu/drm/qxl/qxl_release.c
+index 446e71ca36cb..d9b25684ac98 100644
+--- a/drivers/gpu/drm/qxl/qxl_release.c
++++ b/drivers/gpu/drm/qxl/qxl_release.c
+@@ -264,7 +264,8 @@ int qxl_release_reserve_list(struct qxl_release *release, bool no_intr)
+ 	if (list_is_singular(&release->bos))
+ 		return 0;
+ 
+-	ret = ttm_eu_reserve_buffers(&release->ticket, &release->bos, !no_intr);
++	ret = ttm_eu_reserve_buffers(&release->ticket, &release->bos,
++				     !no_intr, NULL);
+ 	if (ret)
+ 		return ret;
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_gem.c b/drivers/gpu/drm/radeon/radeon_gem.c
+index 6162bd29a598..fe48f229043e 100644
+--- a/drivers/gpu/drm/radeon/radeon_gem.c
++++ b/drivers/gpu/drm/radeon/radeon_gem.c
+@@ -564,7 +564,7 @@ static void radeon_gem_va_update_vm(struct radeon_device *rdev,
+ 	if (!vm_bos)
+ 		return;
+ 
+-	r = ttm_eu_reserve_buffers(&ticket, &list, true);
++	r = ttm_eu_reserve_buffers(&ticket, &list, true, NULL);
+ 	if (r)
+ 		goto error_free;
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index 4ab07473bb28..a4a3ac824b45 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -508,7 +508,7 @@ int radeon_bo_list_validate(struct radeon_device *rdev,
+ 	u64 bytes_moved = 0, initial_bytes_moved;
+ 	u64 bytes_moved_threshold = radeon_bo_get_threshold_for_moves(rdev);
+ 
+-	r = ttm_eu_reserve_buffers(ticket, head, true);
++	r = ttm_eu_reserve_buffers(ticket, head, true, NULL);
+ 	if (unlikely(r != 0)) {
+ 		return r;
+ 	}
+diff --git a/drivers/gpu/drm/ttm/ttm_execbuf_util.c b/drivers/gpu/drm/ttm/ttm_execbuf_util.c
+index 8ce508e76208..3820ae97a030 100644
+--- a/drivers/gpu/drm/ttm/ttm_execbuf_util.c
++++ b/drivers/gpu/drm/ttm/ttm_execbuf_util.c
+@@ -93,7 +93,8 @@ EXPORT_SYMBOL(ttm_eu_backoff_reservation);
+  */
+ 
+ int ttm_eu_reserve_buffers(struct ww_acquire_ctx *ticket,
+-			   struct list_head *list, bool intr)
++			   struct list_head *list, bool intr,
++			   struct list_head *dups)
+ {
+ 	struct ttm_bo_global *glob;
+ 	struct ttm_validate_buffer *entry;
+@@ -117,6 +118,13 @@ int ttm_eu_reserve_buffers(struct ww_acquire_ctx *ticket,
+ 			__ttm_bo_unreserve(bo);
+ 
+ 			ret = -EBUSY;
++
++		} else if (ret == -EALREADY && dups) {
++			struct ttm_validate_buffer *safe = entry;
++			entry = list_prev_entry(entry, head);
++			list_del(&safe->head);
++			list_add(&safe->head, dups);
++			continue;
+ 		}
+ 
+ 		if (!ret) {
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+index 596cd6dafd33..33176d05db35 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+@@ -2487,7 +2487,8 @@ int vmw_execbuf_process(struct drm_file *file_priv,
+ 	if (unlikely(ret != 0))
+ 		goto out_err_nores;
+ 
+-	ret = ttm_eu_reserve_buffers(&ticket, &sw_context->validate_nodes, true);
++	ret = ttm_eu_reserve_buffers(&ticket, &sw_context->validate_nodes,
++				     true, NULL);
+ 	if (unlikely(ret != 0))
+ 		goto out_err;
+ 
+@@ -2677,7 +2678,8 @@ void __vmw_execbuf_release_pinned_bo(struct vmw_private *dev_priv,
+ 	query_val.shared = false;
+ 	list_add_tail(&query_val.head, &validate_list);
+ 
+-	ret = ttm_eu_reserve_buffers(&ticket, &validate_list, false);
++	ret = ttm_eu_reserve_buffers(&ticket, &validate_list,
++				     false, NULL);
+ 	if (unlikely(ret != 0)) {
+ 		vmw_execbuf_unpin_panic(dev_priv);
+ 		goto out_no_reserve;
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c b/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+index 026de7cea0f6..210ef15b1d09 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+@@ -1222,7 +1222,7 @@ vmw_resource_check_buffer(struct vmw_resource *res,
+ 	val_buf->bo = ttm_bo_reference(&res->backup->base);
+ 	val_buf->shared = false;
+ 	list_add_tail(&val_buf->head, &val_list);
+-	ret = ttm_eu_reserve_buffers(NULL, &val_list, interruptible);
++	ret = ttm_eu_reserve_buffers(NULL, &val_list, interruptible, NULL);
+ 	if (unlikely(ret != 0))
+ 		goto out_no_reserve;
+ 
+diff --git a/include/drm/ttm/ttm_execbuf_util.h b/include/drm/ttm/ttm_execbuf_util.h
+index 460441714413..b620c317c772 100644
+--- a/include/drm/ttm/ttm_execbuf_util.h
++++ b/include/drm/ttm/ttm_execbuf_util.h
+@@ -68,6 +68,7 @@ extern void ttm_eu_backoff_reservation(struct ww_acquire_ctx *ticket,
+  *           non-blocking reserves should be tried.
+  * @list:    thread private list of ttm_validate_buffer structs.
+  * @intr:    should the wait be interruptible
++ * @dups:    [out] optional list of duplicates.
+  *
+  * Tries to reserve bos pointed to by the list entries for validation.
+  * If the function returns 0, all buffers are marked as "unfenced",
+@@ -83,6 +84,11 @@ extern void ttm_eu_backoff_reservation(struct ww_acquire_ctx *ticket,
+  * calling process receives a signal while waiting. In that case, no
+  * buffers on the list will be reserved upon return.
+  *
++ * If dups is non NULL all buffers already reserved by the current thread
++ * (e.g. duplicates) are added to this list, otherwise -EALREADY is returned
++ * on the first already reserved buffer and all buffers from the list are
++ * unreserved again.
++ *
+  * Buffers reserved by this function should be unreserved by
+  * a call to either ttm_eu_backoff_reservation() or
+  * ttm_eu_fence_buffer_objects() when command submission is complete or
+@@ -90,7 +96,8 @@ extern void ttm_eu_backoff_reservation(struct ww_acquire_ctx *ticket,
+  */
+ 
+ extern int ttm_eu_reserve_buffers(struct ww_acquire_ctx *ticket,
+-				  struct list_head *list, bool intr);
++				  struct list_head *list, bool intr,
++				  struct list_head *dups);
+ 
+ /**
+  * function ttm_eu_fence_buffer_objects.
+-- 
+2.17.0
+

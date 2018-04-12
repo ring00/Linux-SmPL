@@ -1,0 +1,69 @@
+From dcb20d1a8e7d9602e52a9b673ae4d7f746d2cbb2 Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Mon, 16 May 2011 14:30:24 +0200
+Subject: [PATCH] drbd: Refuse to change network options online when...
+
+* the peer does not speak protocol_version 100 and the
+  user wants to change one of:
+    - wire_protocol
+    - two_primaries
+    - integrity_alg
+
+* the user wants to remove the allow_two_primaries flag
+  when there are two primaries
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_nl.c | 22 ++++++++++++++++++----
+ include/linux/drbd.h         |  1 +
+ 2 files changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 74c27f1507f3..133a6724657d 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -1722,10 +1722,24 @@ _check_net_options(struct drbd_tconn *tconn, struct net_conf *old_conf, struct n
+ 	struct drbd_conf *mdev;
+ 	int i;
+ 
+-	if (old_conf && tconn->agreed_pro_version < 100 &&
+-	    tconn->cstate == C_WF_REPORT_PARAMS &&
+-	    new_conf->wire_protocol != old_conf->wire_protocol)
+-		return ERR_NEED_APV_100;
++	if (old_conf && tconn->cstate == C_WF_REPORT_PARAMS && tconn->agreed_pro_version < 100) {
++		if (new_conf->wire_protocol != old_conf->wire_protocol)
++			return ERR_NEED_APV_100;
++
++		if (new_conf->two_primaries != old_conf->two_primaries)
++			return ERR_NEED_APV_100;
++
++		if (!new_conf->integrity_alg != !old_conf->integrity_alg)
++			return ERR_NEED_APV_100;
++
++		if (strcmp(new_conf->integrity_alg, old_conf->integrity_alg))
++			return ERR_NEED_APV_100;
++	}
++
++	if (!new_conf->two_primaries &&
++	    conn_highest_role(tconn) == R_PRIMARY &&
++	    conn_highest_peer(tconn) == R_PRIMARY)
++		return ERR_NEED_ALLOW_TWO_PRI;
+ 
+ 	if (new_conf->two_primaries &&
+ 	    (new_conf->wire_protocol != DRBD_PROT_C))
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 05063e6db81f..679e81123229 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -161,6 +161,7 @@ enum drbd_ret_code {
+ 	ERR_MINOR_EXISTS	= 161,
+ 	ERR_INVALID_REQUEST	= 162,
+ 	ERR_NEED_APV_100	= 163,
++	ERR_NEED_ALLOW_TWO_PRI  = 164,
+ 
+ 	/* insert new ones above this line */
+ 	AFTER_LAST_ERR_CODE
+-- 
+2.17.0
+

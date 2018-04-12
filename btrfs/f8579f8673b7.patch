@@ -1,0 +1,189 @@
+From f8579f8673b7ecdb7a81d5d5bb1d981093d9aa94 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Mon, 3 Mar 2014 22:03:20 -0500
+Subject: [PATCH] generic_file_direct_write(): switch to iov_iter
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/file.c    |  6 ++----
+ fs/fuse/file.c     |  6 ++----
+ fs/ocfs2/file.c    |  6 +++---
+ fs/xfs/xfs_file.c  |  5 +++--
+ include/linux/fs.h |  4 ++--
+ mm/filemap.c       | 15 +++++++--------
+ 6 files changed, 19 insertions(+), 23 deletions(-)
+
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index ae6af072b635..9fe20c2052af 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1669,15 +1669,13 @@ static ssize_t __btrfs_direct_write(struct kiocb *iocb,
+ 	loff_t endbyte;
+ 	int err;
+ 
+-	written = generic_file_direct_write(iocb, iov, &nr_segs, pos,
+-					    count, ocount);
++	iov_iter_init(&i, iov, nr_segs, count, 0);
++	written = generic_file_direct_write(iocb, &i, pos, count, ocount);
+ 
+ 	if (written < 0 || written == count)
+ 		return written;
+ 
+ 	pos += written;
+-	count -= written;
+-	iov_iter_init(&i, iov, nr_segs, count, written);
+ 	written_buffered = __btrfs_buffered_write(file, &i, pos);
+ 	if (written_buffered < 0) {
+ 		err = written_buffered;
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 96d513e01a5d..126deb5d0a9c 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1235,15 +1235,13 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 		goto out;
+ 
+ 	if (file->f_flags & O_DIRECT) {
+-		written = generic_file_direct_write(iocb, iov, &nr_segs, pos, 
+-						    count, ocount);
++		iov_iter_init(&i, iov, nr_segs, count, 0);
++		written = generic_file_direct_write(iocb, &i, pos, count, ocount);
+ 		if (written < 0 || written == count)
+ 			goto out;
+ 
+ 		pos += written;
+-		count -= written;
+ 
+-		iov_iter_init(&i, iov, nr_segs, count, written);
+ 		written_buffered = fuse_perform_write(file, mapping, &i, pos);
+ 		if (written_buffered < 0) {
+ 			err = written_buffered;
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 8970dcf74de5..d6d78c2aa96e 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2251,6 +2251,7 @@ static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
+ 	int full_coherency = !(osb->s_mount_opt &
+ 			       OCFS2_MOUNT_COHERENCY_BUFFERED);
+ 	int unaligned_dio = 0;
++	struct iov_iter from;
+ 
+ 	trace_ocfs2_file_aio_write(inode, file, file->f_path.dentry,
+ 		(unsigned long long)OCFS2_I(inode)->ip_blkno,
+@@ -2365,16 +2366,15 @@ static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
+ 	if (ret)
+ 		goto out_dio;
+ 
++	iov_iter_init(&from, iov, nr_segs, count, 0);
+ 	if (direct_io) {
+-		written = generic_file_direct_write(iocb, iov, &nr_segs, *ppos,
++		written = generic_file_direct_write(iocb, &from, *ppos,
+ 						    count, ocount);
+ 		if (written < 0) {
+ 			ret = written;
+ 			goto out_dio;
+ 		}
+ 	} else {
+-		struct iov_iter from;
+-		iov_iter_init(&from, iov, nr_segs, count, 0);
+ 		current->backing_dev_info = file->f_mapping->backing_dev_info;
+ 		written = generic_perform_write(file, &from, *ppos);
+ 		if (likely(written >= 0))
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index 951a2321ee01..8617497867c7 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -641,6 +641,7 @@ xfs_file_dio_aio_write(
+ 	int			iolock;
+ 	struct xfs_buftarg	*target = XFS_IS_REALTIME_INODE(ip) ?
+ 					mp->m_rtdev_targp : mp->m_ddev_targp;
++	struct iov_iter		from;
+ 
+ 	/* DIO must be aligned to device logical sector size */
+ 	if ((pos | count) & target->bt_logical_sectormask)
+@@ -698,8 +699,8 @@ xfs_file_dio_aio_write(
+ 	}
+ 
+ 	trace_xfs_file_direct_write(ip, count, iocb->ki_pos, 0);
+-	ret = generic_file_direct_write(iocb, iovp,
+-			&nr_segs, pos, count, ocount);
++	iov_iter_init(&from, iovp, nr_segs, count, 0);
++	ret = generic_file_direct_write(iocb, &from, pos, count, ocount);
+ 
+ out:
+ 	xfs_rw_iunlock(ip, iolock);
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 878031227c57..262f96e579b8 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2407,8 +2407,8 @@ int generic_write_checks(struct file *file, loff_t *pos, size_t *count, int isbl
+ extern ssize_t generic_file_aio_read(struct kiocb *, const struct iovec *, unsigned long, loff_t);
+ extern ssize_t __generic_file_aio_write(struct kiocb *, const struct iovec *, unsigned long);
+ extern ssize_t generic_file_aio_write(struct kiocb *, const struct iovec *, unsigned long, loff_t);
+-extern ssize_t generic_file_direct_write(struct kiocb *, const struct iovec *,
+-		unsigned long *, loff_t, size_t, size_t);
++extern ssize_t generic_file_direct_write(struct kiocb *, struct iov_iter *,
++		loff_t, size_t, size_t);
+ extern ssize_t generic_perform_write(struct file *, struct iov_iter *, loff_t);
+ extern ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos);
+ extern ssize_t do_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 000a220e2a41..a840890ed39f 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -2385,9 +2385,8 @@ int pagecache_write_end(struct file *file, struct address_space *mapping,
+ EXPORT_SYMBOL(pagecache_write_end);
+ 
+ ssize_t
+-generic_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+-		unsigned long *nr_segs, loff_t pos,
+-		size_t count, size_t ocount)
++generic_file_direct_write(struct kiocb *iocb, struct iov_iter *from,
++		loff_t pos, size_t count, size_t ocount)
+ {
+ 	struct file	*file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+@@ -2397,9 +2396,9 @@ generic_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+ 	pgoff_t		end;
+ 
+ 	if (count != ocount)
+-		*nr_segs = iov_shorten((struct iovec *)iov, *nr_segs, count);
++		from->nr_segs = iov_shorten((struct iovec *)from->iov, from->nr_segs, count);
+ 
+-	write_len = iov_length(iov, *nr_segs);
++	write_len = iov_length(from->iov, from->nr_segs);
+ 	end = (pos + write_len - 1) >> PAGE_CACHE_SHIFT;
+ 
+ 	written = filemap_write_and_wait_range(mapping, pos, pos + write_len - 1);
+@@ -2426,7 +2425,7 @@ generic_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+ 		}
+ 	}
+ 
+-	written = mapping->a_ops->direct_IO(WRITE, iocb, iov, pos, *nr_segs);
++	written = mapping->a_ops->direct_IO(WRITE, iocb, from->iov, pos, from->nr_segs);
+ 
+ 	/*
+ 	 * Finally, try again to invalidate clean pages which might have been
+@@ -2443,6 +2442,7 @@ generic_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+ 
+ 	if (written > 0) {
+ 		pos += written;
++		iov_iter_advance(from, written);
+ 		if (pos > i_size_read(inode) && !S_ISBLK(inode->i_mode)) {
+ 			i_size_write(inode, pos);
+ 			mark_inode_dirty(inode);
+@@ -2645,11 +2645,10 @@ ssize_t __generic_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 	if (unlikely(file->f_flags & O_DIRECT)) {
+ 		loff_t endbyte;
+ 
+-		written = generic_file_direct_write(iocb, iov, &from.nr_segs, pos,
++		written = generic_file_direct_write(iocb, &from, pos,
+ 							count, ocount);
+ 		if (written < 0 || written == count)
+ 			goto out;
+-		iov_iter_advance(&from, written);
+ 
+ 		/*
+ 		 * direct-io write to a hole: fall through to buffered I/O
+-- 
+2.17.0
+

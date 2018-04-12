@@ -1,0 +1,129 @@
+From 7bdd6277e0dc2beb4f5db5ea4ff7670ecf0b5879 Mon Sep 17 00:00:00 2001
+From: Nikolay Borisov <nborisov@suse.com>
+Date: Tue, 11 Jul 2017 13:25:13 +0300
+Subject: [PATCH] btrfs: Remove redundant argument of flush_space
+
+All callers of flush_space pass the same number for orig/num_bytes
+arguments. Let's remove one of the numbers and also modify the trace
+point to show only a single number - bytes requested.
+
+Seems that last point where the two parameters were treated differently
+is before the ticketed enospc rework.
+
+Signed-off-by: Nikolay Borisov <nborisov@suse.com>
+Reviewed-by: David Sterba <dsterba@suse.com>
+Signed-off-by: David Sterba <dsterba@suse.com>
+---
+ fs/btrfs/extent-tree.c       | 16 +++++++---------
+ include/trace/events/btrfs.h | 13 +++++--------
+ 2 files changed, 12 insertions(+), 17 deletions(-)
+
+diff --git a/fs/btrfs/extent-tree.c b/fs/btrfs/extent-tree.c
+index 6d04563585e6..288b38ae8791 100644
+--- a/fs/btrfs/extent-tree.c
++++ b/fs/btrfs/extent-tree.c
+@@ -4906,7 +4906,7 @@ struct reserve_ticket {
+ 
+ static int flush_space(struct btrfs_fs_info *fs_info,
+ 		       struct btrfs_space_info *space_info, u64 num_bytes,
+-		       u64 orig_bytes, int state)
++		       int state)
+ {
+ 	struct btrfs_root *root = fs_info->extent_root;
+ 	struct btrfs_trans_handle *trans;
+@@ -4931,7 +4931,7 @@ static int flush_space(struct btrfs_fs_info *fs_info,
+ 		break;
+ 	case FLUSH_DELALLOC:
+ 	case FLUSH_DELALLOC_WAIT:
+-		shrink_delalloc(fs_info, num_bytes * 2, orig_bytes,
++		shrink_delalloc(fs_info, num_bytes * 2, num_bytes,
+ 				state == FLUSH_DELALLOC_WAIT);
+ 		break;
+ 	case ALLOC_CHUNK:
+@@ -4949,15 +4949,15 @@ static int flush_space(struct btrfs_fs_info *fs_info,
+ 		break;
+ 	case COMMIT_TRANS:
+ 		ret = may_commit_transaction(fs_info, space_info,
+-					     orig_bytes, 0);
++					     num_bytes, 0);
+ 		break;
+ 	default:
+ 		ret = -ENOSPC;
+ 		break;
+ 	}
+ 
+-	trace_btrfs_flush_space(fs_info, space_info->flags, num_bytes,
+-				orig_bytes, state, ret);
++	trace_btrfs_flush_space(fs_info, space_info->flags, num_bytes, state,
++				ret);
+ 	return ret;
+ }
+ 
+@@ -5063,8 +5063,7 @@ static void btrfs_async_reclaim_metadata_space(struct work_struct *work)
+ 		struct reserve_ticket *ticket;
+ 		int ret;
+ 
+-		ret = flush_space(fs_info, space_info, to_reclaim, to_reclaim,
+-				  flush_state);
++		ret = flush_space(fs_info, space_info, to_reclaim, flush_state);
+ 		spin_lock(&space_info->lock);
+ 		if (list_empty(&space_info->tickets)) {
+ 			space_info->flush = 0;
+@@ -5120,8 +5119,7 @@ static void priority_reclaim_metadata_space(struct btrfs_fs_info *fs_info,
+ 	spin_unlock(&space_info->lock);
+ 
+ 	do {
+-		flush_space(fs_info, space_info, to_reclaim, to_reclaim,
+-			    flush_state);
++		flush_space(fs_info, space_info, to_reclaim, flush_state);
+ 		flush_state++;
+ 		spin_lock(&space_info->lock);
+ 		if (ticket->bytes == 0) {
+diff --git a/include/trace/events/btrfs.h b/include/trace/events/btrfs.h
+index 90d25085762f..1e4908dcd065 100644
+--- a/include/trace/events/btrfs.h
++++ b/include/trace/events/btrfs.h
+@@ -1011,15 +1011,14 @@ TRACE_EVENT(btrfs_trigger_flush,
+ TRACE_EVENT(btrfs_flush_space,
+ 
+ 	TP_PROTO(const struct btrfs_fs_info *fs_info, u64 flags, u64 num_bytes,
+-		 u64 orig_bytes, int state, int ret),
++		 int state, int ret),
+ 
+-	TP_ARGS(fs_info, flags, num_bytes, orig_bytes, state, ret),
++	TP_ARGS(fs_info, flags, num_bytes, state, ret),
+ 
+ 	TP_STRUCT__entry(
+ 		__array(	u8,	fsid,	BTRFS_UUID_SIZE	)
+ 		__field(	u64,	flags			)
+ 		__field(	u64,	num_bytes		)
+-		__field(	u64,	orig_bytes		)
+ 		__field(	int,	state			)
+ 		__field(	int,	ret			)
+ 	),
+@@ -1028,19 +1027,17 @@ TRACE_EVENT(btrfs_flush_space,
+ 		memcpy(__entry->fsid, fs_info->fsid, BTRFS_UUID_SIZE);
+ 		__entry->flags		=	flags;
+ 		__entry->num_bytes	=	num_bytes;
+-		__entry->orig_bytes	=	orig_bytes;
+ 		__entry->state		=	state;
+ 		__entry->ret		=	ret;
+ 	),
+ 
+-	TP_printk("%pU: state=%d(%s) flags=%llu(%s) num_bytes=%llu "
+-		  "orig_bytes=%llu ret=%d", __entry->fsid, __entry->state,
++	TP_printk("%pU: state=%d(%s) flags=%llu(%s) num_bytes=%llu ret=%d",
++		  __entry->fsid, __entry->state,
+ 		  show_flush_state(__entry->state),
+ 		  (unsigned long long)__entry->flags,
+ 		  __print_flags((unsigned long)__entry->flags, "|",
+ 				BTRFS_GROUP_FLAGS),
+-		  (unsigned long long)__entry->num_bytes,
+-		  (unsigned long long)__entry->orig_bytes, __entry->ret)
++		  (unsigned long long)__entry->num_bytes, __entry->ret)
+ );
+ 
+ DECLARE_EVENT_CLASS(btrfs__reserved_extent,
+-- 
+2.17.0
+

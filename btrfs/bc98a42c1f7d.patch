@@ -1,0 +1,2341 @@
+From bc98a42c1f7d0f886c0c1b75a92a004976a46d9f Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Mon, 17 Jul 2017 08:45:34 +0100
+Subject: [PATCH] VFS: Convert sb->s_flags & MS_RDONLY to sb_rdonly(sb)
+
+Firstly by applying the following with coccinelle's spatch:
+
+	@@ expression SB; @@
+	-SB->s_flags & MS_RDONLY
+	+sb_rdonly(SB)
+
+to effect the conversion to sb_rdonly(sb), then by applying:
+
+	@@ expression A, SB; @@
+	(
+	-(!sb_rdonly(SB)) && A
+	+!sb_rdonly(SB) && A
+	|
+	-A != (sb_rdonly(SB))
+	+A != sb_rdonly(SB)
+	|
+	-A == (sb_rdonly(SB))
+	+A == sb_rdonly(SB)
+	|
+	-!(sb_rdonly(SB))
+	+!sb_rdonly(SB)
+	|
+	-A && (sb_rdonly(SB))
+	+A && sb_rdonly(SB)
+	|
+	-A || (sb_rdonly(SB))
+	+A || sb_rdonly(SB)
+	|
+	-(sb_rdonly(SB)) != A
+	+sb_rdonly(SB) != A
+	|
+	-(sb_rdonly(SB)) == A
+	+sb_rdonly(SB) == A
+	|
+	-(sb_rdonly(SB)) && A
+	+sb_rdonly(SB) && A
+	|
+	-(sb_rdonly(SB)) || A
+	+sb_rdonly(SB) || A
+	)
+
+	@@ expression A, B, SB; @@
+	(
+	-(sb_rdonly(SB)) ? 1 : 0
+	+sb_rdonly(SB)
+	|
+	-(sb_rdonly(SB)) ? A : B
+	+sb_rdonly(SB) ? A : B
+	)
+
+to remove left over excess bracketage and finally by applying:
+
+	@@ expression A, SB; @@
+	(
+	-(A & MS_RDONLY) != sb_rdonly(SB)
+	+(bool)(A & MS_RDONLY) != sb_rdonly(SB)
+	|
+	-(A & MS_RDONLY) == sb_rdonly(SB)
+	+(bool)(A & MS_RDONLY) == sb_rdonly(SB)
+	)
+
+to make comparisons against the result of sb_rdonly() (which is a bool)
+work correctly.
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+---
+ .../staging/lustre/lustre/llite/llite_lib.c   |  4 +-
+ drivers/staging/lustre/lustre/llite/namei.c   |  3 +-
+ fs/affs/amigaffs.c                            |  2 +-
+ fs/affs/bitmap.c                              |  2 +-
+ fs/affs/super.c                               |  6 +--
+ fs/befs/linuxvfs.c                            |  2 +-
+ fs/btrfs/dev-replace.c                        |  2 +-
+ fs/btrfs/disk-io.c                            | 12 ++---
+ fs/btrfs/extent_io.c                          |  4 +-
+ fs/btrfs/inode.c                              |  2 +-
+ fs/btrfs/ioctl.c                              |  2 +-
+ fs/btrfs/root-tree.c                          |  2 +-
+ fs/btrfs/super.c                              | 11 ++--
+ fs/btrfs/sysfs.c                              |  4 +-
+ fs/btrfs/volumes.c                            |  4 +-
+ fs/cachefiles/bind.c                          |  2 +-
+ fs/ecryptfs/main.c                            |  3 +-
+ fs/efs/super.c                                |  2 +-
+ fs/ext2/super.c                               | 13 +++--
+ fs/ext4/ext4_jbd2.c                           |  2 +-
+ fs/ext4/file.c                                |  2 +-
+ fs/ext4/fsync.c                               |  2 +-
+ fs/ext4/ialloc.c                              |  2 +-
+ fs/ext4/mmp.c                                 |  2 +-
+ fs/ext4/super.c                               | 53 +++++++++----------
+ fs/fat/fatent.c                               |  2 +-
+ fs/fat/inode.c                                |  4 +-
+ fs/fat/misc.c                                 |  2 +-
+ fs/gfs2/glops.c                               |  2 +-
+ fs/gfs2/ops_fstype.c                          |  4 +-
+ fs/gfs2/quota.c                               |  2 +-
+ fs/gfs2/recovery.c                            |  2 +-
+ fs/gfs2/super.c                               |  4 +-
+ fs/gfs2/sys.c                                 |  2 +-
+ fs/hfs/mdb.c                                  |  6 +--
+ fs/hfs/super.c                                |  4 +-
+ fs/hfsplus/super.c                            | 10 ++--
+ fs/hpfs/alloc.c                               |  4 +-
+ fs/hpfs/dir.c                                 |  2 +-
+ fs/hpfs/super.c                               | 13 +++--
+ fs/isofs/inode.c                              |  2 +-
+ fs/jffs2/fs.c                                 |  6 +--
+ fs/jffs2/super.c                              |  2 +-
+ fs/jffs2/wbuf.c                               |  4 +-
+ fs/jfs/jfs_mount.c                            |  2 +-
+ fs/jfs/super.c                                | 16 +++---
+ fs/minix/inode.c                              |  6 +--
+ fs/namei.c                                    |  3 +-
+ fs/namespace.c                                |  6 +--
+ fs/nfs/super.c                                |  2 +-
+ fs/nilfs2/inode.c                             |  4 +-
+ fs/nilfs2/mdt.c                               |  2 +-
+ fs/nilfs2/super.c                             | 19 ++++---
+ fs/ntfs/super.c                               | 31 +++++------
+ fs/ocfs2/super.c                              | 15 +++---
+ fs/overlayfs/super.c                          |  2 +-
+ fs/proc_namespace.c                           |  2 +-
+ fs/quota/quota.c                              |  2 +-
+ fs/reiserfs/inode.c                           |  2 +-
+ fs/reiserfs/journal.c                         |  2 +-
+ fs/reiserfs/prints.c                          |  2 +-
+ fs/reiserfs/super.c                           | 18 +++----
+ fs/super.c                                    | 10 ++--
+ fs/sync.c                                     |  6 +--
+ fs/sysv/balloc.c                              |  2 +-
+ fs/sysv/ialloc.c                              |  2 +-
+ fs/sysv/inode.c                               |  2 +-
+ fs/sysv/super.c                               |  2 +-
+ fs/ubifs/super.c                              |  2 +-
+ fs/udf/super.c                                | 14 ++---
+ fs/ufs/super.c                                | 24 ++++-----
+ fs/xfs/xfs_quotaops.c                         | 10 ++--
+ fs/xfs/xfs_super.c                            |  2 +-
+ init/do_mounts.c                              |  2 +-
+ 74 files changed, 210 insertions(+), 226 deletions(-)
+
+diff --git a/drivers/staging/lustre/lustre/llite/llite_lib.c b/drivers/staging/lustre/lustre/llite/llite_lib.c
+index 974a05d6c969..2c33b92b5d4d 100644
+--- a/drivers/staging/lustre/lustre/llite/llite_lib.c
++++ b/drivers/staging/lustre/lustre/llite/llite_lib.c
+@@ -210,7 +210,7 @@ static int client_common_fill_super(struct super_block *sb, char *md, char *dt,
+ 	data->ocd_ibits_known = MDS_INODELOCK_FULL;
+ 	data->ocd_version = LUSTRE_VERSION_CODE;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		data->ocd_connect_flags |= OBD_CONNECT_RDONLY;
+ 	if (sbi->ll_flags & LL_SBI_USER_XATTR)
+ 		data->ocd_connect_flags |= OBD_CONNECT_XATTR;
+@@ -2033,7 +2033,7 @@ int ll_remount_fs(struct super_block *sb, int *flags, char *data)
+ 	int err;
+ 	__u32 read_only;
+ 
+-	if ((*flags & MS_RDONLY) != (sb->s_flags & MS_RDONLY)) {
++	if ((bool)(*flags & MS_RDONLY) != sb_rdonly(sb)) {
+ 		read_only = *flags & MS_RDONLY;
+ 		err = obd_set_info_async(NULL, sbi->ll_md_exp,
+ 					 sizeof(KEY_READ_ONLY),
+diff --git a/drivers/staging/lustre/lustre/llite/namei.c b/drivers/staging/lustre/lustre/llite/namei.c
+index a208a8b02c2c..483890fa01a2 100644
+--- a/drivers/staging/lustre/lustre/llite/namei.c
++++ b/drivers/staging/lustre/lustre/llite/namei.c
+@@ -562,8 +562,7 @@ static struct dentry *ll_lookup_it(struct inode *parent, struct dentry *dentry,
+ 		}
+ 	}
+ 
+-	if (it->it_op & IT_OPEN && it->it_flags & FMODE_WRITE &&
+-	    dentry->d_sb->s_flags & MS_RDONLY)
++	if (it->it_op & IT_OPEN && it->it_flags & FMODE_WRITE && sb_rdonly(dentry->d_sb))
+ 		return ERR_PTR(-EROFS);
+ 
+ 	if (it->it_op & IT_CREAT)
+diff --git a/fs/affs/amigaffs.c b/fs/affs/amigaffs.c
+index b573c3b9a328..8cf941c3b511 100644
+--- a/fs/affs/amigaffs.c
++++ b/fs/affs/amigaffs.c
+@@ -450,7 +450,7 @@ affs_error(struct super_block *sb, const char *function, const char *fmt, ...)
+ 	vaf.fmt = fmt;
+ 	vaf.va = &args;
+ 	pr_crit("error (device %s): %s(): %pV\n", sb->s_id, function, &vaf);
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		pr_warn("Remounting filesystem read-only\n");
+ 	sb->s_flags |= MS_RDONLY;
+ 	va_end(args);
+diff --git a/fs/affs/bitmap.c b/fs/affs/bitmap.c
+index 675148950fed..2b2112475ec2 100644
+--- a/fs/affs/bitmap.c
++++ b/fs/affs/bitmap.c
+@@ -19,7 +19,7 @@ affs_count_free_blocks(struct super_block *sb)
+ 
+ 	pr_debug("%s()\n", __func__);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	mutex_lock(&AFFS_SB(sb)->s_bmlock);
+diff --git a/fs/affs/super.c b/fs/affs/super.c
+index 7bf47a41cb4f..884bedab7266 100644
+--- a/fs/affs/super.c
++++ b/fs/affs/super.c
+@@ -80,7 +80,7 @@ void affs_mark_sb_dirty(struct super_block *sb)
+ 	struct affs_sb_info *sbi = AFFS_SB(sb);
+ 	unsigned long delay;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 	       return;
+ 
+ 	spin_lock(&sbi->work_lock);
+@@ -464,7 +464,7 @@ static int affs_fill_super(struct super_block *sb, void *data, int silent)
+ 	 * not recommended.
+ 	 */
+ 	if ((chksum == FS_DCFFS || chksum == MUFS_DCFFS || chksum == FS_DCOFS
+-	     || chksum == MUFS_DCOFS) && !(sb->s_flags & MS_RDONLY)) {
++	     || chksum == MUFS_DCOFS) && !sb_rdonly(sb)) {
+ 		pr_notice("Dircache FS - mounting %s read only\n", sb->s_id);
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+@@ -596,7 +596,7 @@ affs_remount(struct super_block *sb, int *flags, char *data)
+ 	memcpy(sbi->s_volume, volume, 32);
+ 	spin_unlock(&sbi->symlink_lock);
+ 
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		return 0;
+ 
+ 	if (*flags & MS_RDONLY)
+diff --git a/fs/befs/linuxvfs.c b/fs/befs/linuxvfs.c
+index 4a4a5a366158..a92355cc453b 100644
+--- a/fs/befs/linuxvfs.c
++++ b/fs/befs/linuxvfs.c
+@@ -838,7 +838,7 @@ befs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	befs_debug(sb, "---> %s", __func__);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		befs_warning(sb,
+ 			     "No write support. Marking filesystem read-only");
+ 		sb->s_flags |= MS_RDONLY;
+diff --git a/fs/btrfs/dev-replace.c b/fs/btrfs/dev-replace.c
+index bee3edeea7a3..cd42d95e9e05 100644
+--- a/fs/btrfs/dev-replace.c
++++ b/fs/btrfs/dev-replace.c
+@@ -690,7 +690,7 @@ static u64 __btrfs_dev_replace_cancel(struct btrfs_fs_info *fs_info)
+ 	u64 result;
+ 	int ret;
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		return -EROFS;
+ 
+ 	mutex_lock(&dev_replace->lock_finishing_cancel_unmount);
+diff --git a/fs/btrfs/disk-io.c b/fs/btrfs/disk-io.c
+index 080e2ebb8aa0..4a9b40f604fa 100644
+--- a/fs/btrfs/disk-io.c
++++ b/fs/btrfs/disk-io.c
+@@ -2478,7 +2478,7 @@ static int btrfs_replay_log(struct btrfs_fs_info *fs_info,
+ 		return ret;
+ 	}
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(fs_info->sb)) {
+ 		ret = btrfs_commit_super(fs_info);
+ 		if (ret)
+ 			return ret;
+@@ -2874,7 +2874,7 @@ int open_ctree(struct super_block *sb,
+ 
+ 	features = btrfs_super_compat_ro_flags(disk_super) &
+ 		~BTRFS_FEATURE_COMPAT_RO_SUPP;
+-	if (!(sb->s_flags & MS_RDONLY) && features) {
++	if (!sb_rdonly(sb) && features) {
+ 		btrfs_err(fs_info,
+ 	"cannot mount read-write because of unsupported optional features (%llx)",
+ 		       features);
+@@ -3039,7 +3039,7 @@ int open_ctree(struct super_block *sb,
+ 		btrfs_calc_num_tolerated_disk_barrier_failures(fs_info);
+ 	if (fs_info->fs_devices->missing_devices >
+ 	     fs_info->num_tolerated_disk_barrier_failures &&
+-	    !(sb->s_flags & MS_RDONLY)) {
++	    !sb_rdonly(sb)) {
+ 		btrfs_warn(fs_info,
+ "missing devices (%llu) exceeds the limit (%d), writeable mount is not allowed",
+ 			fs_info->fs_devices->missing_devices,
+@@ -3102,7 +3102,7 @@ int open_ctree(struct super_block *sb,
+ 	if (ret)
+ 		goto fail_qgroup;
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		ret = btrfs_cleanup_fs_roots(fs_info);
+ 		if (ret)
+ 			goto fail_qgroup;
+@@ -3128,7 +3128,7 @@ int open_ctree(struct super_block *sb,
+ 		goto fail_qgroup;
+ 	}
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	if (btrfs_test_opt(fs_info, CLEAR_CACHE) &&
+@@ -3928,7 +3928,7 @@ void close_ctree(struct btrfs_fs_info *fs_info)
+ 
+ 	cancel_work_sync(&fs_info->async_reclaim_work);
+ 
+-	if (!(fs_info->sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(fs_info->sb)) {
+ 		/*
+ 		 * If the cleaner thread is stopped and there are
+ 		 * block groups queued for removal, the deletion will be
+diff --git a/fs/btrfs/extent_io.c b/fs/btrfs/extent_io.c
+index 0aff9b278c19..5074e9b26f1a 100644
+--- a/fs/btrfs/extent_io.c
++++ b/fs/btrfs/extent_io.c
+@@ -2061,7 +2061,7 @@ int repair_eb_io_failure(struct btrfs_fs_info *fs_info,
+ 	unsigned long i, num_pages = num_extent_pages(eb->start, eb->len);
+ 	int ret = 0;
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		return -EROFS;
+ 
+ 	for (i = 0; i < num_pages; i++) {
+@@ -2111,7 +2111,7 @@ int clean_io_failure(struct btrfs_fs_info *fs_info,
+ 			failrec->start);
+ 		goto out;
+ 	}
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		goto out;
+ 
+ 	spin_lock(&io_tree->lock);
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 95c212037095..07a18ce55d56 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -5817,7 +5817,7 @@ struct inode *btrfs_lookup_dentry(struct inode *dir, struct dentry *dentry)
+ 
+ 	if (!IS_ERR(inode) && root != sub_root) {
+ 		down_read(&fs_info->cleanup_work_sem);
+-		if (!(inode->i_sb->s_flags & MS_RDONLY))
++		if (!sb_rdonly(inode->i_sb))
+ 			ret = btrfs_orphan_cleanup(sub_root);
+ 		up_read(&fs_info->cleanup_work_sem);
+ 		if (ret) {
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index fa1b78cf25f6..8a27255173b7 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -4438,7 +4438,7 @@ static long btrfs_ioctl_dev_replace(struct btrfs_fs_info *fs_info,
+ 
+ 	switch (p->cmd) {
+ 	case BTRFS_IOCTL_DEV_REPLACE_CMD_START:
+-		if (fs_info->sb->s_flags & MS_RDONLY) {
++		if (sb_rdonly(fs_info->sb)) {
+ 			ret = -EROFS;
+ 			goto out;
+ 		}
+diff --git a/fs/btrfs/root-tree.c b/fs/btrfs/root-tree.c
+index 460db0cb2d07..bfa1ae1dc0fa 100644
+--- a/fs/btrfs/root-tree.c
++++ b/fs/btrfs/root-tree.c
+@@ -228,7 +228,7 @@ int btrfs_find_orphan_roots(struct btrfs_fs_info *fs_info)
+ 	int ret;
+ 	bool can_recover = true;
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		can_recover = false;
+ 
+ 	path = btrfs_alloc_path();
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index 12540b6104b5..086819312a44 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -102,7 +102,7 @@ static void btrfs_handle_error(struct btrfs_fs_info *fs_info)
+ {
+ 	struct super_block *sb = fs_info->sb;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	if (test_bit(BTRFS_FS_STATE_ERROR, &fs_info->fs_state)) {
+@@ -138,7 +138,7 @@ void __btrfs_handle_fs_error(struct btrfs_fs_info *fs_info, const char *function
+ 	 * Special case: if the error is EROFS, and we're already
+ 	 * under MS_RDONLY, then it is safe here.
+ 	 */
+-	if (errno == -EROFS && (sb->s_flags & MS_RDONLY))
++	if (errno == -EROFS && sb_rdonly(sb))
+   		return;
+ 
+ #ifdef CONFIG_PRINTK
+@@ -1687,8 +1687,7 @@ static inline void btrfs_remount_cleanup(struct btrfs_fs_info *fs_info,
+ 	 * close or the filesystem is read only.
+ 	 */
+ 	if (btrfs_raw_test_opt(old_opts, AUTO_DEFRAG) &&
+-	    (!btrfs_raw_test_opt(fs_info->mount_opt, AUTO_DEFRAG) ||
+-	     (fs_info->sb->s_flags & MS_RDONLY))) {
++	    (!btrfs_raw_test_opt(fs_info->mount_opt, AUTO_DEFRAG) || sb_rdonly(fs_info->sb))) {
+ 		btrfs_cleanup_defrag_inodes(fs_info);
+ 	}
+ 
+@@ -1735,7 +1734,7 @@ static int btrfs_remount(struct super_block *sb, int *flags, char *data)
+ 	btrfs_resize_thread_pool(fs_info,
+ 		fs_info->thread_pool_size, old_thread_pool_size);
+ 
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		goto out;
+ 
+ 	if (*flags & MS_RDONLY) {
+@@ -1835,7 +1834,7 @@ static int btrfs_remount(struct super_block *sb, int *flags, char *data)
+ 
+ restore:
+ 	/* We've hit an error - don't reset MS_RDONLY */
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		old_flags |= MS_RDONLY;
+ 	sb->s_flags = old_flags;
+ 	fs_info->mount_opt = old_opts;
+diff --git a/fs/btrfs/sysfs.c b/fs/btrfs/sysfs.c
+index c2d5f3580b4c..432294d040d5 100644
+--- a/fs/btrfs/sysfs.c
++++ b/fs/btrfs/sysfs.c
+@@ -120,7 +120,7 @@ static ssize_t btrfs_feature_attr_store(struct kobject *kobj,
+ 	if (!fs_info)
+ 		return -EPERM;
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		return -EROFS;
+ 
+ 	ret = kstrtoul(skip_spaces(buf), 0, &val);
+@@ -388,7 +388,7 @@ static ssize_t btrfs_label_store(struct kobject *kobj,
+ 	if (!fs_info)
+ 		return -EPERM;
+ 
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		return -EROFS;
+ 
+ 	/*
+diff --git a/fs/btrfs/volumes.c b/fs/btrfs/volumes.c
+index 5eb7217738ed..6646695c9072 100644
+--- a/fs/btrfs/volumes.c
++++ b/fs/btrfs/volumes.c
+@@ -2337,7 +2337,7 @@ int btrfs_init_new_device(struct btrfs_fs_info *fs_info, const char *device_path
+ 	int seeding_dev = 0;
+ 	int ret = 0;
+ 
+-	if ((sb->s_flags & MS_RDONLY) && !fs_info->fs_devices->seeding)
++	if (sb_rdonly(sb) && !fs_info->fs_devices->seeding)
+ 		return -EROFS;
+ 
+ 	bdev = blkdev_get_by_path(device_path, FMODE_WRITE | FMODE_EXCL,
+@@ -4085,7 +4085,7 @@ int btrfs_pause_balance(struct btrfs_fs_info *fs_info)
+ 
+ int btrfs_cancel_balance(struct btrfs_fs_info *fs_info)
+ {
+-	if (fs_info->sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(fs_info->sb))
+ 		return -EROFS;
+ 
+ 	mutex_lock(&fs_info->balance_mutex);
+diff --git a/fs/cachefiles/bind.c b/fs/cachefiles/bind.c
+index 3ff867f87d73..d9f001078e08 100644
+--- a/fs/cachefiles/bind.c
++++ b/fs/cachefiles/bind.c
+@@ -133,7 +133,7 @@ static int cachefiles_daemon_add_cache(struct cachefiles_cache *cache)
+ 		goto error_unsupported;
+ 
+ 	ret = -EROFS;
+-	if (root->d_sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(root->d_sb))
+ 		goto error_unsupported;
+ 
+ 	/* determine the security of the on-disk cache as this governs
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index 9014479d0160..6b801186baa5 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -568,8 +568,7 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 	 *   1) The lower mount is ro
+ 	 *   2) The ecryptfs_encrypted_view mount option is specified
+ 	 */
+-	if (path.dentry->d_sb->s_flags & MS_RDONLY ||
+-	    mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
++	if (sb_rdonly(path.dentry->d_sb) || mount_crypt_stat->flags & ECRYPTFS_ENCRYPTED_VIEW_ENABLED)
+ 		s->s_flags |= MS_RDONLY;
+ 
+ 	s->s_maxbytes = path.dentry->d_sb->s_maxbytes;
+diff --git a/fs/efs/super.c b/fs/efs/super.c
+index 368f7dd21c61..5c42f1e34a2f 100644
+--- a/fs/efs/super.c
++++ b/fs/efs/super.c
+@@ -306,7 +306,7 @@ static int efs_fill_super(struct super_block *s, void *d, int silent)
+ 	}
+ 	brelse(bh);
+ 
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ #ifdef DEBUG
+ 		pr_info("forcing read-only mode\n");
+ #endif
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 7b1bc9059863..448ebfe60233 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -52,7 +52,7 @@ void ext2_error(struct super_block *sb, const char *function,
+ 	struct ext2_sb_info *sbi = EXT2_SB(sb);
+ 	struct ext2_super_block *es = sbi->s_es;
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		spin_lock(&sbi->s_lock);
+ 		sbi->s_mount_state |= EXT2_ERROR_FS;
+ 		es->s_state |= cpu_to_le16(EXT2_ERROR_FS);
+@@ -151,7 +151,7 @@ static void ext2_put_super (struct super_block * sb)
+ 		ext2_xattr_destroy_cache(sbi->s_ea_block_cache);
+ 		sbi->s_ea_block_cache = NULL;
+ 	}
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		struct ext2_super_block *es = sbi->s_es;
+ 
+ 		spin_lock(&sbi->s_lock);
+@@ -940,8 +940,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 			le32_to_cpu(features));
+ 		goto failed_mount;
+ 	}
+-	if (!(sb->s_flags & MS_RDONLY) &&
+-	    (features = EXT2_HAS_RO_COMPAT_FEATURE(sb, ~EXT2_FEATURE_RO_COMPAT_SUPP))){
++	if (!sb_rdonly(sb) && (features = EXT2_HAS_RO_COMPAT_FEATURE(sb, ~EXT2_FEATURE_RO_COMPAT_SUPP))){
+ 		ext2_msg(sb, KERN_ERR, "error: couldn't mount RDWR because of "
+ 		       "unsupported optional features (%x)",
+ 		       le32_to_cpu(features));
+@@ -1170,7 +1169,7 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (EXT2_HAS_COMPAT_FEATURE(sb, EXT3_FEATURE_COMPAT_HAS_JOURNAL))
+ 		ext2_msg(sb, KERN_WARNING,
+ 			"warning: mounting ext3 filesystem as ext2");
+-	if (ext2_setup_super (sb, es, sb->s_flags & MS_RDONLY))
++	if (ext2_setup_super (sb, es, sb_rdonly(sb)))
+ 		sb->s_flags |= MS_RDONLY;
+ 	ext2_write_super(sb);
+ 	return 0;
+@@ -1301,7 +1300,7 @@ static int ext2_unfreeze(struct super_block *sb)
+ 
+ static void ext2_write_super(struct super_block *sb)
+ {
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		ext2_sync_fs(sb, 1);
+ }
+ 
+@@ -1339,7 +1338,7 @@ static int ext2_remount (struct super_block * sb, int * flags, char * data)
+ 			 "dax flag with busy inodes while remounting");
+ 		sbi->s_mount_opt ^= EXT2_MOUNT_DAX;
+ 	}
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY)) {
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb)) {
+ 		spin_unlock(&sbi->s_lock);
+ 		return 0;
+ 	}
+diff --git a/fs/ext4/ext4_jbd2.c b/fs/ext4/ext4_jbd2.c
+index dd106b1d5d89..5b342ac67d2e 100644
+--- a/fs/ext4/ext4_jbd2.c
++++ b/fs/ext4/ext4_jbd2.c
+@@ -47,7 +47,7 @@ static int ext4_journal_check_start(struct super_block *sb)
+ 	if (unlikely(ext4_forced_shutdown(EXT4_SB(sb))))
+ 		return -EIO;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 	WARN_ON(sb->s_writers.frozen == SB_FREEZE_COMPLETE);
+ 	journal = EXT4_SB(sb)->s_journal;
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 58294c9a7e1d..b33ec8a23678 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -388,7 +388,7 @@ static int ext4_file_open(struct inode * inode, struct file * filp)
+ 		return -EIO;
+ 
+ 	if (unlikely(!(sbi->s_mount_flags & EXT4_MF_MNTDIR_SAMPLED) &&
+-		     !(sb->s_flags & MS_RDONLY))) {
++		     !sb_rdonly(sb))) {
+ 		sbi->s_mount_flags |= EXT4_MF_MNTDIR_SAMPLED;
+ 		/*
+ 		 * Sample where the filesystem has been mounted and
+diff --git a/fs/ext4/fsync.c b/fs/ext4/fsync.c
+index aae2c3971cef..f9230580a84b 100644
+--- a/fs/ext4/fsync.c
++++ b/fs/ext4/fsync.c
+@@ -107,7 +107,7 @@ int ext4_sync_file(struct file *file, loff_t start, loff_t end, int datasync)
+ 
+ 	trace_ext4_sync_file_enter(file, datasync);
+ 
+-	if (inode->i_sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(inode->i_sb)) {
+ 		/* Make sure that we read updated s_mount_flags value */
+ 		smp_rmb();
+ 		if (EXT4_SB(inode->i_sb)->s_mount_flags & EXT4_MF_FS_ABORTED)
+diff --git a/fs/ext4/ialloc.c b/fs/ext4/ialloc.c
+index 507bfb3344d4..360e87dbba74 100644
+--- a/fs/ext4/ialloc.c
++++ b/fs/ext4/ialloc.c
+@@ -1355,7 +1355,7 @@ int ext4_init_inode_table(struct super_block *sb, ext4_group_t group,
+ 	int num, ret = 0, used_blks = 0;
+ 
+ 	/* This should not happen, but just to be sure check this */
+-	if (sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(sb)) {
+ 		ret = 1;
+ 		goto out;
+ 	}
+diff --git a/fs/ext4/mmp.c b/fs/ext4/mmp.c
+index eb9835638680..899b0761ca1c 100644
+--- a/fs/ext4/mmp.c
++++ b/fs/ext4/mmp.c
+@@ -185,7 +185,7 @@ static int kmmpd(void *data)
+ 			goto exit_thread;
+ 		}
+ 
+-		if (sb->s_flags & MS_RDONLY) {
++		if (sb_rdonly(sb)) {
+ 			ext4_warning(sb, "kmmpd being stopped since filesystem "
+ 				     "has been remounted as readonly.");
+ 			goto exit_thread;
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 0886fe82e9c4..d9701c869dd3 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -405,7 +405,7 @@ static void ext4_journal_commit_callback(journal_t *journal, transaction_t *txn)
+ 
+ static void ext4_handle_error(struct super_block *sb)
+ {
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	if (!test_opt(sb, ERRORS_CONT)) {
+@@ -587,8 +587,7 @@ void __ext4_std_error(struct super_block *sb, const char *function,
+ 	/* Special case: if the error is EROFS, and we're not already
+ 	 * inside a transaction, then there's really no point in logging
+ 	 * an error. */
+-	if (errno == -EROFS && journal_current_handle() == NULL &&
+-	    (sb->s_flags & MS_RDONLY))
++	if (errno == -EROFS && journal_current_handle() == NULL && sb_rdonly(sb))
+ 		return;
+ 
+ 	if (ext4_error_ratelimit(sb)) {
+@@ -628,7 +627,7 @@ void __ext4_abort(struct super_block *sb, const char *function,
+ 	       sb->s_id, function, line, &vaf);
+ 	va_end(args);
+ 
+-	if ((sb->s_flags & MS_RDONLY) == 0) {
++	if (sb_rdonly(sb) == 0) {
+ 		ext4_msg(sb, KERN_CRIT, "Remounting filesystem read-only");
+ 		EXT4_SB(sb)->s_mount_flags |= EXT4_MF_FS_ABORTED;
+ 		/*
+@@ -889,11 +888,11 @@ static void ext4_put_super(struct super_block *sb)
+ 	ext4_mb_release(sb);
+ 	ext4_ext_release(sb);
+ 
+-	if (!(sb->s_flags & MS_RDONLY) && !aborted) {
++	if (!sb_rdonly(sb) && !aborted) {
+ 		ext4_clear_feature_journal_needs_recovery(sb);
+ 		es->s_state = cpu_to_le16(sbi->s_mount_state);
+ 	}
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		ext4_commit_super(sb, 1);
+ 
+ 	for (i = 0; i < sbi->s_gdb_count; i++)
+@@ -2101,7 +2100,7 @@ int ext4_seq_options_show(struct seq_file *seq, void *offset)
+ 	struct super_block *sb = seq->private;
+ 	int rc;
+ 
+-	seq_puts(seq, (sb->s_flags & MS_RDONLY) ? "ro" : "rw");
++	seq_puts(seq, sb_rdonly(sb) ? "ro" : "rw");
+ 	rc = _ext4_show_options(seq, sb, 1);
+ 	seq_puts(seq, "\n");
+ 	return rc;
+@@ -2369,7 +2368,7 @@ static int ext4_check_descriptors(struct super_block *sb,
+ 				 "Checksum for group %u failed (%u!=%u)",
+ 				 i, le16_to_cpu(ext4_group_desc_csum(sb, i,
+ 				     gdp)), le16_to_cpu(gdp->bg_checksum));
+-			if (!(sb->s_flags & MS_RDONLY)) {
++			if (!sb_rdonly(sb)) {
+ 				ext4_unlock_group(sb, i);
+ 				return 0;
+ 			}
+@@ -3116,8 +3115,7 @@ int ext4_register_li_request(struct super_block *sb,
+ 		goto out;
+ 	}
+ 
+-	if (first_not_zeroed == ngroups ||
+-	    (sb->s_flags & MS_RDONLY) ||
++	if (first_not_zeroed == ngroups || sb_rdonly(sb) ||
+ 	    !test_opt(sb, INIT_INODE_TABLE))
+ 		goto out;
+ 
+@@ -3661,7 +3659,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	 * previously didn't change the revision level when setting the flags,
+ 	 * so there is a chance incompat flags are set on a rev 0 filesystem.
+ 	 */
+-	if (!ext4_feature_set_ok(sb, (sb->s_flags & MS_RDONLY)))
++	if (!ext4_feature_set_ok(sb, (sb_rdonly(sb))))
+ 		goto failed_mount;
+ 
+ 	blocksize = BLOCK_SIZE << le32_to_cpu(es->s_log_block_size);
+@@ -3790,12 +3788,12 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 			sbi->s_hash_unsigned = 3;
+ 		else if ((i & EXT2_FLAGS_SIGNED_HASH) == 0) {
+ #ifdef __CHAR_UNSIGNED__
+-			if (!(sb->s_flags & MS_RDONLY))
++			if (!sb_rdonly(sb))
+ 				es->s_flags |=
+ 					cpu_to_le32(EXT2_FLAGS_UNSIGNED_HASH);
+ 			sbi->s_hash_unsigned = 3;
+ #else
+-			if (!(sb->s_flags & MS_RDONLY))
++			if (!sb_rdonly(sb))
+ 				es->s_flags |=
+ 					cpu_to_le32(EXT2_FLAGS_SIGNED_HASH);
+ #endif
+@@ -3995,7 +3993,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 	needs_recovery = (es->s_last_orphan != 0 ||
+ 			  ext4_has_feature_journal_needs_recovery(sb));
+ 
+-	if (ext4_has_feature_mmp(sb) && !(sb->s_flags & MS_RDONLY))
++	if (ext4_has_feature_mmp(sb) && !sb_rdonly(sb))
+ 		if (ext4_multi_mount_protect(sb, le64_to_cpu(es->s_mmp_block)))
+ 			goto failed_mount3a;
+ 
+@@ -4007,7 +4005,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 		err = ext4_load_journal(sb, es, journal_devnum);
+ 		if (err)
+ 			goto failed_mount3a;
+-	} else if (test_opt(sb, NOLOAD) && !(sb->s_flags & MS_RDONLY) &&
++	} else if (test_opt(sb, NOLOAD) && !sb_rdonly(sb) &&
+ 		   ext4_has_feature_journal_needs_recovery(sb)) {
+ 		ext4_msg(sb, KERN_ERR, "required journal recovery "
+ 		       "suppressed and not mounted read-only");
+@@ -4121,7 +4119,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto failed_mount_wq;
+ 	}
+ 
+-	if (DUMMY_ENCRYPTION_ENABLED(sbi) && !(sb->s_flags & MS_RDONLY) &&
++	if (DUMMY_ENCRYPTION_ENABLED(sbi) && !sb_rdonly(sb) &&
+ 	    !ext4_has_feature_encrypt(sb)) {
+ 		ext4_set_feature_encrypt(sb);
+ 		ext4_commit_super(sb, 1);
+@@ -4175,7 +4173,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto failed_mount4;
+ 	}
+ 
+-	if (ext4_setup_super(sb, es, sb->s_flags & MS_RDONLY))
++	if (ext4_setup_super(sb, es, sb_rdonly(sb)))
+ 		sb->s_flags |= MS_RDONLY;
+ 
+ 	/* determine the minimum size of new large inodes, if present */
+@@ -4263,7 +4261,7 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ #ifdef CONFIG_QUOTA
+ 	/* Enable quota usage during mount. */
+-	if (ext4_has_feature_quota(sb) && !(sb->s_flags & MS_RDONLY)) {
++	if (ext4_has_feature_quota(sb) && !sb_rdonly(sb)) {
+ 		err = ext4_enable_quotas(sb);
+ 		if (err)
+ 			goto failed_mount8;
+@@ -4586,7 +4584,7 @@ static int ext4_load_journal(struct super_block *sb,
+ 	 * can get read-write access to the device.
+ 	 */
+ 	if (ext4_has_feature_journal_needs_recovery(sb)) {
+-		if (sb->s_flags & MS_RDONLY) {
++		if (sb_rdonly(sb)) {
+ 			ext4_msg(sb, KERN_INFO, "INFO: recovery "
+ 					"required on readonly filesystem");
+ 			if (really_read_only) {
+@@ -4741,8 +4739,7 @@ static void ext4_mark_recovery_complete(struct super_block *sb,
+ 	if (jbd2_journal_flush(journal) < 0)
+ 		goto out;
+ 
+-	if (ext4_has_feature_journal_needs_recovery(sb) &&
+-	    sb->s_flags & MS_RDONLY) {
++	if (ext4_has_feature_journal_needs_recovery(sb) && sb_rdonly(sb)) {
+ 		ext4_clear_feature_journal_needs_recovery(sb);
+ 		ext4_commit_super(sb, 1);
+ 	}
+@@ -4798,7 +4795,7 @@ int ext4_force_commit(struct super_block *sb)
+ {
+ 	journal_t *journal;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	journal = EXT4_SB(sb)->s_journal;
+@@ -4863,7 +4860,7 @@ static int ext4_freeze(struct super_block *sb)
+ 	int error = 0;
+ 	journal_t *journal;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	journal = EXT4_SB(sb)->s_journal;
+@@ -4898,7 +4895,7 @@ static int ext4_freeze(struct super_block *sb)
+  */
+ static int ext4_unfreeze(struct super_block *sb)
+ {
+-	if ((sb->s_flags & MS_RDONLY) || ext4_forced_shutdown(EXT4_SB(sb)))
++	if (sb_rdonly(sb) || ext4_forced_shutdown(EXT4_SB(sb)))
+ 		return 0;
+ 
+ 	if (EXT4_SB(sb)->s_journal) {
+@@ -5036,7 +5033,7 @@ static int ext4_remount(struct super_block *sb, int *flags, char *data)
+ 	if (*flags & MS_LAZYTIME)
+ 		sb->s_flags |= MS_LAZYTIME;
+ 
+-	if ((*flags & MS_RDONLY) != (sb->s_flags & MS_RDONLY)) {
++	if ((bool)(*flags & MS_RDONLY) != sb_rdonly(sb)) {
+ 		if (sbi->s_mount_flags & EXT4_MF_FS_ABORTED) {
+ 			err = -EROFS;
+ 			goto restore_opts;
+@@ -5131,7 +5128,7 @@ static int ext4_remount(struct super_block *sb, int *flags, char *data)
+ 	 * Reinitialize lazy itable initialization thread based on
+ 	 * current settings
+ 	 */
+-	if ((sb->s_flags & MS_RDONLY) || !test_opt(sb, INIT_INODE_TABLE))
++	if (sb_rdonly(sb) || !test_opt(sb, INIT_INODE_TABLE))
+ 		ext4_unregister_li_request(sb);
+ 	else {
+ 		ext4_group_t first_not_zeroed;
+@@ -5703,7 +5700,7 @@ static inline int ext2_feature_set_ok(struct super_block *sb)
+ {
+ 	if (ext4_has_unknown_ext2_incompat_features(sb))
+ 		return 0;
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 1;
+ 	if (ext4_has_unknown_ext2_ro_compat_features(sb))
+ 		return 0;
+@@ -5734,7 +5731,7 @@ static inline int ext3_feature_set_ok(struct super_block *sb)
+ 		return 0;
+ 	if (!ext4_has_feature_journal(sb))
+ 		return 0;
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 1;
+ 	if (ext4_has_unknown_ext3_ro_compat_features(sb))
+ 		return 0;
+diff --git a/fs/fat/fatent.c b/fs/fat/fatent.c
+index 1d9a8c4e9de0..48b2336692f9 100644
+--- a/fs/fat/fatent.c
++++ b/fs/fat/fatent.c
+@@ -309,7 +309,7 @@ static void mark_fsinfo_dirty(struct super_block *sb)
+ {
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 
+-	if (sb->s_flags & MS_RDONLY || sbi->fat_bits != 32)
++	if (sb_rdonly(sb) || sbi->fat_bits != 32)
+ 		return;
+ 
+ 	__mark_inode_dirty(sbi->fsinfo_inode, I_DIRTY_SYNC);
+diff --git a/fs/fat/inode.c b/fs/fat/inode.c
+index a2c05f2ada6d..30c52394a7ad 100644
+--- a/fs/fat/inode.c
++++ b/fs/fat/inode.c
+@@ -657,7 +657,7 @@ static void fat_set_state(struct super_block *sb,
+ 	struct msdos_sb_info *sbi = MSDOS_SB(sb);
+ 
+ 	/* do not change any thing if mounted read only */
+-	if ((sb->s_flags & MS_RDONLY) && !force)
++	if (sb_rdonly(sb) && !force)
+ 		return;
+ 
+ 	/* do not change state if fs was dirty */
+@@ -787,7 +787,7 @@ static int fat_remount(struct super_block *sb, int *flags, char *data)
+ 
+ 	/* make sure we update state on remount. */
+ 	new_rdonly = *flags & MS_RDONLY;
+-	if (new_rdonly != (sb->s_flags & MS_RDONLY)) {
++	if (new_rdonly != sb_rdonly(sb)) {
+ 		if (new_rdonly)
+ 			fat_set_state(sb, 0, 0);
+ 		else
+diff --git a/fs/fat/misc.c b/fs/fat/misc.c
+index 8a8698119ff7..acc3aa30ee54 100644
+--- a/fs/fat/misc.c
++++ b/fs/fat/misc.c
+@@ -32,7 +32,7 @@ void __fat_fs_error(struct super_block *sb, int report, const char *fmt, ...)
+ 
+ 	if (opts->errors == FAT_ERRORS_PANIC)
+ 		panic("FAT-fs (%s): fs panic from previous error\n", sb->s_id);
+-	else if (opts->errors == FAT_ERRORS_RO && !(sb->s_flags & MS_RDONLY)) {
++	else if (opts->errors == FAT_ERRORS_RO && !sb_rdonly(sb)) {
+ 		sb->s_flags |= MS_RDONLY;
+ 		fat_msg(sb, KERN_ERR, "Filesystem has been set read-only");
+ 	}
+diff --git a/fs/gfs2/glops.c b/fs/gfs2/glops.c
+index 5e69636d4dd3..eb3ed24d85ee 100644
+--- a/fs/gfs2/glops.c
++++ b/fs/gfs2/glops.c
+@@ -580,7 +580,7 @@ static void iopen_go_callback(struct gfs2_glock *gl, bool remote)
+ 	struct gfs2_inode *ip = gl->gl_object;
+ 	struct gfs2_sbd *sdp = gl->gl_name.ln_sbd;
+ 
+-	if (!remote || (sdp->sd_vfs->s_flags & MS_RDONLY))
++	if (!remote || sb_rdonly(sdp->sd_vfs))
+ 		return;
+ 
+ 	if (gl->gl_demote_state == LM_ST_UNLOCKED &&
+diff --git a/fs/gfs2/ops_fstype.c b/fs/gfs2/ops_fstype.c
+index e76058d34b74..49db6d0eb7c0 100644
+--- a/fs/gfs2/ops_fstype.c
++++ b/fs/gfs2/ops_fstype.c
+@@ -1037,7 +1037,7 @@ void gfs2_online_uevent(struct gfs2_sbd *sdp)
+ 	char ro[20];
+ 	char spectator[20];
+ 	char *envp[] = { ro, spectator, NULL };
+-	sprintf(ro, "RDONLY=%d", (sb->s_flags & MS_RDONLY) ? 1 : 0);
++	sprintf(ro, "RDONLY=%d", sb_rdonly(sb));
+ 	sprintf(spectator, "SPECTATOR=%d", sdp->sd_args.ar_spectator ? 1 : 0);
+ 	kobject_uevent_env(&sdp->sd_kobj, KOBJ_ONLINE, envp);
+ }
+@@ -1179,7 +1179,7 @@ static int fill_super(struct super_block *sb, struct gfs2_args *args, int silent
+ 		goto fail_per_node;
+ 	}
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		error = gfs2_make_fs_rw(sdp);
+ 		if (error) {
+ 			fs_err(sdp, "can't make FS RW: %d\n", error);
+diff --git a/fs/gfs2/quota.c b/fs/gfs2/quota.c
+index c2ca9566b764..2d815b0fc8e8 100644
+--- a/fs/gfs2/quota.c
++++ b/fs/gfs2/quota.c
+@@ -452,7 +452,7 @@ static int qd_fish(struct gfs2_sbd *sdp, struct gfs2_quota_data **qdp)
+ 
+ 	*qdp = NULL;
+ 
+-	if (sdp->sd_vfs->s_flags & MS_RDONLY)
++	if (sb_rdonly(sdp->sd_vfs))
+ 		return 0;
+ 
+ 	spin_lock(&qd_lock);
+diff --git a/fs/gfs2/recovery.c b/fs/gfs2/recovery.c
+index 113b6095a58d..9395a3db1a60 100644
+--- a/fs/gfs2/recovery.c
++++ b/fs/gfs2/recovery.c
+@@ -522,7 +522,7 @@ void gfs2_recover_func(struct work_struct *work)
+ 			if (!test_bit(SDF_JOURNAL_LIVE, &sdp->sd_flags))
+ 				ro = 1;
+ 		} else {
+-			if (sdp->sd_vfs->s_flags & MS_RDONLY) {
++			if (sb_rdonly(sdp->sd_vfs)) {
+ 				/* check if device itself is read-only */
+ 				ro = bdev_read_only(sdp->sd_vfs->s_bdev);
+ 				if (!ro) {
+diff --git a/fs/gfs2/super.c b/fs/gfs2/super.c
+index fdedec379b78..51bf287080b4 100644
+--- a/fs/gfs2/super.c
++++ b/fs/gfs2/super.c
+@@ -893,7 +893,7 @@ static void gfs2_put_super(struct super_block *sb)
+ 	}
+ 	spin_unlock(&sdp->sd_jindex_spin);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		error = gfs2_make_fs_ro(sdp);
+ 		if (error)
+ 			gfs2_io_error(sdp);
+@@ -1535,7 +1535,7 @@ static void gfs2_evict_inode(struct inode *inode)
+ 		return;
+ 	}
+ 
+-	if (inode->i_nlink || (sb->s_flags & MS_RDONLY))
++	if (inode->i_nlink || sb_rdonly(sb))
+ 		goto out;
+ 
+ 	if (test_bit(GIF_ALLOC_FAILED, &ip->i_flags)) {
+diff --git a/fs/gfs2/sys.c b/fs/gfs2/sys.c
+index ca1f97ff898c..9eb9d0a1abd9 100644
+--- a/fs/gfs2/sys.c
++++ b/fs/gfs2/sys.c
+@@ -645,7 +645,7 @@ int gfs2_sys_fs_add(struct gfs2_sbd *sdp)
+ 	char *envp[] = { ro, spectator, NULL };
+ 	int sysfs_frees_sdp = 0;
+ 
+-	sprintf(ro, "RDONLY=%d", (sb->s_flags & MS_RDONLY) ? 1 : 0);
++	sprintf(ro, "RDONLY=%d", sb_rdonly(sb));
+ 	sprintf(spectator, "SPECTATOR=%d", sdp->sd_args.ar_spectator ? 1 : 0);
+ 
+ 	sdp->sd_kobj.kset = gfs2_kset;
+diff --git a/fs/hfs/mdb.c b/fs/hfs/mdb.c
+index 482081bcdf70..894994d2c885 100644
+--- a/fs/hfs/mdb.c
++++ b/fs/hfs/mdb.c
+@@ -210,7 +210,7 @@ int hfs_mdb_get(struct super_block *sb)
+ 		pr_warn("filesystem is marked locked, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		/* Mark the volume uncleanly unmounted in case we crash */
+ 		attrib &= cpu_to_be16(~HFS_SB_ATTRIB_UNMNT);
+ 		attrib |= cpu_to_be16(HFS_SB_ATTRIB_INCNSTNT);
+@@ -259,7 +259,7 @@ void hfs_mdb_commit(struct super_block *sb)
+ {
+ 	struct hfs_mdb *mdb = HFS_SB(sb)->mdb;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	lock_buffer(HFS_SB(sb)->mdb_bh);
+@@ -334,7 +334,7 @@ void hfs_mdb_commit(struct super_block *sb)
+ void hfs_mdb_close(struct super_block *sb)
+ {
+ 	/* update volume attributes */
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 	HFS_SB(sb)->mdb->drAtrb |= cpu_to_be16(HFS_SB_ATTRIB_UNMNT);
+ 	HFS_SB(sb)->mdb->drAtrb &= cpu_to_be16(~HFS_SB_ATTRIB_INCNSTNT);
+diff --git a/fs/hfs/super.c b/fs/hfs/super.c
+index bf6304a350a6..7e0d65e9586c 100644
+--- a/fs/hfs/super.c
++++ b/fs/hfs/super.c
+@@ -71,7 +71,7 @@ void hfs_mark_mdb_dirty(struct super_block *sb)
+ 	struct hfs_sb_info *sbi = HFS_SB(sb);
+ 	unsigned long delay;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	spin_lock(&sbi->work_lock);
+@@ -115,7 +115,7 @@ static int hfs_remount(struct super_block *sb, int *flags, char *data)
+ {
+ 	sync_filesystem(sb);
+ 	*flags |= MS_NODIRATIME;
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		return 0;
+ 	if (!(*flags & MS_RDONLY)) {
+ 		if (!(HFS_SB(sb)->mdb->drAtrb & cpu_to_be16(HFS_SB_ATTRIB_UNMNT))) {
+diff --git a/fs/hfsplus/super.c b/fs/hfsplus/super.c
+index 67aedf4c2e7c..e5bb2de2262a 100644
+--- a/fs/hfsplus/super.c
++++ b/fs/hfsplus/super.c
+@@ -264,7 +264,7 @@ void hfsplus_mark_mdb_dirty(struct super_block *sb)
+ 	struct hfsplus_sb_info *sbi = HFSPLUS_SB(sb);
+ 	unsigned long delay;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	spin_lock(&sbi->work_lock);
+@@ -284,7 +284,7 @@ static void hfsplus_put_super(struct super_block *sb)
+ 
+ 	cancel_delayed_work_sync(&sbi->sync_work);
+ 
+-	if (!(sb->s_flags & MS_RDONLY) && sbi->s_vhdr) {
++	if (!sb_rdonly(sb) && sbi->s_vhdr) {
+ 		struct hfsplus_vh *vhdr = sbi->s_vhdr;
+ 
+ 		vhdr->modify_date = hfsp_now2mt();
+@@ -329,7 +329,7 @@ static int hfsplus_statfs(struct dentry *dentry, struct kstatfs *buf)
+ static int hfsplus_remount(struct super_block *sb, int *flags, char *data)
+ {
+ 	sync_filesystem(sb);
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		return 0;
+ 	if (!(*flags & MS_RDONLY)) {
+ 		struct hfsplus_vh *vhdr = HFSPLUS_SB(sb)->s_vhdr;
+@@ -462,7 +462,7 @@ static int hfsplus_fill_super(struct super_block *sb, void *data, int silent)
+ 		pr_warn("Filesystem is marked locked, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	} else if ((vhdr->attributes & cpu_to_be32(HFSPLUS_VOL_JOURNALED)) &&
+-			!(sb->s_flags & MS_RDONLY)) {
++			!sb_rdonly(sb)) {
+ 		pr_warn("write access to a journaled filesystem is not supported, use the force option at your own risk, mounting read-only.\n");
+ 		sb->s_flags |= MS_RDONLY;
+ 	}
+@@ -535,7 +535,7 @@ static int hfsplus_fill_super(struct super_block *sb, void *data, int silent)
+ 	} else
+ 		hfs_find_exit(&fd);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		/*
+ 		 * H+LX == hfsplusutils, H+Lx == this driver, H+lx is unused
+ 		 * all three are registered with Apple for our use
+diff --git a/fs/hpfs/alloc.c b/fs/hpfs/alloc.c
+index d6a4b55d2ab0..098bf0f4f386 100644
+--- a/fs/hpfs/alloc.c
++++ b/fs/hpfs/alloc.c
+@@ -538,7 +538,7 @@ int hpfs_trim_fs(struct super_block *s, u64 start, u64 end, u64 minlen, unsigned
+ 		return 0;
+ 	if (start < sbi->sb_dirband_start + sbi->sb_dirband_size && end > sbi->sb_dirband_start) {
+ 		hpfs_lock(s);
+-		if (s->s_flags & MS_RDONLY) {
++		if (sb_rdonly(s)) {
+ 			err = -EROFS;
+ 			goto unlock_1;
+ 		}
+@@ -559,7 +559,7 @@ int hpfs_trim_fs(struct super_block *s, u64 start, u64 end, u64 minlen, unsigned
+ 	end_bmp = (end + 0x3fff) >> 14;
+ 	while (start_bmp < end_bmp && !err) {
+ 		hpfs_lock(s);
+-		if (s->s_flags & MS_RDONLY) {
++		if (sb_rdonly(s)) {
+ 			err = -EROFS;
+ 			goto unlock_2;
+ 		}
+diff --git a/fs/hpfs/dir.c b/fs/hpfs/dir.c
+index 7b9150c2e75c..fa6bbb4f509f 100644
+--- a/fs/hpfs/dir.c
++++ b/fs/hpfs/dir.c
+@@ -264,7 +264,7 @@ struct dentry *hpfs_lookup(struct inode *dir, struct dentry *dentry, unsigned in
+ 	hpfs_result = hpfs_i(result);
+ 	if (!de->directory) hpfs_result->i_parent_dir = dir->i_ino;
+ 
+-	if (de->has_acl || de->has_xtd_perm) if (!(dir->i_sb->s_flags & MS_RDONLY)) {
++	if (de->has_acl || de->has_xtd_perm) if (!sb_rdonly(dir->i_sb)) {
+ 		hpfs_error(result->i_sb, "ACLs or XPERM found. This is probably HPFS386. This driver doesn't support it now. Send me some info on these structures");
+ 		goto bail1;
+ 	}
+diff --git a/fs/hpfs/super.c b/fs/hpfs/super.c
+index 82067ca22f2b..1516fb4e28f4 100644
+--- a/fs/hpfs/super.c
++++ b/fs/hpfs/super.c
+@@ -21,7 +21,7 @@
+ 
+ static void mark_dirty(struct super_block *s, int remount)
+ {
+-	if (hpfs_sb(s)->sb_chkdsk && (remount || !(s->s_flags & MS_RDONLY))) {
++	if (hpfs_sb(s)->sb_chkdsk && (remount || !sb_rdonly(s))) {
+ 		struct buffer_head *bh;
+ 		struct hpfs_spare_block *sb;
+ 		if ((sb = hpfs_map_sector(s, 17, &bh, 0))) {
+@@ -41,7 +41,7 @@ static void unmark_dirty(struct super_block *s)
+ {
+ 	struct buffer_head *bh;
+ 	struct hpfs_spare_block *sb;
+-	if (s->s_flags & MS_RDONLY) return;
++	if (sb_rdonly(s)) return;
+ 	sync_blockdev(s->s_bdev);
+ 	if ((sb = hpfs_map_sector(s, 17, &bh, 0))) {
+ 		sb->dirty = hpfs_sb(s)->sb_chkdsk > 1 - hpfs_sb(s)->sb_was_error;
+@@ -73,14 +73,14 @@ void hpfs_error(struct super_block *s, const char *fmt, ...)
+ 			mark_dirty(s, 0);
+ 			panic("HPFS panic");
+ 		} else if (hpfs_sb(s)->sb_err == 1) {
+-			if (s->s_flags & MS_RDONLY)
++			if (sb_rdonly(s))
+ 				pr_cont("; already mounted read-only\n");
+ 			else {
+ 				pr_cont("; remounting read-only\n");
+ 				mark_dirty(s, 0);
+ 				s->s_flags |= MS_RDONLY;
+ 			}
+-		} else if (s->s_flags & MS_RDONLY)
++		} else if (sb_rdonly(s))
+ 				pr_cont("; going on - but anything won't be destroyed because it's read-only\n");
+ 		else
+ 			pr_cont("; corrupted filesystem mounted read/write - your computer will explode within 20 seconds ... but you wanted it so!\n");
+@@ -607,8 +607,7 @@ static int hpfs_fill_super(struct super_block *s, void *options, int silent)
+ 	}
+ 
+ 	/* Check version */
+-	if (!(s->s_flags & MS_RDONLY) &&
+-	      superblock->funcversion != 2 && superblock->funcversion != 3) {
++	if (!sb_rdonly(s) && superblock->funcversion != 2 && superblock->funcversion != 3) {
+ 		pr_err("Bad version %d,%d. Mount readonly to go around\n",
+ 			(int)superblock->version, (int)superblock->funcversion);
+ 		pr_err("please try recent version of HPFS driver at http://artax.karlin.mff.cuni.cz/~mikulas/vyplody/hpfs/index-e.cgi and if it still can't understand this format, contact author - mikulas@artax.karlin.mff.cuni.cz\n");
+@@ -666,7 +665,7 @@ static int hpfs_fill_super(struct super_block *s, void *options, int silent)
+ 		hpfs_error(s, "improperly stopped");
+ 	}
+ 
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 		spareblock->dirty = 1;
+ 		spareblock->old_wrote = 0;
+ 		mark_buffer_dirty(bh2);
+diff --git a/fs/isofs/inode.c b/fs/isofs/inode.c
+index 8cf898a59730..2f6239c7073a 100644
+--- a/fs/isofs/inode.c
++++ b/fs/isofs/inode.c
+@@ -733,7 +733,7 @@ static int isofs_fill_super(struct super_block *s, void *data, int silent)
+ 
+ root_found:
+ 	/* We don't support read-write mounts */
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 		error = -EACCES;
+ 		goto out_freebh;
+ 	}
+diff --git a/fs/jffs2/fs.c b/fs/jffs2/fs.c
+index 76fa814df3d1..e96c6b05e43e 100644
+--- a/fs/jffs2/fs.c
++++ b/fs/jffs2/fs.c
+@@ -395,14 +395,14 @@ int jffs2_do_remount_fs(struct super_block *sb, int *flags, char *data)
+ {
+ 	struct jffs2_sb_info *c = JFFS2_SB_INFO(sb);
+ 
+-	if (c->flags & JFFS2_SB_FLAG_RO && !(sb->s_flags & MS_RDONLY))
++	if (c->flags & JFFS2_SB_FLAG_RO && !sb_rdonly(sb))
+ 		return -EROFS;
+ 
+ 	/* We stop if it was running, then restart if it needs to.
+ 	   This also catches the case where it was stopped and this
+ 	   is just a remount to restart it.
+ 	   Flush the writebuffer, if neccecary, else we loose it */
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		jffs2_stop_garbage_collect_thread(c);
+ 		mutex_lock(&c->alloc_sem);
+ 		jffs2_flush_wbuf_pad(c);
+@@ -590,7 +590,7 @@ int jffs2_do_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_blocksize = PAGE_SIZE;
+ 	sb->s_blocksize_bits = PAGE_SHIFT;
+ 	sb->s_magic = JFFS2_SUPER_MAGIC;
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		jffs2_start_garbage_collect_thread(c);
+ 	return 0;
+ 
+diff --git a/fs/jffs2/super.c b/fs/jffs2/super.c
+index 5ef21f4c4c77..153f1c6eb169 100644
+--- a/fs/jffs2/super.c
++++ b/fs/jffs2/super.c
+@@ -342,7 +342,7 @@ static void jffs2_put_super (struct super_block *sb)
+ static void jffs2_kill_sb(struct super_block *sb)
+ {
+ 	struct jffs2_sb_info *c = JFFS2_SB_INFO(sb);
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		jffs2_stop_garbage_collect_thread(c);
+ 	kill_mtd_super(sb);
+ 	kfree(c);
+diff --git a/fs/jffs2/wbuf.c b/fs/jffs2/wbuf.c
+index b25d28a21212..707cbe72e115 100644
+--- a/fs/jffs2/wbuf.c
++++ b/fs/jffs2/wbuf.c
+@@ -1162,7 +1162,7 @@ static void delayed_wbuf_sync(struct work_struct *work)
+ 	struct jffs2_sb_info *c = work_to_sb(work);
+ 	struct super_block *sb = OFNI_BS_2SFFJ(c);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		jffs2_dbg(1, "%s()\n", __func__);
+ 		jffs2_flush_wbuf_gc(c, 0);
+ 	}
+@@ -1173,7 +1173,7 @@ void jffs2_dirty_trigger(struct jffs2_sb_info *c)
+ 	struct super_block *sb = OFNI_BS_2SFFJ(c);
+ 	unsigned long delay;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	delay = msecs_to_jiffies(dirty_writeback_interval * 10);
+diff --git a/fs/jfs/jfs_mount.c b/fs/jfs/jfs_mount.c
+index 9895595fd2f2..d8658607bf46 100644
+--- a/fs/jfs/jfs_mount.c
++++ b/fs/jfs/jfs_mount.c
+@@ -362,7 +362,7 @@ static int chkSuper(struct super_block *sb)
+ 
+ 	/* validate fs state */
+ 	if (j_sb->s_state != cpu_to_le32(FM_CLEAN) &&
+-	    !(sb->s_flags & MS_RDONLY)) {
++	    !sb_rdonly(sb)) {
+ 		jfs_err("jfs_mount: Mount Failure: File System Dirty.");
+ 		rc = -EINVAL;
+ 		goto out;
+diff --git a/fs/jfs/super.c b/fs/jfs/super.c
+index e8aad7d87b8c..8612a7db2a04 100644
+--- a/fs/jfs/super.c
++++ b/fs/jfs/super.c
+@@ -76,7 +76,7 @@ static void jfs_handle_error(struct super_block *sb)
+ {
+ 	struct jfs_sb_info *sbi = JFS_SBI(sb);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	updateSuper(sb, FM_DIRTY);
+@@ -468,7 +468,7 @@ static int jfs_remount(struct super_block *sb, int *flags, char *data)
+ 		return -EINVAL;
+ 
+ 	if (newLVSize) {
+-		if (sb->s_flags & MS_RDONLY) {
++		if (sb_rdonly(sb)) {
+ 			pr_err("JFS: resize requires volume to be mounted read-write\n");
+ 			return -EROFS;
+ 		}
+@@ -477,7 +477,7 @@ static int jfs_remount(struct super_block *sb, int *flags, char *data)
+ 			return rc;
+ 	}
+ 
+-	if ((sb->s_flags & MS_RDONLY) && !(*flags & MS_RDONLY)) {
++	if (sb_rdonly(sb) && !(*flags & MS_RDONLY)) {
+ 		/*
+ 		 * Invalidate any previously read metadata.  fsck may have
+ 		 * changed the on-disk data since we mounted r/o
+@@ -493,7 +493,7 @@ static int jfs_remount(struct super_block *sb, int *flags, char *data)
+ 		dquot_resume(sb, -1);
+ 		return ret;
+ 	}
+-	if ((!(sb->s_flags & MS_RDONLY)) && (*flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb) && (*flags & MS_RDONLY)) {
+ 		rc = dquot_suspend(sb, -1);
+ 		if (rc < 0)
+ 			return rc;
+@@ -502,7 +502,7 @@ static int jfs_remount(struct super_block *sb, int *flags, char *data)
+ 		return rc;
+ 	}
+ 	if ((JFS_SBI(sb)->flag & JFS_NOINTEGRITY) != (flag & JFS_NOINTEGRITY))
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			rc = jfs_umount_rw(sb);
+ 			if (rc)
+ 				return rc;
+@@ -592,7 +592,7 @@ static int jfs_fill_super(struct super_block *sb, void *data, int silent)
+ 			jfs_err("jfs_mount failed w/return code = %d", rc);
+ 		goto out_mount_failed;
+ 	}
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		sbi->log = NULL;
+ 	else {
+ 		rc = jfs_mount_rw(sb, 0);
+@@ -658,7 +658,7 @@ static int jfs_freeze(struct super_block *sb)
+ 	struct jfs_log *log = sbi->log;
+ 	int rc = 0;
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		txQuiesce(sb);
+ 		rc = lmLogShutdown(log);
+ 		if (rc) {
+@@ -688,7 +688,7 @@ static int jfs_unfreeze(struct super_block *sb)
+ 	struct jfs_log *log = sbi->log;
+ 	int rc = 0;
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		rc = updateSuper(sb, FM_MOUNT);
+ 		if (rc) {
+ 			jfs_error(sb, "updateSuper failed\n");
+diff --git a/fs/minix/inode.c b/fs/minix/inode.c
+index 6ac76b0434e9..b6829d679643 100644
+--- a/fs/minix/inode.c
++++ b/fs/minix/inode.c
+@@ -42,7 +42,7 @@ static void minix_put_super(struct super_block *sb)
+ 	int i;
+ 	struct minix_sb_info *sbi = minix_sb(sb);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		if (sbi->s_version != MINIX_V3)	 /* s_state is now out from V3 sb */
+ 			sbi->s_ms->s_state = sbi->s_mount_state;
+ 		mark_buffer_dirty(sbi->s_sbh);
+@@ -125,7 +125,7 @@ static int minix_remount (struct super_block * sb, int * flags, char * data)
+ 
+ 	sync_filesystem(sb);
+ 	ms = sbi->s_ms;
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		return 0;
+ 	if (*flags & MS_RDONLY) {
+ 		if (ms->s_state & MINIX_VALID_FS ||
+@@ -293,7 +293,7 @@ static int minix_fill_super(struct super_block *s, void *data, int silent)
+ 	if (!s->s_root)
+ 		goto out_no_root;
+ 
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 		if (sbi->s_version != MINIX_V3) /* s_state is now out from V3 sb */
+ 			ms->s_state &= ~MINIX_VALID_FS;
+ 		mark_buffer_dirty(bh);
+diff --git a/fs/namei.c b/fs/namei.c
+index 88fd38d1e3e7..bf03a62e1f5d 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -447,8 +447,7 @@ static int sb_permission(struct super_block *sb, struct inode *inode, int mask)
+ 		umode_t mode = inode->i_mode;
+ 
+ 		/* Nobody gets write access to a read-only fs. */
+-		if ((sb->s_flags & MS_RDONLY) &&
+-		    (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
++		if (sb_rdonly(sb) && (S_ISREG(mode) || S_ISDIR(mode) || S_ISLNK(mode)))
+ 			return -EROFS;
+ 	}
+ 	return 0;
+diff --git a/fs/namespace.c b/fs/namespace.c
+index f8893dc6a989..e42c9abfeaa8 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -275,7 +275,7 @@ int __mnt_is_readonly(struct vfsmount *mnt)
+ {
+ 	if (mnt->mnt_flags & MNT_READONLY)
+ 		return 1;
+-	if (mnt->mnt_sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(mnt->mnt_sb))
+ 		return 1;
+ 	return 0;
+ }
+@@ -1534,7 +1534,7 @@ static int do_umount(struct mount *mnt, int flags)
+ 		if (!capable(CAP_SYS_ADMIN))
+ 			return -EPERM;
+ 		down_write(&sb->s_umount);
+-		if (!(sb->s_flags & MS_RDONLY))
++		if (!sb_rdonly(sb))
+ 			retval = do_remount_sb(sb, MS_RDONLY, NULL, 0);
+ 		up_write(&sb->s_umount);
+ 		return retval;
+@@ -3300,7 +3300,7 @@ static bool mnt_already_visible(struct mnt_namespace *ns, struct vfsmount *new,
+ 		mnt_flags = mnt->mnt.mnt_flags;
+ 
+ 		/* Don't miss readonly hidden in the superblock flags */
+-		if (mnt->mnt.mnt_sb->s_flags & MS_RDONLY)
++		if (sb_rdonly(mnt->mnt.mnt_sb))
+ 			mnt_flags |= MNT_LOCK_READONLY;
+ 
+ 		/* Verify the mount flags are equal to or more permissive
+diff --git a/fs/nfs/super.c b/fs/nfs/super.c
+index d828ef88e7db..65d247a68b07 100644
+--- a/fs/nfs/super.c
++++ b/fs/nfs/super.c
+@@ -812,7 +812,7 @@ int nfs_show_stats(struct seq_file *m, struct dentry *root)
+ 	 * Display all mount option settings
+ 	 */
+ 	seq_printf(m, "\n\topts:\t");
+-	seq_puts(m, root->d_sb->s_flags & MS_RDONLY ? "ro" : "rw");
++	seq_puts(m, sb_rdonly(root->d_sb) ? "ro" : "rw");
+ 	seq_puts(m, root->d_sb->s_flags & MS_SYNCHRONOUS ? ",sync" : "");
+ 	seq_puts(m, root->d_sb->s_flags & MS_NOATIME ? ",noatime" : "");
+ 	seq_puts(m, root->d_sb->s_flags & MS_NODIRATIME ? ",nodiratime" : "");
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index 7ffe71a8dfb9..6a612d832e7d 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -174,7 +174,7 @@ static int nilfs_writepages(struct address_space *mapping,
+ 	struct inode *inode = mapping->host;
+ 	int err = 0;
+ 
+-	if (inode->i_sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(inode->i_sb)) {
+ 		nilfs_clear_dirty_pages(mapping, false);
+ 		return -EROFS;
+ 	}
+@@ -191,7 +191,7 @@ static int nilfs_writepage(struct page *page, struct writeback_control *wbc)
+ 	struct inode *inode = page->mapping->host;
+ 	int err;
+ 
+-	if (inode->i_sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(inode->i_sb)) {
+ 		/*
+ 		 * It means that filesystem was remounted in read-only
+ 		 * mode because of error or metadata corruption. But we
+diff --git a/fs/nilfs2/mdt.c b/fs/nilfs2/mdt.c
+index 98835ed6bef4..c6bc1033e7d2 100644
+--- a/fs/nilfs2/mdt.c
++++ b/fs/nilfs2/mdt.c
+@@ -413,7 +413,7 @@ nilfs_mdt_write_page(struct page *page, struct writeback_control *wbc)
+ 	struct super_block *sb;
+ 	int err = 0;
+ 
+-	if (inode && (inode->i_sb->s_flags & MS_RDONLY)) {
++	if (inode && sb_rdonly(inode->i_sb)) {
+ 		/*
+ 		 * It means that filesystem was remounted in read-only
+ 		 * mode because of error or metadata corruption. But we
+diff --git a/fs/nilfs2/super.c b/fs/nilfs2/super.c
+index 926682981d61..4fc018dfcfae 100644
+--- a/fs/nilfs2/super.c
++++ b/fs/nilfs2/super.c
+@@ -136,7 +136,7 @@ void __nilfs_error(struct super_block *sb, const char *function,
+ 
+ 	va_end(args);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		nilfs_set_error(sb);
+ 
+ 		if (nilfs_test_opt(nilfs, ERRORS_RO)) {
+@@ -478,7 +478,7 @@ static void nilfs_put_super(struct super_block *sb)
+ 
+ 	nilfs_detach_log_writer(sb);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		down_write(&nilfs->ns_sem);
+ 		nilfs_cleanup_super(sb);
+ 		up_write(&nilfs->ns_sem);
+@@ -578,7 +578,7 @@ static int nilfs_freeze(struct super_block *sb)
+ 	struct the_nilfs *nilfs = sb->s_fs_info;
+ 	int err;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	/* Mark super block clean */
+@@ -592,7 +592,7 @@ static int nilfs_unfreeze(struct super_block *sb)
+ {
+ 	struct the_nilfs *nilfs = sb->s_fs_info;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	down_write(&nilfs->ns_sem);
+@@ -898,7 +898,7 @@ int nilfs_check_feature_compatibility(struct super_block *sb,
+ 	}
+ 	features = le64_to_cpu(sbp->s_feature_compat_ro) &
+ 		~NILFS_FEATURE_COMPAT_RO_SUPP;
+-	if (!(sb->s_flags & MS_RDONLY) && features) {
++	if (!sb_rdonly(sb) && features) {
+ 		nilfs_msg(sb, KERN_ERR,
+ 			  "couldn't mount RDWR because of unsupported optional features (%llx)",
+ 			  (unsigned long long)features);
+@@ -1083,7 +1083,7 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto failed_unload;
+ 	}
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		err = nilfs_attach_log_writer(sb, fsroot);
+ 		if (err)
+ 			goto failed_checkpoint;
+@@ -1095,7 +1095,7 @@ nilfs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	nilfs_put_root(fsroot);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		down_write(&nilfs->ns_sem);
+ 		nilfs_setup_super(sb, true);
+ 		up_write(&nilfs->ns_sem);
+@@ -1144,7 +1144,7 @@ static int nilfs_remount(struct super_block *sb, int *flags, char *data)
+ 		goto restore_opts;
+ 	}
+ 
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		goto out;
+ 	if (*flags & MS_RDONLY) {
+ 		/* Shutting down log writer */
+@@ -1338,8 +1338,7 @@ nilfs_mount(struct file_system_type *fs_type, int flags,
+ 			if ((flags ^ s->s_flags) & MS_RDONLY) {
+ 				nilfs_msg(s, KERN_ERR,
+ 					  "the device already has a %s mount.",
+-					  (s->s_flags & MS_RDONLY) ?
+-					  "read-only" : "read/write");
++					  sb_rdonly(s) ? "read-only" : "read/write");
+ 				err = -EBUSY;
+ 				goto failed_super;
+ 			}
+diff --git a/fs/ntfs/super.c b/fs/ntfs/super.c
+index ecb49870a680..3f70f041dbe9 100644
+--- a/fs/ntfs/super.c
++++ b/fs/ntfs/super.c
+@@ -487,7 +487,7 @@ static int ntfs_remount(struct super_block *sb, int *flags, char *opt)
+ 	 * When remounting read-only, mark the volume clean if no volume errors
+ 	 * have occurred.
+ 	 */
+-	if ((sb->s_flags & MS_RDONLY) && !(*flags & MS_RDONLY)) {
++	if (sb_rdonly(sb) && !(*flags & MS_RDONLY)) {
+ 		static const char *es = ".  Cannot remount read-write.";
+ 
+ 		/* Remounting read-write. */
+@@ -548,7 +548,7 @@ static int ntfs_remount(struct super_block *sb, int *flags, char *opt)
+ 			NVolSetErrors(vol);
+ 			return -EROFS;
+ 		}
+-	} else if (!(sb->s_flags & MS_RDONLY) && (*flags & MS_RDONLY)) {
++	} else if (!sb_rdonly(sb) && (*flags & MS_RDONLY)) {
+ 		/* Remounting read-only. */
+ 		if (!NVolErrors(vol)) {
+ 			if (ntfs_clear_volume_flags(vol, VOLUME_IS_DIRTY))
+@@ -732,7 +732,7 @@ static struct buffer_head *read_ntfs_boot_sector(struct super_block *sb,
+ 		 * on a large sector device contains the whole boot loader or
+ 		 * just the first 512 bytes).
+ 		 */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			ntfs_warning(sb, "Hot-fix: Recovering invalid primary "
+ 					"boot sector from backup copy.");
+ 			memcpy(bh_primary->b_data, bh_backup->b_data,
+@@ -1789,7 +1789,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		static const char *es3 = ".  Run ntfsfix and/or chkdsk.";
+ 
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -1928,7 +1928,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 					(unsigned)le16_to_cpu(vol->vol_flags));
+ 		}
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -1961,7 +1961,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 
+ 		es1 = !vol->logfile_ino ? es1a : es1b;
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -2010,7 +2010,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 
+ 		es1 = err < 0 ? es1a : es1b;
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -2028,8 +2028,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		NVolSetErrors(vol);
+ 	}
+ 	/* If (still) a read-write mount, mark the volume dirty. */
+-	if (!(sb->s_flags & MS_RDONLY) &&
+-			ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY)) {
++	if (!sb_rdonly(sb) && ntfs_set_volume_flags(vol, VOLUME_IS_DIRTY)) {
+ 		static const char *es1 = "Failed to set dirty bit in volume "
+ 				"information flags";
+ 		static const char *es2 = ".  Run chkdsk.";
+@@ -2075,8 +2074,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 	}
+ #endif
+ 	/* If (still) a read-write mount, empty the logfile. */
+-	if (!(sb->s_flags & MS_RDONLY) &&
+-			!ntfs_empty_logfile(vol->logfile_ino)) {
++	if (!sb_rdonly(sb) && !ntfs_empty_logfile(vol->logfile_ino)) {
+ 		static const char *es1 = "Failed to empty $LogFile";
+ 		static const char *es2 = ".  Mount in Windows.";
+ 
+@@ -2121,7 +2119,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		static const char *es2 = ".  Run chkdsk.";
+ 
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -2139,8 +2137,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		NVolSetErrors(vol);
+ 	}
+ 	/* If (still) a read-write mount, mark the quotas out of date. */
+-	if (!(sb->s_flags & MS_RDONLY) &&
+-			!ntfs_mark_quotas_out_of_date(vol)) {
++	if (!sb_rdonly(sb) && !ntfs_mark_quotas_out_of_date(vol)) {
+ 		static const char *es1 = "Failed to mark quotas out of date";
+ 		static const char *es2 = ".  Run chkdsk.";
+ 
+@@ -2165,7 +2162,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		static const char *es2 = ".  Run chkdsk.";
+ 
+ 		/* If a read-write mount, convert it to a read-only mount. */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!(vol->on_errors & (ON_ERRORS_REMOUNT_RO |
+ 					ON_ERRORS_CONTINUE))) {
+ 				ntfs_error(sb, "%s and neither on_errors="
+@@ -2183,7 +2180,7 @@ static bool load_system_files(ntfs_volume *vol)
+ 		NVolSetErrors(vol);
+ 	}
+ 	/* If (still) a read-write mount, stamp the transaction log. */
+-	if (!(sb->s_flags & MS_RDONLY) && !ntfs_stamp_usnjrnl(vol)) {
++	if (!sb_rdonly(sb) && !ntfs_stamp_usnjrnl(vol)) {
+ 		static const char *es1 = "Failed to stamp transaction log "
+ 				"($UsnJrnl)";
+ 		static const char *es2 = ".  Run chkdsk.";
+@@ -2314,7 +2311,7 @@ static void ntfs_put_super(struct super_block *sb)
+ 	 * If a read-write mount and no volume errors have occurred, mark the
+ 	 * volume clean.  Also, re-commit all affected inodes.
+ 	 */
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		if (!NVolErrors(vol)) {
+ 			if (ntfs_clear_volume_flags(vol, VOLUME_IS_DIRTY))
+ 				ntfs_warning(sb, "Failed to clear dirty bit "
+diff --git a/fs/ocfs2/super.c b/fs/ocfs2/super.c
+index 83005f486451..1cf662ad377f 100644
+--- a/fs/ocfs2/super.c
++++ b/fs/ocfs2/super.c
+@@ -675,7 +675,7 @@ static int ocfs2_remount(struct super_block *sb, int *flags, char *data)
+ 	}
+ 
+ 	/* We're going to/from readonly mode. */
+-	if ((*flags & MS_RDONLY) != (sb->s_flags & MS_RDONLY)) {
++	if ((bool)(*flags & MS_RDONLY) != sb_rdonly(sb)) {
+ 		/* Disable quota accounting before remounting RO */
+ 		if (*flags & MS_RDONLY) {
+ 			ret = ocfs2_susp_quotas(osb, 0);
+@@ -1063,7 +1063,7 @@ static int ocfs2_fill_super(struct super_block *sb, void *data, int silent)
+ 	/* Hard readonly mode only if: bdev_read_only, MS_RDONLY,
+ 	 * heartbeat=none */
+ 	if (bdev_read_only(sb->s_bdev)) {
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			status = -EACCES;
+ 			mlog(ML_ERROR, "Readonly device detected but readonly "
+ 			     "mount was not specified.\n");
+@@ -1098,7 +1098,7 @@ static int ocfs2_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 
+ 	if (!ocfs2_is_hard_readonly(osb)) {
+-		if (sb->s_flags & MS_RDONLY)
++		if (sb_rdonly(sb))
+ 			ocfs2_set_ro_flag(osb, 0);
+ 	}
+ 
+@@ -1179,7 +1179,7 @@ static int ocfs2_fill_super(struct super_block *sb, void *data, int silent)
+ 	/* Now we can initialize quotas because we can afford to wait
+ 	 * for cluster locks recovery now. That also means that truncation
+ 	 * log recovery can happen but that waits for proper quota setup */
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		status = ocfs2_enable_quotas(osb);
+ 		if (status < 0) {
+ 			/* We have to err-out specially here because
+@@ -2180,8 +2180,7 @@ static int ocfs2_initialize_super(struct super_block *sb,
+ 		status = -EINVAL;
+ 		goto bail;
+ 	}
+-	if (!(osb->sb->s_flags & MS_RDONLY) &&
+-	    (i = OCFS2_HAS_RO_COMPAT_FEATURE(osb->sb, ~OCFS2_FEATURE_RO_COMPAT_SUPP))) {
++	if (!sb_rdonly(osb->sb) && (i = OCFS2_HAS_RO_COMPAT_FEATURE(osb->sb, ~OCFS2_FEATURE_RO_COMPAT_SUPP))) {
+ 		mlog(ML_ERROR, "couldn't mount RDWR because of "
+ 		     "unsupported optional features (%x).\n", i);
+ 		status = -EINVAL;
+@@ -2568,9 +2567,7 @@ static int ocfs2_handle_error(struct super_block *sb)
+ 		rv = -EIO;
+ 	} else { /* default option */
+ 		rv = -EROFS;
+-		if (sb->s_flags & MS_RDONLY &&
+-				(ocfs2_is_soft_readonly(osb) ||
+-				 ocfs2_is_hard_readonly(osb)))
++		if (sb_rdonly(sb) && (ocfs2_is_soft_readonly(osb) || ocfs2_is_hard_readonly(osb)))
+ 			return rv;
+ 
+ 		pr_crit("OCFS2: File system is now read-only.\n");
+diff --git a/fs/overlayfs/super.c b/fs/overlayfs/super.c
+index 44dc2d6ffe0f..22ee2a9ee784 100644
+--- a/fs/overlayfs/super.c
++++ b/fs/overlayfs/super.c
+@@ -869,7 +869,7 @@ static int ovl_fill_super(struct super_block *sb, void *data, int silent)
+ 			goto out_free_config;
+ 
+ 		/* Upper fs should not be r/o */
+-		if (upperpath.mnt->mnt_sb->s_flags & MS_RDONLY) {
++		if (sb_rdonly(upperpath.mnt->mnt_sb)) {
+ 			pr_err("overlayfs: upper fs is r/o, try multi-lower layers mount\n");
+ 			err = -EINVAL;
+ 			goto out_put_upperpath;
+diff --git a/fs/proc_namespace.c b/fs/proc_namespace.c
+index b5713fefb4c1..99dff222fe67 100644
+--- a/fs/proc_namespace.c
++++ b/fs/proc_namespace.c
+@@ -178,7 +178,7 @@ static int show_mountinfo(struct seq_file *m, struct vfsmount *mnt)
+ 	} else {
+ 		mangle(m, r->mnt_devname ? r->mnt_devname : "none");
+ 	}
+-	seq_puts(m, sb->s_flags & MS_RDONLY ? " ro" : " rw");
++	seq_puts(m, sb_rdonly(sb) ? " ro" : " rw");
+ 	err = show_sb_opts(m, sb);
+ 	if (err)
+ 		goto out;
+diff --git a/fs/quota/quota.c b/fs/quota/quota.c
+index 07e08c7d05ca..a9c5dfe6b83e 100644
+--- a/fs/quota/quota.c
++++ b/fs/quota/quota.c
+@@ -753,7 +753,7 @@ static int do_quotactl(struct super_block *sb, int type, int cmd, qid_t id,
+ 	case Q_XGETNEXTQUOTA:
+ 		return quota_getnextxquota(sb, type, id, addr);
+ 	case Q_XQUOTASYNC:
+-		if (sb->s_flags & MS_RDONLY)
++		if (sb_rdonly(sb))
+ 			return -EROFS;
+ 		/* XFS quotas are fully coherent now, making this call a noop */
+ 		return 0;
+diff --git a/fs/reiserfs/inode.c b/fs/reiserfs/inode.c
+index 873fc04e9403..11a48affa882 100644
+--- a/fs/reiserfs/inode.c
++++ b/fs/reiserfs/inode.c
+@@ -1776,7 +1776,7 @@ int reiserfs_write_inode(struct inode *inode, struct writeback_control *wbc)
+ 	struct reiserfs_transaction_handle th;
+ 	int jbegin_count = 1;
+ 
+-	if (inode->i_sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(inode->i_sb))
+ 		return -EROFS;
+ 	/*
+ 	 * memory pressure can sometimes initiate write_inode calls with
+diff --git a/fs/reiserfs/journal.c b/fs/reiserfs/journal.c
+index a11d773e5ff3..e47da919f443 100644
+--- a/fs/reiserfs/journal.c
++++ b/fs/reiserfs/journal.c
+@@ -1918,7 +1918,7 @@ static int do_journal_release(struct reiserfs_transaction_handle *th,
+ 	 * we only want to flush out transactions if we were
+ 	 * called with error == 0
+ 	 */
+-	if (!error && !(sb->s_flags & MS_RDONLY)) {
++	if (!error && !sb_rdonly(sb)) {
+ 		/* end the current trans */
+ 		BUG_ON(!th->t_trans_id);
+ 		do_journal_end(th, FLUSH_ALL);
+diff --git a/fs/reiserfs/prints.c b/fs/reiserfs/prints.c
+index 4f3f928076f3..64f49cafbc5b 100644
+--- a/fs/reiserfs/prints.c
++++ b/fs/reiserfs/prints.c
+@@ -386,7 +386,7 @@ void __reiserfs_error(struct super_block *sb, const char *id,
+ 		printk(KERN_CRIT "REISERFS error (device %s): %s: %s\n",
+ 		       sb->s_id, function, error_buf);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return;
+ 
+ 	reiserfs_info(sb, "Remounting filesystem read-only\n");
+diff --git a/fs/reiserfs/super.c b/fs/reiserfs/super.c
+index 306e4e9d172d..5464ec517702 100644
+--- a/fs/reiserfs/super.c
++++ b/fs/reiserfs/super.c
+@@ -121,7 +121,7 @@ void reiserfs_schedule_old_flush(struct super_block *s)
+ 	 * Avoid scheduling flush when sb is being shut down. It can race
+ 	 * with journal shutdown and free still queued delayed work.
+ 	 */
+-	if (s->s_flags & MS_RDONLY || !(s->s_flags & MS_ACTIVE))
++	if (sb_rdonly(s) || !(s->s_flags & MS_ACTIVE))
+ 		return;
+ 
+ 	spin_lock(&sbi->old_work_lock);
+@@ -151,7 +151,7 @@ static int reiserfs_freeze(struct super_block *s)
+ 	reiserfs_cancel_old_flush(s);
+ 
+ 	reiserfs_write_lock(s);
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 		int err = journal_begin(&th, s, 1);
+ 		if (err) {
+ 			reiserfs_block_writes(&th);
+@@ -599,7 +599,7 @@ static void reiserfs_put_super(struct super_block *s)
+ 	 * change file system state to current state if it was mounted
+ 	 * with read-write permissions
+ 	 */
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 		if (!journal_begin(&th, s, 10)) {
+ 			reiserfs_prepare_for_journal(s, SB_BUFFER_WITH_SB(s),
+ 						     1);
+@@ -700,7 +700,7 @@ static void reiserfs_dirty_inode(struct inode *inode, int flags)
+ 
+ 	int err = 0;
+ 
+-	if (inode->i_sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(inode->i_sb)) {
+ 		reiserfs_warning(inode->i_sb, "clm-6006",
+ 				 "writing inode %lu on readonly FS",
+ 				 inode->i_ino);
+@@ -1525,7 +1525,7 @@ static int reiserfs_remount(struct super_block *s, int *mount_flags, char *arg)
+ 		reiserfs_write_unlock(s);
+ 		reiserfs_xattr_init(s, *mount_flags);
+ 		/* remount read-only */
+-		if (s->s_flags & MS_RDONLY)
++		if (sb_rdonly(s))
+ 			/* it is read-only already */
+ 			goto out_ok_unlocked;
+ 
+@@ -1551,7 +1551,7 @@ static int reiserfs_remount(struct super_block *s, int *mount_flags, char *arg)
+ 		journal_mark_dirty(&th, SB_BUFFER_WITH_SB(s));
+ 	} else {
+ 		/* remount read-write */
+-		if (!(s->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(s)) {
+ 			reiserfs_write_unlock(s);
+ 			reiserfs_xattr_init(s, *mount_flags);
+ 			goto out_ok_unlocked;	/* We are read-write already */
+@@ -1855,7 +1855,7 @@ static int what_hash(struct super_block *s)
+ 	 * the super
+ 	 */
+ 	if (code != UNSET_HASH &&
+-	    !(s->s_flags & MS_RDONLY) &&
++	    !sb_rdonly(s) &&
+ 	    code != sb_hash_function_code(SB_DISK_SUPER_BLOCK(s))) {
+ 		set_sb_hash_function_code(SB_DISK_SUPER_BLOCK(s), code);
+ 	}
+@@ -2052,7 +2052,7 @@ static int reiserfs_fill_super(struct super_block *s, void *data, int silent)
+ 	if (replay_only(s))
+ 		goto error_unlocked;
+ 
+-	if (bdev_read_only(s->s_bdev) && !(s->s_flags & MS_RDONLY)) {
++	if (bdev_read_only(s->s_bdev) && !sb_rdonly(s)) {
+ 		SWARN(silent, s, "clm-7000",
+ 		      "Detected readonly device, marking FS readonly");
+ 		s->s_flags |= MS_RDONLY;
+@@ -2101,7 +2101,7 @@ static int reiserfs_fill_super(struct super_block *s, void *data, int silent)
+ 	else
+ 		set_bit(REISERFS_3_6, &sbi->s_properties);
+ 
+-	if (!(s->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(s)) {
+ 
+ 		errval = journal_begin(&th, s, 1);
+ 		if (errval) {
+diff --git a/fs/super.c b/fs/super.c
+index 6bc3352adcf3..7321958d81d8 100644
+--- a/fs/super.c
++++ b/fs/super.c
+@@ -820,7 +820,7 @@ int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
+ 		return -EACCES;
+ #endif
+ 
+-	remount_ro = (flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY);
++	remount_ro = (flags & MS_RDONLY) && !sb_rdonly(sb);
+ 
+ 	if (remount_ro) {
+ 		if (!hlist_empty(&sb->s_pins)) {
+@@ -831,7 +831,7 @@ int do_remount_sb(struct super_block *sb, int flags, void *data, int force)
+ 				return 0;
+ 			if (sb->s_writers.frozen != SB_UNFROZEN)
+ 				return -EBUSY;
+-			remount_ro = (flags & MS_RDONLY) && !(sb->s_flags & MS_RDONLY);
++			remount_ro = (flags & MS_RDONLY) && !sb_rdonly(sb);
+ 		}
+ 	}
+ 	shrink_dcache_sb(sb);
+@@ -893,7 +893,7 @@ static void do_emergency_remount(struct work_struct *work)
+ 		spin_unlock(&sb_lock);
+ 		down_write(&sb->s_umount);
+ 		if (sb->s_root && sb->s_bdev && (sb->s_flags & MS_BORN) &&
+-		    !(sb->s_flags & MS_RDONLY)) {
++		    !sb_rdonly(sb)) {
+ 			/*
+ 			 * What lock protects sb->s_flags??
+ 			 */
+@@ -1439,7 +1439,7 @@ int freeze_super(struct super_block *sb)
+ 		return 0;	/* sic - it's "nothing to do" */
+ 	}
+ 
+-	if (sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(sb)) {
+ 		/* Nothing to do really... */
+ 		sb->s_writers.frozen = SB_FREEZE_COMPLETE;
+ 		up_write(&sb->s_umount);
+@@ -1502,7 +1502,7 @@ int thaw_super(struct super_block *sb)
+ 		return -EINVAL;
+ 	}
+ 
+-	if (sb->s_flags & MS_RDONLY) {
++	if (sb_rdonly(sb)) {
+ 		sb->s_writers.frozen = SB_UNFROZEN;
+ 		goto out;
+ 	}
+diff --git a/fs/sync.c b/fs/sync.c
+index 2a54c1f22035..7ea61b0e2a31 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -57,7 +57,7 @@ int sync_filesystem(struct super_block *sb)
+ 	/*
+ 	 * No point in syncing out anything if the filesystem is read-only.
+ 	 */
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return 0;
+ 
+ 	ret = __sync_filesystem(sb, 0);
+@@ -69,13 +69,13 @@ EXPORT_SYMBOL(sync_filesystem);
+ 
+ static void sync_inodes_one_sb(struct super_block *sb, void *arg)
+ {
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		sync_inodes_sb(sb);
+ }
+ 
+ static void sync_fs_one_sb(struct super_block *sb, void *arg)
+ {
+-	if (!(sb->s_flags & MS_RDONLY) && sb->s_op->sync_fs)
++	if (!sb_rdonly(sb) && sb->s_op->sync_fs)
+ 		sb->s_op->sync_fs(sb, *(int *)arg);
+ }
+ 
+diff --git a/fs/sysv/balloc.c b/fs/sysv/balloc.c
+index 921c053fc052..862c1f74a583 100644
+--- a/fs/sysv/balloc.c
++++ b/fs/sysv/balloc.c
+@@ -231,7 +231,7 @@ unsigned long sysv_count_free_blocks(struct super_block * sb)
+ Ecount:
+ 	printk("sysv_count_free_blocks: free block count was %d, "
+ 		"correcting to %d\n", sb_count, count);
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		*sbi->s_free_blocks = cpu_to_fs32(sbi, count);
+ 		dirty_sb(sb);
+ 	}
+diff --git a/fs/sysv/ialloc.c b/fs/sysv/ialloc.c
+index 53f1b78996dd..eb963fbb7903 100644
+--- a/fs/sysv/ialloc.c
++++ b/fs/sysv/ialloc.c
+@@ -220,7 +220,7 @@ unsigned long sysv_count_free_inodes(struct super_block * sb)
+ 	printk("sysv_count_free_inodes: "
+ 		"free inode count was %d, correcting to %d\n",
+ 		sb_count, count);
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		*sbi->s_sb_total_free_inodes = cpu_to_fs16(SYSV_SB(sb), count);
+ 		dirty_sb(sb);
+ 	}
+diff --git a/fs/sysv/inode.c b/fs/sysv/inode.c
+index 858fb72f9e0f..1c8bf9453a71 100644
+--- a/fs/sysv/inode.c
++++ b/fs/sysv/inode.c
+@@ -70,7 +70,7 @@ static void sysv_put_super(struct super_block *sb)
+ {
+ 	struct sysv_sb_info *sbi = SYSV_SB(sb);
+ 
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		/* XXX ext2 also updates the state here */
+ 		mark_buffer_dirty(sbi->s_bh1);
+ 		if (sbi->s_bh1 != sbi->s_bh2)
+diff --git a/fs/sysv/super.c b/fs/sysv/super.c
+index eda10959714f..0d56e486b392 100644
+--- a/fs/sysv/super.c
++++ b/fs/sysv/super.c
+@@ -216,7 +216,7 @@ static int detect_sysv(struct sysv_sb_info *sbi, struct buffer_head *bh)
+  	if (fs16_to_cpu(sbi, sbd->s_nfree) == 0xffff) {
+  		sbi->s_type = FSTYPE_AFS;
+ 		sbi->s_forced_ro = 1;
+- 		if (!(sb->s_flags & MS_RDONLY)) {
++ 		if (!sb_rdonly(sb)) {
+  			printk("SysV FS: SCO EAFS on %s detected, " 
+  				"forcing read-only mode.\n", 
+  				sb->s_id);
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index bffadbb67e47..5496b17b959c 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -1159,7 +1159,7 @@ static int mount_ubifs(struct ubifs_info *c)
+ 	long long x, y;
+ 	size_t sz;
+ 
+-	c->ro_mount = !!(c->vfs_sb->s_flags & MS_RDONLY);
++	c->ro_mount = !!sb_rdonly(c->vfs_sb);
+ 	/* Suppress error messages while probing if MS_SILENT is set */
+ 	c->probing = !!(c->vfs_sb->s_flags & MS_SILENT);
+ 
+diff --git a/fs/udf/super.c b/fs/udf/super.c
+index 462ac2e9258c..28039923114b 100644
+--- a/fs/udf/super.c
++++ b/fs/udf/super.c
+@@ -675,7 +675,7 @@ static int udf_remount_fs(struct super_block *sb, int *flags, char *options)
+ 	sbi->s_dmode = uopt.dmode;
+ 	write_unlock(&sbi->s_cred_lock);
+ 
+-	if ((*flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY))
++	if ((bool)(*flags & MS_RDONLY) == sb_rdonly(sb))
+ 		goto out_unlock;
+ 
+ 	if (*flags & MS_RDONLY)
+@@ -1019,7 +1019,7 @@ static int udf_load_metadata_files(struct super_block *sb, int partition,
+ 
+ 		fe = udf_iget_special(sb, &addr);
+ 		if (IS_ERR(fe)) {
+-			if (sb->s_flags & MS_RDONLY)
++			if (sb_rdonly(sb))
+ 				udf_warn(sb, "bitmap inode efe not found but it's ok since the disc is mounted read-only\n");
+ 			else {
+ 				udf_err(sb, "bitmap inode efe not found and attempted read-write mount\n");
+@@ -1343,7 +1343,7 @@ static int udf_load_partdesc(struct super_block *sb, sector_t block)
+ 		 * writing to it (we overwrite blocks instead of relocating
+ 		 * them).
+ 		 */
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			ret = -EACCES;
+ 			goto out_bh;
+ 		}
+@@ -2207,7 +2207,7 @@ static int udf_fill_super(struct super_block *sb, void *options, int silent)
+ 			ret = -EINVAL;
+ 			goto error_out;
+ 		} else if (minUDFWriteRev > UDF_MAX_WRITE_VERSION &&
+-			   !(sb->s_flags & MS_RDONLY)) {
++			   !sb_rdonly(sb)) {
+ 			ret = -EACCES;
+ 			goto error_out;
+ 		}
+@@ -2228,7 +2228,7 @@ static int udf_fill_super(struct super_block *sb, void *options, int silent)
+ 
+ 	if (sbi->s_partmaps[sbi->s_partition].s_partition_flags &
+ 			UDF_PART_FLAG_READ_ONLY &&
+-	    !(sb->s_flags & MS_RDONLY)) {
++	    !sb_rdonly(sb)) {
+ 		ret = -EACCES;
+ 		goto error_out;
+ 	}
+@@ -2247,7 +2247,7 @@ static int udf_fill_super(struct super_block *sb, void *options, int silent)
+ 			 le16_to_cpu(ts.year), ts.month, ts.day,
+ 			 ts.hour, ts.minute, le16_to_cpu(ts.typeAndTimezone));
+ 	}
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		udf_open_lvid(sb);
+ 		lvid_open = true;
+ 	}
+@@ -2334,7 +2334,7 @@ static void udf_put_super(struct super_block *sb)
+ 	if (UDF_QUERY_FLAG(sb, UDF_FLAG_NLS_MAP))
+ 		unload_nls(sbi->s_nls_map);
+ #endif
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		udf_close_lvid(sb);
+ 	brelse(sbi->s_lvid_bh);
+ 	udf_sb_free_partitions(sb);
+diff --git a/fs/ufs/super.c b/fs/ufs/super.c
+index 0a4f58a5073c..6440003f8ddc 100644
+--- a/fs/ufs/super.c
++++ b/fs/ufs/super.c
+@@ -278,7 +278,7 @@ void ufs_error (struct super_block * sb, const char * function,
+ 	uspi = UFS_SB(sb)->s_uspi;
+ 	usb1 = ubh_get_usb_first(uspi);
+ 	
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		usb1->fs_clean = UFS_FSBAD;
+ 		ubh_mark_buffer_dirty(USPI_UBH(uspi));
+ 		ufs_mark_sb_dirty(sb);
+@@ -312,7 +312,7 @@ void ufs_panic (struct super_block * sb, const char * function,
+ 	uspi = UFS_SB(sb)->s_uspi;
+ 	usb1 = ubh_get_usb_first(uspi);
+ 	
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		usb1->fs_clean = UFS_FSBAD;
+ 		ubh_mark_buffer_dirty(USPI_UBH(uspi));
+ 		ufs_mark_sb_dirty(sb);
+@@ -742,7 +742,7 @@ static void ufs_put_super(struct super_block *sb)
+ 
+ 	UFSD("ENTER\n");
+ 
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		ufs_put_super_internal(sb);
+ 	cancel_delayed_work_sync(&sbi->sync_work);
+ 
+@@ -793,7 +793,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 	UFSD("ENTER\n");
+ 
+ #ifndef CONFIG_UFS_FS_WRITE
+-	if (!(sb->s_flags & MS_RDONLY)) {
++	if (!sb_rdonly(sb)) {
+ 		pr_err("ufs was compiled with read-only support, can't be mounted as read-write\n");
+ 		return -EROFS;
+ 	}
+@@ -805,7 +805,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_fs_info = sbi;
+ 	sbi->sb = sb;
+ 
+-	UFSD("flag %u\n", (int)(sb->s_flags & MS_RDONLY));
++	UFSD("flag %u\n", (int)(sb_rdonly(sb)));
+ 	
+ 	mutex_init(&sbi->s_lock);
+ 	spin_lock_init(&sbi->work_lock);
+@@ -902,7 +902,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		uspi->s_sbsize = super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!silent)
+ 				pr_info("ufstype=old is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+@@ -918,7 +918,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		uspi->s_sbbase = 0;
+ 		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!silent)
+ 				pr_info("ufstype=nextstep is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+@@ -934,7 +934,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		uspi->s_sbbase = 0;
+ 		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!silent)
+ 				pr_info("ufstype=nextstep-cd is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+@@ -950,7 +950,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		uspi->s_sbbase = 0;
+ 		uspi->s_dirblksize = 1024;
+ 		flags |= UFS_DE_44BSD | UFS_UID_44BSD | UFS_ST_44BSD | UFS_CG_44BSD;
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!silent)
+ 				pr_info("ufstype=openstep is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+@@ -965,7 +965,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		uspi->s_sbsize = super_block_size = 2048;
+ 		uspi->s_sbbase = 0;
+ 		flags |= UFS_DE_OLD | UFS_UID_OLD | UFS_ST_OLD | UFS_CG_OLD;
+-		if (!(sb->s_flags & MS_RDONLY)) {
++		if (!sb_rdonly(sb)) {
+ 			if (!silent)
+ 				pr_info("ufstype=hp is supported read-only\n");
+ 			sb->s_flags |= MS_RDONLY;
+@@ -1273,7 +1273,7 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 	/*
+ 	 * Read cylinder group structures
+ 	 */
+-	if (!(sb->s_flags & MS_RDONLY))
++	if (!sb_rdonly(sb))
+ 		if (!ufs_read_cylinder_structures(sb))
+ 			goto failed;
+ 
+@@ -1328,7 +1328,7 @@ static int ufs_remount (struct super_block *sb, int *mount_flags, char *data)
+ 		return -EINVAL;
+ 	}
+ 
+-	if ((*mount_flags & MS_RDONLY) == (sb->s_flags & MS_RDONLY)) {
++	if ((bool)(*mount_flags & MS_RDONLY) == sb_rdonly(sb)) {
+ 		UFS_SB(sb)->s_mount_opt = new_mount_opt;
+ 		mutex_unlock(&UFS_SB(sb)->s_lock);
+ 		return 0;
+diff --git a/fs/xfs/xfs_quotaops.c b/fs/xfs/xfs_quotaops.c
+index de9493253edf..a65108594a07 100644
+--- a/fs/xfs/xfs_quotaops.c
++++ b/fs/xfs/xfs_quotaops.c
+@@ -125,7 +125,7 @@ xfs_fs_set_info(
+ 	struct xfs_mount *mp = XFS_M(sb);
+ 	struct qc_dqblk newlim;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 	if (!XFS_IS_QUOTA_RUNNING(mp))
+ 		return -ENOSYS;
+@@ -175,7 +175,7 @@ xfs_quota_enable(
+ {
+ 	struct xfs_mount	*mp = XFS_M(sb);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 	if (!XFS_IS_QUOTA_RUNNING(mp))
+ 		return -ENOSYS;
+@@ -190,7 +190,7 @@ xfs_quota_disable(
+ {
+ 	struct xfs_mount	*mp = XFS_M(sb);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 	if (!XFS_IS_QUOTA_RUNNING(mp))
+ 		return -ENOSYS;
+@@ -208,7 +208,7 @@ xfs_fs_rm_xquota(
+ 	struct xfs_mount	*mp = XFS_M(sb);
+ 	unsigned int		flags = 0;
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 
+ 	if (XFS_IS_QUOTA_ON(mp))
+@@ -279,7 +279,7 @@ xfs_fs_set_dqblk(
+ {
+ 	struct xfs_mount	*mp = XFS_M(sb);
+ 
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		return -EROFS;
+ 	if (!XFS_IS_QUOTA_RUNNING(mp))
+ 		return -ENOSYS;
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index 38aaacdbb8b3..7bc25d62cdc6 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -210,7 +210,7 @@ xfs_parseargs(
+ 	/*
+ 	 * Copy binary VFS mount flags we are interested in.
+ 	 */
+-	if (sb->s_flags & MS_RDONLY)
++	if (sb_rdonly(sb))
+ 		mp->m_flags |= XFS_MOUNT_RDONLY;
+ 	if (sb->s_flags & MS_DIRSYNC)
+ 		mp->m_flags |= XFS_MOUNT_DIRSYNC;
+diff --git a/init/do_mounts.c b/init/do_mounts.c
+index c2de5104aad2..bf7ea36ca286 100644
+--- a/init/do_mounts.c
++++ b/init/do_mounts.c
+@@ -373,7 +373,7 @@ static int __init do_mount_root(char *name, char *fs, int flags, void *data)
+ 	printk(KERN_INFO
+ 	       "VFS: Mounted root (%s filesystem)%s on device %u:%u.\n",
+ 	       s->s_type->name,
+-	       s->s_flags & MS_RDONLY ?  " readonly" : "",
++	       sb_rdonly(s) ? " readonly" : "",
+ 	       MAJOR(ROOT_DEV), MINOR(ROOT_DEV));
+ 	return 0;
+ }
+-- 
+2.17.0
+

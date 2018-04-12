@@ -1,0 +1,186 @@
+From a0a53aa8c7b491a43e2ef66786f9511bae8cbc35 Mon Sep 17 00:00:00 2001
+From: Samuel Li <samuel.li@amd.com>
+Date: Mon, 8 Apr 2013 17:25:47 -0400
+Subject: [PATCH] drm/radeon: Use direct mapping for fast fb access on RS690
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch allows the CPU to map the stolen vram segment
+directly rather than going through the PCI BAR.  This
+significantly improves performance for certain workloads with
+a properly patched ddx.
+
+Use radeon.fastfb=1 to enable it (disabled by default).
+Currently only supported on RS690, but support for RS780/880
+and newer APUs may be added eventually.
+
+Signed-off-by: Samuel Li <samuel.li@amd.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/radeon/radeon.h        |  2 ++
+ drivers/gpu/drm/radeon/radeon_drv.c    |  7 ++++++-
+ drivers/gpu/drm/radeon/radeon_kms.c    |  3 +++
+ drivers/gpu/drm/radeon/radeon_object.c |  4 +++-
+ drivers/gpu/drm/radeon/rs690.c         | 23 +++++++++++++++++++++++
+ drivers/gpu/drm/radeon/rs690d.h        |  3 +++
+ include/uapi/drm/radeon_drm.h          |  3 +++
+ 7 files changed, 43 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index 8bd875304441..730d3359af60 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -95,6 +95,7 @@ extern int radeon_hw_i2c;
+ extern int radeon_pcie_gen2;
+ extern int radeon_msi;
+ extern int radeon_lockup_timeout;
++extern int radeon_fastfb;
+ 
+ /*
+  * Copy from radeon_drv.h so we don't have to include both and have conflicting
+@@ -1616,6 +1617,7 @@ struct radeon_device {
+ 	bool				suspend;
+ 	bool				need_dma32;
+ 	bool				accel_working;
++	bool				fastfb_working; /* IGP feature*/
+ 	struct radeon_surface_reg surface_regs[RADEON_GEM_MAX_SURFACES];
+ 	const struct firmware *me_fw;	/* all family ME firmware */
+ 	const struct firmware *pfp_fw;	/* r6/700 PFP firmware */
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index 66a7f0fd9620..b500bbc3e411 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -71,9 +71,10 @@
+  *   2.28.0 - r600-eg: Add MEM_WRITE packet support
+  *   2.29.0 - R500 FP16 color clear registers
+  *   2.30.0 - fix for FMASK texturing
++ *   2.31.0 - Add fastfb support for rs690
+  */
+ #define KMS_DRIVER_MAJOR	2
+-#define KMS_DRIVER_MINOR	30
++#define KMS_DRIVER_MINOR	31
+ #define KMS_DRIVER_PATCHLEVEL	0
+ int radeon_driver_load_kms(struct drm_device *dev, unsigned long flags);
+ int radeon_driver_unload_kms(struct drm_device *dev);
+@@ -160,6 +161,7 @@ int radeon_hw_i2c = 0;
+ int radeon_pcie_gen2 = -1;
+ int radeon_msi = -1;
+ int radeon_lockup_timeout = 10000;
++int radeon_fastfb = 0;
+ 
+ MODULE_PARM_DESC(no_wb, "Disable AGP writeback for scratch registers");
+ module_param_named(no_wb, radeon_no_wb, int, 0444);
+@@ -212,6 +214,9 @@ module_param_named(msi, radeon_msi, int, 0444);
+ MODULE_PARM_DESC(lockup_timeout, "GPU lockup timeout in ms (defaul 10000 = 10 seconds, 0 = disable)");
+ module_param_named(lockup_timeout, radeon_lockup_timeout, int, 0444);
+ 
++MODULE_PARM_DESC(fastfb, "Direct FB access for IGP chips (0 = disable, 1 = enable)");
++module_param_named(fastfb, radeon_fastfb, int, 0444);
++
+ static struct pci_device_id pciidlist[] = {
+ 	radeon_PCI_IDS
+ };
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index c75cb2c6ba71..f5464482dee8 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -376,6 +376,9 @@ int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file *filp)
+ 		else
+ 			return -EINVAL;
+ 		break;
++	case RADEON_INFO_FASTFB_WORKING:
++		value = rdev->fastfb_working;
++		break;
+ 	default:
+ 		DRM_DEBUG_KMS("Invalid request %d\n", info->request);
+ 		return -EINVAL;
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index d3aface2d12d..58e026afec17 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -321,8 +321,10 @@ void radeon_bo_force_delete(struct radeon_device *rdev)
+ int radeon_bo_init(struct radeon_device *rdev)
+ {
+ 	/* Add an MTRR for the VRAM */
+-	rdev->mc.vram_mtrr = mtrr_add(rdev->mc.aper_base, rdev->mc.aper_size,
++	if (!rdev->fastfb_working) {
++		rdev->mc.vram_mtrr = mtrr_add(rdev->mc.aper_base, rdev->mc.aper_size,
+ 			MTRR_TYPE_WRCOMB, 1);
++	}
+ 	DRM_INFO("Detected VRAM RAM=%lluM, BAR=%lluM\n",
+ 		rdev->mc.mc_vram_size >> 20,
+ 		(unsigned long long)rdev->mc.aper_size >> 20);
+diff --git a/drivers/gpu/drm/radeon/rs690.c b/drivers/gpu/drm/radeon/rs690.c
+index 5706d2ac75ab..ab4c86cfd552 100644
+--- a/drivers/gpu/drm/radeon/rs690.c
++++ b/drivers/gpu/drm/radeon/rs690.c
+@@ -148,6 +148,8 @@ void rs690_pm_info(struct radeon_device *rdev)
+ static void rs690_mc_init(struct radeon_device *rdev)
+ {
+ 	u64 base;
++	uint32_t h_addr, l_addr;
++	unsigned long long k8_addr;
+ 
+ 	rs400_gart_adjust_size(rdev);
+ 	rdev->mc.vram_is_ddr = true;
+@@ -160,6 +162,27 @@ static void rs690_mc_init(struct radeon_device *rdev)
+ 	base = RREG32_MC(R_000100_MCCFG_FB_LOCATION);
+ 	base = G_000100_MC_FB_START(base) << 16;
+ 	rdev->mc.igp_sideport_enabled = radeon_atombios_sideport_present(rdev);
++
++	/* Use K8 direct mapping for fast fb access. */ 
++	rdev->fastfb_working = false;
++	h_addr = G_00005F_K8_ADDR_EXT(RREG32_MC(R_00005F_MC_MISC_UMA_CNTL));
++	l_addr = RREG32_MC(R_00001E_K8_FB_LOCATION);
++	k8_addr = ((unsigned long long)h_addr) << 32 | l_addr;
++#if defined(CONFIG_X86_32) && !defined(CONFIG_X86_PAE)
++	if (k8_addr + rdev->mc.visible_vram_size < 0x100000000ULL)	
++#endif
++	{
++		/* FastFB shall be used with UMA memory. Here it is simply disabled when sideport 
++		 * memory is present.
++		 */
++		if (rdev->mc.igp_sideport_enabled == false && radeon_fastfb == 1) {
++			DRM_INFO("Direct mapping: aper base at 0x%llx, replaced by direct mapping base 0x%llx.\n", 
++					(unsigned long long)rdev->mc.aper_base, k8_addr);
++			rdev->mc.aper_base = (resource_size_t)k8_addr;
++			rdev->fastfb_working = true;
++		}
++	}  
++
+ 	rs690_pm_info(rdev);
+ 	radeon_vram_location(rdev, &rdev->mc, base);
+ 	rdev->mc.gtt_base_align = rdev->mc.gtt_size - 1;
+diff --git a/drivers/gpu/drm/radeon/rs690d.h b/drivers/gpu/drm/radeon/rs690d.h
+index 36e6398a98ae..8af3ccf20cc0 100644
+--- a/drivers/gpu/drm/radeon/rs690d.h
++++ b/drivers/gpu/drm/radeon/rs690d.h
+@@ -29,6 +29,9 @@
+ #define __RS690D_H__
+ 
+ /* Registers */
++#define R_00001E_K8_FB_LOCATION                      0x00001E
++#define R_00005F_MC_MISC_UMA_CNTL                    0x00005F
++#define   G_00005F_K8_ADDR_EXT(x)                      (((x) >> 0) & 0xFF)
+ #define R_000078_MC_INDEX                            0x000078
+ #define   S_000078_MC_IND_ADDR(x)                      (((x) & 0x1FF) << 0)
+ #define   G_000078_MC_IND_ADDR(x)                      (((x) >> 0) & 0x1FF)
+diff --git a/include/uapi/drm/radeon_drm.h b/include/uapi/drm/radeon_drm.h
+index eeda91774c8a..6fd25563f301 100644
+--- a/include/uapi/drm/radeon_drm.h
++++ b/include/uapi/drm/radeon_drm.h
+@@ -972,6 +972,9 @@ struct drm_radeon_cs {
+ #define RADEON_INFO_MAX_SE		0x12
+ /* max SH per SE */
+ #define RADEON_INFO_MAX_SH_PER_SE	0x13
++/* fast fb access is enabled */
++#define RADEON_INFO_FASTFB_WORKING	0x14
++
+ 
+ struct drm_radeon_info {
+ 	uint32_t		request;
+-- 
+2.17.0
+

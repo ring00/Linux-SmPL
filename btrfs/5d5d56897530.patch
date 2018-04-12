@@ -1,0 +1,1072 @@
+From 5d5d568975307877e9195f5305f4240e506a2807 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 3 Apr 2015 15:41:18 -0400
+Subject: [PATCH] make new_sync_{read,write}() static
+
+All places outside of core VFS that checked ->read and ->write for being NULL or
+called the methods directly are gone now, so NULL {read,write} with non-NULL
+{read,write}_iter will do the right thing in all cases.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/porting          |  9 +++++++++
+ arch/s390/hypfs/inode.c                    |  2 --
+ drivers/char/mem.c                         |  2 --
+ drivers/char/raw.c                         |  2 --
+ drivers/net/macvtap.c                      |  2 --
+ drivers/net/tun.c                          |  2 --
+ drivers/staging/lustre/lustre/llite/file.c |  6 ------
+ drivers/usb/gadget/function/f_fs.c         |  2 --
+ drivers/usb/gadget/legacy/inode.c          |  2 --
+ fs/9p/vfs_file.c                           | 12 ------------
+ fs/adfs/file.c                             |  2 --
+ fs/affs/file.c                             |  2 --
+ fs/afs/file.c                              |  2 --
+ fs/bfs/file.c                              |  2 --
+ fs/block_dev.c                             |  2 --
+ fs/btrfs/file.c                            |  2 --
+ fs/ceph/file.c                             |  2 --
+ fs/cifs/cifsfs.c                           | 12 ------------
+ fs/coda/file.c                             |  2 --
+ fs/ecryptfs/file.c                         |  2 --
+ fs/exofs/file.c                            |  2 --
+ fs/ext2/file.c                             |  4 ----
+ fs/ext3/file.c                             |  2 --
+ fs/ext4/file.c                             |  4 ----
+ fs/f2fs/file.c                             |  2 --
+ fs/fat/file.c                              |  2 --
+ fs/fuse/cuse.c                             |  2 --
+ fs/fuse/file.c                             |  4 ----
+ fs/gfs2/file.c                             |  4 ----
+ fs/hfs/inode.c                             |  2 --
+ fs/hfsplus/inode.c                         |  2 --
+ fs/hostfs/hostfs_kern.c                    |  2 --
+ fs/hpfs/file.c                             |  2 --
+ fs/hugetlbfs/inode.c                       |  1 -
+ fs/jffs2/file.c                            |  2 --
+ fs/jfs/file.c                              |  2 --
+ fs/logfs/file.c                            |  2 --
+ fs/minix/file.c                            |  2 --
+ fs/ncpfs/file.c                            |  2 --
+ fs/nfs/file.c                              |  2 --
+ fs/nfs/nfs4file.c                          |  2 --
+ fs/nilfs2/file.c                           |  2 --
+ fs/ntfs/file.c                             |  2 --
+ fs/ocfs2/file.c                            |  4 ----
+ fs/omfs/file.c                             |  2 --
+ fs/pipe.c                                  |  2 --
+ fs/ramfs/file-mmu.c                        |  2 --
+ fs/ramfs/file-nommu.c                      |  2 --
+ fs/read_write.c                            |  9 ++-------
+ fs/reiserfs/file.c                         |  2 --
+ fs/romfs/mmap-nommu.c                      |  1 -
+ fs/sysv/file.c                             |  2 --
+ fs/ubifs/file.c                            |  2 --
+ fs/udf/file.c                              |  2 --
+ fs/ufs/file.c                              |  2 --
+ fs/xfs/xfs_file.c                          |  2 --
+ include/linux/fs.h                         |  2 --
+ mm/shmem.c                                 |  2 --
+ net/socket.c                               |  2 --
+ 59 files changed, 11 insertions(+), 153 deletions(-)
+
+diff --git a/Documentation/filesystems/porting b/Documentation/filesystems/porting
+index fa2db081505e..4006483c275f 100644
+--- a/Documentation/filesystems/porting
++++ b/Documentation/filesystems/porting
+@@ -471,3 +471,12 @@ in your dentry operations instead.
+ [mandatory]
+ 	f_dentry is gone; use f_path.dentry, or, better yet, see if you can avoid
+ 	it entirely.
++--
++[mandatory]
++	never call ->read() and ->write() directly; use __vfs_{read,write} or
++	wrappers; instead of checking for ->write or ->read being NULL, look for
++	FMODE_CAN_{WRITE,READ} in file->f_mode.
++--
++[mandatory]
++	do _not_ use new_sync_{read,write} for ->read/->write; leave it NULL
++	instead.
+diff --git a/arch/s390/hypfs/inode.c b/arch/s390/hypfs/inode.c
+index df7d8cbee377..3f5c799b7fb5 100644
+--- a/arch/s390/hypfs/inode.c
++++ b/arch/s390/hypfs/inode.c
+@@ -437,8 +437,6 @@ struct dentry *hypfs_create_str(struct dentry *dir,
+ static const struct file_operations hypfs_file_ops = {
+ 	.open		= hypfs_open,
+ 	.release	= hypfs_release,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= hypfs_read_iter,
+ 	.write_iter	= hypfs_write_iter,
+ 	.llseek		= no_llseek,
+diff --git a/drivers/char/mem.c b/drivers/char/mem.c
+index 9c4fd7a8e2e5..ad08400491ae 100644
+--- a/drivers/char/mem.c
++++ b/drivers/char/mem.c
+@@ -764,7 +764,6 @@ static const struct file_operations __maybe_unused port_fops = {
+ 
+ static const struct file_operations zero_fops = {
+ 	.llseek		= zero_lseek,
+-	.read		= new_sync_read,
+ 	.write		= write_zero,
+ 	.read_iter	= read_iter_zero,
+ 	.aio_write	= aio_write_zero,
+@@ -776,7 +775,6 @@ static const struct file_operations zero_fops = {
+ 
+ static const struct file_operations full_fops = {
+ 	.llseek		= full_lseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= read_iter_zero,
+ 	.write		= write_full,
+ };
+diff --git a/drivers/char/raw.c b/drivers/char/raw.c
+index 6e29bf2db536..5fc291c6157e 100644
+--- a/drivers/char/raw.c
++++ b/drivers/char/raw.c
+@@ -282,9 +282,7 @@ static long raw_ctl_compat_ioctl(struct file *file, unsigned int cmd,
+ #endif
+ 
+ static const struct file_operations raw_fops = {
+-	.read		= new_sync_read,
+ 	.read_iter	= blkdev_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= blkdev_write_iter,
+ 	.fsync		= blkdev_fsync,
+ 	.open		= raw_open,
+diff --git a/drivers/net/macvtap.c b/drivers/net/macvtap.c
+index 8362aef0c15e..9c91ff872485 100644
+--- a/drivers/net/macvtap.c
++++ b/drivers/net/macvtap.c
+@@ -1118,8 +1118,6 @@ static const struct file_operations macvtap_fops = {
+ 	.owner		= THIS_MODULE,
+ 	.open		= macvtap_open,
+ 	.release	= macvtap_release,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= macvtap_read_iter,
+ 	.write_iter	= macvtap_write_iter,
+ 	.poll		= macvtap_poll,
+diff --git a/drivers/net/tun.c b/drivers/net/tun.c
+index b96b94cee760..e470ae59d405 100644
+--- a/drivers/net/tun.c
++++ b/drivers/net/tun.c
+@@ -2223,8 +2223,6 @@ static void tun_chr_show_fdinfo(struct seq_file *m, struct file *f)
+ static const struct file_operations tun_fops = {
+ 	.owner	= THIS_MODULE,
+ 	.llseek = no_llseek,
+-	.read  = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter  = tun_chr_read_iter,
+ 	.write_iter = tun_chr_write_iter,
+ 	.poll	= tun_chr_poll,
+diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
+index 5ebee6ca0a10..d73111ef949e 100644
+--- a/drivers/staging/lustre/lustre/llite/file.c
++++ b/drivers/staging/lustre/lustre/llite/file.c
+@@ -3128,9 +3128,7 @@ int ll_inode_permission(struct inode *inode, int mask)
+ 
+ /* -o localflock - only provides locally consistent flock locks */
+ struct file_operations ll_file_operations = {
+-	.read	   = new_sync_read,
+ 	.read_iter = ll_file_read_iter,
+-	.write	  = new_sync_write,
+ 	.write_iter = ll_file_write_iter,
+ 	.unlocked_ioctl = ll_file_ioctl,
+ 	.open	   = ll_file_open,
+@@ -3143,9 +3141,7 @@ struct file_operations ll_file_operations = {
+ };
+ 
+ struct file_operations ll_file_operations_flock = {
+-	.read	   = new_sync_read,
+ 	.read_iter    = ll_file_read_iter,
+-	.write	  = new_sync_write,
+ 	.write_iter   = ll_file_write_iter,
+ 	.unlocked_ioctl = ll_file_ioctl,
+ 	.open	   = ll_file_open,
+@@ -3161,9 +3157,7 @@ struct file_operations ll_file_operations_flock = {
+ 
+ /* These are for -o noflock - to return ENOSYS on flock calls */
+ struct file_operations ll_file_operations_noflock = {
+-	.read	   = new_sync_read,
+ 	.read_iter    = ll_file_read_iter,
+-	.write	  = new_sync_write,
+ 	.write_iter   = ll_file_write_iter,
+ 	.unlocked_ioctl = ll_file_ioctl,
+ 	.open	   = ll_file_open,
+diff --git a/drivers/usb/gadget/function/f_fs.c b/drivers/usb/gadget/function/f_fs.c
+index a12315a78248..6bdb57069044 100644
+--- a/drivers/usb/gadget/function/f_fs.c
++++ b/drivers/usb/gadget/function/f_fs.c
+@@ -1061,8 +1061,6 @@ static const struct file_operations ffs_epfile_operations = {
+ 	.llseek =	no_llseek,
+ 
+ 	.open =		ffs_epfile_open,
+-	.write =	new_sync_write,
+-	.read =		new_sync_read,
+ 	.write_iter =	ffs_epfile_write_iter,
+ 	.read_iter =	ffs_epfile_read_iter,
+ 	.release =	ffs_epfile_release,
+diff --git a/drivers/usb/gadget/legacy/inode.c b/drivers/usb/gadget/legacy/inode.c
+index 662ef2c1c62b..6af58c6dba5e 100644
+--- a/drivers/usb/gadget/legacy/inode.c
++++ b/drivers/usb/gadget/legacy/inode.c
+@@ -699,8 +699,6 @@ static const struct file_operations ep_io_operations = {
+ 	.open =		ep_open,
+ 	.release =	ep_release,
+ 	.llseek =	no_llseek,
+-	.read =		new_sync_read,
+-	.write =	new_sync_write,
+ 	.unlocked_ioctl = ep_ioctl,
+ 	.read_iter =	ep_read_iter,
+ 	.write_iter =	ep_write_iter,
+diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c
+index 55cc9c80e187..d7fcb775311e 100644
+--- a/fs/9p/vfs_file.c
++++ b/fs/9p/vfs_file.c
+@@ -641,8 +641,6 @@ static const struct vm_operations_struct v9fs_mmap_file_vm_ops = {
+ 
+ const struct file_operations v9fs_cached_file_operations = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = generic_file_read_iter,
+ 	.write_iter = generic_file_write_iter,
+ 	.open = v9fs_file_open,
+@@ -654,8 +652,6 @@ const struct file_operations v9fs_cached_file_operations = {
+ 
+ const struct file_operations v9fs_cached_file_operations_dotl = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = generic_file_read_iter,
+ 	.write_iter = generic_file_write_iter,
+ 	.open = v9fs_file_open,
+@@ -668,8 +664,6 @@ const struct file_operations v9fs_cached_file_operations_dotl = {
+ 
+ const struct file_operations v9fs_file_operations = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = v9fs_file_read_iter,
+ 	.write_iter = v9fs_file_write_iter,
+ 	.open = v9fs_file_open,
+@@ -681,8 +675,6 @@ const struct file_operations v9fs_file_operations = {
+ 
+ const struct file_operations v9fs_file_operations_dotl = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = v9fs_file_read_iter,
+ 	.write_iter = v9fs_file_write_iter,
+ 	.open = v9fs_file_open,
+@@ -695,8 +687,6 @@ const struct file_operations v9fs_file_operations_dotl = {
+ 
+ const struct file_operations v9fs_mmap_file_operations = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = v9fs_mmap_file_read_iter,
+ 	.write_iter = v9fs_mmap_file_write_iter,
+ 	.open = v9fs_file_open,
+@@ -708,8 +698,6 @@ const struct file_operations v9fs_mmap_file_operations = {
+ 
+ const struct file_operations v9fs_mmap_file_operations_dotl = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = v9fs_mmap_file_read_iter,
+ 	.write_iter = v9fs_mmap_file_write_iter,
+ 	.open = v9fs_file_open,
+diff --git a/fs/adfs/file.c b/fs/adfs/file.c
+index 07c9edce5aa7..46c0d5671cd5 100644
+--- a/fs/adfs/file.c
++++ b/fs/adfs/file.c
+@@ -23,11 +23,9 @@
+ 
+ const struct file_operations adfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= generic_file_fsync,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.splice_read	= generic_file_splice_read,
+ };
+diff --git a/fs/affs/file.c b/fs/affs/file.c
+index 3aa7eb66547e..7c1a3d4c19c2 100644
+--- a/fs/affs/file.c
++++ b/fs/affs/file.c
+@@ -969,9 +969,7 @@ int affs_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
+ }
+ const struct file_operations affs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.open		= affs_file_open,
+diff --git a/fs/afs/file.c b/fs/afs/file.c
+index 932ce07948b3..999bc3caec92 100644
+--- a/fs/afs/file.c
++++ b/fs/afs/file.c
+@@ -31,8 +31,6 @@ const struct file_operations afs_file_operations = {
+ 	.open		= afs_open,
+ 	.release	= afs_release,
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= afs_file_write,
+ 	.mmap		= generic_file_readonly_mmap,
+diff --git a/fs/bfs/file.c b/fs/bfs/file.c
+index e7f88ace1a25..97f1b5160155 100644
+--- a/fs/bfs/file.c
++++ b/fs/bfs/file.c
+@@ -23,9 +23,7 @@
+ 
+ const struct file_operations bfs_file_operations = {
+ 	.llseek 	= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.splice_read	= generic_file_splice_read,
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 2e522aed6584..b5e87896f517 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -1659,8 +1659,6 @@ const struct file_operations def_blk_fops = {
+ 	.open		= blkdev_open,
+ 	.release	= blkdev_close,
+ 	.llseek		= block_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= blkdev_read_iter,
+ 	.write_iter	= blkdev_write_iter,
+ 	.mmap		= generic_file_mmap,
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index aee18f84e315..cdc801c85105 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -2806,8 +2806,6 @@ static loff_t btrfs_file_llseek(struct file *file, loff_t offset, int whence)
+ 
+ const struct file_operations btrfs_file_operations = {
+ 	.llseek		= btrfs_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter      = generic_file_read_iter,
+ 	.splice_read	= generic_file_splice_read,
+ 	.write_iter	= btrfs_file_write_iter,
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 139f2fea91a0..56237ea5fc22 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -1331,8 +1331,6 @@ const struct file_operations ceph_file_fops = {
+ 	.open = ceph_open,
+ 	.release = ceph_release,
+ 	.llseek = ceph_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = ceph_read_iter,
+ 	.write_iter = ceph_write_iter,
+ 	.mmap = ceph_mmap,
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index d72fe37f5420..eaab4b2a0595 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -906,8 +906,6 @@ const struct inode_operations cifs_symlink_inode_ops = {
+ };
+ 
+ const struct file_operations cifs_file_ops = {
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_loose_read_iter,
+ 	.write_iter = cifs_file_write_iter,
+ 	.open = cifs_open,
+@@ -926,8 +924,6 @@ const struct file_operations cifs_file_ops = {
+ };
+ 
+ const struct file_operations cifs_file_strict_ops = {
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_strict_readv,
+ 	.write_iter = cifs_strict_writev,
+ 	.open = cifs_open,
+@@ -947,8 +943,6 @@ const struct file_operations cifs_file_strict_ops = {
+ 
+ const struct file_operations cifs_file_direct_ops = {
+ 	/* BB reevaluate whether they can be done with directio, no cache */
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_user_readv,
+ 	.write_iter = cifs_user_writev,
+ 	.open = cifs_open,
+@@ -967,8 +961,6 @@ const struct file_operations cifs_file_direct_ops = {
+ };
+ 
+ const struct file_operations cifs_file_nobrl_ops = {
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_loose_read_iter,
+ 	.write_iter = cifs_file_write_iter,
+ 	.open = cifs_open,
+@@ -986,8 +978,6 @@ const struct file_operations cifs_file_nobrl_ops = {
+ };
+ 
+ const struct file_operations cifs_file_strict_nobrl_ops = {
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_strict_readv,
+ 	.write_iter = cifs_strict_writev,
+ 	.open = cifs_open,
+@@ -1006,8 +996,6 @@ const struct file_operations cifs_file_strict_nobrl_ops = {
+ 
+ const struct file_operations cifs_file_direct_nobrl_ops = {
+ 	/* BB reevaluate whether they can be done with directio, no cache */
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = cifs_user_readv,
+ 	.write_iter = cifs_user_writev,
+ 	.open = cifs_open,
+diff --git a/fs/coda/file.c b/fs/coda/file.c
+index d9f1d9a85e04..1da3805f3ddc 100644
+--- a/fs/coda/file.c
++++ b/fs/coda/file.c
+@@ -219,8 +219,6 @@ int coda_fsync(struct file *coda_file, loff_t start, loff_t end, int datasync)
+ 
+ const struct file_operations coda_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= coda_file_read_iter,
+ 	.write_iter	= coda_file_write_iter,
+ 	.mmap		= coda_file_mmap,
+diff --git a/fs/ecryptfs/file.c b/fs/ecryptfs/file.c
+index 79675089443d..a65786e26b05 100644
+--- a/fs/ecryptfs/file.c
++++ b/fs/ecryptfs/file.c
+@@ -358,9 +358,7 @@ const struct file_operations ecryptfs_dir_fops = {
+ 
+ const struct file_operations ecryptfs_main_fops = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+ 	.read_iter = ecryptfs_read_update_atime,
+-	.write = new_sync_write,
+ 	.write_iter = generic_file_write_iter,
+ 	.iterate = ecryptfs_readdir,
+ 	.unlocked_ioctl = ecryptfs_unlocked_ioctl,
+diff --git a/fs/exofs/file.c b/fs/exofs/file.c
+index 1a376b42d305..906de66e8e7e 100644
+--- a/fs/exofs/file.c
++++ b/fs/exofs/file.c
+@@ -67,8 +67,6 @@ static int exofs_flush(struct file *file, fl_owner_t id)
+ 
+ const struct file_operations exofs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+diff --git a/fs/ext2/file.c b/fs/ext2/file.c
+index e31701713516..ef04fdb57dbf 100644
+--- a/fs/ext2/file.c
++++ b/fs/ext2/file.c
+@@ -92,8 +92,6 @@ int ext2_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+  */
+ const struct file_operations ext2_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.unlocked_ioctl = ext2_ioctl,
+@@ -111,8 +109,6 @@ const struct file_operations ext2_file_operations = {
+ #ifdef CONFIG_FS_DAX
+ const struct file_operations ext2_dax_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.unlocked_ioctl = ext2_ioctl,
+diff --git a/fs/ext3/file.c b/fs/ext3/file.c
+index a062fa1e1b11..3b8f650de22c 100644
+--- a/fs/ext3/file.c
++++ b/fs/ext3/file.c
+@@ -50,8 +50,6 @@ static int ext3_release_file (struct inode * inode, struct file * filp)
+ 
+ const struct file_operations ext3_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.unlocked_ioctl	= ext3_ioctl,
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 598abbbe6786..9ad03036d9f5 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -607,8 +607,6 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int whence)
+ 
+ const struct file_operations ext4_file_operations = {
+ 	.llseek		= ext4_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= ext4_file_write_iter,
+ 	.unlocked_ioctl = ext4_ioctl,
+@@ -627,8 +625,6 @@ const struct file_operations ext4_file_operations = {
+ #ifdef CONFIG_FS_DAX
+ const struct file_operations ext4_dax_file_operations = {
+ 	.llseek		= ext4_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= ext4_file_write_iter,
+ 	.unlocked_ioctl = ext4_ioctl,
+diff --git a/fs/f2fs/file.c b/fs/f2fs/file.c
+index 98dac27bc3f7..df6a0596eccf 100644
+--- a/fs/f2fs/file.c
++++ b/fs/f2fs/file.c
+@@ -1104,8 +1104,6 @@ long f2fs_compat_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 
+ const struct file_operations f2fs_file_operations = {
+ 	.llseek		= f2fs_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.open		= generic_file_open,
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index 8429c68e3057..1e98d333879f 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -170,8 +170,6 @@ int fat_file_fsync(struct file *filp, loff_t start, loff_t end, int datasync)
+ 
+ const struct file_operations fat_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+diff --git a/fs/fuse/cuse.c b/fs/fuse/cuse.c
+index 644f05744993..e5bbf748b698 100644
+--- a/fs/fuse/cuse.c
++++ b/fs/fuse/cuse.c
+@@ -177,8 +177,6 @@ static long cuse_file_compat_ioctl(struct file *file, unsigned int cmd,
+ 
+ static const struct file_operations cuse_frontend_fops = {
+ 	.owner			= THIS_MODULE,
+-	.read			= new_sync_read,
+-	.write			= new_sync_write,
+ 	.read_iter		= cuse_read_iter,
+ 	.write_iter		= cuse_write_iter,
+ 	.open			= cuse_open,
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 727e139e1fea..e1afdd7abf90 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2953,9 +2953,7 @@ static long fuse_file_fallocate(struct file *file, int mode, loff_t offset,
+ 
+ static const struct file_operations fuse_file_operations = {
+ 	.llseek		= fuse_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= fuse_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= fuse_file_write_iter,
+ 	.mmap		= fuse_file_mmap,
+ 	.open		= fuse_open,
+@@ -2973,9 +2971,7 @@ static const struct file_operations fuse_file_operations = {
+ 
+ static const struct file_operations fuse_direct_io_file_operations = {
+ 	.llseek		= fuse_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= fuse_direct_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= fuse_direct_write_iter,
+ 	.mmap		= fuse_direct_mmap,
+ 	.open		= fuse_open,
+diff --git a/fs/gfs2/file.c b/fs/gfs2/file.c
+index f6fc412b1100..614bb42cb7e1 100644
+--- a/fs/gfs2/file.c
++++ b/fs/gfs2/file.c
+@@ -1064,9 +1064,7 @@ static int gfs2_flock(struct file *file, int cmd, struct file_lock *fl)
+ 
+ const struct file_operations gfs2_file_fops = {
+ 	.llseek		= gfs2_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= gfs2_file_write_iter,
+ 	.unlocked_ioctl	= gfs2_ioctl,
+ 	.mmap		= gfs2_mmap,
+@@ -1096,9 +1094,7 @@ const struct file_operations gfs2_dir_fops = {
+ 
+ const struct file_operations gfs2_file_fops_nolock = {
+ 	.llseek		= gfs2_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= gfs2_file_write_iter,
+ 	.unlocked_ioctl	= gfs2_ioctl,
+ 	.mmap		= gfs2_mmap,
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index 98d4ea45bb70..9337065bcc67 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -674,9 +674,7 @@ static int hfs_file_fsync(struct file *filp, loff_t start, loff_t end,
+ 
+ static const struct file_operations hfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.splice_read	= generic_file_splice_read,
+diff --git a/fs/hfsplus/inode.c b/fs/hfsplus/inode.c
+index f541196d4ee9..5f86cadb0542 100644
+--- a/fs/hfsplus/inode.c
++++ b/fs/hfsplus/inode.c
+@@ -341,9 +341,7 @@ static const struct inode_operations hfsplus_file_inode_operations = {
+ 
+ static const struct file_operations hfsplus_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.splice_read	= generic_file_splice_read,
+diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
+index fd62cae0fdcb..e021188ca110 100644
+--- a/fs/hostfs/hostfs_kern.c
++++ b/fs/hostfs/hostfs_kern.c
+@@ -378,11 +378,9 @@ static int hostfs_fsync(struct file *file, loff_t start, loff_t end,
+ 
+ static const struct file_operations hostfs_file_fops = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.splice_read	= generic_file_splice_read,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+-	.write		= new_sync_write,
+ 	.mmap		= generic_file_mmap,
+ 	.open		= hostfs_file_open,
+ 	.release	= hostfs_file_release,
+diff --git a/fs/hpfs/file.c b/fs/hpfs/file.c
+index 7f54e5f76cec..6d8cfe9b52d6 100644
+--- a/fs/hpfs/file.c
++++ b/fs/hpfs/file.c
+@@ -197,9 +197,7 @@ const struct address_space_operations hpfs_aops = {
+ const struct file_operations hpfs_file_ops =
+ {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.release	= hpfs_file_release,
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 5291c14ee6b8..8c2dad629e7c 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -696,7 +696,6 @@ static void init_once(void *foo)
+ }
+ 
+ const struct file_operations hugetlbfs_file_operations = {
+-	.read			= new_sync_read,
+ 	.read_iter		= hugetlbfs_read_iter,
+ 	.mmap			= hugetlbfs_file_mmap,
+ 	.fsync			= noop_fsync,
+diff --git a/fs/jffs2/file.c b/fs/jffs2/file.c
+index 64989ca9ba90..f509f62e12f6 100644
+--- a/fs/jffs2/file.c
++++ b/fs/jffs2/file.c
+@@ -51,9 +51,7 @@ const struct file_operations jffs2_file_operations =
+ {
+ 	.llseek =	generic_file_llseek,
+ 	.open =		generic_file_open,
+- 	.read =		new_sync_read,
+  	.read_iter =	generic_file_read_iter,
+- 	.write =	new_sync_write,
+  	.write_iter =	generic_file_write_iter,
+ 	.unlocked_ioctl=jffs2_ioctl,
+ 	.mmap =		generic_file_readonly_mmap,
+diff --git a/fs/jfs/file.c b/fs/jfs/file.c
+index 10815f8dfd8b..ae46788b9723 100644
+--- a/fs/jfs/file.c
++++ b/fs/jfs/file.c
+@@ -151,8 +151,6 @@ const struct inode_operations jfs_file_inode_operations = {
+ const struct file_operations jfs_file_operations = {
+ 	.open		= jfs_open,
+ 	.llseek		= generic_file_llseek,
+-	.write		= new_sync_write,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+diff --git a/fs/logfs/file.c b/fs/logfs/file.c
+index 8538752df2f6..b2c13f739ffa 100644
+--- a/fs/logfs/file.c
++++ b/fs/logfs/file.c
+@@ -271,8 +271,6 @@ const struct file_operations logfs_reg_fops = {
+ 	.llseek		= generic_file_llseek,
+ 	.mmap		= generic_file_readonly_mmap,
+ 	.open		= generic_file_open,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ };
+ 
+ const struct address_space_operations logfs_reg_aops = {
+diff --git a/fs/minix/file.c b/fs/minix/file.c
+index a967de085ac0..6d63e27ec961 100644
+--- a/fs/minix/file.c
++++ b/fs/minix/file.c
+@@ -14,9 +14,7 @@
+  */
+ const struct file_operations minix_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= generic_file_fsync,
+diff --git a/fs/ncpfs/file.c b/fs/ncpfs/file.c
+index 5f9d5624e377..479bf8db264e 100644
+--- a/fs/ncpfs/file.c
++++ b/fs/ncpfs/file.c
+@@ -249,8 +249,6 @@ static int ncp_release(struct inode *inode, struct file *file) {
+ const struct file_operations ncp_file_operations =
+ {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= ncp_file_read_iter,
+ 	.write_iter	= ncp_file_write_iter,
+ 	.unlocked_ioctl	= ncp_ioctl,
+diff --git a/fs/nfs/file.c b/fs/nfs/file.c
+index 37b15582e0de..f6a3adedf027 100644
+--- a/fs/nfs/file.c
++++ b/fs/nfs/file.c
+@@ -926,8 +926,6 @@ EXPORT_SYMBOL_GPL(nfs_flock);
+ 
+ const struct file_operations nfs_file_operations = {
+ 	.llseek		= nfs_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= nfs_file_read,
+ 	.write_iter	= nfs_file_write,
+ 	.mmap		= nfs_file_mmap,
+diff --git a/fs/nfs/nfs4file.c b/fs/nfs/nfs4file.c
+index 8b46389c4c5b..0181cde1d102 100644
+--- a/fs/nfs/nfs4file.c
++++ b/fs/nfs/nfs4file.c
+@@ -170,8 +170,6 @@ const struct file_operations nfs4_file_operations = {
+ #else
+ 	.llseek		= nfs_file_llseek,
+ #endif
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= nfs_file_read,
+ 	.write_iter	= nfs_file_write,
+ 	.mmap		= nfs_file_mmap,
+diff --git a/fs/nilfs2/file.c b/fs/nilfs2/file.c
+index a8c728acb7a8..54575e3cc1a2 100644
+--- a/fs/nilfs2/file.c
++++ b/fs/nilfs2/file.c
+@@ -143,8 +143,6 @@ static int nilfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+  */
+ const struct file_operations nilfs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= generic_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.unlocked_ioctl	= nilfs_ioctl,
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index c1da78dad1af..840e95e3f1d2 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -2048,10 +2048,8 @@ static int ntfs_file_fsync(struct file *filp, loff_t start, loff_t end,
+ 
+ const struct file_operations ntfs_file_ops = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+ #ifdef NTFS_RW
+-	.write		= new_sync_write,
+ 	.write_iter	= ntfs_file_write_iter,
+ 	.fsync		= ntfs_file_fsync,
+ #endif /* NTFS_RW */
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 266845de2100..0a6ec7e6efd8 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2676,8 +2676,6 @@ const struct inode_operations ocfs2_special_file_iops = {
+  */
+ const struct file_operations ocfs2_fops = {
+ 	.llseek		= ocfs2_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.mmap		= ocfs2_mmap,
+ 	.fsync		= ocfs2_sync_file,
+ 	.release	= ocfs2_file_release,
+@@ -2724,8 +2722,6 @@ const struct file_operations ocfs2_dops = {
+  */
+ const struct file_operations ocfs2_fops_no_plocks = {
+ 	.llseek		= ocfs2_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.mmap		= ocfs2_mmap,
+ 	.fsync		= ocfs2_sync_file,
+ 	.release	= ocfs2_file_release,
+diff --git a/fs/omfs/file.c b/fs/omfs/file.c
+index 902e88527fce..f993be7f2156 100644
+--- a/fs/omfs/file.c
++++ b/fs/omfs/file.c
+@@ -337,8 +337,6 @@ static sector_t omfs_bmap(struct address_space *mapping, sector_t block)
+ 
+ const struct file_operations omfs_file_operations = {
+ 	.llseek = generic_file_llseek,
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.read_iter = generic_file_read_iter,
+ 	.write_iter = generic_file_write_iter,
+ 	.mmap = generic_file_mmap,
+diff --git a/fs/pipe.c b/fs/pipe.c
+index 2d084f2d0b83..822da5b7cff0 100644
+--- a/fs/pipe.c
++++ b/fs/pipe.c
+@@ -946,9 +946,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
+ const struct file_operations pipefifo_fops = {
+ 	.open		= fifo_open,
+ 	.llseek		= no_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= pipe_read,
+-	.write		= new_sync_write,
+ 	.write_iter	= pipe_write,
+ 	.poll		= pipe_poll,
+ 	.unlocked_ioctl	= pipe_ioctl,
+diff --git a/fs/ramfs/file-mmu.c b/fs/ramfs/file-mmu.c
+index 4f56de822d2f..183a212694bf 100644
+--- a/fs/ramfs/file-mmu.c
++++ b/fs/ramfs/file-mmu.c
+@@ -31,9 +31,7 @@
+ #include "internal.h"
+ 
+ const struct file_operations ramfs_file_operations = {
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= noop_fsync,
+diff --git a/fs/ramfs/file-nommu.c b/fs/ramfs/file-nommu.c
+index f6ab41b39612..0b38befa69f3 100644
+--- a/fs/ramfs/file-nommu.c
++++ b/fs/ramfs/file-nommu.c
+@@ -44,9 +44,7 @@ const struct file_operations ramfs_file_operations = {
+ 	.mmap_capabilities	= ramfs_mmap_capabilities,
+ 	.mmap			= ramfs_nommu_mmap,
+ 	.get_unmapped_area	= ramfs_nommu_get_unmapped_area,
+-	.read			= new_sync_read,
+ 	.read_iter		= generic_file_read_iter,
+-	.write			= new_sync_write,
+ 	.write_iter		= generic_file_write_iter,
+ 	.fsync			= noop_fsync,
+ 	.splice_read		= generic_file_splice_read,
+diff --git a/fs/read_write.c b/fs/read_write.c
+index c75e6ef0952c..3ae8eee3b82a 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -28,7 +28,6 @@ typedef ssize_t (*iter_fn_t)(struct kiocb *, struct iov_iter *);
+ 
+ const struct file_operations generic_ro_fops = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+ 	.mmap		= generic_file_readonly_mmap,
+ 	.splice_read	= generic_file_splice_read,
+@@ -428,7 +427,7 @@ ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *pp
+ 
+ EXPORT_SYMBOL(do_sync_read);
+ 
+-ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
++static ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos)
+ {
+ 	struct iovec iov = { .iov_base = buf, .iov_len = len };
+ 	struct kiocb kiocb;
+@@ -445,8 +444,6 @@ ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *p
+ 	return ret;
+ }
+ 
+-EXPORT_SYMBOL(new_sync_read);
+-
+ ssize_t __vfs_read(struct file *file, char __user *buf, size_t count,
+ 		   loff_t *pos)
+ {
+@@ -505,7 +502,7 @@ ssize_t do_sync_write(struct file *filp, const char __user *buf, size_t len, lof
+ 
+ EXPORT_SYMBOL(do_sync_write);
+ 
+-ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos)
++static ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos)
+ {
+ 	struct iovec iov = { .iov_base = (void __user *)buf, .iov_len = len };
+ 	struct kiocb kiocb;
+@@ -522,8 +519,6 @@ ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t len, lo
+ 	return ret;
+ }
+ 
+-EXPORT_SYMBOL(new_sync_write);
+-
+ ssize_t __vfs_write(struct file *file, const char __user *p, size_t count,
+ 		    loff_t *pos)
+ {
+diff --git a/fs/reiserfs/file.c b/fs/reiserfs/file.c
+index 751dd3f4346b..96a1bcf33db4 100644
+--- a/fs/reiserfs/file.c
++++ b/fs/reiserfs/file.c
+@@ -243,8 +243,6 @@ int reiserfs_commit_page(struct inode *inode, struct page *page,
+ }
+ 
+ const struct file_operations reiserfs_file_operations = {
+-	.read = new_sync_read,
+-	.write = new_sync_write,
+ 	.unlocked_ioctl = reiserfs_ioctl,
+ #ifdef CONFIG_COMPAT
+ 	.compat_ioctl = reiserfs_compat_ioctl,
+diff --git a/fs/romfs/mmap-nommu.c b/fs/romfs/mmap-nommu.c
+index 7da9e2153953..1118a0dc6b45 100644
+--- a/fs/romfs/mmap-nommu.c
++++ b/fs/romfs/mmap-nommu.c
+@@ -81,7 +81,6 @@ static unsigned romfs_mmap_capabilities(struct file *file)
+ 
+ const struct file_operations romfs_ro_fops = {
+ 	.llseek			= generic_file_llseek,
+-	.read			= new_sync_read,
+ 	.read_iter		= generic_file_read_iter,
+ 	.splice_read		= generic_file_splice_read,
+ 	.mmap			= romfs_mmap,
+diff --git a/fs/sysv/file.c b/fs/sysv/file.c
+index b00811c75b24..a48e30410ad1 100644
+--- a/fs/sysv/file.c
++++ b/fs/sysv/file.c
+@@ -21,9 +21,7 @@
+  */
+ const struct file_operations sysv_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.fsync		= generic_file_fsync,
+diff --git a/fs/ubifs/file.c b/fs/ubifs/file.c
+index c3d15fe83403..475b15635f11 100644
+--- a/fs/ubifs/file.c
++++ b/fs/ubifs/file.c
+@@ -1580,8 +1580,6 @@ const struct inode_operations ubifs_symlink_inode_operations = {
+ 
+ const struct file_operations ubifs_file_operations = {
+ 	.llseek         = generic_file_llseek,
+-	.read           = new_sync_read,
+-	.write          = new_sync_write,
+ 	.read_iter      = generic_file_read_iter,
+ 	.write_iter     = ubifs_write_iter,
+ 	.mmap           = ubifs_file_mmap,
+diff --git a/fs/udf/file.c b/fs/udf/file.c
+index 7f885cc8b0b7..74050bff64f4 100644
+--- a/fs/udf/file.c
++++ b/fs/udf/file.c
+@@ -240,12 +240,10 @@ static int udf_release_file(struct inode *inode, struct file *filp)
+ }
+ 
+ const struct file_operations udf_file_operations = {
+-	.read			= new_sync_read,
+ 	.read_iter		= generic_file_read_iter,
+ 	.unlocked_ioctl		= udf_ioctl,
+ 	.open			= generic_file_open,
+ 	.mmap			= generic_file_mmap,
+-	.write			= new_sync_write,
+ 	.write_iter		= udf_file_write_iter,
+ 	.release		= udf_release_file,
+ 	.fsync			= generic_file_fsync,
+diff --git a/fs/ufs/file.c b/fs/ufs/file.c
+index c84ec010a676..042ddbf110cc 100644
+--- a/fs/ufs/file.c
++++ b/fs/ufs/file.c
+@@ -35,9 +35,7 @@
+  
+ const struct file_operations ufs_file_operations = {
+ 	.llseek		= generic_file_llseek,
+-	.read		= new_sync_read,
+ 	.read_iter	= generic_file_read_iter,
+-	.write		= new_sync_write,
+ 	.write_iter	= generic_file_write_iter,
+ 	.mmap		= generic_file_mmap,
+ 	.open           = generic_file_open,
+diff --git a/fs/xfs/xfs_file.c b/fs/xfs/xfs_file.c
+index f44212fae653..44856c3b9617 100644
+--- a/fs/xfs/xfs_file.c
++++ b/fs/xfs/xfs_file.c
+@@ -1386,8 +1386,6 @@ xfs_file_llseek(
+ 
+ const struct file_operations xfs_file_operations = {
+ 	.llseek		= xfs_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= xfs_file_read_iter,
+ 	.write_iter	= xfs_file_write_iter,
+ 	.splice_read	= xfs_file_splice_read,
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 4a1cb00bd805..cade1304d27b 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2576,8 +2576,6 @@ extern ssize_t generic_file_direct_write(struct kiocb *, struct iov_iter *, loff
+ extern ssize_t generic_perform_write(struct file *, struct iov_iter *, loff_t);
+ extern ssize_t do_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos);
+ extern ssize_t do_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos);
+-extern ssize_t new_sync_read(struct file *filp, char __user *buf, size_t len, loff_t *ppos);
+-extern ssize_t new_sync_write(struct file *filp, const char __user *buf, size_t len, loff_t *ppos);
+ 
+ ssize_t vfs_iter_read(struct file *file, struct iov_iter *iter, loff_t *ppos);
+ ssize_t vfs_iter_write(struct file *file, struct iov_iter *iter, loff_t *ppos);
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 80b360c7bcd1..1ea2400b5245 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -3118,8 +3118,6 @@ static const struct file_operations shmem_file_operations = {
+ 	.mmap		= shmem_mmap,
+ #ifdef CONFIG_TMPFS
+ 	.llseek		= shmem_file_llseek,
+-	.read		= new_sync_read,
+-	.write		= new_sync_write,
+ 	.read_iter	= shmem_file_read_iter,
+ 	.write_iter	= generic_file_write_iter,
+ 	.fsync		= noop_fsync,
+diff --git a/net/socket.c b/net/socket.c
+index 5b0126234606..3e33959f3ce5 100644
+--- a/net/socket.c
++++ b/net/socket.c
+@@ -140,8 +140,6 @@ static ssize_t sock_splice_read(struct file *file, loff_t *ppos,
+ static const struct file_operations socket_file_ops = {
+ 	.owner =	THIS_MODULE,
+ 	.llseek =	no_llseek,
+-	.read =		new_sync_read,
+-	.write =	new_sync_write,
+ 	.read_iter =	sock_read_iter,
+ 	.write_iter =	sock_write_iter,
+ 	.poll =		sock_poll,
+-- 
+2.17.0
+

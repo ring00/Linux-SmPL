@@ -1,0 +1,441 @@
+From 5e4def20381678ba3ce0a4e117f97e378ecd81bc Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Thu, 2 Nov 2017 15:27:44 +0000
+Subject: [PATCH] Pass mode to wait_on_atomic_t() action funcs and provide
+ default actions
+
+Make wait_on_atomic_t() pass the TASK_* mode onto its action function as an
+extra argument and make it 'unsigned int throughout.
+
+Also, consolidate a bunch of identical action functions into a default
+function that can do the appropriate thing for the mode.
+
+Also, change the argument name in the bit_wait*() function declarations to
+reflect the fact that it's the mode and not the bit number.
+
+[Peter Z gives this a grudging ACK, but thinks that the whole atomic_t wait
+should be done differently, though he's not immediately sure as to how]
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Acked-by: Peter Zijlstra <peterz@infradead.org>
+cc: Ingo Molnar <mingo@kernel.org>
+---
+ arch/mips/kernel/traps.c                      | 14 +---------
+ drivers/gpu/drm/drm_dp_aux_dev.c              |  8 +-----
+ .../drm/i915/selftests/intel_breadcrumbs.c    | 10 ++-----
+ drivers/media/platform/qcom/venus/hfi.c       |  8 +-----
+ fs/afs/rxrpc.c                                |  8 +-----
+ fs/btrfs/extent-tree.c                        | 27 +++----------------
+ fs/fscache/cookie.c                           |  2 +-
+ fs/fscache/internal.h                         |  2 --
+ fs/fscache/main.c                             |  9 -------
+ fs/nfs/inode.c                                |  4 +--
+ fs/nfs/internal.h                             |  2 +-
+ fs/ocfs2/filecheck.c                          |  8 +-----
+ include/linux/wait_bit.h                      | 15 ++++++-----
+ kernel/sched/wait_bit.c                       | 18 ++++++++++---
+ 14 files changed, 37 insertions(+), 98 deletions(-)
+
+diff --git a/arch/mips/kernel/traps.c b/arch/mips/kernel/traps.c
+index 5669d3b8bd38..5d19ed07e99d 100644
+--- a/arch/mips/kernel/traps.c
++++ b/arch/mips/kernel/traps.c
+@@ -1233,18 +1233,6 @@ static int default_cu2_call(struct notifier_block *nfb, unsigned long action,
+ 	return NOTIFY_OK;
+ }
+ 
+-static int wait_on_fp_mode_switch(atomic_t *p)
+-{
+-	/*
+-	 * The FP mode for this task is currently being switched. That may
+-	 * involve modifications to the format of this tasks FP context which
+-	 * make it unsafe to proceed with execution for the moment. Instead,
+-	 * schedule some other task.
+-	 */
+-	schedule();
+-	return 0;
+-}
+-
+ static int enable_restore_fp_context(int msa)
+ {
+ 	int err, was_fpu_owner, prior_msa;
+@@ -1254,7 +1242,7 @@ static int enable_restore_fp_context(int msa)
+ 	 * complete before proceeding.
+ 	 */
+ 	wait_on_atomic_t(&current->mm->context.fp_mode_switching,
+-			 wait_on_fp_mode_switch, TASK_KILLABLE);
++			 atomic_t_wait, TASK_KILLABLE);
+ 
+ 	if (!used_math()) {
+ 		/* First time FP context user. */
+diff --git a/drivers/gpu/drm/drm_dp_aux_dev.c b/drivers/gpu/drm/drm_dp_aux_dev.c
+index d34e5096887a..053044201e31 100644
+--- a/drivers/gpu/drm/drm_dp_aux_dev.c
++++ b/drivers/gpu/drm/drm_dp_aux_dev.c
+@@ -263,12 +263,6 @@ static struct drm_dp_aux_dev *drm_dp_aux_dev_get_by_aux(struct drm_dp_aux *aux)
+ 	return aux_dev;
+ }
+ 
+-static int auxdev_wait_atomic_t(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ void drm_dp_aux_unregister_devnode(struct drm_dp_aux *aux)
+ {
+ 	struct drm_dp_aux_dev *aux_dev;
+@@ -283,7 +277,7 @@ void drm_dp_aux_unregister_devnode(struct drm_dp_aux *aux)
+ 	mutex_unlock(&aux_idr_mutex);
+ 
+ 	atomic_dec(&aux_dev->usecount);
+-	wait_on_atomic_t(&aux_dev->usecount, auxdev_wait_atomic_t,
++	wait_on_atomic_t(&aux_dev->usecount, atomic_t_wait,
+ 			 TASK_UNINTERRUPTIBLE);
+ 
+ 	minor = aux_dev->index;
+diff --git a/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c b/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
+index 828904b7d468..54fc571b1102 100644
+--- a/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
++++ b/drivers/gpu/drm/i915/selftests/intel_breadcrumbs.c
+@@ -271,13 +271,7 @@ struct igt_wakeup {
+ 	u32 seqno;
+ };
+ 
+-static int wait_atomic(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+-static int wait_atomic_timeout(atomic_t *p)
++static int wait_atomic_timeout(atomic_t *p, unsigned int mode)
+ {
+ 	return schedule_timeout(10 * HZ) ? 0 : -ETIMEDOUT;
+ }
+@@ -348,7 +342,7 @@ static void igt_wake_all_sync(atomic_t *ready,
+ 	atomic_set(ready, 0);
+ 	wake_up_all(wq);
+ 
+-	wait_on_atomic_t(set, wait_atomic, TASK_UNINTERRUPTIBLE);
++	wait_on_atomic_t(set, atomic_t_wait, TASK_UNINTERRUPTIBLE);
+ 	atomic_set(ready, count);
+ 	atomic_set(done, count);
+ }
+diff --git a/drivers/media/platform/qcom/venus/hfi.c b/drivers/media/platform/qcom/venus/hfi.c
+index c09490876516..e374c7d1a618 100644
+--- a/drivers/media/platform/qcom/venus/hfi.c
++++ b/drivers/media/platform/qcom/venus/hfi.c
+@@ -88,12 +88,6 @@ int hfi_core_init(struct venus_core *core)
+ 	return ret;
+ }
+ 
+-static int core_deinit_wait_atomic_t(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ int hfi_core_deinit(struct venus_core *core, bool blocking)
+ {
+ 	int ret = 0, empty;
+@@ -112,7 +106,7 @@ int hfi_core_deinit(struct venus_core *core, bool blocking)
+ 
+ 	if (!empty) {
+ 		mutex_unlock(&core->lock);
+-		wait_on_atomic_t(&core->insts_count, core_deinit_wait_atomic_t,
++		wait_on_atomic_t(&core->insts_count, atomic_t_wait,
+ 				 TASK_UNINTERRUPTIBLE);
+ 		mutex_lock(&core->lock);
+ 	}
+diff --git a/fs/afs/rxrpc.c b/fs/afs/rxrpc.c
+index bb1e2caa1720..77f5420a1a24 100644
+--- a/fs/afs/rxrpc.c
++++ b/fs/afs/rxrpc.c
+@@ -41,12 +41,6 @@ static void afs_charge_preallocation(struct work_struct *);
+ 
+ static DECLARE_WORK(afs_charge_preallocation_work, afs_charge_preallocation);
+ 
+-static int afs_wait_atomic_t(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ /*
+  * open an RxRPC socket and bind it to be a server for callback notifications
+  * - the socket is left in blocking mode and non-blocking ops use MSG_DONTWAIT
+@@ -121,7 +115,7 @@ void afs_close_socket(void)
+ 	}
+ 
+ 	_debug("outstanding %u", atomic_read(&afs_outstanding_calls));
+-	wait_on_atomic_t(&afs_outstanding_calls, afs_wait_atomic_t,
++	wait_on_atomic_t(&afs_outstanding_calls, atomic_t_wait,
+ 			 TASK_UNINTERRUPTIBLE);
+ 	_debug("no outstanding calls");
+ 
+diff --git a/fs/btrfs/extent-tree.c b/fs/btrfs/extent-tree.c
+index e2d7e86b51d1..24cefde30e30 100644
+--- a/fs/btrfs/extent-tree.c
++++ b/fs/btrfs/extent-tree.c
+@@ -4016,16 +4016,9 @@ void btrfs_dec_nocow_writers(struct btrfs_fs_info *fs_info, u64 bytenr)
+ 	btrfs_put_block_group(bg);
+ }
+ 
+-static int btrfs_wait_nocow_writers_atomic_t(atomic_t *a)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ void btrfs_wait_nocow_writers(struct btrfs_block_group_cache *bg)
+ {
+-	wait_on_atomic_t(&bg->nocow_writers,
+-			 btrfs_wait_nocow_writers_atomic_t,
++	wait_on_atomic_t(&bg->nocow_writers, atomic_t_wait,
+ 			 TASK_UNINTERRUPTIBLE);
+ }
+ 
+@@ -6595,12 +6588,6 @@ void btrfs_dec_block_group_reservations(struct btrfs_fs_info *fs_info,
+ 	btrfs_put_block_group(bg);
+ }
+ 
+-static int btrfs_wait_bg_reservations_atomic_t(atomic_t *a)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ void btrfs_wait_block_group_reservations(struct btrfs_block_group_cache *bg)
+ {
+ 	struct btrfs_space_info *space_info = bg->space_info;
+@@ -6623,8 +6610,7 @@ void btrfs_wait_block_group_reservations(struct btrfs_block_group_cache *bg)
+ 	down_write(&space_info->groups_sem);
+ 	up_write(&space_info->groups_sem);
+ 
+-	wait_on_atomic_t(&bg->reservations,
+-			 btrfs_wait_bg_reservations_atomic_t,
++	wait_on_atomic_t(&bg->reservations, atomic_t_wait,
+ 			 TASK_UNINTERRUPTIBLE);
+ }
+ 
+@@ -11106,12 +11092,6 @@ int btrfs_start_write_no_snapshotting(struct btrfs_root *root)
+ 	return 1;
+ }
+ 
+-static int wait_snapshotting_atomic_t(atomic_t *a)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ void btrfs_wait_for_snapshot_creation(struct btrfs_root *root)
+ {
+ 	while (true) {
+@@ -11120,8 +11100,7 @@ void btrfs_wait_for_snapshot_creation(struct btrfs_root *root)
+ 		ret = btrfs_start_write_no_snapshotting(root);
+ 		if (ret)
+ 			break;
+-		wait_on_atomic_t(&root->will_be_snapshotted,
+-				 wait_snapshotting_atomic_t,
++		wait_on_atomic_t(&root->will_be_snapshotted, atomic_t_wait,
+ 				 TASK_UNINTERRUPTIBLE);
+ 	}
+ }
+diff --git a/fs/fscache/cookie.c b/fs/fscache/cookie.c
+index 40d61077bead..ff84258132bb 100644
+--- a/fs/fscache/cookie.c
++++ b/fs/fscache/cookie.c
+@@ -558,7 +558,7 @@ void __fscache_disable_cookie(struct fscache_cookie *cookie, bool invalidate)
+ 	 * have completed.
+ 	 */
+ 	if (!atomic_dec_and_test(&cookie->n_active))
+-		wait_on_atomic_t(&cookie->n_active, fscache_wait_atomic_t,
++		wait_on_atomic_t(&cookie->n_active, atomic_t_wait,
+ 				 TASK_UNINTERRUPTIBLE);
+ 
+ 	/* Make sure any pending writes are cancelled. */
+diff --git a/fs/fscache/internal.h b/fs/fscache/internal.h
+index 97ec45110957..0ff4b49a0037 100644
+--- a/fs/fscache/internal.h
++++ b/fs/fscache/internal.h
+@@ -97,8 +97,6 @@ static inline bool fscache_object_congested(void)
+ 	return workqueue_congested(WORK_CPU_UNBOUND, fscache_object_wq);
+ }
+ 
+-extern int fscache_wait_atomic_t(atomic_t *);
+-
+ /*
+  * object.c
+  */
+diff --git a/fs/fscache/main.c b/fs/fscache/main.c
+index b39d487ccfb0..249968dcbf5c 100644
+--- a/fs/fscache/main.c
++++ b/fs/fscache/main.c
+@@ -195,12 +195,3 @@ static void __exit fscache_exit(void)
+ }
+ 
+ module_exit(fscache_exit);
+-
+-/*
+- * wait_on_atomic_t() sleep function for uninterruptible waiting
+- */
+-int fscache_wait_atomic_t(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+diff --git a/fs/nfs/inode.c b/fs/nfs/inode.c
+index 134d9f560240..1629056aa2c9 100644
+--- a/fs/nfs/inode.c
++++ b/fs/nfs/inode.c
+@@ -85,9 +85,9 @@ int nfs_wait_bit_killable(struct wait_bit_key *key, int mode)
+ }
+ EXPORT_SYMBOL_GPL(nfs_wait_bit_killable);
+ 
+-int nfs_wait_atomic_killable(atomic_t *p)
++int nfs_wait_atomic_killable(atomic_t *p, unsigned int mode)
+ {
+-	return nfs_wait_killable(TASK_KILLABLE);
++	return nfs_wait_killable(mode);
+ }
+ 
+ /**
+diff --git a/fs/nfs/internal.h b/fs/nfs/internal.h
+index f9a4a5524bd5..5ab17fd4700a 100644
+--- a/fs/nfs/internal.h
++++ b/fs/nfs/internal.h
+@@ -388,7 +388,7 @@ extern void nfs_evict_inode(struct inode *);
+ void nfs_zap_acl_cache(struct inode *inode);
+ extern bool nfs_check_cache_invalid(struct inode *, unsigned long);
+ extern int nfs_wait_bit_killable(struct wait_bit_key *key, int mode);
+-extern int nfs_wait_atomic_killable(atomic_t *p);
++extern int nfs_wait_atomic_killable(atomic_t *p, unsigned int mode);
+ 
+ /* super.c */
+ extern const struct super_operations nfs_sops;
+diff --git a/fs/ocfs2/filecheck.c b/fs/ocfs2/filecheck.c
+index 2cabbcf2f28e..e87279e49ba3 100644
+--- a/fs/ocfs2/filecheck.c
++++ b/fs/ocfs2/filecheck.c
+@@ -129,19 +129,13 @@ static struct kobj_attribute ocfs2_attr_filecheck_set =
+ 					ocfs2_filecheck_show,
+ 					ocfs2_filecheck_store);
+ 
+-static int ocfs2_filecheck_sysfs_wait(atomic_t *p)
+-{
+-	schedule();
+-	return 0;
+-}
+-
+ static void
+ ocfs2_filecheck_sysfs_free(struct ocfs2_filecheck_sysfs_entry *entry)
+ {
+ 	struct ocfs2_filecheck_entry *p;
+ 
+ 	if (!atomic_dec_and_test(&entry->fs_count))
+-		wait_on_atomic_t(&entry->fs_count, ocfs2_filecheck_sysfs_wait,
++		wait_on_atomic_t(&entry->fs_count, atomic_t_wait,
+ 				 TASK_UNINTERRUPTIBLE);
+ 
+ 	spin_lock(&entry->fs_fcheck->fc_lock);
+diff --git a/include/linux/wait_bit.h b/include/linux/wait_bit.h
+index af0d495430d7..61b39eaf7cad 100644
+--- a/include/linux/wait_bit.h
++++ b/include/linux/wait_bit.h
+@@ -26,6 +26,8 @@ struct wait_bit_queue_entry {
+ 	{ .flags = p, .bit_nr = WAIT_ATOMIC_T_BIT_NR, }
+ 
+ typedef int wait_bit_action_f(struct wait_bit_key *key, int mode);
++typedef int wait_atomic_t_action_f(atomic_t *counter, unsigned int mode);
++
+ void __wake_up_bit(struct wait_queue_head *wq_head, void *word, int bit);
+ int __wait_on_bit(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *wbq_entry, wait_bit_action_f *action, unsigned int mode);
+ int __wait_on_bit_lock(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *wbq_entry, wait_bit_action_f *action, unsigned int mode);
+@@ -34,7 +36,7 @@ void wake_up_atomic_t(atomic_t *p);
+ int out_of_line_wait_on_bit(void *word, int, wait_bit_action_f *action, unsigned int mode);
+ int out_of_line_wait_on_bit_timeout(void *word, int, wait_bit_action_f *action, unsigned int mode, unsigned long timeout);
+ int out_of_line_wait_on_bit_lock(void *word, int, wait_bit_action_f *action, unsigned int mode);
+-int out_of_line_wait_on_atomic_t(atomic_t *p, int (*)(atomic_t *), unsigned int mode);
++int out_of_line_wait_on_atomic_t(atomic_t *p, wait_atomic_t_action_f action, unsigned int mode);
+ struct wait_queue_head *bit_waitqueue(void *word, int bit);
+ extern void __init wait_bit_init(void);
+ 
+@@ -51,10 +53,11 @@ int wake_bit_function(struct wait_queue_entry *wq_entry, unsigned mode, int sync
+ 		},								\
+ 	}
+ 
+-extern int bit_wait(struct wait_bit_key *key, int bit);
+-extern int bit_wait_io(struct wait_bit_key *key, int bit);
+-extern int bit_wait_timeout(struct wait_bit_key *key, int bit);
+-extern int bit_wait_io_timeout(struct wait_bit_key *key, int bit);
++extern int bit_wait(struct wait_bit_key *key, int mode);
++extern int bit_wait_io(struct wait_bit_key *key, int mode);
++extern int bit_wait_timeout(struct wait_bit_key *key, int mode);
++extern int bit_wait_io_timeout(struct wait_bit_key *key, int mode);
++extern int atomic_t_wait(atomic_t *counter, unsigned int mode);
+ 
+ /**
+  * wait_on_bit - wait for a bit to be cleared
+@@ -251,7 +254,7 @@ wait_on_bit_lock_action(unsigned long *word, int bit, wait_bit_action_f *action,
+  * outside of the target 'word'.
+  */
+ static inline
+-int wait_on_atomic_t(atomic_t *val, int (*action)(atomic_t *), unsigned mode)
++int wait_on_atomic_t(atomic_t *val, wait_atomic_t_action_f action, unsigned mode)
+ {
+ 	might_sleep();
+ 	if (atomic_read(val) == 0)
+diff --git a/kernel/sched/wait_bit.c b/kernel/sched/wait_bit.c
+index f8159698aa4d..84cb3acd9260 100644
+--- a/kernel/sched/wait_bit.c
++++ b/kernel/sched/wait_bit.c
+@@ -183,7 +183,7 @@ static int wake_atomic_t_function(struct wait_queue_entry *wq_entry, unsigned mo
+  */
+ static __sched
+ int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_entry *wbq_entry,
+-		       int (*action)(atomic_t *), unsigned mode)
++		       wait_atomic_t_action_f action, unsigned int mode)
+ {
+ 	atomic_t *val;
+ 	int ret = 0;
+@@ -193,7 +193,7 @@ int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_en
+ 		val = wbq_entry->key.flags;
+ 		if (atomic_read(val) == 0)
+ 			break;
+-		ret = (*action)(val);
++		ret = (*action)(val, mode);
+ 	} while (!ret && atomic_read(val) != 0);
+ 	finish_wait(wq_head, &wbq_entry->wq_entry);
+ 	return ret;
+@@ -210,8 +210,9 @@ int __wait_on_atomic_t(struct wait_queue_head *wq_head, struct wait_bit_queue_en
+ 		},							\
+ 	}
+ 
+-__sched int out_of_line_wait_on_atomic_t(atomic_t *p, int (*action)(atomic_t *),
+-					 unsigned mode)
++__sched int out_of_line_wait_on_atomic_t(atomic_t *p,
++					 wait_atomic_t_action_f action,
++					 unsigned int mode)
+ {
+ 	struct wait_queue_head *wq_head = atomic_t_waitqueue(p);
+ 	DEFINE_WAIT_ATOMIC_T(wq_entry, p);
+@@ -220,6 +221,15 @@ __sched int out_of_line_wait_on_atomic_t(atomic_t *p, int (*action)(atomic_t *),
+ }
+ EXPORT_SYMBOL(out_of_line_wait_on_atomic_t);
+ 
++__sched int atomic_t_wait(atomic_t *counter, unsigned int mode)
++{
++	schedule();
++	if (signal_pending_state(mode, current))
++		return -EINTR;
++	return 0;
++}
++EXPORT_SYMBOL(atomic_t_wait);
++
+ /**
+  * wake_up_atomic_t - Wake up a waiter on a atomic_t
+  * @p: The atomic_t being waited on, a kernel virtual address
+-- 
+2.17.0
+

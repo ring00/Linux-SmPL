@@ -1,0 +1,123 @@
+From 10d9b4ed3077df3288daff730173939fdf7d3183 Mon Sep 17 00:00:00 2001
+From: Damien Lespiau <damien.lespiau@intel.com>
+Date: Mon, 9 Jun 2014 14:21:08 +0100
+Subject: [PATCH] drm: Remove spurious ';'
+
+One small step after another, the never-ending crusade towards better
+code continues.
+
+Signed-off-by: Damien Lespiau <damien.lespiau@intel.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/ast/ast_post.c                      | 4 ++--
+ drivers/gpu/drm/exynos/exynos_dp_core.c             | 2 +-
+ drivers/gpu/drm/exynos/exynos_drm_dpi.c             | 2 +-
+ drivers/gpu/drm/gma500/mdfld_dsi_pkg_sender.c       | 2 +-
+ drivers/gpu/drm/nouveau/core/engine/graph/ctxnvf0.c | 2 +-
+ drivers/gpu/drm/nouveau/core/engine/graph/nv50.c    | 2 +-
+ drivers/gpu/drm/radeon/radeon_bios.c                | 2 +-
+ 7 files changed, 8 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_post.c b/drivers/gpu/drm/ast/ast_post.c
+index 4e5ea3898e72..38d437f3a267 100644
+--- a/drivers/gpu/drm/ast/ast_post.c
++++ b/drivers/gpu/drm/ast/ast_post.c
+@@ -1083,7 +1083,7 @@ static void get_ddr3_info(struct ast_private *ast, struct ast2300_dram_param *pa
+ 	case AST_DRAM_4Gx16:
+ 		param->dram_config = 0x133;
+ 		break;
+-	}; /* switch size */
++	} /* switch size */
+ 
+ 	switch (param->vram_size) {
+ 	default:
+@@ -1454,7 +1454,7 @@ static void get_ddr2_info(struct ast_private *ast, struct ast2300_dram_param *pa
+ 	case AST_DRAM_4Gx16:
+ 		param->dram_config = 0x123;
+ 		break;
+-	}; /* switch size */
++	} /* switch size */
+ 
+ 	switch (param->vram_size) {
+ 	default:
+diff --git a/drivers/gpu/drm/exynos/exynos_dp_core.c b/drivers/gpu/drm/exynos/exynos_dp_core.c
+index 5e05dbc60082..a8ffc8c1477b 100644
+--- a/drivers/gpu/drm/exynos/exynos_dp_core.c
++++ b/drivers/gpu/drm/exynos/exynos_dp_core.c
+@@ -1087,7 +1087,7 @@ static void exynos_dp_dpms(struct exynos_drm_display *display, int mode)
+ 		break;
+ 	default:
+ 		break;
+-	};
++	}
+ 	dp->dpms_mode = mode;
+ }
+ 
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_dpi.c b/drivers/gpu/drm/exynos/exynos_drm_dpi.c
+index f1b8587cc63d..482127f633c5 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_dpi.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_dpi.c
+@@ -152,7 +152,7 @@ static void exynos_dpi_dpms(struct exynos_drm_display *display, int mode)
+ 		break;
+ 	default:
+ 		break;
+-	};
++	}
+ 	ctx->dpms_mode = mode;
+ }
+ 
+diff --git a/drivers/gpu/drm/gma500/mdfld_dsi_pkg_sender.c b/drivers/gpu/drm/gma500/mdfld_dsi_pkg_sender.c
+index 489ffd2c66e5..87885d8c06e8 100644
+--- a/drivers/gpu/drm/gma500/mdfld_dsi_pkg_sender.c
++++ b/drivers/gpu/drm/gma500/mdfld_dsi_pkg_sender.c
+@@ -148,7 +148,7 @@ static int handle_dsi_error(struct mdfld_dsi_pkg_sender *sender, u32 mask)
+ 		break;
+ 	case BIT(14):
+ 		/*wait for all fifo empty*/
+-		/*wait_for_all_fifos_empty(sender)*/;
++		/*wait_for_all_fifos_empty(sender)*/
+ 		break;
+ 	case BIT(15):
+ 		dev_dbg(sender->dev->dev, "No Action required\n");
+diff --git a/drivers/gpu/drm/nouveau/core/engine/graph/ctxnvf0.c b/drivers/gpu/drm/nouveau/core/engine/graph/ctxnvf0.c
+index 0fab95e49f53..dec03f04114d 100644
+--- a/drivers/gpu/drm/nouveau/core/engine/graph/ctxnvf0.c
++++ b/drivers/gpu/drm/nouveau/core/engine/graph/ctxnvf0.c
+@@ -842,7 +842,7 @@ nvf0_grctx_generate_mods(struct nvc0_graph_priv *priv, struct nvc0_grctx *info)
+ 		u16 magic3 = 0x0648;
+ 		magic[gpc][0]  = 0x10000000 | (magic0 << 16) | offset;
+ 		magic[gpc][1]  = 0x00000000 | (magic1 << 16);
+-		offset += 0x0324 * (priv->tpc_nr[gpc] - 1);;
++		offset += 0x0324 * (priv->tpc_nr[gpc] - 1);
+ 		magic[gpc][2]  = 0x10000000 | (magic2 << 16) | offset;
+ 		magic[gpc][3]  = 0x00000000 | (magic3 << 16);
+ 		offset += 0x0324;
+diff --git a/drivers/gpu/drm/nouveau/core/engine/graph/nv50.c b/drivers/gpu/drm/nouveau/core/engine/graph/nv50.c
+index 2c7809e1a09b..1a2d56493cf6 100644
+--- a/drivers/gpu/drm/nouveau/core/engine/graph/nv50.c
++++ b/drivers/gpu/drm/nouveau/core/engine/graph/nv50.c
+@@ -901,7 +901,7 @@ nv50_graph_ctor(struct nouveau_object *parent, struct nouveau_object *engine,
+ 		nv_engine(priv)->sclass = nvaf_graph_sclass;
+ 		break;
+ 
+-	};
++	}
+ 
+ 	/* unfortunate hw bug workaround... */
+ 	if (nv_device(priv)->chipset != 0x50 &&
+diff --git a/drivers/gpu/drm/radeon/radeon_bios.c b/drivers/gpu/drm/radeon/radeon_bios.c
+index 9ab30976287d..6a03624fadaa 100644
+--- a/drivers/gpu/drm/radeon/radeon_bios.c
++++ b/drivers/gpu/drm/radeon/radeon_bios.c
+@@ -626,7 +626,7 @@ static bool radeon_acpi_vfct_bios(struct radeon_device *rdev)
+ 	    vhdr->DeviceID != rdev->pdev->device) {
+ 		DRM_INFO("ACPI VFCT table is not for this card\n");
+ 		goto out_unmap;
+-	};
++	}
+ 
+ 	if (vfct->VBIOSImageOffset + sizeof(VFCT_IMAGE_HEADER) + vhdr->ImageLength > tbl_size) {
+ 		DRM_ERROR("ACPI VFCT image truncated\n");
+-- 
+2.17.0
+

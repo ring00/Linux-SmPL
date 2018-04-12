@@ -1,0 +1,324 @@
+From e77819e57f0817c6dc7cadd061acd70c604cbce2 Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 22 Jul 2011 19:30:19 -0700
+Subject: [PATCH] vfs: move ACL cache lookup into generic code
+
+This moves logic for checking the cached ACL values from low-level
+filesystems into generic code.  The end result is a streamlined ACL
+check that doesn't need to load the inode->i_op->check_acl pointer at
+all for the common cached case.
+
+The filesystems also don't need to check for a non-blocking RCU walk
+case in their acl_check() functions, because that is all handled at a
+VFS layer.
+
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/9p/acl.c                |  3 ---
+ fs/btrfs/acl.c             | 19 +++++---------
+ fs/ext2/acl.c              |  6 -----
+ fs/ext3/acl.c              |  6 -----
+ fs/ext4/acl.c              |  6 -----
+ fs/generic_acl.c           | 19 +++++---------
+ fs/gfs2/acl.c              |  6 -----
+ fs/jffs2/acl.c             |  3 ---
+ fs/jfs/acl.c               |  3 ---
+ fs/namei.c                 | 52 +++++++++++++++++++++++++++++++++++---
+ fs/ocfs2/acl.c             |  3 ---
+ fs/xfs/linux-2.6/xfs_acl.c |  8 ++----
+ 12 files changed, 65 insertions(+), 69 deletions(-)
+
+diff --git a/fs/9p/acl.c b/fs/9p/acl.c
+index 7350f53f3b51..8be87857605c 100644
+--- a/fs/9p/acl.c
++++ b/fs/9p/acl.c
+@@ -101,9 +101,6 @@ int v9fs_check_acl(struct inode *inode, int mask)
+ 	struct posix_acl *acl;
+ 	struct v9fs_session_info *v9ses;
+ 
+-	if (mask & MAY_NOT_BLOCK)
+-		return -ECHILD;
+-
+ 	v9ses = v9fs_inode2v9ses(inode);
+ 	if (((v9ses->flags & V9FS_ACCESS_MASK) != V9FS_ACCESS_CLIENT) ||
+ 			((v9ses->flags & V9FS_ACL_MASK) != V9FS_POSIX_ACL)) {
+diff --git a/fs/btrfs/acl.c b/fs/btrfs/acl.c
+index 9f62ab2a7282..c13ea9fbf36b 100644
+--- a/fs/btrfs/acl.c
++++ b/fs/btrfs/acl.c
+@@ -198,19 +198,14 @@ static int btrfs_xattr_acl_set(struct dentry *dentry, const char *name,
+ int btrfs_check_acl(struct inode *inode, int mask)
+ {
+ 	int error = -EAGAIN;
++	struct posix_acl *acl;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			error = -ECHILD;
+-	} else {
+-		struct posix_acl *acl;
+-		acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
+-		if (IS_ERR(acl))
+-			return PTR_ERR(acl);
+-		if (acl) {
+-			error = posix_acl_permission(inode, acl, mask);
+-			posix_acl_release(acl);
+-		}
++	acl = btrfs_get_acl(inode, ACL_TYPE_ACCESS);
++	if (IS_ERR(acl))
++		return PTR_ERR(acl);
++	if (acl) {
++		error = posix_acl_permission(inode, acl, mask);
++		posix_acl_release(acl);
+ 	}
+ 
+ 	return error;
+diff --git a/fs/ext2/acl.c b/fs/ext2/acl.c
+index bfe651f9ae16..ced1c478ebdb 100644
+--- a/fs/ext2/acl.c
++++ b/fs/ext2/acl.c
+@@ -236,12 +236,6 @@ ext2_check_acl(struct inode *inode, int mask)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-		return -EAGAIN;
+-	}
+-
+ 	acl = ext2_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/ext3/acl.c b/fs/ext3/acl.c
+index edfeb293d4cb..5326038e8536 100644
+--- a/fs/ext3/acl.c
++++ b/fs/ext3/acl.c
+@@ -244,12 +244,6 @@ ext3_check_acl(struct inode *inode, int mask)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-		return -EAGAIN;
+-	}
+-
+ 	acl = ext3_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/ext4/acl.c b/fs/ext4/acl.c
+index 60d900fcc3db..4cd9e2e4085e 100644
+--- a/fs/ext4/acl.c
++++ b/fs/ext4/acl.c
+@@ -242,12 +242,6 @@ ext4_check_acl(struct inode *inode, int mask)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-		return -EAGAIN;
+-	}
+-
+ 	acl = ext4_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/generic_acl.c b/fs/generic_acl.c
+index 70e90b4974ce..4949473d3542 100644
+--- a/fs/generic_acl.c
++++ b/fs/generic_acl.c
+@@ -192,18 +192,13 @@ generic_acl_chmod(struct inode *inode)
+ int
+ generic_check_acl(struct inode *inode, int mask)
+ {
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-	} else {
+-		struct posix_acl *acl;
+-
+-		acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
+-		if (acl) {
+-			int error = posix_acl_permission(inode, acl, mask);
+-			posix_acl_release(acl);
+-			return error;
+-		}
++	struct posix_acl *acl;
++
++	acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
++	if (acl) {
++		int error = posix_acl_permission(inode, acl, mask);
++		posix_acl_release(acl);
++		return error;
+ 	}
+ 	return -EAGAIN;
+ }
+diff --git a/fs/gfs2/acl.c b/fs/gfs2/acl.c
+index 8ef1079f1665..48171f4c943d 100644
+--- a/fs/gfs2/acl.c
++++ b/fs/gfs2/acl.c
+@@ -80,12 +80,6 @@ int gfs2_check_acl(struct inode *inode, int mask)
+ 	struct posix_acl *acl;
+ 	int error;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-		return -EAGAIN;
+-	}
+-
+ 	acl = gfs2_acl_get(GFS2_I(inode), ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/jffs2/acl.c b/fs/jffs2/acl.c
+index f9c302430aa1..4933a8f8ecc9 100644
+--- a/fs/jffs2/acl.c
++++ b/fs/jffs2/acl.c
+@@ -264,9 +264,6 @@ int jffs2_check_acl(struct inode *inode, int mask)
+ 	struct posix_acl *acl;
+ 	int rc;
+ 
+-	if (mask & MAY_NOT_BLOCK)
+-		return -ECHILD;
+-
+ 	acl = jffs2_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/jfs/acl.c b/fs/jfs/acl.c
+index 8a0a0666d5a6..ead200eef5e4 100644
+--- a/fs/jfs/acl.c
++++ b/fs/jfs/acl.c
+@@ -118,9 +118,6 @@ int jfs_check_acl(struct inode *inode, int mask)
+ {
+ 	struct posix_acl *acl;
+ 
+-	if (mask & MAY_NOT_BLOCK)
+-		return -ECHILD;
+-
+ 	acl = jfs_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+diff --git a/fs/namei.c b/fs/namei.c
+index b7fad009bbf6..120efc76d3d0 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -32,6 +32,7 @@
+ #include <linux/fcntl.h>
+ #include <linux/device_cgroup.h>
+ #include <linux/fs_struct.h>
++#include <linux/posix_acl.h>
+ #include <asm/uaccess.h>
+ 
+ #include "internal.h"
+@@ -173,12 +174,58 @@ void putname(const char *name)
+ EXPORT_SYMBOL(putname);
+ #endif
+ 
++static int check_acl(struct inode *inode, int mask)
++{
++	struct posix_acl *acl;
++
++	/*
++	 * Under RCU walk, we cannot even do a "get_cached_acl()",
++	 * because that involves locking and getting a refcount on
++	 * a cached ACL.
++	 *
++	 * So the only case we handle during RCU walking is the
++	 * case of a cached "no ACL at all", which needs no locks
++	 * or refcounts.
++	 */
++	if (mask & MAY_NOT_BLOCK) {
++	        if (negative_cached_acl(inode, ACL_TYPE_ACCESS))
++	                return -EAGAIN;
++	        return -ECHILD;
++	}
++
++	acl = get_cached_acl(inode, ACL_TYPE_ACCESS);
++
++	/*
++	 * A filesystem can force a ACL callback by just never
++	 * filling the ACL cache. But normally you'd fill the
++	 * cache either at inode instantiation time, or on the
++	 * first ->check_acl call.
++	 *
++	 * If the filesystem doesn't have a check_acl() function
++	 * at all, we'll just create the negative cache entry.
++	 */
++	if (acl == ACL_NOT_CACHED) {
++	        if (inode->i_op->check_acl)
++	                return inode->i_op->check_acl(inode, mask);
++
++	        set_cached_acl(inode, ACL_TYPE_ACCESS, NULL);
++	        return -EAGAIN;
++	}
++
++	if (acl) {
++	        int error = posix_acl_permission(inode, acl, mask);
++	        posix_acl_release(acl);
++	        return error;
++	}
++
++	return -EAGAIN;
++}
++
+ /*
+  * This does basic POSIX ACL permission checking
+  */
+ static int acl_permission_check(struct inode *inode, int mask)
+ {
+-	int (*check_acl)(struct inode *inode, int mask);
+ 	unsigned int mode = inode->i_mode;
+ 
+ 	mask &= MAY_READ | MAY_WRITE | MAY_EXEC | MAY_NOT_BLOCK;
+@@ -189,8 +236,7 @@ static int acl_permission_check(struct inode *inode, int mask)
+ 	if (current_fsuid() == inode->i_uid)
+ 		mode >>= 6;
+ 	else {
+-		check_acl = inode->i_op->check_acl;
+-		if (IS_POSIXACL(inode) && (mode & S_IRWXG) && check_acl) {
++		if (IS_POSIXACL(inode) && (mode & S_IRWXG)) {
+ 			int error = check_acl(inode, mask);
+ 			if (error != -EAGAIN)
+ 				return error;
+diff --git a/fs/ocfs2/acl.c b/fs/ocfs2/acl.c
+index f4cf451ce6e8..aff23e59b58c 100644
+--- a/fs/ocfs2/acl.c
++++ b/fs/ocfs2/acl.c
+@@ -297,9 +297,6 @@ int ocfs2_check_acl(struct inode *inode, int mask)
+ 	struct posix_acl *acl;
+ 	int ret = -EAGAIN;
+ 
+-	if (mask & MAY_NOT_BLOCK)
+-		return -ECHILD;
+-
+ 	osb = OCFS2_SB(inode->i_sb);
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return ret;
+diff --git a/fs/xfs/linux-2.6/xfs_acl.c b/fs/xfs/linux-2.6/xfs_acl.c
+index cac48fe22ad5..f6d065ac56b5 100644
+--- a/fs/xfs/linux-2.6/xfs_acl.c
++++ b/fs/xfs/linux-2.6/xfs_acl.c
+@@ -231,16 +231,12 @@ xfs_check_acl(struct inode *inode, int mask)
+ 	/*
+ 	 * If there is no attribute fork no ACL exists on this inode and
+ 	 * we can skip the whole exercise.
++	 *
++	 * FIXME! Fill the cache! Locking?
+ 	 */
+ 	if (!XFS_IFORK_Q(ip))
+ 		return -EAGAIN;
+ 
+-	if (mask & MAY_NOT_BLOCK) {
+-		if (!negative_cached_acl(inode, ACL_TYPE_ACCESS))
+-			return -ECHILD;
+-		return -EAGAIN;
+-	}
+-
+ 	acl = xfs_get_acl(inode, ACL_TYPE_ACCESS);
+ 	if (IS_ERR(acl))
+ 		return PTR_ERR(acl);
+-- 
+2.17.0
+

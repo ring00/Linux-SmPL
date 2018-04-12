@@ -1,0 +1,337 @@
+From f368ed6088ae9c1fbe1c897bb5f215ce5e63fa1e Mon Sep 17 00:00:00 2001
+From: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Date: Thu, 30 Jul 2015 15:59:57 -0700
+Subject: [PATCH] char: make misc_deregister a void function
+
+With well over 200+ users of this api, there are a mere 12 users that
+actually checked the return value of this function.  And all of them
+really didn't do anything with that information as the system or module
+was shutting down no matter what.
+
+So stop pretending like it matters, and just return void from
+misc_deregister().  If something goes wrong in the call, you will get a
+WARNING splat in the syslog so you know how to fix up your driver.
+Other than that, there's nothing that can go wrong.
+
+Cc: Alasdair Kergon <agk@redhat.com>
+Cc: Neil Brown <neilb@suse.com>
+Cc: Oleg Drokin <oleg.drokin@intel.com>
+Cc: Andreas Dilger <andreas.dilger@intel.com>
+Cc: "Michael S. Tsirkin" <mst@redhat.com>
+Cc: Wim Van Sebroeck <wim@iguana.be>
+Cc: Christine Caulfield <ccaulfie@redhat.com>
+Cc: David Teigland <teigland@redhat.com>
+Cc: Mark Fasheh <mfasheh@suse.com>
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Acked-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Acked-by: Alessandro Zummo <a.zummo@towertech.it>
+Acked-by: Mike Snitzer <snitzer@redhat.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/char/misc.c                           | 9 +++------
+ drivers/md/dm-ioctl.c                         | 4 +---
+ drivers/misc/vmw_vmci/vmci_host.c             | 7 +------
+ drivers/rtc/rtc-ds1374.c                      | 5 ++---
+ drivers/staging/android/ashmem.c              | 7 +------
+ drivers/staging/android/ion/ion_test.c        | 3 ++-
+ drivers/staging/lustre/lustre/libcfs/module.c | 4 +---
+ drivers/vhost/scsi.c                          | 4 ++--
+ drivers/watchdog/at91rm9200_wdt.c             | 5 ++---
+ drivers/watchdog/ks8695_wdt.c                 | 9 +++------
+ drivers/watchdog/ts72xx_wdt.c                 | 3 ++-
+ fs/btrfs/super.c                              | 3 +--
+ fs/dlm/plock.c                                | 3 +--
+ fs/dlm/user.c                                 | 9 +++------
+ fs/ocfs2/stack_user.c                         | 9 +--------
+ include/linux/miscdevice.h                    | 2 +-
+ 16 files changed, 27 insertions(+), 59 deletions(-)
+
+diff --git a/drivers/char/misc.c b/drivers/char/misc.c
+index c83ef9652bc9..8069b361b8dd 100644
+--- a/drivers/char/misc.c
++++ b/drivers/char/misc.c
+@@ -243,17 +243,15 @@ int misc_register(struct miscdevice * misc)
+  *	@misc: device to unregister
+  *
+  *	Unregister a miscellaneous device that was previously
+- *	successfully registered with misc_register(). Success
+- *	is indicated by a zero return, a negative errno code
+- *	indicates an error.
++ *	successfully registered with misc_register().
+  */
+ 
+-int misc_deregister(struct miscdevice *misc)
++void misc_deregister(struct miscdevice *misc)
+ {
+ 	int i = DYNAMIC_MINORS - misc->minor - 1;
+ 
+ 	if (WARN_ON(list_empty(&misc->list)))
+-		return -EINVAL;
++		return;
+ 
+ 	mutex_lock(&misc_mtx);
+ 	list_del(&misc->list);
+@@ -261,7 +259,6 @@ int misc_deregister(struct miscdevice *misc)
+ 	if (i < DYNAMIC_MINORS && i >= 0)
+ 		clear_bit(i, misc_minors);
+ 	mutex_unlock(&misc_mtx);
+-	return 0;
+ }
+ 
+ EXPORT_SYMBOL(misc_register);
+diff --git a/drivers/md/dm-ioctl.c b/drivers/md/dm-ioctl.c
+index 720ceeb7fa9b..80a439543259 100644
+--- a/drivers/md/dm-ioctl.c
++++ b/drivers/md/dm-ioctl.c
+@@ -1919,9 +1919,7 @@ int __init dm_interface_init(void)
+ 
+ void dm_interface_exit(void)
+ {
+-	if (misc_deregister(&_dm_misc) < 0)
+-		DMERR("misc_deregister failed for control device");
+-
++	misc_deregister(&_dm_misc);
+ 	dm_hash_exit();
+ }
+ 
+diff --git a/drivers/misc/vmw_vmci/vmci_host.c b/drivers/misc/vmw_vmci/vmci_host.c
+index a721b5d8a9da..9ec262a52656 100644
+--- a/drivers/misc/vmw_vmci/vmci_host.c
++++ b/drivers/misc/vmw_vmci/vmci_host.c
+@@ -1031,14 +1031,9 @@ int __init vmci_host_init(void)
+ 
+ void __exit vmci_host_exit(void)
+ {
+-	int error;
+-
+ 	vmci_host_device_initialized = false;
+ 
+-	error = misc_deregister(&vmci_host_miscdev);
+-	if (error)
+-		pr_warn("Error unregistering character device: %d\n", error);
+-
++	misc_deregister(&vmci_host_miscdev);
+ 	vmci_ctx_destroy(host_context);
+ 	vmci_qp_broker_exit();
+ 
+diff --git a/drivers/rtc/rtc-ds1374.c b/drivers/rtc/rtc-ds1374.c
+index 167783fa7ac1..72c933375233 100644
+--- a/drivers/rtc/rtc-ds1374.c
++++ b/drivers/rtc/rtc-ds1374.c
+@@ -666,9 +666,8 @@ static int ds1374_remove(struct i2c_client *client)
+ #ifdef CONFIG_RTC_DRV_DS1374_WDT
+ 	int res;
+ 
+-	res = misc_deregister(&ds1374_miscdev);
+-	if (!res)
+-		ds1374_miscdev.parent = NULL;
++	misc_deregister(&ds1374_miscdev);
++	ds1374_miscdev.parent = NULL;
+ 	unregister_reboot_notifier(&ds1374_wdt_notifier);
+ #endif
+ 
+diff --git a/drivers/staging/android/ashmem.c b/drivers/staging/android/ashmem.c
+index c5c037ccf32c..2c75d90b26c8 100644
+--- a/drivers/staging/android/ashmem.c
++++ b/drivers/staging/android/ashmem.c
+@@ -863,14 +863,9 @@ static int __init ashmem_init(void)
+ 
+ static void __exit ashmem_exit(void)
+ {
+-	int ret;
+-
+ 	unregister_shrinker(&ashmem_shrinker);
+ 
+-	ret = misc_deregister(&ashmem_misc);
+-	if (unlikely(ret))
+-		pr_err("failed to unregister misc device!\n");
+-
++	misc_deregister(&ashmem_misc);
+ 	kmem_cache_destroy(ashmem_range_cachep);
+ 	kmem_cache_destroy(ashmem_area_cachep);
+ 
+diff --git a/drivers/staging/android/ion/ion_test.c b/drivers/staging/android/ion/ion_test.c
+index 7d6e6b6bc894..b8dcf5a26cc4 100644
+--- a/drivers/staging/android/ion/ion_test.c
++++ b/drivers/staging/android/ion/ion_test.c
+@@ -269,7 +269,8 @@ static int ion_test_remove(struct platform_device *pdev)
+ 	if (!testdev)
+ 		return -ENODATA;
+ 
+-	return misc_deregister(&testdev->misc);
++	misc_deregister(&testdev->misc);
++	return 0;
+ }
+ 
+ static struct platform_device *ion_test_pdev;
+diff --git a/drivers/staging/lustre/lustre/libcfs/module.c b/drivers/staging/lustre/lustre/libcfs/module.c
+index e60b2e9b9194..e7074006e41b 100644
+--- a/drivers/staging/lustre/lustre/libcfs/module.c
++++ b/drivers/staging/lustre/lustre/libcfs/module.c
+@@ -467,9 +467,7 @@ static void exit_libcfs_module(void)
+ 	cfs_crypto_unregister();
+ 	cfs_wi_shutdown();
+ 
+-	rc = misc_deregister(&libcfs_dev);
+-	if (rc)
+-		CERROR("misc_deregister error %d\n", rc);
++	misc_deregister(&libcfs_dev);
+ 
+ 	cfs_cpu_fini();
+ 
+diff --git a/drivers/vhost/scsi.c b/drivers/vhost/scsi.c
+index dfcc02c93648..f114a9dbb48f 100644
+--- a/drivers/vhost/scsi.c
++++ b/drivers/vhost/scsi.c
+@@ -1573,9 +1573,9 @@ static int __init vhost_scsi_register(void)
+ 	return misc_register(&vhost_scsi_misc);
+ }
+ 
+-static int vhost_scsi_deregister(void)
++static void vhost_scsi_deregister(void)
+ {
+-	return misc_deregister(&vhost_scsi_misc);
++	misc_deregister(&vhost_scsi_misc);
+ }
+ 
+ static char *vhost_scsi_dump_proto_id(struct vhost_scsi_tport *tport)
+diff --git a/drivers/watchdog/at91rm9200_wdt.c b/drivers/watchdog/at91rm9200_wdt.c
+index 41cecb55766c..9ba1153465ae 100644
+--- a/drivers/watchdog/at91rm9200_wdt.c
++++ b/drivers/watchdog/at91rm9200_wdt.c
+@@ -269,9 +269,8 @@ static int at91wdt_remove(struct platform_device *pdev)
+ 	if (res)
+ 		dev_warn(dev, "failed to unregister restart handler\n");
+ 
+-	res = misc_deregister(&at91wdt_miscdev);
+-	if (!res)
+-		at91wdt_miscdev.parent = NULL;
++	misc_deregister(&at91wdt_miscdev);
++	at91wdt_miscdev.parent = NULL;
+ 
+ 	return res;
+ }
+diff --git a/drivers/watchdog/ks8695_wdt.c b/drivers/watchdog/ks8695_wdt.c
+index b7ea39b455c8..1e41818a44bc 100644
+--- a/drivers/watchdog/ks8695_wdt.c
++++ b/drivers/watchdog/ks8695_wdt.c
+@@ -254,13 +254,10 @@ static int ks8695wdt_probe(struct platform_device *pdev)
+ 
+ static int ks8695wdt_remove(struct platform_device *pdev)
+ {
+-	int res;
+-
+-	res = misc_deregister(&ks8695wdt_miscdev);
+-	if (!res)
+-		ks8695wdt_miscdev.parent = NULL;
++	misc_deregister(&ks8695wdt_miscdev);
++	ks8695wdt_miscdev.parent = NULL;
+ 
+-	return res;
++	return 0;
+ }
+ 
+ static void ks8695wdt_shutdown(struct platform_device *pdev)
+diff --git a/drivers/watchdog/ts72xx_wdt.c b/drivers/watchdog/ts72xx_wdt.c
+index 119beb7f6017..4b541934b6c5 100644
+--- a/drivers/watchdog/ts72xx_wdt.c
++++ b/drivers/watchdog/ts72xx_wdt.c
+@@ -428,7 +428,8 @@ static int ts72xx_wdt_probe(struct platform_device *pdev)
+ 
+ static int ts72xx_wdt_remove(struct platform_device *pdev)
+ {
+-	return misc_deregister(&ts72xx_wdt_miscdev);
++	misc_deregister(&ts72xx_wdt_miscdev);
++	return 0;
+ }
+ 
+ static struct platform_driver ts72xx_wdt_driver = {
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index cd7ef34d2dce..6bad63379a4c 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -2163,8 +2163,7 @@ static int btrfs_interface_init(void)
+ 
+ static void btrfs_interface_exit(void)
+ {
+-	if (misc_deregister(&btrfs_misc) < 0)
+-		printk(KERN_INFO "BTRFS: misc_deregister failed for control device\n");
++	misc_deregister(&btrfs_misc);
+ }
+ 
+ static void btrfs_print_info(void)
+diff --git a/fs/dlm/plock.c b/fs/dlm/plock.c
+index e0ab3a93eeff..5532f097f6da 100644
+--- a/fs/dlm/plock.c
++++ b/fs/dlm/plock.c
+@@ -509,7 +509,6 @@ int dlm_plock_init(void)
+ 
+ void dlm_plock_exit(void)
+ {
+-	if (misc_deregister(&plock_dev_misc) < 0)
+-		log_print("dlm_plock_exit: misc_deregister failed");
++	misc_deregister(&plock_dev_misc);
+ }
+ 
+diff --git a/fs/dlm/user.c b/fs/dlm/user.c
+index fb85f32e9eca..75ecc0d3bc85 100644
+--- a/fs/dlm/user.c
++++ b/fs/dlm/user.c
+@@ -362,18 +362,15 @@ static int dlm_device_register(struct dlm_ls *ls, char *name)
+ 
+ int dlm_device_deregister(struct dlm_ls *ls)
+ {
+-	int error;
+-
+ 	/* The device is not registered.  This happens when the lockspace
+ 	   was never used from userspace, or when device_create_lockspace()
+ 	   calls dlm_release_lockspace() after the register fails. */
+ 	if (!ls->ls_device.name)
+ 		return 0;
+ 
+-	error = misc_deregister(&ls->ls_device);
+-	if (!error)
+-		kfree(ls->ls_device.name);
+-	return error;
++	misc_deregister(&ls->ls_device);
++	kfree(ls->ls_device.name);
++	return 0;
+ }
+ 
+ static int device_user_purge(struct dlm_user_proc *proc,
+diff --git a/fs/ocfs2/stack_user.c b/fs/ocfs2/stack_user.c
+index 2768eb1da2b8..ced70c8139f7 100644
+--- a/fs/ocfs2/stack_user.c
++++ b/fs/ocfs2/stack_user.c
+@@ -655,14 +655,7 @@ static int ocfs2_control_init(void)
+ 
+ static void ocfs2_control_exit(void)
+ {
+-	int rc;
+-
+-	rc = misc_deregister(&ocfs2_control_device);
+-	if (rc)
+-		printk(KERN_ERR
+-		       "ocfs2: Unable to deregister ocfs2_control device "
+-		       "(errno %d)\n",
+-		       -rc);
++	misc_deregister(&ocfs2_control_device);
+ }
+ 
+ static void fsdlm_lock_ast_wrapper(void *astarg)
+diff --git a/include/linux/miscdevice.h b/include/linux/miscdevice.h
+index 819077c32690..81f6e427ba6b 100644
+--- a/include/linux/miscdevice.h
++++ b/include/linux/miscdevice.h
+@@ -67,7 +67,7 @@ struct miscdevice  {
+ };
+ 
+ extern int misc_register(struct miscdevice *misc);
+-extern int misc_deregister(struct miscdevice *misc);
++extern void misc_deregister(struct miscdevice *misc);
+ 
+ #define MODULE_ALIAS_MISCDEV(minor)				\
+ 	MODULE_ALIAS("char-major-" __stringify(MISC_MAJOR)	\
+-- 
+2.17.0
+

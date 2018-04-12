@@ -1,0 +1,72 @@
+From 67b58bf723b083d4776cd7c9959246ef46c0d36f Mon Sep 17 00:00:00 2001
+From: Lars Ellenberg <lars.ellenberg@linbit.com>
+Date: Mon, 6 Jun 2011 15:36:04 +0200
+Subject: [PATCH] drbd: spelling fix: too small
+
+It is not "to small", but "too small".
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_nl.c | 8 ++++----
+ include/linux/drbd.h         | 4 ++--
+ 2 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 59923db780b9..31d27dd92924 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -1360,7 +1360,7 @@ int drbd_adm_attach(struct sk_buff *skb, struct genl_info *info)
+ 		dev_err(DEV, "max capacity %llu smaller than disk size %llu\n",
+ 			(unsigned long long) drbd_get_max_capacity(nbc),
+ 			(unsigned long long) new_disk_conf->disk_size);
+-		retcode = ERR_DISK_TO_SMALL;
++		retcode = ERR_DISK_TOO_SMALL;
+ 		goto fail;
+ 	}
+ 
+@@ -1374,7 +1374,7 @@ int drbd_adm_attach(struct sk_buff *skb, struct genl_info *info)
+ 	}
+ 
+ 	if (drbd_get_capacity(nbc->md_bdev) < min_md_device_sectors) {
+-		retcode = ERR_MD_DISK_TO_SMALL;
++		retcode = ERR_MD_DISK_TOO_SMALL;
+ 		dev_warn(DEV, "refusing attach: md-device too small, "
+ 		     "at least %llu sectors needed for this meta-disk type\n",
+ 		     (unsigned long long) min_md_device_sectors);
+@@ -1385,7 +1385,7 @@ int drbd_adm_attach(struct sk_buff *skb, struct genl_info *info)
+ 	 * (we may currently be R_PRIMARY with no local disk...) */
+ 	if (drbd_get_max_capacity(nbc) <
+ 	    drbd_get_capacity(mdev->this_bdev)) {
+-		retcode = ERR_DISK_TO_SMALL;
++		retcode = ERR_DISK_TOO_SMALL;
+ 		goto fail;
+ 	}
+ 
+@@ -1447,7 +1447,7 @@ int drbd_adm_attach(struct sk_buff *skb, struct genl_info *info)
+ 	if (drbd_md_test_flag(nbc, MDF_CONSISTENT) &&
+ 	    drbd_new_dev_size(mdev, nbc, nbc->disk_conf->disk_size, 0) < nbc->md.la_size_sect) {
+ 		dev_warn(DEV, "refusing to truncate a consistent device\n");
+-		retcode = ERR_DISK_TO_SMALL;
++		retcode = ERR_DISK_TOO_SMALL;
+ 		goto force_diskless_dec;
+ 	}
+ 
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 679e81123229..fedda00374af 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -112,8 +112,8 @@ enum drbd_ret_code {
+ 	ERR_OPEN_MD_DISK	= 105,
+ 	ERR_DISK_NOT_BDEV	= 107,
+ 	ERR_MD_NOT_BDEV		= 108,
+-	ERR_DISK_TO_SMALL	= 111,
+-	ERR_MD_DISK_TO_SMALL	= 112,
++	ERR_DISK_TOO_SMALL	= 111,
++	ERR_MD_DISK_TOO_SMALL	= 112,
+ 	ERR_BDCLAIM_DISK	= 114,
+ 	ERR_BDCLAIM_MD_DISK	= 115,
+ 	ERR_MD_IDX_INVALID	= 116,
+-- 
+2.17.0
+

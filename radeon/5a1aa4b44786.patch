@@ -1,0 +1,73 @@
+From 5a1aa4b447868b0ea66d2903df479b3b94c34151 Mon Sep 17 00:00:00 2001
+From: Rob Clark <robdclark@gmail.com>
+Date: Wed, 21 Jan 2015 17:49:59 -0500
+Subject: [PATCH] drm/radeon: make MMU_NOTIFIER optional
+
+In cases where MMU_NOTIFIER is not available, userptr will not be
+available.  Similar to i915, although not making an exception for
+CAP_SYS_ADMIN.
+
+The proposed userspace patches for userptr seem to handle the fall-
+back properly, so a userptr-less kernel should not be a problem.
+
+Signed-off-by: Rob Clark <robdclark@gmail.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/Kconfig         | 1 -
+ drivers/gpu/drm/radeon/Makefile | 4 +++-
+ drivers/gpu/drm/radeon/radeon.h | 8 ++++++++
+ 3 files changed, 11 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index ea283894a12a..308c104ccdbd 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -110,7 +110,6 @@ config DRM_RADEON
+ 	select HWMON
+ 	select BACKLIGHT_CLASS_DEVICE
+ 	select INTERVAL_TREE
+-	select MMU_NOTIFIER
+ 	help
+ 	  Choose this option if you have an ATI Radeon graphics card.  There
+ 	  are both PCI and AGP versions.  You don't need to choose this to
+diff --git a/drivers/gpu/drm/radeon/Makefile b/drivers/gpu/drm/radeon/Makefile
+index f9dab1cb85ba..4605633e253b 100644
+--- a/drivers/gpu/drm/radeon/Makefile
++++ b/drivers/gpu/drm/radeon/Makefile
+@@ -80,9 +80,11 @@ radeon-y += radeon_device.o radeon_asic.o radeon_kms.o \
+ 	r600_dpm.o rs780_dpm.o rv6xx_dpm.o rv770_dpm.o rv730_dpm.o rv740_dpm.o \
+ 	rv770_smc.o cypress_dpm.o btc_dpm.o sumo_dpm.o sumo_smc.o trinity_dpm.o \
+ 	trinity_smc.o ni_dpm.o si_smc.o si_dpm.o kv_smc.o kv_dpm.o ci_smc.o \
+-	ci_dpm.o dce6_afmt.o radeon_vm.o radeon_ucode.o radeon_ib.o radeon_mn.o \
++	ci_dpm.o dce6_afmt.o radeon_vm.o radeon_ucode.o radeon_ib.o \
+ 	radeon_sync.o radeon_audio.o
+ 
++radeon-$(CONFIG_MMU_NOTIFIER) += radeon_mn.o
++
+ # add async DMA block
+ radeon-y += \
+ 	r600_dma.o \
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index d15e3c0c09f5..93e407b7e7a7 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -1780,8 +1780,16 @@ void radeon_test_syncing(struct radeon_device *rdev);
+ /*
+  * MMU Notifier
+  */
++#if defined(CONFIG_MMU_NOTIFIER)
+ int radeon_mn_register(struct radeon_bo *bo, unsigned long addr);
+ void radeon_mn_unregister(struct radeon_bo *bo);
++#else
++static inline int radeon_mn_register(struct radeon_bo *bo, unsigned long addr)
++{
++	return -ENODEV;
++}
++static inline void radeon_mn_unregister(struct radeon_bo *bo) {}
++#endif
+ 
+ /*
+  * Debugfs
+-- 
+2.17.0
+

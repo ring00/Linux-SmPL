@@ -1,0 +1,384 @@
+From b583043e99bc6d91e98fae32bd9eff6a5958240a Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 31 Oct 2014 01:22:04 -0400
+Subject: [PATCH] kill f_dentry uses
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ drivers/block/drbd/drbd_debugfs.c          |  6 +++---
+ drivers/scsi/lpfc/lpfc_debugfs.c           |  4 ++--
+ drivers/staging/lustre/lustre/llite/file.c | 12 +++---------
+ fs/ceph/dir.c                              |  6 +++---
+ fs/ceph/file.c                             |  2 +-
+ fs/cifs/readdir.c                          |  2 +-
+ fs/ecryptfs/crypto.c                       |  2 +-
+ fs/ecryptfs/mmap.c                         |  2 +-
+ fs/efivarfs/file.c                         |  4 ++--
+ fs/sync.c                                  |  2 +-
+ include/linux/cgroup.h                     |  4 ++--
+ kernel/auditsc.c                           |  2 +-
+ kernel/events/core.c                       |  2 +-
+ kernel/taskstats.c                         |  2 +-
+ mm/memcontrol.c                            |  4 ++--
+ security/commoncap.c                       |  2 +-
+ security/integrity/ima/ima_api.c           |  4 ++--
+ security/integrity/ima/ima_appraise.c      |  4 ++--
+ security/integrity/ima/ima_template_lib.c  |  2 +-
+ 19 files changed, 31 insertions(+), 37 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_debugfs.c b/drivers/block/drbd/drbd_debugfs.c
+index 900d4d3272d1..9a950022ff88 100644
+--- a/drivers/block/drbd/drbd_debugfs.c
++++ b/drivers/block/drbd/drbd_debugfs.c
+@@ -419,7 +419,7 @@ static int in_flight_summary_show(struct seq_file *m, void *pos)
+ 	return 0;
+ }
+ 
+-/* simple_positive(file->f_dentry) respectively debugfs_positive(),
++/* simple_positive(file->f_path.dentry) respectively debugfs_positive(),
+  * but neither is "reachable" from here.
+  * So we have our own inline version of it above.  :-( */
+ static inline int debugfs_positive(struct dentry *dentry)
+@@ -437,14 +437,14 @@ static int drbd_single_open(struct file *file, int (*show)(struct seq_file *, vo
+ 
+ 	/* Are we still linked,
+ 	 * or has debugfs_remove() already been called? */
+-	parent = file->f_dentry->d_parent;
++	parent = file->f_path.dentry->d_parent;
+ 	/* not sure if this can happen: */
+ 	if (!parent || !parent->d_inode)
+ 		goto out;
+ 	/* serialize with d_delete() */
+ 	mutex_lock(&parent->d_inode->i_mutex);
+ 	/* Make sure the object is still alive */
+-	if (debugfs_positive(file->f_dentry)
++	if (debugfs_positive(file->f_path.dentry)
+ 	&& kref_get_unless_zero(kref))
+ 		ret = 0;
+ 	mutex_unlock(&parent->d_inode->i_mutex);
+diff --git a/drivers/scsi/lpfc/lpfc_debugfs.c b/drivers/scsi/lpfc/lpfc_debugfs.c
+index 1311ab15243e..5633e7dadc08 100644
+--- a/drivers/scsi/lpfc/lpfc_debugfs.c
++++ b/drivers/scsi/lpfc/lpfc_debugfs.c
+@@ -1011,7 +1011,7 @@ static ssize_t
+ lpfc_debugfs_dif_err_read(struct file *file, char __user *buf,
+ 	size_t nbytes, loff_t *ppos)
+ {
+-	struct dentry *dent = file->f_dentry;
++	struct dentry *dent = file->f_path.dentry;
+ 	struct lpfc_hba *phba = file->private_data;
+ 	char cbuf[32];
+ 	uint64_t tmp = 0;
+@@ -1052,7 +1052,7 @@ static ssize_t
+ lpfc_debugfs_dif_err_write(struct file *file, const char __user *buf,
+ 	size_t nbytes, loff_t *ppos)
+ {
+-	struct dentry *dent = file->f_dentry;
++	struct dentry *dent = file->f_path.dentry;
+ 	struct lpfc_hba *phba = file->private_data;
+ 	char dstbuf[32];
+ 	uint64_t tmp = 0;
+diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
+index c99b74117152..08e77492da8f 100644
+--- a/drivers/staging/lustre/lustre/llite/file.c
++++ b/drivers/staging/lustre/lustre/llite/file.c
+@@ -2092,7 +2092,7 @@ static int ll_swap_layouts(struct file *file1, struct file *file2,
+ 	rc = 0;
+ 	if (llss->ia2.ia_valid != 0) {
+ 		mutex_lock(&llss->inode1->i_mutex);
+-		rc = ll_setattr(file1->f_dentry, &llss->ia2);
++		rc = ll_setattr(file1->f_path.dentry, &llss->ia2);
+ 		mutex_unlock(&llss->inode1->i_mutex);
+ 	}
+ 
+@@ -2100,7 +2100,7 @@ static int ll_swap_layouts(struct file *file1, struct file *file2,
+ 		int rc1;
+ 
+ 		mutex_lock(&llss->inode2->i_mutex);
+-		rc1 = ll_setattr(file2->f_dentry, &llss->ia1);
++		rc1 = ll_setattr(file2->f_path.dentry, &llss->ia1);
+ 		mutex_unlock(&llss->inode2->i_mutex);
+ 		if (rc == 0)
+ 			rc = rc1;
+@@ -2185,7 +2185,7 @@ static int ll_hsm_import(struct inode *inode, struct file *file,
+ 
+ 	mutex_lock(&inode->i_mutex);
+ 
+-	rc = ll_setattr_raw(file->f_dentry, attr, true);
++	rc = ll_setattr_raw(file->f_path.dentry, attr, true);
+ 	if (rc == -ENODATA)
+ 		rc = 0;
+ 
+@@ -2622,12 +2622,6 @@ int cl_sync_file_range(struct inode *inode, loff_t start, loff_t end,
+ 	return result;
+ }
+ 
+-/*
+- * When dentry is provided (the 'else' case), *file->f_dentry may be
+- * null and dentry must be used directly rather than pulled from
+- * *file->f_dentry as is done otherwise.
+- */
+-
+ int ll_fsync(struct file *file, loff_t start, loff_t end, int datasync)
+ {
+ 	struct dentry *dentry = file->f_dentry;
+diff --git a/fs/ceph/dir.c b/fs/ceph/dir.c
+index 766ec35f988e..681a8537b64f 100644
+--- a/fs/ceph/dir.c
++++ b/fs/ceph/dir.c
+@@ -123,7 +123,7 @@ static int __dcache_readdir(struct file *file,  struct dir_context *ctx,
+ 			    u32 shared_gen)
+ {
+ 	struct ceph_file_info *fi = file->private_data;
+-	struct dentry *parent = file->f_dentry;
++	struct dentry *parent = file->f_path.dentry;
+ 	struct inode *dir = parent->d_inode;
+ 	struct list_head *p;
+ 	struct dentry *dentry, *last;
+@@ -274,7 +274,7 @@ static int ceph_readdir(struct file *file, struct dir_context *ctx)
+ 		off = 1;
+ 	}
+ 	if (ctx->pos == 1) {
+-		ino_t ino = parent_ino(file->f_dentry);
++		ino_t ino = parent_ino(file->f_path.dentry);
+ 		dout("readdir off 1 -> '..'\n");
+ 		if (!dir_emit(ctx, "..", 2,
+ 			    ceph_translate_ino(inode->i_sb, ino),
+@@ -337,7 +337,7 @@ static int ceph_readdir(struct file *file, struct dir_context *ctx)
+ 		}
+ 		req->r_inode = inode;
+ 		ihold(inode);
+-		req->r_dentry = dget(file->f_dentry);
++		req->r_dentry = dget(file->f_path.dentry);
+ 		/* hints to request -> mds selection code */
+ 		req->r_direct_mode = USE_AUTH_MDS;
+ 		req->r_direct_hash = ceph_frag_value(frag);
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index db2c967950f7..9f8e3572040e 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -211,7 +211,7 @@ int ceph_open(struct inode *inode, struct file *file)
+ 
+ 	req->r_num_caps = 1;
+ 	if (flags & O_CREAT)
+-		parent_inode = ceph_get_dentry_parent_inode(file->f_dentry);
++		parent_inode = ceph_get_dentry_parent_inode(file->f_path.dentry);
+ 	err = ceph_mdsc_do_request(mdsc, parent_inode, req);
+ 	iput(parent_inode);
+ 	if (!err)
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index d19f1996a6ea..d116ca8ce4c0 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -753,7 +753,7 @@ static int cifs_filldir(char *find_entry, struct file *file,
+ 		 */
+ 		fattr.cf_flags |= CIFS_FATTR_NEED_REVAL;
+ 
+-	cifs_prime_dcache(file->f_dentry, &name, &fattr);
++	cifs_prime_dcache(file->f_path.dentry, &name, &fattr);
+ 
+ 	ino = cifs_uniqueid_to_ino_t(fattr.cf_uniqueid);
+ 	return !dir_emit(ctx, name.name, name.len, ino, fattr.cf_dtype);
+diff --git a/fs/ecryptfs/crypto.c b/fs/ecryptfs/crypto.c
+index 2f6735dbf1a9..c2d6604667b0 100644
+--- a/fs/ecryptfs/crypto.c
++++ b/fs/ecryptfs/crypto.c
+@@ -1373,7 +1373,7 @@ static int ecryptfs_read_headers_virt(char *page_virt,
+ int ecryptfs_read_xattr_region(char *page_virt, struct inode *ecryptfs_inode)
+ {
+ 	struct dentry *lower_dentry =
+-		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
++		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_path.dentry;
+ 	ssize_t size;
+ 	int rc = 0;
+ 
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 564a1fa34b99..4626976794e7 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -419,7 +419,7 @@ static int ecryptfs_write_inode_size_to_xattr(struct inode *ecryptfs_inode)
+ 	ssize_t size;
+ 	void *xattr_virt;
+ 	struct dentry *lower_dentry =
+-		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_dentry;
++		ecryptfs_inode_to_private(ecryptfs_inode)->lower_file->f_path.dentry;
+ 	struct inode *lower_inode = lower_dentry->d_inode;
+ 	int rc;
+ 
+diff --git a/fs/efivarfs/file.c b/fs/efivarfs/file.c
+index cdb2971192a5..90001da9abfd 100644
+--- a/fs/efivarfs/file.c
++++ b/fs/efivarfs/file.c
+@@ -47,8 +47,8 @@ static ssize_t efivarfs_file_write(struct file *file,
+ 
+ 	if (bytes == -ENOENT) {
+ 		drop_nlink(inode);
+-		d_delete(file->f_dentry);
+-		dput(file->f_dentry);
++		d_delete(file->f_path.dentry);
++		dput(file->f_path.dentry);
+ 	} else {
+ 		mutex_lock(&inode->i_mutex);
+ 		i_size_write(inode, datasize + sizeof(attributes));
+diff --git a/fs/sync.c b/fs/sync.c
+index bdc729d80e5e..01d9f18a70b5 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -154,7 +154,7 @@ SYSCALL_DEFINE1(syncfs, int, fd)
+ 
+ 	if (!f.file)
+ 		return -EBADF;
+-	sb = f.file->f_dentry->d_sb;
++	sb = f.file->f_path.dentry->d_sb;
+ 
+ 	down_read(&sb->s_umount);
+ 	ret = sync_filesystem(sb);
+diff --git a/include/linux/cgroup.h b/include/linux/cgroup.h
+index 1d5196889048..27b0c9105da5 100644
+--- a/include/linux/cgroup.h
++++ b/include/linux/cgroup.h
+@@ -367,8 +367,8 @@ struct css_set {
+  * struct cftype: handler definitions for cgroup control files
+  *
+  * When reading/writing to a file:
+- *	- the cgroup to use is file->f_dentry->d_parent->d_fsdata
+- *	- the 'cftype' of the file is file->f_dentry->d_fsdata
++ *	- the cgroup to use is file->f_path.dentry->d_parent->d_fsdata
++ *	- the 'cftype' of the file is file->f_path.dentry->d_fsdata
+  */
+ 
+ /* cftype->flags */
+diff --git a/kernel/auditsc.c b/kernel/auditsc.c
+index e420a0c41b5f..06820657c8ca 100644
+--- a/kernel/auditsc.c
++++ b/kernel/auditsc.c
+@@ -2373,7 +2373,7 @@ int __audit_log_bprm_fcaps(struct linux_binprm *bprm,
+ 	ax->d.next = context->aux;
+ 	context->aux = (void *)ax;
+ 
+-	dentry = dget(bprm->file->f_dentry);
++	dentry = dget(bprm->file->f_path.dentry);
+ 	get_vfs_caps_from_disk(dentry, &vcaps);
+ 	dput(dentry);
+ 
+diff --git a/kernel/events/core.c b/kernel/events/core.c
+index 1425d07018de..446fbeefad1c 100644
+--- a/kernel/events/core.c
++++ b/kernel/events/core.c
+@@ -614,7 +614,7 @@ static inline int perf_cgroup_connect(int fd, struct perf_event *event,
+ 	if (!f.file)
+ 		return -EBADF;
+ 
+-	css = css_tryget_online_from_dir(f.file->f_dentry,
++	css = css_tryget_online_from_dir(f.file->f_path.dentry,
+ 					 &perf_event_cgrp_subsys);
+ 	if (IS_ERR(css)) {
+ 		ret = PTR_ERR(css);
+diff --git a/kernel/taskstats.c b/kernel/taskstats.c
+index b312fcc73024..670fff88a961 100644
+--- a/kernel/taskstats.c
++++ b/kernel/taskstats.c
+@@ -459,7 +459,7 @@ static int cgroupstats_user_cmd(struct sk_buff *skb, struct genl_info *info)
+ 	stats = nla_data(na);
+ 	memset(stats, 0, sizeof(*stats));
+ 
+-	rc = cgroupstats_build(stats, f.file->f_dentry);
++	rc = cgroupstats_build(stats, f.file->f_path.dentry);
+ 	if (rc < 0) {
+ 		nlmsg_free(rep_skb);
+ 		goto err;
+diff --git a/mm/memcontrol.c b/mm/memcontrol.c
+index 23976fd885fd..8c3385181b16 100644
+--- a/mm/memcontrol.c
++++ b/mm/memcontrol.c
+@@ -5055,7 +5055,7 @@ static ssize_t memcg_write_event_control(struct kernfs_open_file *of,
+ 	 *
+ 	 * DO NOT ADD NEW FILES.
+ 	 */
+-	name = cfile.file->f_dentry->d_name.name;
++	name = cfile.file->f_path.dentry->d_name.name;
+ 
+ 	if (!strcmp(name, "memory.usage_in_bytes")) {
+ 		event->register_event = mem_cgroup_usage_register_event;
+@@ -5079,7 +5079,7 @@ static ssize_t memcg_write_event_control(struct kernfs_open_file *of,
+ 	 * automatically removed on cgroup destruction but the removal is
+ 	 * asynchronous, so take an extra ref on @css.
+ 	 */
+-	cfile_css = css_tryget_online_from_dir(cfile.file->f_dentry->d_parent,
++	cfile_css = css_tryget_online_from_dir(cfile.file->f_path.dentry->d_parent,
+ 					       &memory_cgrp_subsys);
+ 	ret = -EINVAL;
+ 	if (IS_ERR(cfile_css))
+diff --git a/security/commoncap.c b/security/commoncap.c
+index bab0611afc1e..2915d8503054 100644
+--- a/security/commoncap.c
++++ b/security/commoncap.c
+@@ -446,7 +446,7 @@ static int get_file_caps(struct linux_binprm *bprm, bool *effective, bool *has_c
+ 	if (bprm->file->f_path.mnt->mnt_flags & MNT_NOSUID)
+ 		return 0;
+ 
+-	dentry = dget(bprm->file->f_dentry);
++	dentry = dget(bprm->file->f_path.dentry);
+ 
+ 	rc = get_vfs_caps_from_disk(dentry, &vcaps);
+ 	if (rc < 0) {
+diff --git a/security/integrity/ima/ima_api.c b/security/integrity/ima/ima_api.c
+index 86885979918c..f92be1b14089 100644
+--- a/security/integrity/ima/ima_api.c
++++ b/security/integrity/ima/ima_api.c
+@@ -196,7 +196,7 @@ int ima_collect_measurement(struct integrity_iint_cache *iint,
+ {
+ 	const char *audit_cause = "failed";
+ 	struct inode *inode = file_inode(file);
+-	const char *filename = file->f_dentry->d_name.name;
++	const char *filename = file->f_path.dentry->d_name.name;
+ 	int result = 0;
+ 	struct {
+ 		struct ima_digest_data hdr;
+@@ -204,7 +204,7 @@ int ima_collect_measurement(struct integrity_iint_cache *iint,
+ 	} hash;
+ 
+ 	if (xattr_value)
+-		*xattr_len = ima_read_xattr(file->f_dentry, xattr_value);
++		*xattr_len = ima_read_xattr(file->f_path.dentry, xattr_value);
+ 
+ 	if (!(iint->flags & IMA_COLLECTED)) {
+ 		u64 i_version = file_inode(file)->i_version;
+diff --git a/security/integrity/ima/ima_appraise.c b/security/integrity/ima/ima_appraise.c
+index 922685483bd3..c2f203accbd1 100644
+--- a/security/integrity/ima/ima_appraise.c
++++ b/security/integrity/ima/ima_appraise.c
+@@ -189,7 +189,7 @@ int ima_appraise_measurement(int func, struct integrity_iint_cache *iint,
+ {
+ 	static const char op[] = "appraise_data";
+ 	char *cause = "unknown";
+-	struct dentry *dentry = file->f_dentry;
++	struct dentry *dentry = file->f_path.dentry;
+ 	struct inode *inode = dentry->d_inode;
+ 	enum integrity_status status = INTEGRITY_UNKNOWN;
+ 	int rc = xattr_len, hash_start = 0;
+@@ -289,7 +289,7 @@ int ima_appraise_measurement(int func, struct integrity_iint_cache *iint,
+  */
+ void ima_update_xattr(struct integrity_iint_cache *iint, struct file *file)
+ {
+-	struct dentry *dentry = file->f_dentry;
++	struct dentry *dentry = file->f_path.dentry;
+ 	int rc = 0;
+ 
+ 	/* do not collect and update hash for digital signatures */
+diff --git a/security/integrity/ima/ima_template_lib.c b/security/integrity/ima/ima_template_lib.c
+index 1506f0248572..bcfc36cbde6a 100644
+--- a/security/integrity/ima/ima_template_lib.c
++++ b/security/integrity/ima/ima_template_lib.c
+@@ -284,7 +284,7 @@ static int ima_eventname_init_common(struct integrity_iint_cache *iint,
+ 	}
+ 
+ 	if (file) {
+-		cur_filename = file->f_dentry->d_name.name;
++		cur_filename = file->f_path.dentry->d_name.name;
+ 		cur_filename_len = strlen(cur_filename);
+ 	} else
+ 		/*
+-- 
+2.17.0
+

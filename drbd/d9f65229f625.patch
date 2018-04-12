@@ -1,0 +1,75 @@
+From d9f65229f6257842eb7badef015719432b3d16a6 Mon Sep 17 00:00:00 2001
+From: Andreas Gruenbacher <agruen@linbit.com>
+Date: Thu, 1 Sep 2011 13:18:31 +0200
+Subject: [PATCH] drbd: Move string function prototypes from linux/drbd.h to
+ drbd_string.h
+
+Signed-off-by: Andreas Gruenbacher <agruen@linbit.com>
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+---
+ drivers/block/drbd/drbd_int.h     | 1 +
+ drivers/block/drbd/drbd_strings.c | 1 +
+ drivers/block/drbd/drbd_strings.h | 9 +++++++++
+ include/linux/drbd.h              | 6 ------
+ 4 files changed, 11 insertions(+), 6 deletions(-)
+ create mode 100644 drivers/block/drbd/drbd_strings.h
+
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index 7293ea5ccabb..0840e9c96f42 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -45,6 +45,7 @@
+ #include <linux/prefetch.h>
+ #include <linux/drbd_genl_api.h>
+ #include <linux/drbd.h>
++#include "drbd_strings.h"
+ #include "drbd_state.h"
+ #include "drbd_protocol.h"
+ 
+diff --git a/drivers/block/drbd/drbd_strings.c b/drivers/block/drbd/drbd_strings.c
+index 58e08ff2b2ce..80b0f63c7075 100644
+--- a/drivers/block/drbd/drbd_strings.c
++++ b/drivers/block/drbd/drbd_strings.c
+@@ -24,6 +24,7 @@
+ */
+ 
+ #include <linux/drbd.h>
++#include "drbd_strings.h"
+ 
+ static const char *drbd_conn_s_names[] = {
+ 	[C_STANDALONE]       = "StandAlone",
+diff --git a/drivers/block/drbd/drbd_strings.h b/drivers/block/drbd/drbd_strings.h
+new file mode 100644
+index 000000000000..f9923cc88afb
+--- /dev/null
++++ b/drivers/block/drbd/drbd_strings.h
+@@ -0,0 +1,9 @@
++#ifndef __DRBD_STRINGS_H
++#define __DRBD_STRINGS_H
++
++extern const char *drbd_conn_str(enum drbd_conns);
++extern const char *drbd_role_str(enum drbd_role);
++extern const char *drbd_disk_str(enum drbd_disk_state);
++extern const char *drbd_set_st_err_str(enum drbd_state_rv);
++
++#endif  /* __DRBD_STRINGS_H */
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 6f60136da873..3dbe9bd57a09 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -327,12 +327,6 @@ enum drbd_state_rv {
+ 	SS_AFTER_LAST_ERROR = -22,    /* Keep this at bottom */
+ };
+ 
+-/* from drbd_strings.c */
+-extern const char *drbd_conn_str(enum drbd_conns);
+-extern const char *drbd_role_str(enum drbd_role);
+-extern const char *drbd_disk_str(enum drbd_disk_state);
+-extern const char *drbd_set_st_err_str(enum drbd_state_rv);
+-
+ #define SHARED_SECRET_MAX 64
+ 
+ #define MDF_CONSISTENT		(1 << 0)
+-- 
+2.17.0
+

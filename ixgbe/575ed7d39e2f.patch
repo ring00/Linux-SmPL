@@ -1,0 +1,239 @@
+From 575ed7d39e2fbe602a3894bc766a8cb49af83bd3 Mon Sep 17 00:00:00 2001
+From: Nogah Frankel <nogahf@mellanox.com>
+Date: Mon, 6 Nov 2017 07:23:42 +0100
+Subject: [PATCH] net_sch: mqprio: Change TC_SETUP_MQPRIO to
+ TC_SETUP_QDISC_MQPRIO
+
+Change TC_SETUP_MQPRIO to TC_SETUP_QDISC_MQPRIO to match the new
+convention.
+
+Signed-off-by: Nogah Frankel <nogahf@mellanox.com>
+Signed-off-by: Jiri Pirko <jiri@mellanox.com>
+Reviewed-by: Simon Horman <simon.horman@netronome.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/amd/xgbe/xgbe-drv.c               | 2 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c        | 2 +-
+ drivers/net/ethernet/broadcom/bnxt/bnxt.c              | 2 +-
+ drivers/net/ethernet/freescale/dpaa/dpaa_eth.c         | 2 +-
+ drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c | 2 +-
+ drivers/net/ethernet/intel/fm10k/fm10k_netdev.c        | 2 +-
+ drivers/net/ethernet/intel/i40e/i40e_main.c            | 2 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c          | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/en_netdev.c         | 2 +-
+ drivers/net/ethernet/mellanox/mlx5/core/en_main.c      | 2 +-
+ drivers/net/ethernet/sfc/falcon/tx.c                   | 2 +-
+ drivers/net/ethernet/sfc/tx.c                          | 2 +-
+ drivers/net/ethernet/ti/netcp_core.c                   | 2 +-
+ include/linux/netdevice.h                              | 2 +-
+ net/sched/sch_mqprio.c                                 | 5 +++--
+ 15 files changed, 17 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/net/ethernet/amd/xgbe/xgbe-drv.c b/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+index 3d53153ce751..a74a8fbad53a 100644
+--- a/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
++++ b/drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+@@ -2206,7 +2206,7 @@ static int xgbe_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+ 	struct tc_mqprio_qopt *mqprio = type_data;
+ 	u8 tc;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+index 1216c1f1e052..4c739d5355d2 100644
+--- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
++++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+@@ -4289,7 +4289,7 @@ int __bnx2x_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ {
+ 	struct tc_mqprio_qopt *mqprio = type_data;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/drivers/net/ethernet/broadcom/bnxt/bnxt.c b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+index 96416f5d97f3..e5472e5ae7b2 100644
+--- a/drivers/net/ethernet/broadcom/bnxt/bnxt.c
++++ b/drivers/net/ethernet/broadcom/bnxt/bnxt.c
+@@ -7388,7 +7388,7 @@ static int bnxt_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+ 		return bnxt_setup_tc_block(dev, type_data);
+-	case TC_SETUP_MQPRIO: {
++	case TC_SETUP_QDISC_MQPRIO: {
+ 		struct tc_mqprio_qopt *mqprio = type_data;
+ 
+ 		mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/drivers/net/ethernet/freescale/dpaa/dpaa_eth.c b/drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+index ebc55b6a6349..784dbf5a3e12 100644
+--- a/drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
++++ b/drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+@@ -351,7 +351,7 @@ static int dpaa_setup_tc(struct net_device *net_dev, enum tc_setup_type type,
+ 	u8 num_tc;
+ 	int i;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+index 2a0af11c9b59..59415090ff0f 100644
+--- a/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
++++ b/drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+@@ -1252,7 +1252,7 @@ static int hns3_setup_tc(struct net_device *netdev, void *type_data)
+ static int hns3_nic_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 			     void *type_data)
+ {
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	return hns3_setup_tc(dev, type_data);
+diff --git a/drivers/net/ethernet/intel/fm10k/fm10k_netdev.c b/drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+index 81e4425f0529..adc62fb38c49 100644
+--- a/drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
++++ b/drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+@@ -1389,7 +1389,7 @@ static int __fm10k_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ {
+ 	struct tc_mqprio_qopt *mqprio = type_data;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/drivers/net/ethernet/intel/i40e/i40e_main.c b/drivers/net/ethernet/intel/i40e/i40e_main.c
+index 05b94d87a6c3..17e6f64299cf 100644
+--- a/drivers/net/ethernet/intel/i40e/i40e_main.c
++++ b/drivers/net/ethernet/intel/i40e/i40e_main.c
+@@ -7550,7 +7550,7 @@ static int __i40e_setup_tc(struct net_device *netdev, enum tc_setup_type type,
+ 			   void *type_data)
+ {
+ 	switch (type) {
+-	case TC_SETUP_MQPRIO:
++	case TC_SETUP_QDISC_MQPRIO:
+ 		return i40e_setup_tc(netdev, type_data);
+ 	case TC_SETUP_BLOCK:
+ 		return i40e_setup_tc_block(netdev, type_data);
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index e5dcb25be398..6eaca8366ac8 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -9431,7 +9431,7 @@ static int __ixgbe_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 	switch (type) {
+ 	case TC_SETUP_BLOCK:
+ 		return ixgbe_setup_tc_block(dev, type_data);
+-	case TC_SETUP_MQPRIO:
++	case TC_SETUP_QDISC_MQPRIO:
+ 		return ixgbe_setup_tc_mqprio(dev, type_data);
+ 	default:
+ 		return -EOPNOTSUPP;
+diff --git a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+index 736a6ccaf05e..99051a294fa6 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
++++ b/drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+@@ -135,7 +135,7 @@ static int __mlx4_en_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ {
+ 	struct tc_mqprio_qopt *mqprio = type_data;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	if (mqprio->num_tc && mqprio->num_tc != MLX4_EN_NUM_UP_HIGH)
+diff --git a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+index f877f2f5f2a5..5d5d2e50e4bf 100644
+--- a/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
++++ b/drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+@@ -3146,7 +3146,7 @@ int mlx5e_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 	case TC_SETUP_BLOCK:
+ 		return mlx5e_setup_tc_block(dev, type_data);
+ #endif
+-	case TC_SETUP_MQPRIO:
++	case TC_SETUP_QDISC_MQPRIO:
+ 		return mlx5e_setup_tc_mqprio(dev, type_data);
+ 	default:
+ 		return -EOPNOTSUPP;
+diff --git a/drivers/net/ethernet/sfc/falcon/tx.c b/drivers/net/ethernet/sfc/falcon/tx.c
+index 6a75f4140a4b..1b978d69e702 100644
+--- a/drivers/net/ethernet/sfc/falcon/tx.c
++++ b/drivers/net/ethernet/sfc/falcon/tx.c
+@@ -435,7 +435,7 @@ int ef4_setup_tc(struct net_device *net_dev, enum tc_setup_type type,
+ 	unsigned tc, num_tc;
+ 	int rc;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	num_tc = mqprio->num_tc;
+diff --git a/drivers/net/ethernet/sfc/tx.c b/drivers/net/ethernet/sfc/tx.c
+index 32bf1fecf864..ea27b8a7f465 100644
+--- a/drivers/net/ethernet/sfc/tx.c
++++ b/drivers/net/ethernet/sfc/tx.c
+@@ -663,7 +663,7 @@ int efx_setup_tc(struct net_device *net_dev, enum tc_setup_type type,
+ 	unsigned tc, num_tc;
+ 	int rc;
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	num_tc = mqprio->num_tc;
+diff --git a/drivers/net/ethernet/ti/netcp_core.c b/drivers/net/ethernet/ti/netcp_core.c
+index 437d36289786..15e2e3031d36 100644
+--- a/drivers/net/ethernet/ti/netcp_core.c
++++ b/drivers/net/ethernet/ti/netcp_core.c
+@@ -1887,7 +1887,7 @@ static int netcp_setup_tc(struct net_device *dev, enum tc_setup_type type,
+ 	/* setup tc must be called under rtnl lock */
+ 	ASSERT_RTNL();
+ 
+-	if (type != TC_SETUP_MQPRIO)
++	if (type != TC_SETUP_QDISC_MQPRIO)
+ 		return -EOPNOTSUPP;
+ 
+ 	mqprio->hw = TC_MQPRIO_HW_OFFLOAD_TCS;
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index 71968a2ca9f3..703885aed856 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -770,7 +770,7 @@ typedef u16 (*select_queue_fallback_t)(struct net_device *dev,
+ 				       struct sk_buff *skb);
+ 
+ enum tc_setup_type {
+-	TC_SETUP_MQPRIO,
++	TC_SETUP_QDISC_MQPRIO,
+ 	TC_SETUP_CLSU32,
+ 	TC_SETUP_CLSFLOWER,
+ 	TC_SETUP_CLSMATCHALL,
+diff --git a/net/sched/sch_mqprio.c b/net/sched/sch_mqprio.c
+index 4d5ed45123f0..b85885a9d8a1 100644
+--- a/net/sched/sch_mqprio.c
++++ b/net/sched/sch_mqprio.c
+@@ -50,7 +50,8 @@ static void mqprio_destroy(struct Qdisc *sch)
+ 		switch (priv->mode) {
+ 		case TC_MQPRIO_MODE_DCB:
+ 		case TC_MQPRIO_MODE_CHANNEL:
+-			dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_MQPRIO,
++			dev->netdev_ops->ndo_setup_tc(dev,
++						      TC_SETUP_QDISC_MQPRIO,
+ 						      &mqprio);
+ 			break;
+ 		default:
+@@ -265,7 +266,7 @@ static int mqprio_init(struct Qdisc *sch, struct nlattr *opt)
+ 			return -EINVAL;
+ 		}
+ 		err = dev->netdev_ops->ndo_setup_tc(dev,
+-						    TC_SETUP_MQPRIO,
++						    TC_SETUP_QDISC_MQPRIO,
+ 						    &mqprio);
+ 		if (err)
+ 			return err;
+-- 
+2.17.0
+

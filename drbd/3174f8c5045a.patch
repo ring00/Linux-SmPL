@@ -1,0 +1,58 @@
+From 3174f8c5045ad247563434c4b4897bd89313eafc Mon Sep 17 00:00:00 2001
+From: Philipp Marek <philipp.marek@linbit.com>
+Date: Sat, 3 Mar 2012 21:04:30 +0100
+Subject: [PATCH] drbd: pass some more information to userspace.
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_nl.c | 11 ++++++++++-
+ include/linux/drbd_genl.h    | 10 ++++++++++
+ 2 files changed, 20 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index eefb56308aea..466d6b1d9309 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -2666,7 +2666,16 @@ int nla_put_status_info(struct sk_buff *skb, struct drbd_conf *mdev,
+ 	if (nla_put_u32(skb, T_sib_reason, sib ? sib->sib_reason : SIB_GET_STATUS_REPLY) ||
+ 	    nla_put_u32(skb, T_current_state, mdev->state.i) ||
+ 	    nla_put_u64(skb, T_ed_uuid, mdev->ed_uuid) ||
+-	    nla_put_u64(skb, T_capacity, drbd_get_capacity(mdev->this_bdev)))
++	    nla_put_u64(skb, T_capacity, drbd_get_capacity(mdev->this_bdev)) ||
++	    nla_put_u64(skb, T_send_cnt, mdev->send_cnt) ||
++	    nla_put_u64(skb, T_recv_cnt, mdev->recv_cnt) ||
++	    nla_put_u64(skb, T_read_cnt, mdev->read_cnt) ||
++	    nla_put_u64(skb, T_writ_cnt, mdev->writ_cnt) ||
++	    nla_put_u64(skb, T_al_writ_cnt, mdev->al_writ_cnt) ||
++	    nla_put_u64(skb, T_bm_writ_cnt, mdev->bm_writ_cnt) ||
++	    nla_put_u32(skb, T_ap_bio_cnt, atomic_read(&mdev->ap_bio_cnt)) ||
++	    nla_put_u32(skb, T_ap_pending_cnt, atomic_read(&mdev->ap_pending_cnt)) ||
++	    nla_put_u32(skb, T_rs_pending_cnt, atomic_read(&mdev->rs_pending_cnt)))
+ 		goto nla_put_failure;
+ 
+ 	if (got_ldev) {
+diff --git a/include/linux/drbd_genl.h b/include/linux/drbd_genl.h
+index 9430e9ab37a8..d0d8fac8a6e4 100644
+--- a/include/linux/drbd_genl.h
++++ b/include/linux/drbd_genl.h
+@@ -211,6 +211,16 @@ GENL_struct(DRBD_NLA_STATE_INFO, 8, state_info,
+ 	/* for pre and post notifications of helper execution */
+ 	__str_field(13, DRBD_GENLA_F_MANDATORY,	helper, 32)
+ 	__u32_field(14, DRBD_GENLA_F_MANDATORY,	helper_exit_code)
++
++	__u64_field(15,                      0, send_cnt)
++	__u64_field(16,                      0, recv_cnt)
++	__u64_field(17,                      0, read_cnt)
++	__u64_field(18,                      0, writ_cnt)
++	__u64_field(19,                      0, al_writ_cnt)
++	__u64_field(20,                      0, bm_writ_cnt)
++	__u32_field(21,                      0, ap_bio_cnt)
++	__u32_field(22,                      0, ap_pending_cnt)
++	__u32_field(23,                      0, rs_pending_cnt)
+ )
+ 
+ GENL_struct(DRBD_NLA_START_OV_PARMS, 9, start_ov_parms,
+-- 
+2.17.0
+

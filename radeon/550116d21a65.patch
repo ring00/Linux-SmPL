@@ -1,0 +1,280 @@
+From 550116d21a656e8b5670073e586315e5a6d12f01 Mon Sep 17 00:00:00 2001
+From: Masahiro Yamada <yamada.masahiro@socionext.com>
+Date: Mon, 27 Feb 2017 14:28:58 -0800
+Subject: [PATCH] scripts/spelling.txt: add "aligment" pattern and fix typo
+ instances
+
+Fix typos and add the following to the scripts/spelling.txt:
+
+  aligment||alignment
+
+I did not touch the "N_BYTE_ALIGMENT" macro in
+drivers/net/wireless/realtek/rtlwifi/wifi.h to avoid unpredictable
+impact.
+
+I fixed "_aligment_handler" in arch/openrisc/kernel/entry.S because
+it is surrounded by #if 0 ... #endif.  It is surely safe and I
+confirmed "_alignment_handler" is correct.
+
+I also fixed the "controler" I found in the same hunk in
+arch/openrisc/kernel/head.S.
+
+Link: http://lkml.kernel.org/r/1481573103-11329-8-git-send-email-yamada.masahiro@socionext.com
+Signed-off-by: Masahiro Yamada <yamada.masahiro@socionext.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ arch/arc/kernel/unwind.c                            | 4 ++--
+ arch/openrisc/kernel/entry.S                        | 4 ++--
+ arch/openrisc/kernel/head.S                         | 6 +++---
+ arch/openrisc/kernel/vmlinux.lds.S                  | 4 ++--
+ drivers/gpu/drm/amd/include/atombios.h              | 6 +++---
+ drivers/gpu/drm/i915/i915_gem_render_state.c        | 2 +-
+ drivers/gpu/drm/radeon/atombios.h                   | 4 ++--
+ drivers/media/platform/exynos4-is/fimc-core.h       | 2 +-
+ drivers/net/wireless/ath/ath9k/ani.c                | 4 ++--
+ drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c | 4 ++--
+ drivers/scsi/bfa/bfi_ms.h                           | 2 +-
+ net/netfilter/x_tables.c                            | 2 +-
+ scripts/spelling.txt                                | 1 +
+ 13 files changed, 23 insertions(+), 22 deletions(-)
+
+diff --git a/arch/arc/kernel/unwind.c b/arch/arc/kernel/unwind.c
+index 61fd1ce63c56..b6e4f7a7419b 100644
+--- a/arch/arc/kernel/unwind.c
++++ b/arch/arc/kernel/unwind.c
+@@ -1051,9 +1051,9 @@ int arc_unwind(struct unwind_frame_info *frame)
+ 		++ptr;
+ 	}
+ 	if (cie != NULL) {
+-		/* get code aligment factor */
++		/* get code alignment factor */
+ 		state.codeAlign = get_uleb128(&ptr, end);
+-		/* get data aligment factor */
++		/* get data alignment factor */
+ 		state.dataAlign = get_sleb128(&ptr, end);
+ 		if (state.codeAlign == 0 || state.dataAlign == 0 || ptr >= end)
+ 			cie = NULL;
+diff --git a/arch/openrisc/kernel/entry.S b/arch/openrisc/kernel/entry.S
+index bc6500860f4d..459e4b129e4f 100644
+--- a/arch/openrisc/kernel/entry.S
++++ b/arch/openrisc/kernel/entry.S
+@@ -319,7 +319,7 @@ EXCEPTION_ENTRY(_timer_handler)
+ 	l.j    _ret_from_intr
+ 	 l.nop
+ 
+-/* ---[ 0x600: Aligment exception ]-------------------------------------- */
++/* ---[ 0x600: Alignment exception ]-------------------------------------- */
+ 
+ EXCEPTION_ENTRY(_alignment_handler)
+ 	CLEAR_LWA_FLAG(r3)
+@@ -331,7 +331,7 @@ EXCEPTION_ENTRY(_alignment_handler)
+ 	 l.nop
+ 
+ #if 0
+-EXCEPTION_ENTRY(_aligment_handler)
++EXCEPTION_ENTRY(_alignment_handler)
+ //        l.mfspr r2,r0,SPR_EEAR_BASE     /* Load the efective addres */
+ 	l.addi	r2,r4,0
+ //        l.mfspr r5,r0,SPR_EPCR_BASE     /* Load the insn address */
+diff --git a/arch/openrisc/kernel/head.S b/arch/openrisc/kernel/head.S
+index d01b82eace3e..1e87913576e3 100644
+--- a/arch/openrisc/kernel/head.S
++++ b/arch/openrisc/kernel/head.S
+@@ -325,7 +325,7 @@ _dispatch_do_ipage_fault:
+     .org 0x500
+ 	EXCEPTION_HANDLE(_timer_handler)
+ 
+-/* ---[ 0x600: Aligment exception ]-------------------------------------- */
++/* ---[ 0x600: Alignment exception ]-------------------------------------- */
+     .org 0x600
+ 	EXCEPTION_HANDLE(_alignment_handler)
+ 
+@@ -640,8 +640,8 @@ _flush_tlb:
+ 
+ /* ========================================[ cache ]=== */
+ 
+-	/* aligment here so we don't change memory offsets with
+-	 * memory controler defined
++	/* alignment here so we don't change memory offsets with
++	 * memory controller defined
+ 	 */
+ 	.align 0x2000
+ 
+diff --git a/arch/openrisc/kernel/vmlinux.lds.S b/arch/openrisc/kernel/vmlinux.lds.S
+index 552544616b9d..00ddb7804be4 100644
+--- a/arch/openrisc/kernel/vmlinux.lds.S
++++ b/arch/openrisc/kernel/vmlinux.lds.S
+@@ -19,8 +19,8 @@
+ 
+ /* TODO
+  *		- clean up __offset & stuff
+- *		- change all 8192 aligment to PAGE !!!
+- *		- recheck if all aligments are really needed
++ *		- change all 8192 alignment to PAGE !!!
++ *		- recheck if all alignments are really needed
+  */
+ 
+ #  define LOAD_OFFSET  PAGE_OFFSET
+diff --git a/drivers/gpu/drm/amd/include/atombios.h b/drivers/gpu/drm/amd/include/atombios.h
+index 9f970b5c7171..181a2c3c6362 100644
+--- a/drivers/gpu/drm/amd/include/atombios.h
++++ b/drivers/gpu/drm/amd/include/atombios.h
+@@ -188,7 +188,7 @@
+ #define HW_ASSISTED_I2C_STATUS_FAILURE     2
+ #define HW_ASSISTED_I2C_STATUS_SUCCESS     1
+ 
+-#pragma pack(1)                                       // BIOS data must use byte aligment
++#pragma pack(1)                                       // BIOS data must use byte alignment
+ 
+ // Define offset to location of ROM header.
+ #define OFFSET_TO_POINTER_TO_ATOM_ROM_HEADER         0x00000048L
+@@ -9180,7 +9180,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
+ 
+ /*********************************************************************************/
+ 
+-#pragma pack() // BIOS data must use byte aligment
++#pragma pack() // BIOS data must use byte alignment
+ 
+ #pragma pack(1)
+ 
+@@ -9211,7 +9211,7 @@ typedef struct _ATOM_SERVICE_INFO
+ 
+ 
+ 
+-#pragma pack() // BIOS data must use byte aligment
++#pragma pack() // BIOS data must use byte alignment
+ 
+ //
+ // AMD ACPI Table
+diff --git a/drivers/gpu/drm/i915/i915_gem_render_state.c b/drivers/gpu/drm/i915/i915_gem_render_state.c
+index b42c81b42487..7032c542a9b1 100644
+--- a/drivers/gpu/drm/i915/i915_gem_render_state.c
++++ b/drivers/gpu/drm/i915/i915_gem_render_state.c
+@@ -60,7 +60,7 @@ render_state_get_rodata(const struct intel_engine_cs *engine)
+  * this is sufficient as the null state generator makes the final batch
+  * with two passes to build command and state separately. At this point
+  * the size of both are known and it compacts them by relocating the state
+- * right after the commands taking care of aligment so we should sufficient
++ * right after the commands taking care of alignment so we should sufficient
+  * space below them for adding new commands.
+  */
+ #define OUT_BATCH(batch, i, val)				\
+diff --git a/drivers/gpu/drm/radeon/atombios.h b/drivers/gpu/drm/radeon/atombios.h
+index 66a26422e9e3..4b86e8b45009 100644
+--- a/drivers/gpu/drm/radeon/atombios.h
++++ b/drivers/gpu/drm/radeon/atombios.h
+@@ -181,7 +181,7 @@
+ #define HW_ASSISTED_I2C_STATUS_FAILURE          2
+ #define HW_ASSISTED_I2C_STATUS_SUCCESS          1
+ 
+-#pragma pack(1)                                       /* BIOS data must use byte aligment */
++#pragma pack(1)                                       /* BIOS data must use byte alignment */
+ 
+ /*  Define offset to location of ROM header. */
+ 
+@@ -7909,7 +7909,7 @@ typedef struct  _ATOM_POWERPLAY_INFO_V3
+ 
+ /*********************************************************************************/
+ 
+-#pragma pack() // BIOS data must use byte aligment
++#pragma pack() // BIOS data must use byte alignment
+ 
+ //
+ // AMD ACPI Table
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 5615fefbf7af..c0373aede81a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -358,7 +358,7 @@ struct fimc_pix_limit {
+  * @pix_limit: pixel size constraints for the scaler
+  * @min_inp_pixsize: minimum input pixel size
+  * @min_out_pixsize: minimum output pixel size
+- * @hor_offs_align: horizontal pixel offset aligment
++ * @hor_offs_align: horizontal pixel offset alignment
+  * @min_vsize_align: minimum vertical pixel size alignment
+  */
+ struct fimc_variant {
+diff --git a/drivers/net/wireless/ath/ath9k/ani.c b/drivers/net/wireless/ath/ath9k/ani.c
+index 815efe9fd208..5214dd7a3936 100644
+--- a/drivers/net/wireless/ath/ath9k/ani.c
++++ b/drivers/net/wireless/ath/ath9k/ani.c
+@@ -59,13 +59,13 @@ static const struct ani_ofdm_level_entry ofdm_level_table[] = {
+ /*
+  * MRC (Maximal Ratio Combining) has always been used with multi-antenna ofdm.
+  * With OFDM for single stream you just add up all antenna inputs, you're
+- * only interested in what you get after FFT. Signal aligment is also not
++ * only interested in what you get after FFT. Signal alignment is also not
+  * required for OFDM because any phase difference adds up in the frequency
+  * domain.
+  *
+  * MRC requires extra work for use with CCK. You need to align the antenna
+  * signals from the different antenna before you can add the signals together.
+- * You need aligment of signals as CCK is in time domain, so addition can cancel
++ * You need alignment of signals as CCK is in time domain, so addition can cancel
+  * your signal completely if phase is 180 degrees (think of adding sine waves).
+  * You also need to remove noise before the addition and this is where ANI
+  * MRC CCK comes into play. One of the antenna inputs may be stronger but
+diff --git a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c b/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
+index 1922e78ad6bd..89a0a28b8b20 100644
+--- a/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
++++ b/drivers/net/wireless/realtek/rtlwifi/rtl8192se/fw.c
+@@ -455,7 +455,7 @@ static u32 _rtl92s_fill_h2c_cmd(struct sk_buff *skb, u32 h2cbufferlen,
+ 	u8 i = 0;
+ 
+ 	do {
+-		/* 8 - Byte aligment */
++		/* 8 - Byte alignment */
+ 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
+ 
+ 		/* Buffer length is not enough */
+@@ -504,7 +504,7 @@ static u32 _rtl92s_get_h2c_cmdlen(u32 h2cbufferlen, u32 cmd_num, u32 *pcmd_len)
+ 	u8 i = 0;
+ 
+ 	do {
+-		/* 8 - Byte aligment */
++		/* 8 - Byte alignment */
+ 		len = H2C_TX_CMD_HDR_LEN + N_BYTE_ALIGMENT(pcmd_len[i], 8);
+ 
+ 		/* Buffer length is not enough */
+diff --git a/drivers/scsi/bfa/bfi_ms.h b/drivers/scsi/bfa/bfi_ms.h
+index ae5bfe039fcc..ccbd9e31a5de 100644
+--- a/drivers/scsi/bfa/bfi_ms.h
++++ b/drivers/scsi/bfa/bfi_ms.h
+@@ -680,7 +680,7 @@ struct bfi_ioim_req_s {
+ 
+ 	/*
+ 	 * SG elements array within the IO request must be double word
+-	 * aligned. This aligment is required to optimize SGM setup for the IO.
++	 * aligned. This alignment is required to optimize SGM setup for the IO.
+ 	 */
+ 	struct bfi_sge_s	sges[BFI_SGE_INLINE_MAX];
+ 	u8	io_timeout;
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 016db6be94b9..14857afc9937 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -667,7 +667,7 @@ int xt_compat_check_entry_offsets(const void *base, const char *elems,
+ 	    COMPAT_XT_ALIGN(target_offset + sizeof(struct compat_xt_standard_target)) != next_offset)
+ 		return -EINVAL;
+ 
+-	/* compat_xt_entry match has less strict aligment requirements,
++	/* compat_xt_entry match has less strict alignment requirements,
+ 	 * otherwise they are identical.  In case of padding differences
+ 	 * we need to add compat version of xt_check_entry_match.
+ 	 */
+diff --git a/scripts/spelling.txt b/scripts/spelling.txt
+index 6ff540377fe6..12777ab32306 100644
+--- a/scripts/spelling.txt
++++ b/scripts/spelling.txt
+@@ -71,6 +71,7 @@ algoritm||algorithm
+ algoritms||algorithms
+ algorrithm||algorithm
+ algorritm||algorithm
++aligment||alignment
+ allign||align
+ allocatrd||allocated
+ allocte||allocate
+-- 
+2.17.0
+

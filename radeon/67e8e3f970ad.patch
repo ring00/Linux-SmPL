@@ -1,0 +1,190 @@
+From 67e8e3f970ad747d3c854fb40f8ec0cecedd9089 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Marek=20Ol=C5=A1=C3=A1k?= <marek.olsak@amd.com>
+Date: Sun, 2 Mar 2014 00:56:18 +0100
+Subject: [PATCH] drm/radeon: track memory statistics about VRAM and GTT usage
+ and buffer moves v2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The statistics are:
+- VRAM usage in bytes
+- GTT usage in bytes
+- number of bytes moved by TTM
+
+The last one is actually a counter, so you need to sample it before and after
+command submission and take the difference.
+
+This is useful for finding performance bottlenecks. Userspace queries are
+also added.
+
+v2: use atomic64_t
+
+Signed-off-by: Marek Olšák <marek.olsak@amd.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+---
+ drivers/gpu/drm/radeon/radeon.h        |  4 +++
+ drivers/gpu/drm/radeon/radeon_kms.c    | 15 +++++++++++
+ drivers/gpu/drm/radeon/radeon_object.c | 36 +++++++++++++++++++++++++-
+ drivers/gpu/drm/radeon/radeon_object.h |  2 +-
+ drivers/gpu/drm/radeon/radeon_ttm.c    |  8 +++++-
+ include/uapi/drm/radeon_drm.h          |  3 +++
+ 6 files changed, 65 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index c20d88c93940..7bb8fd96f3ce 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -2309,6 +2309,10 @@ struct radeon_device {
+ 	/* virtual memory */
+ 	struct radeon_vm_manager	vm_manager;
+ 	struct mutex			gpu_clock_mutex;
++	/* memory stats */
++	atomic64_t			vram_usage;
++	atomic64_t			gtt_usage;
++	atomic64_t			num_bytes_moved;
+ 	/* ACPI interface */
+ 	struct radeon_atif		atif;
+ 	struct radeon_atcs		atcs;
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index 0b631ebeeb18..806506c03a79 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -486,6 +486,21 @@ static int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file
+ 	case RADEON_INFO_VCE_FB_VERSION:
+ 		*value = rdev->vce.fb_version;
+ 		break;
++	case RADEON_INFO_NUM_BYTES_MOVED:
++		value = (uint32_t*)&value64;
++		value_size = sizeof(uint64_t);
++		value64 = atomic64_read(&rdev->num_bytes_moved);
++		break;
++	case RADEON_INFO_VRAM_USAGE:
++		value = (uint32_t*)&value64;
++		value_size = sizeof(uint64_t);
++		value64 = atomic64_read(&rdev->vram_usage);
++		break;
++	case RADEON_INFO_GTT_USAGE:
++		value = (uint32_t*)&value64;
++		value_size = sizeof(uint64_t);
++		value64 = atomic64_read(&rdev->gtt_usage);
++		break;
+ 	default:
+ 		DRM_DEBUG_KMS("Invalid request %d\n", info->request);
+ 		return -EINVAL;
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index dd12bb4025ac..282d6a248396 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -56,11 +56,36 @@ static void radeon_bo_clear_va(struct radeon_bo *bo)
+ 	}
+ }
+ 
++static void radeon_update_memory_usage(struct radeon_bo *bo,
++				       unsigned mem_type, int sign)
++{
++	struct radeon_device *rdev = bo->rdev;
++	u64 size = (u64)bo->tbo.num_pages << PAGE_SHIFT;
++
++	switch (mem_type) {
++	case TTM_PL_TT:
++		if (sign > 0)
++			atomic64_add(size, &rdev->gtt_usage);
++		else
++			atomic64_sub(size, &rdev->gtt_usage);
++		break;
++	case TTM_PL_VRAM:
++		if (sign > 0)
++			atomic64_add(size, &rdev->vram_usage);
++		else
++			atomic64_sub(size, &rdev->vram_usage);
++		break;
++	}
++}
++
+ static void radeon_ttm_bo_destroy(struct ttm_buffer_object *tbo)
+ {
+ 	struct radeon_bo *bo;
+ 
+ 	bo = container_of(tbo, struct radeon_bo, tbo);
++
++	radeon_update_memory_usage(bo, bo->tbo.mem.mem_type, -1);
++
+ 	mutex_lock(&bo->rdev->gem.mutex);
+ 	list_del_init(&bo->list);
+ 	mutex_unlock(&bo->rdev->gem.mutex);
+@@ -567,14 +592,23 @@ int radeon_bo_check_tiling(struct radeon_bo *bo, bool has_moved,
+ }
+ 
+ void radeon_bo_move_notify(struct ttm_buffer_object *bo,
+-			   struct ttm_mem_reg *mem)
++			   struct ttm_mem_reg *new_mem)
+ {
+ 	struct radeon_bo *rbo;
++
+ 	if (!radeon_ttm_bo_is_radeon_bo(bo))
+ 		return;
++
+ 	rbo = container_of(bo, struct radeon_bo, tbo);
+ 	radeon_bo_check_tiling(rbo, 0, 1);
+ 	radeon_vm_bo_invalidate(rbo->rdev, rbo);
++
++	/* update statistics */
++	if (!new_mem)
++		return;
++
++	radeon_update_memory_usage(rbo, bo->mem.mem_type, -1);
++	radeon_update_memory_usage(rbo, new_mem->mem_type, 1);
+ }
+ 
+ int radeon_bo_fault_reserve_notify(struct ttm_buffer_object *bo)
+diff --git a/drivers/gpu/drm/radeon/radeon_object.h b/drivers/gpu/drm/radeon/radeon_object.h
+index 209b11150263..a9a8c11bd80d 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.h
++++ b/drivers/gpu/drm/radeon/radeon_object.h
+@@ -151,7 +151,7 @@ extern void radeon_bo_get_tiling_flags(struct radeon_bo *bo,
+ extern int radeon_bo_check_tiling(struct radeon_bo *bo, bool has_moved,
+ 				bool force_drop);
+ extern void radeon_bo_move_notify(struct ttm_buffer_object *bo,
+-					struct ttm_mem_reg *mem);
++				  struct ttm_mem_reg *new_mem);
+ extern int radeon_bo_fault_reserve_notify(struct ttm_buffer_object *bo);
+ extern int radeon_bo_get_surface_reg(struct radeon_bo *bo);
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index 77f5b0c3edb8..60dfce889ecf 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -406,8 +406,14 @@ static int radeon_bo_move(struct ttm_buffer_object *bo,
+ 	if (r) {
+ memcpy:
+ 		r = ttm_bo_move_memcpy(bo, evict, no_wait_gpu, new_mem);
++		if (r) {
++			return r;
++		}
+ 	}
+-	return r;
++
++	/* update statistics */
++	atomic64_add((u64)bo->num_pages << PAGE_SHIFT, &rdev->num_bytes_moved);
++	return 0;
+ }
+ 
+ static int radeon_ttm_io_mem_reserve(struct ttm_bo_device *bdev, struct ttm_mem_reg *mem)
+diff --git a/include/uapi/drm/radeon_drm.h b/include/uapi/drm/radeon_drm.h
+index cb5c93a4c266..aefa2f6afa3b 100644
+--- a/include/uapi/drm/radeon_drm.h
++++ b/include/uapi/drm/radeon_drm.h
+@@ -1004,6 +1004,9 @@ struct drm_radeon_cs {
+ #define RADEON_INFO_VCE_FW_VERSION	0x1b
+ /* version of VCE feedback */
+ #define RADEON_INFO_VCE_FB_VERSION	0x1c
++#define RADEON_INFO_NUM_BYTES_MOVED	0x1d
++#define RADEON_INFO_VRAM_USAGE		0x1e
++#define RADEON_INFO_GTT_USAGE		0x1f
+ 
+ 
+ struct drm_radeon_info {
+-- 
+2.17.0
+

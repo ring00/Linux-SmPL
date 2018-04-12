@@ -1,0 +1,132 @@
+From 9f50bd8905ab12e3e8ebffd8296d7921bd3976eb Mon Sep 17 00:00:00 2001
+From: David Herrmann <dh.herrmann@gmail.com>
+Date: Fri, 29 Aug 2014 12:12:27 +0200
+Subject: [PATCH] drm/radeon: move drm_buffer to drm/radeon/
+
+Radeon UMS is the last user of drm_buffer. Move it out of sight so radeon
+can drop it together with UMS.
+
+Signed-off-by: David Herrmann <dh.herrmann@gmail.com>
+Reviewed-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/Makefile                             | 2 +-
+ drivers/gpu/drm/radeon/Makefile                      | 2 +-
+ drivers/gpu/drm/{ => radeon}/drm_buffer.c            | 6 +-----
+ {include/drm => drivers/gpu/drm/radeon}/drm_buffer.h | 0
+ drivers/gpu/drm/radeon/r300_cmdbuf.c                 | 2 +-
+ drivers/gpu/drm/radeon/radeon_state.c                | 2 +-
+ 6 files changed, 5 insertions(+), 9 deletions(-)
+ rename drivers/gpu/drm/{ => radeon}/drm_buffer.c (96%)
+ rename {include/drm => drivers/gpu/drm/radeon}/drm_buffer.h (100%)
+
+diff --git a/drivers/gpu/drm/Makefile b/drivers/gpu/drm/Makefile
+index 4a55d59ccd22..9b7cb3f76f01 100644
+--- a/drivers/gpu/drm/Makefile
++++ b/drivers/gpu/drm/Makefile
+@@ -4,7 +4,7 @@
+ 
+ ccflags-y := -Iinclude/drm
+ 
+-drm-y       :=	drm_auth.o drm_buffer.o drm_bufs.o drm_cache.o \
++drm-y       :=	drm_auth.o drm_bufs.o drm_cache.o \
+ 		drm_context.o drm_dma.o \
+ 		drm_fops.o drm_gem.o drm_ioctl.o drm_irq.o \
+ 		drm_lock.o drm_memory.o drm_drv.o drm_vm.o \
+diff --git a/drivers/gpu/drm/radeon/Makefile b/drivers/gpu/drm/radeon/Makefile
+index 357f09afd222..7d7aed5357f0 100644
+--- a/drivers/gpu/drm/radeon/Makefile
++++ b/drivers/gpu/drm/radeon/Makefile
+@@ -60,7 +60,7 @@ radeon-y := radeon_drv.o
+ 
+ # add UMS driver
+ radeon-$(CONFIG_DRM_RADEON_UMS)+= radeon_cp.o radeon_state.o radeon_mem.o \
+-	radeon_irq.o r300_cmdbuf.o r600_cp.o r600_blit.o
++	radeon_irq.o r300_cmdbuf.o r600_cp.o r600_blit.o drm_buffer.o
+ 
+ # add KMS driver
+ radeon-y += radeon_device.o radeon_asic.o radeon_kms.o \
+diff --git a/drivers/gpu/drm/drm_buffer.c b/drivers/gpu/drm/radeon/drm_buffer.c
+similarity index 96%
+rename from drivers/gpu/drm/drm_buffer.c
+rename to drivers/gpu/drm/radeon/drm_buffer.c
+index 86a4a4a60afc..f4e0f3a3d7b1 100644
+--- a/drivers/gpu/drm/drm_buffer.c
++++ b/drivers/gpu/drm/radeon/drm_buffer.c
+@@ -33,7 +33,7 @@
+  */
+ 
+ #include <linux/export.h>
+-#include <drm/drm_buffer.h>
++#include "drm_buffer.h"
+ 
+ /**
+  * Allocate the drm buffer object.
+@@ -86,7 +86,6 @@ int drm_buffer_alloc(struct drm_buffer **buf, int size)
+ 	kfree(*buf);
+ 	return -ENOMEM;
+ }
+-EXPORT_SYMBOL(drm_buffer_alloc);
+ 
+ /**
+  * Copy the user data to the begin of the buffer and reset the processing
+@@ -123,7 +122,6 @@ int drm_buffer_copy_from_user(struct drm_buffer *buf,
+ 	buf->iterator = 0;
+ 	return 0;
+ }
+-EXPORT_SYMBOL(drm_buffer_copy_from_user);
+ 
+ /**
+  * Free the drm buffer object
+@@ -141,7 +139,6 @@ void drm_buffer_free(struct drm_buffer *buf)
+ 		kfree(buf);
+ 	}
+ }
+-EXPORT_SYMBOL(drm_buffer_free);
+ 
+ /**
+  * Read an object from buffer that may be split to multiple parts. If object
+@@ -178,4 +175,3 @@ void *drm_buffer_read_object(struct drm_buffer *buf,
+ 	drm_buffer_advance(buf, objsize);
+ 	return obj;
+ }
+-EXPORT_SYMBOL(drm_buffer_read_object);
+diff --git a/include/drm/drm_buffer.h b/drivers/gpu/drm/radeon/drm_buffer.h
+similarity index 100%
+rename from include/drm/drm_buffer.h
+rename to drivers/gpu/drm/radeon/drm_buffer.h
+diff --git a/drivers/gpu/drm/radeon/r300_cmdbuf.c b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+index 84b1d5367a11..9418e388b045 100644
+--- a/drivers/gpu/drm/radeon/r300_cmdbuf.c
++++ b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+@@ -34,10 +34,10 @@
+  */
+ 
+ #include <drm/drmP.h>
+-#include <drm/drm_buffer.h>
+ #include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
+ #include "r300_reg.h"
++#include "drm_buffer.h"
+ 
+ #include <asm/unaligned.h>
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_state.c b/drivers/gpu/drm/radeon/radeon_state.c
+index 23bb64fd775f..535403e0c8a2 100644
+--- a/drivers/gpu/drm/radeon/radeon_state.c
++++ b/drivers/gpu/drm/radeon/radeon_state.c
+@@ -30,9 +30,9 @@
+  */
+ 
+ #include <drm/drmP.h>
+-#include <drm/drm_buffer.h>
+ #include <drm/radeon_drm.h>
+ #include "radeon_drv.h"
++#include "drm_buffer.h"
+ 
+ /* ================================================================
+  * Helper functions for client state checking and fixup
+-- 
+2.17.0
+

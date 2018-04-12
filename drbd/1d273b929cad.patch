@@ -1,0 +1,66 @@
+From 1d273b929cad7b1ee95d5c15ac806b3abc764278 Mon Sep 17 00:00:00 2001
+From: Joe Perches <joe@perches.com>
+Date: Fri, 3 Jun 2011 02:28:46 -0700
+Subject: [PATCH] drbd: Use angle brackets for system includes
+
+Use the normal include style.
+
+Signed-off-by: Joe Perches <joe@perches.com>
+Signed-off-by: Jiri Kosina <jkosina@suse.cz>
+---
+ drivers/block/drbd/drbd_int.h  | 2 +-
+ drivers/block/drbd/drbd_nl.c   | 4 ++--
+ include/linux/drbd_tag_magic.h | 2 +-
+ 3 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index ef2ceed3be4b..a6ab1b28c61e 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -928,7 +928,7 @@ struct drbd_md {
+ #define NL_INT64(pn,pr,member) __u64 member;
+ #define NL_BIT(pn,pr,member)   unsigned member:1;
+ #define NL_STRING(pn,pr,member,len) unsigned char member[len]; int member ## _len;
+-#include "linux/drbd_nl.h"
++#include <linux/drbd_nl.h>
+ 
+ struct drbd_backing_dev {
+ 	struct block_device *backing_bdev;
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 515bcd948a43..20de58d6df40 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -94,7 +94,7 @@ static int name ## _from_tags(struct drbd_conf *mdev, \
+ 		 arg->member ## _len = dlen; \
+ 		 memcpy(arg->member, tags, min_t(size_t, dlen, len)); \
+ 		 break;
+-#include "linux/drbd_nl.h"
++#include <linux/drbd_nl.h>
+ 
+ /* Generate the struct to tag_list functions */
+ #define NL_PACKET(name, number, fields) \
+@@ -129,7 +129,7 @@ name ## _to_tags(struct drbd_conf *mdev, \
+ 	put_unaligned(arg->member ## _len, tags++);	\
+ 	memcpy(tags, arg->member, arg->member ## _len); \
+ 	tags = (unsigned short *)((char *)tags + arg->member ## _len);
+-#include "linux/drbd_nl.h"
++#include <linux/drbd_nl.h>
+ 
+ void drbd_bcast_ev_helper(struct drbd_conf *mdev, char *helper_name);
+ void drbd_nl_send_reply(struct cn_msg *, int);
+diff --git a/include/linux/drbd_tag_magic.h b/include/linux/drbd_tag_magic.h
+index 069543190516..81f52f2c5724 100644
+--- a/include/linux/drbd_tag_magic.h
++++ b/include/linux/drbd_tag_magic.h
+@@ -28,7 +28,7 @@ enum packet_types {
+ #define NL_STRING(pn, pr, member, len)	\
+ 	unsigned char member[len]; int member ## _len; \
+ 	int tag_and_len ## member;
+-#include "linux/drbd_nl.h"
++#include <linux/drbd_nl.h>
+ 
+ /* declare tag-list-sizes */
+ static const int tag_list_sizes[] = {
+-- 
+2.17.0
+

@@ -1,0 +1,100 @@
+From 7da903ef04851aba81e4ddabf65c15fb71b7ce47 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Ville=20Syrj=C3=A4l=C3=A4?= <ville.syrjala@linux.intel.com>
+Date: Sat, 26 Oct 2013 17:57:31 +0300
+Subject: [PATCH] drm: Pass the display mode to
+ drm_calc_vbltimestamp_from_scanoutpos()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Rather than using crtc->hwmode, just pass the relevant mode to
+drm_calc_vbltimestamp_from_scanoutpos(). This removes the last hwmode
+usage from core drm.
+
+Reviewed-by: mario.kleiner.de@gmail.com
+Signed-off-by: Ville Syrjälä <ville.syrjala@linux.intel.com>
+---
+ drivers/gpu/drm/drm_irq.c           | 6 +++---
+ drivers/gpu/drm/i915/i915_irq.c     | 3 ++-
+ drivers/gpu/drm/radeon/radeon_kms.c | 2 +-
+ include/drm/drmP.h                  | 3 ++-
+ 4 files changed, 8 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_irq.c b/drivers/gpu/drm/drm_irq.c
+index 3837132086f0..db93b07723dd 100644
+--- a/drivers/gpu/drm/drm_irq.c
++++ b/drivers/gpu/drm/drm_irq.c
+@@ -522,6 +522,7 @@ EXPORT_SYMBOL(drm_calc_timestamping_constants);
+  *         0 = Default.
+  *         DRM_CALLED_FROM_VBLIRQ = If function is called from vbl irq handler.
+  * @refcrtc: drm_crtc* of crtc which defines scanout timing.
++ * @mode: mode which defines the scanout timings
+  *
+  * Returns negative value on error, failure or if not supported in current
+  * video mode:
+@@ -541,11 +542,11 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+ 					  int *max_error,
+ 					  struct timeval *vblank_time,
+ 					  unsigned flags,
+-					  struct drm_crtc *refcrtc)
++					  const struct drm_crtc *refcrtc,
++					  const struct drm_display_mode *mode)
+ {
+ 	ktime_t stime, etime, mono_time_offset;
+ 	struct timeval tv_etime;
+-	struct drm_display_mode *mode;
+ 	int vbl_status, vtotal, vdisplay;
+ 	int vpos, hpos, i;
+ 	s64 framedur_ns, linedur_ns, pixeldur_ns, delta_ns, duration_ns;
+@@ -562,7 +563,6 @@ int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev, int crtc,
+ 		return -EIO;
+ 	}
+ 
+-	mode = &refcrtc->hwmode;
+ 	vtotal = mode->crtc_vtotal;
+ 	vdisplay = mode->crtc_vdisplay;
+ 
+diff --git a/drivers/gpu/drm/i915/i915_irq.c b/drivers/gpu/drm/i915/i915_irq.c
+index 6d11e253218a..b6e4a762806b 100644
+--- a/drivers/gpu/drm/i915/i915_irq.c
++++ b/drivers/gpu/drm/i915/i915_irq.c
+@@ -809,7 +809,8 @@ static int i915_get_vblank_timestamp(struct drm_device *dev, int pipe,
+ 	/* Helper routine in DRM core does all the work: */
+ 	return drm_calc_vbltimestamp_from_scanoutpos(dev, pipe, max_error,
+ 						     vblank_time, flags,
+-						     crtc);
++						     crtc,
++						     &to_intel_crtc(crtc)->config.adjusted_mode);
+ }
+ 
+ static bool intel_hpd_irq_event(struct drm_device *dev,
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index 5bf50cec017e..5444948cf01d 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -712,7 +712,7 @@ int radeon_get_vblank_timestamp_kms(struct drm_device *dev, int crtc,
+ 	/* Helper routine in DRM core does all the work: */
+ 	return drm_calc_vbltimestamp_from_scanoutpos(dev, crtc, max_error,
+ 						     vblank_time, flags,
+-						     drmcrtc);
++						     drmcrtc, &drmcrtc->hwmode);
+ }
+ 
+ #define KMS_INVALID_IOCTL(name)						\
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 46bf8ae7e302..3f57c77acef8 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -1401,7 +1401,8 @@ extern int drm_calc_vbltimestamp_from_scanoutpos(struct drm_device *dev,
+ 						 int crtc, int *max_error,
+ 						 struct timeval *vblank_time,
+ 						 unsigned flags,
+-						 struct drm_crtc *refcrtc);
++						 const struct drm_crtc *refcrtc,
++						 const struct drm_display_mode *mode);
+ extern void drm_calc_timestamping_constants(struct drm_crtc *crtc,
+ 					    const struct drm_display_mode *mode);
+ 
+-- 
+2.17.0
+

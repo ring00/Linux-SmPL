@@ -1,0 +1,305 @@
+From 355a70183848f21198e9f6296bd646df3478a26d Mon Sep 17 00:00:00 2001
+From: Thomas Hellstrom <thellstrom@vmware.com>
+Date: Thu, 20 Nov 2014 09:56:25 +0100
+Subject: [PATCH] drm/gem: Warn on illegal use of the dumb buffer interface v2
+
+It happens on occasion that developers of generic user-space applications
+abuse the dumb buffer API to get hold of drm buffers that they can both
+mmap() and use for GPU acceleration, using the assumptions that dumb buffers
+and buffers available for GPU are
+a) The same type and can be aribtrarily type-casted.
+b) fully coherent.
+
+This patch makes the most widely used drivers warn nicely when that happens,
+the next step will be to fail.
+
+v2: Move drmP.h changes to drm_gem.h. Fix Radeon dumb mmap breakage.
+
+Signed-off-by: Thomas Hellstrom <thellstrom@vmware.com>
+Acked-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Acked-by: Alex Deucher <alexander.deucher@amd.com>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/i915/i915_drv.c            |  2 +-
+ drivers/gpu/drm/i915/i915_drv.h            |  5 ++--
+ drivers/gpu/drm/i915/i915_gem.c            | 28 ++++++++++++++++++----
+ drivers/gpu/drm/i915/i915_gem_execbuffer.c |  3 +++
+ drivers/gpu/drm/nouveau/nouveau_display.c  |  9 +++++++
+ drivers/gpu/drm/nouveau/nouveau_gem.c      |  3 +++
+ drivers/gpu/drm/radeon/radeon_gem.c        | 26 ++++++++++++++++----
+ drivers/gpu/drm/radeon/radeon_object.c     |  3 +++
+ include/drm/drm_gem.h                      |  7 ++++++
+ 9 files changed, 74 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_drv.c b/drivers/gpu/drm/i915/i915_drv.c
+index 2404b2baa01e..c743908b0a7e 100644
+--- a/drivers/gpu/drm/i915/i915_drv.c
++++ b/drivers/gpu/drm/i915/i915_drv.c
+@@ -1593,7 +1593,7 @@ static struct drm_driver driver = {
+ 	.gem_prime_import = i915_gem_prime_import,
+ 
+ 	.dumb_create = i915_gem_dumb_create,
+-	.dumb_map_offset = i915_gem_mmap_gtt,
++	.dumb_map_offset = i915_gem_dumb_map_offset,
+ 	.dumb_destroy = drm_gem_dumb_destroy,
+ 	.ioctls = i915_ioctls,
+ 	.fops = &i915_driver_fops,
+diff --git a/drivers/gpu/drm/i915/i915_drv.h b/drivers/gpu/drm/i915/i915_drv.h
+index f830596faa9e..4ba1aca071da 100644
+--- a/drivers/gpu/drm/i915/i915_drv.h
++++ b/drivers/gpu/drm/i915/i915_drv.h
+@@ -2523,8 +2523,9 @@ void i915_vma_move_to_active(struct i915_vma *vma,
+ int i915_gem_dumb_create(struct drm_file *file_priv,
+ 			 struct drm_device *dev,
+ 			 struct drm_mode_create_dumb *args);
+-int i915_gem_mmap_gtt(struct drm_file *file_priv, struct drm_device *dev,
+-		      uint32_t handle, uint64_t *offset);
++int i915_gem_dumb_map_offset(struct drm_file *file_priv,
++			     struct drm_device *dev, uint32_t handle,
++			     uint64_t *offset);
+ /**
+  * Returns true if seq1 is later than seq2.
+  */
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 3e0cabe9b544..50b842231c26 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -346,6 +346,7 @@ static int
+ i915_gem_create(struct drm_file *file,
+ 		struct drm_device *dev,
+ 		uint64_t size,
++		bool dumb,
+ 		uint32_t *handle_p)
+ {
+ 	struct drm_i915_gem_object *obj;
+@@ -361,6 +362,7 @@ i915_gem_create(struct drm_file *file,
+ 	if (obj == NULL)
+ 		return -ENOMEM;
+ 
++	obj->base.dumb = dumb;
+ 	ret = drm_gem_handle_create(file, &obj->base, &handle);
+ 	/* drop reference from allocate - handle holds it now */
+ 	drm_gem_object_unreference_unlocked(&obj->base);
+@@ -380,7 +382,7 @@ i915_gem_dumb_create(struct drm_file *file,
+ 	args->pitch = ALIGN(args->width * DIV_ROUND_UP(args->bpp, 8), 64);
+ 	args->size = args->pitch * args->height;
+ 	return i915_gem_create(file, dev,
+-			       args->size, &args->handle);
++			       args->size, true, &args->handle);
+ }
+ 
+ /**
+@@ -393,7 +395,7 @@ i915_gem_create_ioctl(struct drm_device *dev, void *data,
+ 	struct drm_i915_gem_create *args = data;
+ 
+ 	return i915_gem_create(file, dev,
+-			       args->size, &args->handle);
++			       args->size, false, &args->handle);
+ }
+ 
+ static inline int
+@@ -1773,10 +1775,10 @@ static void i915_gem_object_free_mmap_offset(struct drm_i915_gem_object *obj)
+ 	drm_gem_free_mmap_offset(&obj->base);
+ }
+ 
+-int
++static int
+ i915_gem_mmap_gtt(struct drm_file *file,
+ 		  struct drm_device *dev,
+-		  uint32_t handle,
++		  uint32_t handle, bool dumb,
+ 		  uint64_t *offset)
+ {
+ 	struct drm_i915_private *dev_priv = dev->dev_private;
+@@ -1793,6 +1795,13 @@ i915_gem_mmap_gtt(struct drm_file *file,
+ 		goto unlock;
+ 	}
+ 
++	/*
++	 * We don't allow dumb mmaps on objects created using another
++	 * interface.
++	 */
++	WARN_ONCE(dumb && !(obj->base.dumb || obj->base.import_attach),
++		  "Illegal dumb map of accelerated buffer.\n");
++
+ 	if (obj->base.size > dev_priv->gtt.mappable_end) {
+ 		ret = -E2BIG;
+ 		goto out;
+@@ -1817,6 +1826,15 @@ i915_gem_mmap_gtt(struct drm_file *file,
+ 	return ret;
+ }
+ 
++int
++i915_gem_dumb_map_offset(struct drm_file *file,
++			 struct drm_device *dev,
++			 uint32_t handle,
++			 uint64_t *offset)
++{
++	return i915_gem_mmap_gtt(file, dev, handle, true, offset);
++}
++
+ /**
+  * i915_gem_mmap_gtt_ioctl - prepare an object for GTT mmap'ing
+  * @dev: DRM device
+@@ -1838,7 +1856,7 @@ i915_gem_mmap_gtt_ioctl(struct drm_device *dev, void *data,
+ {
+ 	struct drm_i915_gem_mmap_gtt *args = data;
+ 
+-	return i915_gem_mmap_gtt(file, dev, args->handle, &args->offset);
++	return i915_gem_mmap_gtt(file, dev, args->handle, false, &args->offset);
+ }
+ 
+ static inline int
+diff --git a/drivers/gpu/drm/i915/i915_gem_execbuffer.c b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+index e1ed85a6dc6d..2b02fcfae534 100644
+--- a/drivers/gpu/drm/i915/i915_gem_execbuffer.c
++++ b/drivers/gpu/drm/i915/i915_gem_execbuffer.c
+@@ -121,6 +121,9 @@ eb_lookup_vmas(struct eb_vmas *eb,
+ 			goto err;
+ 		}
+ 
++		WARN_ONCE(obj->base.dumb,
++			  "GPU use of dumb buffer is illegal.\n");
++
+ 		drm_gem_object_reference(&obj->base);
+ 		list_add_tail(&obj->obj_exec_link, &objects);
+ 	}
+diff --git a/drivers/gpu/drm/nouveau/nouveau_display.c b/drivers/gpu/drm/nouveau/nouveau_display.c
+index a88e6927f571..2640fcfa5c37 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_display.c
++++ b/drivers/gpu/drm/nouveau/nouveau_display.c
+@@ -871,6 +871,7 @@ nouveau_display_dumb_create(struct drm_file *file_priv, struct drm_device *dev,
+ 	if (ret)
+ 		return ret;
+ 
++	bo->gem.dumb = true;
+ 	ret = drm_gem_handle_create(file_priv, &bo->gem, &args->handle);
+ 	drm_gem_object_unreference_unlocked(&bo->gem);
+ 	return ret;
+@@ -886,6 +887,14 @@ nouveau_display_dumb_map_offset(struct drm_file *file_priv,
+ 	gem = drm_gem_object_lookup(dev, file_priv, handle);
+ 	if (gem) {
+ 		struct nouveau_bo *bo = nouveau_gem_object(gem);
++
++		/*
++		 * We don't allow dumb mmaps on objects created using another
++		 * interface.
++		 */
++		WARN_ONCE(!(gem->dumb || gem->import_attach),
++			  "Illegal dumb map of accelerated buffer.\n");
++
+ 		*poffset = drm_vma_node_offset_addr(&bo->bo.vma_node);
+ 		drm_gem_object_unreference_unlocked(gem);
+ 		return 0;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_gem.c b/drivers/gpu/drm/nouveau/nouveau_gem.c
+index 36951ee4b157..ebba9deb0d04 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_gem.c
++++ b/drivers/gpu/drm/nouveau/nouveau_gem.c
+@@ -444,6 +444,9 @@ validate_list(struct nouveau_channel *chan, struct nouveau_cli *cli,
+ 	list_for_each_entry(nvbo, list, entry) {
+ 		struct drm_nouveau_gem_pushbuf_bo *b = &pbbo[nvbo->pbbo_index];
+ 
++		WARN_ONCE(nvbo->gem.dumb,
++			  "GPU use of dumb buffer is illegal.\n");
++
+ 		ret = nouveau_gem_set_domain(&nvbo->gem, b->read_domains,
+ 					     b->write_domains,
+ 					     b->valid_domains);
+diff --git a/drivers/gpu/drm/radeon/radeon_gem.c b/drivers/gpu/drm/radeon/radeon_gem.c
+index c194497aa586..429213b6ed0f 100644
+--- a/drivers/gpu/drm/radeon/radeon_gem.c
++++ b/drivers/gpu/drm/radeon/radeon_gem.c
+@@ -394,9 +394,10 @@ int radeon_gem_set_domain_ioctl(struct drm_device *dev, void *data,
+ 	return r;
+ }
+ 
+-int radeon_mode_dumb_mmap(struct drm_file *filp,
+-			  struct drm_device *dev,
+-			  uint32_t handle, uint64_t *offset_p)
++static int radeon_mode_mmap(struct drm_file *filp,
++			    struct drm_device *dev,
++			    uint32_t handle, bool dumb,
++			    uint64_t *offset_p)
+ {
+ 	struct drm_gem_object *gobj;
+ 	struct radeon_bo *robj;
+@@ -405,6 +406,14 @@ int radeon_mode_dumb_mmap(struct drm_file *filp,
+ 	if (gobj == NULL) {
+ 		return -ENOENT;
+ 	}
++
++	/*
++	 * We don't allow dumb mmaps on objects created using another
++	 * interface.
++	 */
++	WARN_ONCE(dumb && !(gobj->dumb || gobj->import_attach),
++		"Illegal dumb map of GPU buffer.\n");
++
+ 	robj = gem_to_radeon_bo(gobj);
+ 	if (radeon_ttm_tt_has_userptr(robj->tbo.ttm)) {
+ 		drm_gem_object_unreference_unlocked(gobj);
+@@ -415,12 +424,20 @@ int radeon_mode_dumb_mmap(struct drm_file *filp,
+ 	return 0;
+ }
+ 
++int radeon_mode_dumb_mmap(struct drm_file *filp,
++			  struct drm_device *dev,
++			  uint32_t handle, uint64_t *offset_p)
++{
++	return radeon_mode_mmap(filp, dev, handle, true, offset_p);
++}
++
+ int radeon_gem_mmap_ioctl(struct drm_device *dev, void *data,
+ 			  struct drm_file *filp)
+ {
+ 	struct drm_radeon_gem_mmap *args = data;
+ 
+-	return radeon_mode_dumb_mmap(filp, dev, args->handle, &args->addr_ptr);
++	return radeon_mode_mmap(filp, dev, args->handle, false,
++				&args->addr_ptr);
+ }
+ 
+ int radeon_gem_busy_ioctl(struct drm_device *dev, void *data,
+@@ -682,6 +699,7 @@ int radeon_mode_dumb_create(struct drm_file *file_priv,
+ 		return -ENOMEM;
+ 
+ 	r = drm_gem_handle_create(file_priv, gobj, &handle);
++	gobj->dumb = true;
+ 	/* drop reference from allocate - handle holds it now */
+ 	drm_gem_object_unreference_unlocked(gobj);
+ 	if (r) {
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index 33e6c7a89c32..76eedd6a34f0 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -521,6 +521,9 @@ int radeon_bo_list_validate(struct radeon_device *rdev,
+ 			u32 current_domain =
+ 				radeon_mem_type_to_domain(bo->tbo.mem.mem_type);
+ 
++			WARN_ONCE(bo->gem_base.dumb,
++				  "GPU use of dumb buffer is illegal.\n");
++
+ 			/* Check if this buffer will be moved and don't move it
+ 			 * if we have moved too many buffers for this IB already.
+ 			 *
+diff --git a/include/drm/drm_gem.h b/include/drm/drm_gem.h
+index 1e6ae1458f7a..780511a459c0 100644
+--- a/include/drm/drm_gem.h
++++ b/include/drm/drm_gem.h
+@@ -119,6 +119,13 @@ struct drm_gem_object {
+ 	 * simply leave it as NULL.
+ 	 */
+ 	struct dma_buf_attachment *import_attach;
++
++	/**
++	 * dumb - created as dumb buffer
++	 * Whether the gem object was created using the dumb buffer interface
++	 * as such it may not be used for GPU rendering.
++	 */
++	bool dumb;
+ };
+ 
+ void drm_gem_object_release(struct drm_gem_object *obj);
+-- 
+2.17.0
+

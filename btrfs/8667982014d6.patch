@@ -1,0 +1,566 @@
+From 8667982014d6048e0b5e286b6247ff24f48d4cc6 Mon Sep 17 00:00:00 2001
+From: Mel Gorman <mgorman@techsingularity.net>
+Date: Wed, 15 Nov 2017 17:37:52 -0800
+Subject: [PATCH] mm, pagevec: remove cold parameter for pagevecs
+
+Every pagevec_init user claims the pages being released are hot even in
+cases where it is unlikely the pages are hot.  As no one cares about the
+hotness of pages being released to the allocator, just ditch the
+parameter.
+
+No performance impact is expected as the overhead is marginal.  The
+parameter is removed simply because it is a bit stupid to have a useless
+parameter copied everywhere.
+
+Link: http://lkml.kernel.org/r/20171018075952.10627-6-mgorman@techsingularity.net
+Signed-off-by: Mel Gorman <mgorman@techsingularity.net>
+Acked-by: Vlastimil Babka <vbabka@suse.cz>
+Cc: Andi Kleen <ak@linux.intel.com>
+Cc: Dave Chinner <david@fromorbit.com>
+Cc: Dave Hansen <dave.hansen@intel.com>
+Cc: Jan Kara <jack@suse.cz>
+Cc: Johannes Weiner <hannes@cmpxchg.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ drivers/gpu/drm/i915/i915_gem_gtt.c | 2 +-
+ fs/afs/write.c                      | 4 ++--
+ fs/btrfs/extent_io.c                | 4 ++--
+ fs/buffer.c                         | 4 ++--
+ fs/cachefiles/rdwr.c                | 4 ++--
+ fs/ceph/addr.c                      | 4 ++--
+ fs/dax.c                            | 2 +-
+ fs/ext4/inode.c                     | 6 +++---
+ fs/f2fs/checkpoint.c                | 2 +-
+ fs/f2fs/data.c                      | 2 +-
+ fs/f2fs/node.c                      | 8 ++++----
+ fs/fscache/page.c                   | 2 +-
+ fs/gfs2/aops.c                      | 2 +-
+ fs/hugetlbfs/inode.c                | 2 +-
+ fs/nilfs2/btree.c                   | 2 +-
+ fs/nilfs2/page.c                    | 8 ++++----
+ fs/nilfs2/segment.c                 | 4 ++--
+ include/linux/pagevec.h             | 4 +---
+ mm/filemap.c                        | 2 +-
+ mm/mlock.c                          | 4 ++--
+ mm/page-writeback.c                 | 2 +-
+ mm/shmem.c                          | 6 +++---
+ mm/swap.c                           | 4 ++--
+ mm/truncate.c                       | 8 ++++----
+ 24 files changed, 45 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/gpu/drm/i915/i915_gem_gtt.c b/drivers/gpu/drm/i915/i915_gem_gtt.c
+index ad524cb0f6fc..7982ad817c11 100644
+--- a/drivers/gpu/drm/i915/i915_gem_gtt.c
++++ b/drivers/gpu/drm/i915/i915_gem_gtt.c
+@@ -1859,7 +1859,7 @@ static void i915_address_space_init(struct i915_address_space *vm,
+ 	INIT_LIST_HEAD(&vm->unbound_list);
+ 
+ 	list_add_tail(&vm->global_link, &dev_priv->vm_list);
+-	pagevec_init(&vm->free_pages, false);
++	pagevec_init(&vm->free_pages);
+ }
+ 
+ static void i915_address_space_fini(struct i915_address_space *vm)
+diff --git a/fs/afs/write.c b/fs/afs/write.c
+index d62a6b54152d..11dd0526b96b 100644
+--- a/fs/afs/write.c
++++ b/fs/afs/write.c
+@@ -308,7 +308,7 @@ static void afs_kill_pages(struct afs_vnode *vnode, bool error,
+ 	_enter("{%x:%u},%lx-%lx",
+ 	       vnode->fid.vid, vnode->fid.vnode, first, last);
+ 
+-	pagevec_init(&pv, 0);
++	pagevec_init(&pv);
+ 
+ 	do {
+ 		_debug("kill %lx-%lx", first, last);
+@@ -602,7 +602,7 @@ void afs_pages_written_back(struct afs_vnode *vnode, struct afs_call *call)
+ 
+ 	ASSERT(wb != NULL);
+ 
+-	pagevec_init(&pv, 0);
++	pagevec_init(&pv);
+ 
+ 	do {
+ 		_debug("done %lx-%lx", first, last);
+diff --git a/fs/btrfs/extent_io.c b/fs/btrfs/extent_io.c
+index 93fdaac81212..16045ea86fc1 100644
+--- a/fs/btrfs/extent_io.c
++++ b/fs/btrfs/extent_io.c
+@@ -3797,7 +3797,7 @@ int btree_write_cache_pages(struct address_space *mapping,
+ 	int scanned = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		index = mapping->writeback_index; /* Start from prev offset */
+ 		end = -1;
+@@ -3936,7 +3936,7 @@ static int extent_write_cache_pages(struct address_space *mapping,
+ 	if (!igrab(inode))
+ 		return 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		index = mapping->writeback_index; /* Start from prev offset */
+ 		end = -1;
+diff --git a/fs/buffer.c b/fs/buffer.c
+index 1c18a22a6013..0736a6a2e2f0 100644
+--- a/fs/buffer.c
++++ b/fs/buffer.c
+@@ -1592,7 +1592,7 @@ void clean_bdev_aliases(struct block_device *bdev, sector_t block, sector_t len)
+ 	struct buffer_head *head;
+ 
+ 	end = (block + len - 1) >> (PAGE_SHIFT - bd_inode->i_blkbits);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (pagevec_lookup_range(&pvec, bd_mapping, &index, end)) {
+ 		count = pagevec_count(&pvec);
+ 		for (i = 0; i < count; i++) {
+@@ -3514,7 +3514,7 @@ page_cache_seek_hole_data(struct inode *inode, loff_t offset, loff_t length,
+ 	if (length <= 0)
+ 		return -ENOENT;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	do {
+ 		unsigned nr_pages, i;
+diff --git a/fs/cachefiles/rdwr.c b/fs/cachefiles/rdwr.c
+index 18d7aa61ef0f..23097cca2674 100644
+--- a/fs/cachefiles/rdwr.c
++++ b/fs/cachefiles/rdwr.c
+@@ -710,7 +710,7 @@ int cachefiles_read_or_alloc_pages(struct fscache_retrieval *op,
+ 	/* calculate the shift required to use bmap */
+ 	shift = PAGE_SHIFT - inode->i_sb->s_blocksize_bits;
+ 
+-	pagevec_init(&pagevec, 0);
++	pagevec_init(&pagevec);
+ 
+ 	op->op.flags &= FSCACHE_OP_KEEP_FLAGS;
+ 	op->op.flags |= FSCACHE_OP_ASYNC;
+@@ -844,7 +844,7 @@ int cachefiles_allocate_pages(struct fscache_retrieval *op,
+ 
+ 	ret = cachefiles_has_space(cache, 0, *nr_pages);
+ 	if (ret == 0) {
+-		pagevec_init(&pagevec, 0);
++		pagevec_init(&pagevec);
+ 
+ 		list_for_each_entry(page, pages, lru) {
+ 			if (pagevec_add(&pagevec, page) == 0)
+diff --git a/fs/ceph/addr.c b/fs/ceph/addr.c
+index 26c682db94ee..dbf07051aacd 100644
+--- a/fs/ceph/addr.c
++++ b/fs/ceph/addr.c
+@@ -680,7 +680,7 @@ static void ceph_release_pages(struct page **pages, int num)
+ 	struct pagevec pvec;
+ 	int i;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	for (i = 0; i < num; i++) {
+ 		if (pagevec_add(&pvec, pages[i]) == 0)
+ 			pagevec_release(&pvec);
+@@ -811,7 +811,7 @@ static int ceph_writepages_start(struct address_space *mapping,
+ 	if (fsc->mount_options->wsize < wsize)
+ 		wsize = fsc->mount_options->wsize;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	start_index = wbc->range_cyclic ? mapping->writeback_index : 0;
+ 	index = start_index;
+diff --git a/fs/dax.c b/fs/dax.c
+index 165fdfb6e508..3652b26a0048 100644
+--- a/fs/dax.c
++++ b/fs/dax.c
+@@ -794,7 +794,7 @@ int dax_writeback_mapping_range(struct address_space *mapping,
+ 
+ 	tag_pages_for_writeback(mapping, start_index, end_index);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (!done) {
+ 		pvec.nr = find_get_entries_tag(mapping, start_index,
+ 				PAGECACHE_TAG_TOWRITE, PAGEVEC_SIZE,
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index b239a41dbeeb..8d2b582fb141 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -1719,7 +1719,7 @@ static void mpage_release_unused_pages(struct mpage_da_data *mpd,
+ 		ext4_es_remove_extent(inode, start, last - start + 1);
+ 	}
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end) {
+ 		nr_pages = pagevec_lookup_range(&pvec, mapping, &index, end);
+ 		if (nr_pages == 0)
+@@ -2345,7 +2345,7 @@ static int mpage_map_and_submit_buffers(struct mpage_da_data *mpd)
+ 	lblk = start << bpp_bits;
+ 	pblock = mpd->map.m_pblk;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (start <= end) {
+ 		nr_pages = pagevec_lookup_range(&pvec, inode->i_mapping,
+ 						&start, end);
+@@ -2616,7 +2616,7 @@ static int mpage_prepare_extent_to_map(struct mpage_da_data *mpd)
+ 	else
+ 		tag = PAGECACHE_TAG_DIRTY;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	mpd->map.m_len = 0;
+ 	mpd->next_page = index;
+ 	while (index <= end) {
+diff --git a/fs/f2fs/checkpoint.c b/fs/f2fs/checkpoint.c
+index 6124f8710dc3..0bb8e2c022d3 100644
+--- a/fs/f2fs/checkpoint.c
++++ b/fs/f2fs/checkpoint.c
+@@ -314,7 +314,7 @@ long sync_meta_pages(struct f2fs_sb_info *sbi, enum page_type type,
+ 	};
+ 	struct blk_plug plug;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	blk_start_plug(&plug);
+ 
+diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
+index 687703755824..7b3ad5d8e2e9 100644
+--- a/fs/f2fs/data.c
++++ b/fs/f2fs/data.c
+@@ -1635,7 +1635,7 @@ static int f2fs_write_cache_pages(struct address_space *mapping,
+ 	int range_whole = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	if (get_dirty_pages(mapping->host) <=
+ 				SM_I(F2FS_M_SB(mapping))->min_hot_blocks)
+diff --git a/fs/f2fs/node.c b/fs/f2fs/node.c
+index d6e4df0bb622..b33dac9592ca 100644
+--- a/fs/f2fs/node.c
++++ b/fs/f2fs/node.c
+@@ -1282,7 +1282,7 @@ static struct page *last_fsync_dnode(struct f2fs_sb_info *sbi, nid_t ino)
+ 	struct page *last_page = NULL;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = 0;
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+@@ -1436,7 +1436,7 @@ int fsync_node_pages(struct f2fs_sb_info *sbi, struct inode *inode,
+ 			return PTR_ERR_OR_ZERO(last_page);
+ 	}
+ retry:
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = 0;
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+@@ -1547,7 +1547,7 @@ int sync_node_pages(struct f2fs_sb_info *sbi, struct writeback_control *wbc,
+ 	int ret = 0;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ next_step:
+ 	index = 0;
+@@ -1648,7 +1648,7 @@ int wait_on_node_pages_writeback(struct f2fs_sb_info *sbi, nid_t ino)
+ 	int ret2, ret = 0;
+ 	int nr_pages;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while ((nr_pages = pagevec_lookup_tag(&pvec, NODE_MAPPING(sbi), &index,
+ 				PAGECACHE_TAG_WRITEBACK))) {
+diff --git a/fs/fscache/page.c b/fs/fscache/page.c
+index 0ad3fd3ad0b4..961029e04027 100644
+--- a/fs/fscache/page.c
++++ b/fs/fscache/page.c
+@@ -1175,7 +1175,7 @@ void __fscache_uncache_all_inode_pages(struct fscache_cookie *cookie,
+ 		return;
+ 	}
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	next = 0;
+ 	do {
+ 		if (!pagevec_lookup(&pvec, mapping, &next))
+diff --git a/fs/gfs2/aops.c b/fs/gfs2/aops.c
+index 3fea3d7780b0..1daf15a1f00c 100644
+--- a/fs/gfs2/aops.c
++++ b/fs/gfs2/aops.c
+@@ -371,7 +371,7 @@ static int gfs2_write_cache_jdata(struct address_space *mapping,
+ 	int range_whole = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		writeback_index = mapping->writeback_index; /* prev offset */
+ 		index = writeback_index;
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 6adb17bb1a38..1e76730aac0d 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -407,7 +407,7 @@ static void remove_inode_hugepages(struct inode *inode, loff_t lstart,
+ 
+ 	memset(&pseudo_vma, 0, sizeof(struct vm_area_struct));
+ 	pseudo_vma.vm_flags = (VM_HUGETLB | VM_MAYSHARE | VM_SHARED);
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	next = start;
+ 	while (next < end) {
+ 		/*
+diff --git a/fs/nilfs2/btree.c b/fs/nilfs2/btree.c
+index 35989c7bb065..16a7a67a11c9 100644
+--- a/fs/nilfs2/btree.c
++++ b/fs/nilfs2/btree.c
+@@ -2156,7 +2156,7 @@ static void nilfs_btree_lookup_dirty_buffers(struct nilfs_bmap *btree,
+ 	     level++)
+ 		INIT_LIST_HEAD(&lists[level]);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, btcache, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+diff --git a/fs/nilfs2/page.c b/fs/nilfs2/page.c
+index 1c16726915c1..68241512d7c1 100644
+--- a/fs/nilfs2/page.c
++++ b/fs/nilfs2/page.c
+@@ -255,7 +255,7 @@ int nilfs_copy_dirty_pages(struct address_space *dmap,
+ 	pgoff_t index = 0;
+ 	int err = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ repeat:
+ 	if (!pagevec_lookup_tag(&pvec, smap, &index, PAGECACHE_TAG_DIRTY))
+ 		return 0;
+@@ -309,7 +309,7 @@ void nilfs_copy_back_pages(struct address_space *dmap,
+ 	pgoff_t index = 0;
+ 	int err;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ repeat:
+ 	n = pagevec_lookup(&pvec, smap, &index);
+ 	if (!n)
+@@ -373,7 +373,7 @@ void nilfs_clear_dirty_pages(struct address_space *mapping, bool silent)
+ 	unsigned int i;
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, mapping, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+@@ -518,7 +518,7 @@ unsigned long nilfs_find_uncommitted_extent(struct inode *inode,
+ 	index = start_blk >> (PAGE_SHIFT - inode->i_blkbits);
+ 	nblocks_in_page = 1U << (PAGE_SHIFT - inode->i_blkbits);
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ repeat:
+ 	pvec.nr = find_get_pages_contig(inode->i_mapping, index, PAGEVEC_SIZE,
+diff --git a/fs/nilfs2/segment.c b/fs/nilfs2/segment.c
+index 19366ab20bea..f65392fecb5c 100644
+--- a/fs/nilfs2/segment.c
++++ b/fs/nilfs2/segment.c
+@@ -708,7 +708,7 @@ static size_t nilfs_lookup_dirty_data_buffers(struct inode *inode,
+ 		index = start >> PAGE_SHIFT;
+ 		last = end >> PAGE_SHIFT;
+ 	}
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+  repeat:
+ 	if (unlikely(index > last) ||
+ 	    !pagevec_lookup_range_tag(&pvec, mapping, &index, last,
+@@ -753,7 +753,7 @@ static void nilfs_lookup_dirty_node_buffers(struct inode *inode,
+ 	unsigned int i;
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 
+ 	while (pagevec_lookup_tag(&pvec, mapping, &index,
+ 					PAGECACHE_TAG_DIRTY)) {
+diff --git a/include/linux/pagevec.h b/include/linux/pagevec.h
+index 95c75c858d1f..eebefd209424 100644
+--- a/include/linux/pagevec.h
++++ b/include/linux/pagevec.h
+@@ -17,7 +17,6 @@ struct address_space;
+ 
+ struct pagevec {
+ 	unsigned long nr;
+-	bool cold;
+ 	bool drained;
+ 	struct page *pages[PAGEVEC_SIZE];
+ };
+@@ -51,10 +50,9 @@ static inline unsigned pagevec_lookup_tag(struct pagevec *pvec,
+ 	return pagevec_lookup_range_tag(pvec, mapping, index, (pgoff_t)-1, tag);
+ }
+ 
+-static inline void pagevec_init(struct pagevec *pvec, int cold)
++static inline void pagevec_init(struct pagevec *pvec)
+ {
+ 	pvec->nr = 0;
+-	pvec->cold = cold;
+ 	pvec->drained = false;
+ }
+ 
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 155370fc87f2..90a9f261f85f 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -519,7 +519,7 @@ static void __filemap_fdatawait_range(struct address_space *mapping,
+ 	if (end_byte < start_byte)
+ 		return;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end) {
+ 		unsigned i;
+ 
+diff --git a/mm/mlock.c b/mm/mlock.c
+index 46af369c13e5..ed37cb208d19 100644
+--- a/mm/mlock.c
++++ b/mm/mlock.c
+@@ -289,7 +289,7 @@ static void __munlock_pagevec(struct pagevec *pvec, struct zone *zone)
+ 	struct pagevec pvec_putback;
+ 	int pgrescued = 0;
+ 
+-	pagevec_init(&pvec_putback, 0);
++	pagevec_init(&pvec_putback);
+ 
+ 	/* Phase 1: page isolation */
+ 	spin_lock_irq(zone_lru_lock(zone));
+@@ -448,7 +448,7 @@ void munlock_vma_pages_range(struct vm_area_struct *vma,
+ 		struct pagevec pvec;
+ 		struct zone *zone;
+ 
+-		pagevec_init(&pvec, 0);
++		pagevec_init(&pvec);
+ 		/*
+ 		 * Although FOLL_DUMP is intended for get_dump_page(),
+ 		 * it just so happens that its special treatment of the
+diff --git a/mm/page-writeback.c b/mm/page-writeback.c
+index 436714917e03..05313f402ba8 100644
+--- a/mm/page-writeback.c
++++ b/mm/page-writeback.c
+@@ -2168,7 +2168,7 @@ int write_cache_pages(struct address_space *mapping,
+ 	int range_whole = 0;
+ 	int tag;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	if (wbc->range_cyclic) {
+ 		writeback_index = mapping->writeback_index; /* prev offset */
+ 		index = writeback_index;
+diff --git a/mm/shmem.c b/mm/shmem.c
+index a72f68aee6a4..7ea8b276ba8b 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -747,7 +747,7 @@ void shmem_unlock_mapping(struct address_space *mapping)
+ 	pgoff_t indices[PAGEVEC_SIZE];
+ 	pgoff_t index = 0;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	/*
+ 	 * Minor point, but we might as well stop if someone else SHM_LOCKs it.
+ 	 */
+@@ -790,7 +790,7 @@ static void shmem_undo_range(struct inode *inode, loff_t lstart, loff_t lend,
+ 	if (lend == -1)
+ 		end = -1;	/* unsigned, so actually very big */
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index < end) {
+ 		pvec.nr = find_get_entries(mapping, index,
+@@ -2528,7 +2528,7 @@ static pgoff_t shmem_seek_hole_data(struct address_space *mapping,
+ 	bool done = false;
+ 	int i;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	pvec.nr = 1;		/* start small: we may be there already */
+ 	while (!done) {
+ 		pvec.nr = find_get_entries(mapping, index,
+diff --git a/mm/swap.c b/mm/swap.c
+index 3e564a95ee73..88a19b6cdf7c 100644
+--- a/mm/swap.c
++++ b/mm/swap.c
+@@ -210,7 +210,7 @@ static void pagevec_lru_move_fn(struct pagevec *pvec,
+ 	}
+ 	if (pgdat)
+ 		spin_unlock_irqrestore(&pgdat->lru_lock, flags);
+-	release_pages(pvec->pages, pvec->nr, pvec->cold);
++	release_pages(pvec->pages, pvec->nr, 0);
+ 	pagevec_reinit(pvec);
+ }
+ 
+@@ -837,7 +837,7 @@ void __pagevec_release(struct pagevec *pvec)
+ 		lru_add_drain();
+ 		pvec->drained = true;
+ 	}
+-	release_pages(pvec->pages, pagevec_count(pvec), pvec->cold);
++	release_pages(pvec->pages, pagevec_count(pvec), 0);
+ 	pagevec_reinit(pvec);
+ }
+ EXPORT_SYMBOL(__pagevec_release);
+diff --git a/mm/truncate.c b/mm/truncate.c
+index c30e8fa3d063..e4b4cf0f4070 100644
+--- a/mm/truncate.c
++++ b/mm/truncate.c
+@@ -330,7 +330,7 @@ void truncate_inode_pages_range(struct address_space *mapping,
+ 	else
+ 		end = (lend + 1) >> PAGE_SHIFT;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index < end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE),
+@@ -342,7 +342,7 @@ void truncate_inode_pages_range(struct address_space *mapping,
+ 		 */
+ 		struct pagevec locked_pvec;
+ 
+-		pagevec_init(&locked_pvec, 0);
++		pagevec_init(&locked_pvec);
+ 		for (i = 0; i < pagevec_count(&pvec); i++) {
+ 			struct page *page = pvec.pages[i];
+ 
+@@ -553,7 +553,7 @@ unsigned long invalidate_mapping_pages(struct address_space *mapping,
+ 	unsigned long count = 0;
+ 	int i;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
+ 			indices)) {
+@@ -683,7 +683,7 @@ int invalidate_inode_pages2_range(struct address_space *mapping,
+ 	if (mapping->nrpages == 0 && mapping->nrexceptional == 0)
+ 		goto out;
+ 
+-	pagevec_init(&pvec, 0);
++	pagevec_init(&pvec);
+ 	index = start;
+ 	while (index <= end && pagevec_lookup_entries(&pvec, mapping, index,
+ 			min(end - index, (pgoff_t)PAGEVEC_SIZE - 1) + 1,
+-- 
+2.17.0
+

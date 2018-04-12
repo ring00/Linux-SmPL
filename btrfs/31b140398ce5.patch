@@ -1,0 +1,403 @@
+From 31b140398ce56ab41646eda7f02bcb78d6a4c916 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Wed, 5 Mar 2014 01:33:16 -0500
+Subject: [PATCH] switch {__,}blockdev_direct_IO() to iov_iter
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/block_dev.c      |  4 ++--
+ fs/btrfs/inode.c    |  3 +--
+ fs/direct-io.c      | 33 ++++++++++++++++-----------------
+ fs/ext2/inode.c     |  3 +--
+ fs/ext3/inode.c     |  3 +--
+ fs/ext4/indirect.c  |  7 +++----
+ fs/ext4/inode.c     |  4 ++--
+ fs/f2fs/data.c      |  4 ++--
+ fs/fat/inode.c      |  3 +--
+ fs/gfs2/aops.c      |  2 +-
+ fs/hfs/inode.c      |  3 +--
+ fs/hfsplus/inode.c  |  2 +-
+ fs/jfs/inode.c      |  3 +--
+ fs/nilfs2/inode.c   |  4 ++--
+ fs/ocfs2/aops.c     |  2 +-
+ fs/reiserfs/inode.c |  4 ++--
+ fs/udf/inode.c      |  3 +--
+ fs/xfs/xfs_aops.c   | 10 ++++------
+ include/linux/fs.h  | 12 ++++++------
+ 19 files changed, 49 insertions(+), 60 deletions(-)
+
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 938fc707d769..937e3011ed58 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -171,8 +171,8 @@ blkdev_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+ 
+-	return __blockdev_direct_IO(rw, iocb, inode, I_BDEV(inode), iter->iov,
+-				    offset, iter->nr_segs, blkdev_get_block,
++	return __blockdev_direct_IO(rw, iocb, inode, I_BDEV(inode), iter,
++				    offset, blkdev_get_block,
+ 				    NULL, NULL, 0);
+ }
+ 
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index c46a025d0c4b..b0b8fa0efba3 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -7483,8 +7483,7 @@ static ssize_t btrfs_direct_IO(int rw, struct kiocb *iocb,
+ 
+ 	ret = __blockdev_direct_IO(rw, iocb, inode,
+ 			BTRFS_I(inode)->root->fs_info->fs_devices->latest_bdev,
+-			iter->iov, offset, iter->nr_segs,
+-			btrfs_get_blocks_direct, NULL,
++			iter, offset, btrfs_get_blocks_direct, NULL,
+ 			btrfs_submit_direct, flags);
+ 	if (rw & WRITE) {
+ 		if (ret < 0 && ret != -EIOCBQUEUED)
+diff --git a/fs/direct-io.c b/fs/direct-io.c
+index 31ba0935e32e..1c677899b989 100644
+--- a/fs/direct-io.c
++++ b/fs/direct-io.c
+@@ -1107,8 +1107,8 @@ static inline int drop_refcount(struct dio *dio)
+  */
+ static inline ssize_t
+ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+-	struct block_device *bdev, const struct iovec *iov, loff_t offset, 
+-	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
++	struct block_device *bdev, struct iov_iter *iter, loff_t offset, 
++	get_block_t get_block, dio_iodone_t end_io,
+ 	dio_submit_t submit_io,	int flags)
+ {
+ 	int seg;
+@@ -1143,9 +1143,9 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 	}
+ 
+ 	/* Check the memory alignment.  Blocks cannot straddle pages */
+-	for (seg = 0; seg < nr_segs; seg++) {
+-		addr = (unsigned long)iov[seg].iov_base;
+-		size = iov[seg].iov_len;
++	for (seg = 0; seg < iter->nr_segs; seg++) {
++		addr = (unsigned long)iter->iov[seg].iov_base;
++		size = iter->iov[seg].iov_len;
+ 		end += size;
+ 		if (unlikely((addr & blocksize_mask) ||
+ 			     (size & blocksize_mask))) {
+@@ -1256,18 +1256,18 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 	if (unlikely(sdio.blkfactor))
+ 		sdio.pages_in_io = 2;
+ 
+-	for (seg = 0; seg < nr_segs; seg++) {
+-		user_addr = (unsigned long)iov[seg].iov_base;
++	for (seg = 0; seg < iter->nr_segs; seg++) {
++		user_addr = (unsigned long)iter->iov[seg].iov_base;
+ 		sdio.pages_in_io +=
+-			((user_addr + iov[seg].iov_len + PAGE_SIZE-1) /
++			((user_addr + iter->iov[seg].iov_len + PAGE_SIZE-1) /
+ 				PAGE_SIZE - user_addr / PAGE_SIZE);
+ 	}
+ 
+ 	blk_start_plug(&plug);
+ 
+-	for (seg = 0; seg < nr_segs; seg++) {
+-		user_addr = (unsigned long)iov[seg].iov_base;
+-		sdio.size += bytes = iov[seg].iov_len;
++	for (seg = 0; seg < iter->nr_segs; seg++) {
++		user_addr = (unsigned long)iter->iov[seg].iov_base;
++		sdio.size += bytes = iter->iov[seg].iov_len;
+ 
+ 		/* Index into the first page of the first block */
+ 		sdio.first_block_in_page = (user_addr & ~PAGE_MASK) >> blkbits;
+@@ -1288,7 +1288,7 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 
+ 		retval = do_direct_IO(dio, &sdio, &map_bh);
+ 
+-		dio->result += iov[seg].iov_len -
++		dio->result += iter->iov[seg].iov_len -
+ 			((sdio.final_block_in_request - sdio.block_in_file) <<
+ 					blkbits);
+ 
+@@ -1365,8 +1365,8 @@ do_blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 
+ ssize_t
+ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+-	struct block_device *bdev, const struct iovec *iov, loff_t offset,
+-	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
++	struct block_device *bdev, struct iov_iter *iter, loff_t offset,
++	get_block_t get_block, dio_iodone_t end_io,
+ 	dio_submit_t submit_io,	int flags)
+ {
+ 	/*
+@@ -1381,9 +1381,8 @@ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 	prefetch(bdev->bd_queue);
+ 	prefetch((char *)bdev->bd_queue + SMP_CACHE_BYTES);
+ 
+-	return do_blockdev_direct_IO(rw, iocb, inode, bdev, iov, offset,
+-				     nr_segs, get_block, end_io,
+-				     submit_io, flags);
++	return do_blockdev_direct_IO(rw, iocb, inode, bdev, iter, offset,
++				     get_block, end_io, submit_io, flags);
+ }
+ 
+ EXPORT_SYMBOL(__blockdev_direct_IO);
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 116e809aa7cb..36d35c36311d 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -859,8 +859,7 @@ ext2_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, ext2_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, ext2_get_block);
+ 	if (ret < 0 && (rw & WRITE))
+ 		ext2_write_failed(mapping, offset + count);
+ 	return ret;
+diff --git a/fs/ext3/inode.c b/fs/ext3/inode.c
+index 8582ae2c80b0..4d32133a76c4 100644
+--- a/fs/ext3/inode.c
++++ b/fs/ext3/inode.c
+@@ -1855,8 +1855,7 @@ static ssize_t ext3_direct_IO(int rw, struct kiocb *iocb,
+ 	}
+ 
+ retry:
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, ext3_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, ext3_get_block);
+ 	/*
+ 	 * In case of error extending write may have instantiated a few
+ 	 * blocks outside i_size. Trim these off again.
+diff --git a/fs/ext4/indirect.c b/fs/ext4/indirect.c
+index 123898a6af05..8a57e9fcd1b9 100644
+--- a/fs/ext4/indirect.c
++++ b/fs/ext4/indirect.c
+@@ -686,14 +686,13 @@ ssize_t ext4_ind_direct_IO(int rw, struct kiocb *iocb,
+ 			goto locked;
+ 		}
+ 		ret = __blockdev_direct_IO(rw, iocb, inode,
+-				 inode->i_sb->s_bdev, iter->iov,
+-				 offset, iter->nr_segs,
++				 inode->i_sb->s_bdev, iter, offset,
+ 				 ext4_get_block, NULL, NULL, 0);
+ 		inode_dio_done(inode);
+ 	} else {
+ locked:
+-		ret = blockdev_direct_IO(rw, iocb, inode, iter->iov,
+-				 offset, iter->nr_segs, ext4_get_block);
++		ret = blockdev_direct_IO(rw, iocb, inode, iter,
++				 offset, ext4_get_block);
+ 
+ 		if (unlikely((rw & WRITE) && ret < 0)) {
+ 			loff_t isize = i_size_read(inode);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 2b993579a968..e5718385a037 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3166,8 +3166,8 @@ static ssize_t ext4_ext_direct_IO(int rw, struct kiocb *iocb,
+ 		dio_flags = DIO_LOCKING;
+ 	}
+ 	ret = __blockdev_direct_IO(rw, iocb, inode,
+-				   inode->i_sb->s_bdev, iter->iov,
+-				   offset, iter->nr_segs,
++				   inode->i_sb->s_bdev, iter,
++				   offset,
+ 				   get_block_func,
+ 				   ext4_end_io_dio,
+ 				   NULL,
+diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
+index 3a6ef121c095..151488f27755 100644
+--- a/fs/f2fs/data.c
++++ b/fs/f2fs/data.c
+@@ -1022,8 +1022,8 @@ static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
+ 	if (check_direct_IO(inode, rw, iter->iov, offset, iter->nr_segs))
+ 		return 0;
+ 
+-	return blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				  iter->nr_segs, get_data_block);
++	return blockdev_direct_IO(rw, iocb, inode, iter, offset,
++				  get_data_block);
+ }
+ 
+ static void f2fs_invalidate_data_page(struct page *page, unsigned int offset,
+diff --git a/fs/fat/inode.c b/fs/fat/inode.c
+index 154a6f9d3189..385cce464e82 100644
+--- a/fs/fat/inode.c
++++ b/fs/fat/inode.c
+@@ -213,8 +213,7 @@ static ssize_t fat_direct_IO(int rw, struct kiocb *iocb,
+ 	 * FAT need to use the DIO_LOCKING for avoiding the race
+ 	 * condition of fat_get_block() and ->truncate().
+ 	 */
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, fat_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, fat_get_block);
+ 	if (ret < 0 && (rw & WRITE))
+ 		fat_write_failed(mapping, offset + count);
+ 
+diff --git a/fs/gfs2/aops.c b/fs/gfs2/aops.c
+index 228a12d2afa9..910838951d66 100644
+--- a/fs/gfs2/aops.c
++++ b/fs/gfs2/aops.c
+@@ -1097,7 +1097,7 @@ static ssize_t gfs2_direct_IO(int rw, struct kiocb *iocb,
+ 	}
+ 
+ 	rv = __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
+-				  iter->iov, offset, iter->nr_segs,
++				  iter, offset,
+ 				  gfs2_get_block_direct, NULL, NULL, 0);
+ out:
+ 	gfs2_glock_dq(&gh);
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index dc69e8f31581..f5fb09ebc850 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -133,8 +133,7 @@ static ssize_t hfs_direct_IO(int rw, struct kiocb *iocb,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, hfs_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, hfs_get_block);
+ 
+ 	/*
+ 	 * In case of error extending write may have instantiated a few
+diff --git a/fs/hfsplus/inode.c b/fs/hfsplus/inode.c
+index e6b1251af47a..76b930ff58ae 100644
+--- a/fs/hfsplus/inode.c
++++ b/fs/hfsplus/inode.c
+@@ -131,7 +131,7 @@ static ssize_t hfsplus_direct_IO(int rw, struct kiocb *iocb,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset, iter->nr_segs,
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, 
+ 				 hfsplus_get_block);
+ 
+ 	/*
+diff --git a/fs/jfs/inode.c b/fs/jfs/inode.c
+index 6cde5928693b..bd3df1ca3c9b 100644
+--- a/fs/jfs/inode.c
++++ b/fs/jfs/inode.c
+@@ -339,8 +339,7 @@ static ssize_t jfs_direct_IO(int rw, struct kiocb *iocb,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, jfs_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, jfs_get_block);
+ 
+ 	/*
+ 	 * In case of error extending write may have instantiated a few
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index 7aaf913e8709..6252b173a465 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -311,8 +311,8 @@ nilfs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+ 		return 0;
+ 
+ 	/* Needs synchronization with the cleaner */
+-	size = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				  iter->nr_segs, nilfs_get_block);
++	size = blockdev_direct_IO(rw, iocb, inode, iter, offset,
++				  nilfs_get_block);
+ 
+ 	/*
+ 	 * In case of error extending write may have instantiated a few
+diff --git a/fs/ocfs2/aops.c b/fs/ocfs2/aops.c
+index 799fd0afcb35..4a231a166cf8 100644
+--- a/fs/ocfs2/aops.c
++++ b/fs/ocfs2/aops.c
+@@ -617,7 +617,7 @@ static ssize_t ocfs2_direct_IO(int rw,
+ 		return 0;
+ 
+ 	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev,
+-				    iter->iov, offset, iter->nr_segs,
++				    iter, offset,
+ 				    ocfs2_direct_IO_get_blocks,
+ 				    ocfs2_dio_end_io, NULL, 0);
+ }
+diff --git a/fs/reiserfs/inode.c b/fs/reiserfs/inode.c
+index 723affe921f1..b8003e8dd1f4 100644
+--- a/fs/reiserfs/inode.c
++++ b/fs/reiserfs/inode.c
+@@ -3090,8 +3090,8 @@ static ssize_t reiserfs_direct_IO(int rw, struct kiocb *iocb,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset,
+-				 iter->nr_segs, reiserfs_get_blocks_direct_io);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset,
++				 reiserfs_get_blocks_direct_io);
+ 
+ 	/*
+ 	 * In case of error extending write may have instantiated a few
+diff --git a/fs/udf/inode.c b/fs/udf/inode.c
+index 28984baf6194..236cd48184c2 100644
+--- a/fs/udf/inode.c
++++ b/fs/udf/inode.c
+@@ -226,8 +226,7 @@ static ssize_t udf_direct_IO(int rw, struct kiocb *iocb,
+ 	size_t count = iov_iter_count(iter);
+ 	ssize_t ret;
+ 
+-	ret = blockdev_direct_IO(rw, iocb, inode, iter->iov, offset, iter->nr_segs,
+-				  udf_get_block);
++	ret = blockdev_direct_IO(rw, iocb, inode, iter, offset, udf_get_block);
+ 	if (unlikely(ret < 0 && (rw & WRITE)))
+ 		udf_write_failed(mapping, offset + count);
+ 	return ret;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 6462b3186784..08d13e395252 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1470,17 +1470,15 @@ xfs_vm_direct_IO(
+ 		if (offset + size > XFS_I(inode)->i_d.di_size)
+ 			ioend->io_isdirect = 1;
+ 
+-		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iter->iov,
+-					    offset, iter->nr_segs,
+-					    xfs_get_blocks_direct,
++		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iter,
++					    offset, xfs_get_blocks_direct,
+ 					    xfs_end_io_direct_write, NULL,
+ 					    DIO_ASYNC_EXTEND);
+ 		if (ret != -EIOCBQUEUED && iocb->private)
+ 			goto out_destroy_ioend;
+ 	} else {
+-		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iter->iov,
+-					    offset, iter->nr_segs,
+-					    xfs_get_blocks_direct,
++		ret = __blockdev_direct_IO(rw, iocb, inode, bdev, iter,
++					    offset, xfs_get_blocks_direct,
+ 					    NULL, NULL, 0);
+ 	}
+ 
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 399a338c92b5..946a9484844f 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -2474,16 +2474,16 @@ enum {
+ void dio_end_io(struct bio *bio, int error);
+ 
+ ssize_t __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+-	struct block_device *bdev, const struct iovec *iov, loff_t offset,
+-	unsigned long nr_segs, get_block_t get_block, dio_iodone_t end_io,
++	struct block_device *bdev, struct iov_iter *iter, loff_t offset,
++	get_block_t get_block, dio_iodone_t end_io,
+ 	dio_submit_t submit_io,	int flags);
+ 
+ static inline ssize_t blockdev_direct_IO(int rw, struct kiocb *iocb,
+-		struct inode *inode, const struct iovec *iov, loff_t offset,
+-		unsigned long nr_segs, get_block_t get_block)
++		struct inode *inode, struct iov_iter *iter, loff_t offset,
++		get_block_t get_block)
+ {
+-	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iov,
+-				    offset, nr_segs, get_block, NULL, NULL,
++	return __blockdev_direct_IO(rw, iocb, inode, inode->i_sb->s_bdev, iter,
++				    offset, get_block, NULL, NULL,
+ 				    DIO_LOCKING | DIO_SKIP_HOLES);
+ }
+ #endif
+-- 
+2.17.0
+

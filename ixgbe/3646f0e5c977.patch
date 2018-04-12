@@ -1,0 +1,335 @@
+From 3646f0e5c97703cecfd96cdabb085e78d9b7f680 Mon Sep 17 00:00:00 2001
+From: Stephen Hemminger <shemminger@vyatta.com>
+Date: Fri, 7 Sep 2012 09:33:15 -0700
+Subject: [PATCH] netdev: make pci_error_handlers const
+
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: Bjorn Helgaas <bhelgaas@google.com>
+---
+ drivers/net/ethernet/atheros/atl1c/atl1c_main.c      | 2 +-
+ drivers/net/ethernet/atheros/atl1e/atl1e_main.c      | 2 +-
+ drivers/net/ethernet/broadcom/bnx2.c                 | 2 +-
+ drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c     | 2 +-
+ drivers/net/ethernet/broadcom/tg3.c                  | 2 +-
+ drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c      | 2 +-
+ drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c      | 2 +-
+ drivers/net/ethernet/emulex/benet/be_main.c          | 2 +-
+ drivers/net/ethernet/intel/e100.c                    | 2 +-
+ drivers/net/ethernet/intel/e1000/e1000_main.c        | 2 +-
+ drivers/net/ethernet/intel/e1000e/netdev.c           | 2 +-
+ drivers/net/ethernet/intel/igb/igb_main.c            | 2 +-
+ drivers/net/ethernet/intel/igbvf/netdev.c            | 2 +-
+ drivers/net/ethernet/intel/ixgb/ixgb_main.c          | 2 +-
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c        | 2 +-
+ drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c    | 2 +-
+ drivers/net/ethernet/mellanox/mlx4/main.c            | 2 +-
+ drivers/net/ethernet/neterion/s2io.c                 | 2 +-
+ drivers/net/ethernet/neterion/vxge/vxge-main.c       | 2 +-
+ drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c | 2 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c | 2 +-
+ drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c     | 2 +-
+ drivers/net/ethernet/qlogic/qlge/qlge_main.c         | 2 +-
+ 23 files changed, 23 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+index 1bf5bbfe778e..64c8c2eb05b5 100644
+--- a/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
++++ b/drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+@@ -2685,7 +2685,7 @@ static void atl1c_io_resume(struct pci_dev *pdev)
+ 	netif_device_attach(netdev);
+ }
+ 
+-static struct pci_error_handlers atl1c_err_handler = {
++static const struct pci_error_handlers atl1c_err_handler = {
+ 	.error_detected = atl1c_io_error_detected,
+ 	.slot_reset = atl1c_io_slot_reset,
+ 	.resume = atl1c_io_resume,
+diff --git a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c b/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+index a98acc8a956f..e213da29e73d 100644
+--- a/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
++++ b/drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+@@ -2489,7 +2489,7 @@ static void atl1e_io_resume(struct pci_dev *pdev)
+ 	netif_device_attach(netdev);
+ }
+ 
+-static struct pci_error_handlers atl1e_err_handler = {
++static const struct pci_error_handlers atl1e_err_handler = {
+ 	.error_detected = atl1e_io_error_detected,
+ 	.slot_reset = atl1e_io_slot_reset,
+ 	.resume = atl1e_io_resume,
+diff --git a/drivers/net/ethernet/broadcom/bnx2.c b/drivers/net/ethernet/broadcom/bnx2.c
+index 79cebd8525ce..a0e8399793b6 100644
+--- a/drivers/net/ethernet/broadcom/bnx2.c
++++ b/drivers/net/ethernet/broadcom/bnx2.c
+@@ -8742,7 +8742,7 @@ static void bnx2_io_resume(struct pci_dev *pdev)
+ 	rtnl_unlock();
+ }
+ 
+-static struct pci_error_handlers bnx2_err_handler = {
++static const struct pci_error_handlers bnx2_err_handler = {
+ 	.error_detected	= bnx2_io_error_detected,
+ 	.slot_reset	= bnx2_io_slot_reset,
+ 	.resume		= bnx2_io_resume,
+diff --git a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+index dd451c3dd83d..81e377408a4e 100644
+--- a/drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
++++ b/drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+@@ -12171,7 +12171,7 @@ static void bnx2x_io_resume(struct pci_dev *pdev)
+ 	rtnl_unlock();
+ }
+ 
+-static struct pci_error_handlers bnx2x_err_handler = {
++static const struct pci_error_handlers bnx2x_err_handler = {
+ 	.error_detected = bnx2x_io_error_detected,
+ 	.slot_reset     = bnx2x_io_slot_reset,
+ 	.resume         = bnx2x_io_resume,
+diff --git a/drivers/net/ethernet/broadcom/tg3.c b/drivers/net/ethernet/broadcom/tg3.c
+index bf906c51d82a..5639b5c85c54 100644
+--- a/drivers/net/ethernet/broadcom/tg3.c
++++ b/drivers/net/ethernet/broadcom/tg3.c
+@@ -16397,7 +16397,7 @@ static void tg3_io_resume(struct pci_dev *pdev)
+ 	rtnl_unlock();
+ }
+ 
+-static struct pci_error_handlers tg3_err_handler = {
++static const struct pci_error_handlers tg3_err_handler = {
+ 	.error_detected	= tg3_io_error_detected,
+ 	.slot_reset	= tg3_io_slot_reset,
+ 	.resume		= tg3_io_resume
+diff --git a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c b/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+index 6505070abcfa..875bbb999aa2 100644
+--- a/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
++++ b/drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+@@ -3036,7 +3036,7 @@ static void t3_io_resume(struct pci_dev *pdev)
+ 	t3_resume_ports(adapter);
+ }
+ 
+-static struct pci_error_handlers t3_err_handler = {
++static const struct pci_error_handlers t3_err_handler = {
+ 	.error_detected = t3_io_error_detected,
+ 	.slot_reset = t3_io_slot_reset,
+ 	.resume = t3_io_resume,
+diff --git a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+index 5ed49af23d6a..05bdbbbf145c 100644
+--- a/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
++++ b/drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+@@ -3453,7 +3453,7 @@ static void eeh_resume(struct pci_dev *pdev)
+ 	rtnl_unlock();
+ }
+ 
+-static struct pci_error_handlers cxgb4_eeh = {
++static const struct pci_error_handlers cxgb4_eeh = {
+ 	.error_detected = eeh_err_detected,
+ 	.slot_reset     = eeh_slot_reset,
+ 	.resume         = eeh_resume,
+diff --git a/drivers/net/ethernet/emulex/benet/be_main.c b/drivers/net/ethernet/emulex/benet/be_main.c
+index c60de89b6669..a00295528281 100644
+--- a/drivers/net/ethernet/emulex/benet/be_main.c
++++ b/drivers/net/ethernet/emulex/benet/be_main.c
+@@ -4104,7 +4104,7 @@ static void be_eeh_resume(struct pci_dev *pdev)
+ 	dev_err(&adapter->pdev->dev, "EEH resume failed\n");
+ }
+ 
+-static struct pci_error_handlers be_eeh_handlers = {
++static const struct pci_error_handlers be_eeh_handlers = {
+ 	.error_detected = be_eeh_err_detected,
+ 	.slot_reset = be_eeh_reset,
+ 	.resume = be_eeh_resume,
+diff --git a/drivers/net/ethernet/intel/e100.c b/drivers/net/ethernet/intel/e100.c
+index 535f94fac4a1..29ce9bd27f94 100644
+--- a/drivers/net/ethernet/intel/e100.c
++++ b/drivers/net/ethernet/intel/e100.c
+@@ -3157,7 +3157,7 @@ static void e100_io_resume(struct pci_dev *pdev)
+ 	}
+ }
+ 
+-static struct pci_error_handlers e100_err_handler = {
++static const struct pci_error_handlers e100_err_handler = {
+ 	.error_detected = e100_io_error_detected,
+ 	.slot_reset = e100_io_slot_reset,
+ 	.resume = e100_io_resume,
+diff --git a/drivers/net/ethernet/intel/e1000/e1000_main.c b/drivers/net/ethernet/intel/e1000/e1000_main.c
+index 3bfbb8df8989..524cfb4cac61 100644
+--- a/drivers/net/ethernet/intel/e1000/e1000_main.c
++++ b/drivers/net/ethernet/intel/e1000/e1000_main.c
+@@ -192,7 +192,7 @@ static pci_ers_result_t e1000_io_error_detected(struct pci_dev *pdev,
+ static pci_ers_result_t e1000_io_slot_reset(struct pci_dev *pdev);
+ static void e1000_io_resume(struct pci_dev *pdev);
+ 
+-static struct pci_error_handlers e1000_err_handler = {
++static const struct pci_error_handlers e1000_err_handler = {
+ 	.error_detected = e1000_io_error_detected,
+ 	.slot_reset = e1000_io_slot_reset,
+ 	.resume = e1000_io_resume,
+diff --git a/drivers/net/ethernet/intel/e1000e/netdev.c b/drivers/net/ethernet/intel/e1000e/netdev.c
+index 95b245310f17..1c650ecae88d 100644
+--- a/drivers/net/ethernet/intel/e1000e/netdev.c
++++ b/drivers/net/ethernet/intel/e1000e/netdev.c
+@@ -6472,7 +6472,7 @@ static void __devexit e1000_remove(struct pci_dev *pdev)
+ }
+ 
+ /* PCI Error Recovery (ERS) */
+-static struct pci_error_handlers e1000_err_handler = {
++static const struct pci_error_handlers e1000_err_handler = {
+ 	.error_detected = e1000_io_error_detected,
+ 	.slot_reset = e1000_io_slot_reset,
+ 	.resume = e1000_io_resume,
+diff --git a/drivers/net/ethernet/intel/igb/igb_main.c b/drivers/net/ethernet/intel/igb/igb_main.c
+index b7c2d5050572..25270648517b 100644
+--- a/drivers/net/ethernet/intel/igb/igb_main.c
++++ b/drivers/net/ethernet/intel/igb/igb_main.c
+@@ -217,7 +217,7 @@ static pci_ers_result_t igb_io_error_detected(struct pci_dev *,
+ static pci_ers_result_t igb_io_slot_reset(struct pci_dev *);
+ static void igb_io_resume(struct pci_dev *);
+ 
+-static struct pci_error_handlers igb_err_handler = {
++static const struct pci_error_handlers igb_err_handler = {
+ 	.error_detected = igb_io_error_detected,
+ 	.slot_reset = igb_io_slot_reset,
+ 	.resume = igb_io_resume,
+diff --git a/drivers/net/ethernet/intel/igbvf/netdev.c b/drivers/net/ethernet/intel/igbvf/netdev.c
+index 0696abfe9944..0ac11f527a84 100644
+--- a/drivers/net/ethernet/intel/igbvf/netdev.c
++++ b/drivers/net/ethernet/intel/igbvf/netdev.c
+@@ -2833,7 +2833,7 @@ static void __devexit igbvf_remove(struct pci_dev *pdev)
+ }
+ 
+ /* PCI Error Recovery (ERS) */
+-static struct pci_error_handlers igbvf_err_handler = {
++static const struct pci_error_handlers igbvf_err_handler = {
+ 	.error_detected = igbvf_io_error_detected,
+ 	.slot_reset = igbvf_io_slot_reset,
+ 	.resume = igbvf_io_resume,
+diff --git a/drivers/net/ethernet/intel/ixgb/ixgb_main.c b/drivers/net/ethernet/intel/ixgb/ixgb_main.c
+index d05fc95befc5..d99a2d51b948 100644
+--- a/drivers/net/ethernet/intel/ixgb/ixgb_main.c
++++ b/drivers/net/ethernet/intel/ixgb/ixgb_main.c
+@@ -115,7 +115,7 @@ static pci_ers_result_t ixgb_io_error_detected (struct pci_dev *pdev,
+ static pci_ers_result_t ixgb_io_slot_reset (struct pci_dev *pdev);
+ static void ixgb_io_resume (struct pci_dev *pdev);
+ 
+-static struct pci_error_handlers ixgb_err_handler = {
++static const struct pci_error_handlers ixgb_err_handler = {
+ 	.error_detected = ixgb_io_error_detected,
+ 	.slot_reset = ixgb_io_slot_reset,
+ 	.resume = ixgb_io_resume,
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index 4326f74f7137..ade4d81a3177 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -7677,7 +7677,7 @@ static void ixgbe_io_resume(struct pci_dev *pdev)
+ 	netif_device_attach(netdev);
+ }
+ 
+-static struct pci_error_handlers ixgbe_err_handler = {
++static const struct pci_error_handlers ixgbe_err_handler = {
+ 	.error_detected = ixgbe_io_error_detected,
+ 	.slot_reset = ixgbe_io_slot_reset,
+ 	.resume = ixgbe_io_resume,
+diff --git a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c b/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+index 60ef64587412..6647383c4ddc 100644
+--- a/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
++++ b/drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+@@ -3256,7 +3256,7 @@ static void ixgbevf_io_resume(struct pci_dev *pdev)
+ }
+ 
+ /* PCI Error Recovery (ERS) */
+-static struct pci_error_handlers ixgbevf_err_handler = {
++static const struct pci_error_handlers ixgbevf_err_handler = {
+ 	.error_detected = ixgbevf_io_error_detected,
+ 	.slot_reset = ixgbevf_io_slot_reset,
+ 	.resume = ixgbevf_io_resume,
+diff --git a/drivers/net/ethernet/mellanox/mlx4/main.c b/drivers/net/ethernet/mellanox/mlx4/main.c
+index 48d0e90194cb..d89e89b415cf 100644
+--- a/drivers/net/ethernet/mellanox/mlx4/main.c
++++ b/drivers/net/ethernet/mellanox/mlx4/main.c
+@@ -2301,7 +2301,7 @@ static pci_ers_result_t mlx4_pci_slot_reset(struct pci_dev *pdev)
+ 	return ret ? PCI_ERS_RESULT_DISCONNECT : PCI_ERS_RESULT_RECOVERED;
+ }
+ 
+-static struct pci_error_handlers mlx4_err_handler = {
++static const struct pci_error_handlers mlx4_err_handler = {
+ 	.error_detected = mlx4_pci_err_detected,
+ 	.slot_reset     = mlx4_pci_slot_reset,
+ };
+diff --git a/drivers/net/ethernet/neterion/s2io.c b/drivers/net/ethernet/neterion/s2io.c
+index d958c2299372..de50547c187d 100644
+--- a/drivers/net/ethernet/neterion/s2io.c
++++ b/drivers/net/ethernet/neterion/s2io.c
+@@ -484,7 +484,7 @@ static DEFINE_PCI_DEVICE_TABLE(s2io_tbl) = {
+ 
+ MODULE_DEVICE_TABLE(pci, s2io_tbl);
+ 
+-static struct pci_error_handlers s2io_err_handler = {
++static const struct pci_error_handlers s2io_err_handler = {
+ 	.error_detected = s2io_io_error_detected,
+ 	.slot_reset = s2io_io_slot_reset,
+ 	.resume = s2io_io_resume,
+diff --git a/drivers/net/ethernet/neterion/vxge/vxge-main.c b/drivers/net/ethernet/neterion/vxge/vxge-main.c
+index de2190443510..cfa71a30dc8d 100644
+--- a/drivers/net/ethernet/neterion/vxge/vxge-main.c
++++ b/drivers/net/ethernet/neterion/vxge/vxge-main.c
+@@ -4799,7 +4799,7 @@ static void __devexit vxge_remove(struct pci_dev *pdev)
+ 			     __LINE__);
+ }
+ 
+-static struct pci_error_handlers vxge_err_handler = {
++static const struct pci_error_handlers vxge_err_handler = {
+ 	.error_detected = vxge_io_error_detected,
+ 	.slot_reset = vxge_io_slot_reset,
+ 	.resume = vxge_io_resume,
+diff --git a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+index feb85d56c750..b2a94d02a521 100644
+--- a/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
++++ b/drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+@@ -2795,7 +2795,7 @@ static const struct dev_pm_ops pch_gbe_pm_ops = {
+ };
+ #endif
+ 
+-static struct pci_error_handlers pch_gbe_err_handler = {
++static const struct pci_error_handlers pch_gbe_err_handler = {
+ 	.error_detected = pch_gbe_io_error_detected,
+ 	.slot_reset = pch_gbe_io_slot_reset,
+ 	.resume = pch_gbe_io_resume
+diff --git a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+index 342b3a79bd0f..0fa18ae07de5 100644
+--- a/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
++++ b/drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+@@ -3336,7 +3336,7 @@ netxen_free_vlan_ip_list(struct netxen_adapter *adapter)
+ { }
+ #endif
+ 
+-static struct pci_error_handlers netxen_err_handler = {
++static const struct pci_error_handlers netxen_err_handler = {
+ 	.error_detected = netxen_io_error_detected,
+ 	.slot_reset = netxen_io_slot_reset,
+ 	.resume = netxen_io_resume,
+diff --git a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c b/drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+index 212c12193275..473ce134ca63 100644
+--- a/drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
++++ b/drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+@@ -4522,7 +4522,7 @@ static void
+ qlcnic_restore_indev_addr(struct net_device *dev, unsigned long event)
+ { }
+ #endif
+-static struct pci_error_handlers qlcnic_err_handler = {
++static const struct pci_error_handlers qlcnic_err_handler = {
+ 	.error_detected = qlcnic_io_error_detected,
+ 	.slot_reset = qlcnic_io_slot_reset,
+ 	.resume = qlcnic_io_resume,
+diff --git a/drivers/net/ethernet/qlogic/qlge/qlge_main.c b/drivers/net/ethernet/qlogic/qlge/qlge_main.c
+index b53a3b60b648..b262d6156816 100644
+--- a/drivers/net/ethernet/qlogic/qlge/qlge_main.c
++++ b/drivers/net/ethernet/qlogic/qlge/qlge_main.c
+@@ -4847,7 +4847,7 @@ static void qlge_io_resume(struct pci_dev *pdev)
+ 	netif_device_attach(ndev);
+ }
+ 
+-static struct pci_error_handlers qlge_err_handler = {
++static const struct pci_error_handlers qlge_err_handler = {
+ 	.error_detected = qlge_io_error_detected,
+ 	.slot_reset = qlge_io_slot_reset,
+ 	.resume = qlge_io_resume,
+-- 
+2.17.0
+

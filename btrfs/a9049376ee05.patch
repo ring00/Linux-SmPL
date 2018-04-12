@@ -1,0 +1,338 @@
+From a9049376ee05bf966bfe2b081b5071326856890a Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 8 Jul 2011 21:20:11 -0400
+Subject: [PATCH] make d_splice_alias(ERR_PTR(err), dentry) = ERR_PTR(err)
+
+... and simplify the living hell out of callers
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/inode.c     |  8 +-------
+ fs/dcache.c          |  3 +++
+ fs/efs/namei.c       |  7 ++-----
+ fs/exofs/namei.c     |  7 +------
+ fs/ext2/namei.c      | 14 +++++---------
+ fs/ext3/namei.c      | 14 +++++---------
+ fs/ext4/namei.c      | 14 +++++---------
+ fs/fat/namei_msdos.c | 29 ++++++++++-------------------
+ fs/isofs/namei.c     | 11 +++--------
+ fs/jffs2/dir.c       |  4 +---
+ fs/jfs/namei.c       |  4 +---
+ fs/logfs/dir.c       |  4 +---
+ fs/nilfs2/namei.c    |  7 +------
+ fs/squashfs/namei.c  |  5 -----
+ fs/ufs/namei.c       |  2 --
+ 15 files changed, 39 insertions(+), 94 deletions(-)
+
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index ecf0fac712d6..bcb20a9a3b93 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -4079,13 +4079,7 @@ static int btrfs_dentry_delete(const struct dentry *dentry)
+ static struct dentry *btrfs_lookup(struct inode *dir, struct dentry *dentry,
+ 				   struct nameidata *nd)
+ {
+-	struct inode *inode;
+-
+-	inode = btrfs_lookup_dentry(dir, dentry);
+-	if (IS_ERR(inode))
+-		return ERR_CAST(inode);
+-
+-	return d_splice_alias(inode, dentry);
++	return d_splice_alias(btrfs_lookup_dentry(dir, dentry), dentry);
+ }
+ 
+ unsigned char btrfs_filetype_table[] = {
+diff --git a/fs/dcache.c b/fs/dcache.c
+index c61edd0318c3..41e2085d430b 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -1652,6 +1652,9 @@ struct dentry *d_splice_alias(struct inode *inode, struct dentry *dentry)
+ {
+ 	struct dentry *new = NULL;
+ 
++	if (IS_ERR(inode))
++		return ERR_CAST(inode);
++
+ 	if (inode && S_ISDIR(inode->i_mode)) {
+ 		spin_lock(&inode->i_lock);
+ 		new = __d_find_alias(inode, 1);
+diff --git a/fs/efs/namei.c b/fs/efs/namei.c
+index 1511bf9e5f80..832b10ded82f 100644
+--- a/fs/efs/namei.c
++++ b/fs/efs/namei.c
+@@ -60,14 +60,11 @@ static efs_ino_t efs_find_entry(struct inode *inode, const char *name, int len)
+ 
+ struct dentry *efs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd) {
+ 	efs_ino_t inodenum;
+-	struct inode * inode = NULL;
++	struct inode *inode = NULL;
+ 
+ 	inodenum = efs_find_entry(dir, dentry->d_name.name, dentry->d_name.len);
+-	if (inodenum) {
++	if (inodenum)
+ 		inode = efs_iget(dir->i_sb, inodenum);
+-		if (IS_ERR(inode))
+-			return ERR_CAST(inode);
+-	}
+ 
+ 	return d_splice_alias(inode, dentry);
+ }
+diff --git a/fs/exofs/namei.c b/fs/exofs/namei.c
+index 4d70db110cfc..b54c43775f17 100644
+--- a/fs/exofs/namei.c
++++ b/fs/exofs/namei.c
+@@ -55,12 +55,7 @@ static struct dentry *exofs_lookup(struct inode *dir, struct dentry *dentry,
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 
+ 	ino = exofs_inode_by_name(dir, dentry);
+-	inode = NULL;
+-	if (ino) {
+-		inode = exofs_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode))
+-			return ERR_CAST(inode);
+-	}
++	inode = ino ? exofs_iget(dir->i_sb, ino) : NULL;
+ 	return d_splice_alias(inode, dentry);
+ }
+ 
+diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+index ed5c5d496ee9..d60b7099e2db 100644
+--- a/fs/ext2/namei.c
++++ b/fs/ext2/namei.c
+@@ -67,15 +67,11 @@ static struct dentry *ext2_lookup(struct inode * dir, struct dentry *dentry, str
+ 	inode = NULL;
+ 	if (ino) {
+ 		inode = ext2_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode)) {
+-			if (PTR_ERR(inode) == -ESTALE) {
+-				ext2_error(dir->i_sb, __func__,
+-						"deleted inode referenced: %lu",
+-						(unsigned long) ino);
+-				return ERR_PTR(-EIO);
+-			} else {
+-				return ERR_CAST(inode);
+-			}
++		if (inode == ERR_PTR(-ESTALE)) {
++			ext2_error(dir->i_sb, __func__,
++					"deleted inode referenced: %lu",
++					(unsigned long) ino);
++			return ERR_PTR(-EIO);
+ 		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+diff --git a/fs/ext3/namei.c b/fs/ext3/namei.c
+index 34b6d9bfc48a..c095cf5640c7 100644
+--- a/fs/ext3/namei.c
++++ b/fs/ext3/namei.c
+@@ -1038,15 +1038,11 @@ static struct dentry *ext3_lookup(struct inode * dir, struct dentry *dentry, str
+ 			return ERR_PTR(-EIO);
+ 		}
+ 		inode = ext3_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode)) {
+-			if (PTR_ERR(inode) == -ESTALE) {
+-				ext3_error(dir->i_sb, __func__,
+-						"deleted inode referenced: %lu",
+-						ino);
+-				return ERR_PTR(-EIO);
+-			} else {
+-				return ERR_CAST(inode);
+-			}
++		if (inode == ERR_PTR(-ESTALE)) {
++			ext3_error(dir->i_sb, __func__,
++					"deleted inode referenced: %lu",
++					ino);
++			return ERR_PTR(-EIO);
+ 		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index b754b7721f51..707d605bf769 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -1037,15 +1037,11 @@ static struct dentry *ext4_lookup(struct inode *dir, struct dentry *dentry, stru
+ 			return ERR_PTR(-EIO);
+ 		}
+ 		inode = ext4_iget(dir->i_sb, ino);
+-		if (IS_ERR(inode)) {
+-			if (PTR_ERR(inode) == -ESTALE) {
+-				EXT4_ERROR_INODE(dir,
+-						 "deleted inode referenced: %u",
+-						 ino);
+-				return ERR_PTR(-EIO);
+-			} else {
+-				return ERR_CAST(inode);
+-			}
++		if (inode == ERR_PTR(-ESTALE)) {
++			EXT4_ERROR_INODE(dir,
++					 "deleted inode referenced: %u",
++					 ino);
++			return ERR_PTR(-EIO);
+ 		}
+ 	}
+ 	return d_splice_alias(inode, dentry);
+diff --git a/fs/fat/namei_msdos.c b/fs/fat/namei_msdos.c
+index 3b222dafd15b..66e83b845455 100644
+--- a/fs/fat/namei_msdos.c
++++ b/fs/fat/namei_msdos.c
+@@ -209,29 +209,20 @@ static struct dentry *msdos_lookup(struct inode *dir, struct dentry *dentry,
+ 	int err;
+ 
+ 	lock_super(sb);
+-
+ 	err = msdos_find(dir, dentry->d_name.name, dentry->d_name.len, &sinfo);
+-	if (err) {
+-		if (err == -ENOENT) {
+-			inode = NULL;
+-			goto out;
+-		}
+-		goto error;
+-	}
+-
+-	inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
+-	brelse(sinfo.bh);
+-	if (IS_ERR(inode)) {
+-		err = PTR_ERR(inode);
+-		goto error;
++	switch (err) {
++	case -ENOENT:
++		inode = NULL;
++		break;
++	case 0:
++		inode = fat_build_inode(sb, sinfo.de, sinfo.i_pos);
++		brelse(sinfo.bh);
++		break;
++	default:
++		inode = ERR_PTR(err);
+ 	}
+-out:
+ 	unlock_super(sb);
+ 	return d_splice_alias(inode, dentry);
+-
+-error:
+-	unlock_super(sb);
+-	return ERR_PTR(err);
+ }
+ 
+ /***** Creates a directory entry (name is already formatted). */
+diff --git a/fs/isofs/namei.c b/fs/isofs/namei.c
+index 4fb3e8074fd4..68fa503d877e 100644
+--- a/fs/isofs/namei.c
++++ b/fs/isofs/namei.c
+@@ -183,14 +183,9 @@ struct dentry *isofs_lookup(struct inode *dir, struct dentry *dentry, struct nam
+ 				1024 + page_address(page));
+ 	__free_page(page);
+ 
+-	inode = NULL;
+-	if (found) {
+-		inode = isofs_iget(dir->i_sb, block, offset);
+-		if (IS_ERR(inode)) {
+-			mutex_unlock(&sbi->s_mutex);
+-			return ERR_CAST(inode);
+-		}
+-	}
++	inode = found ? isofs_iget(dir->i_sb, block, offset) : NULL;
++
+ 	mutex_unlock(&sbi->s_mutex);
++
+ 	return d_splice_alias(inode, dentry);
+ }
+diff --git a/fs/jffs2/dir.c b/fs/jffs2/dir.c
+index 4bca6a2e5c07..8f40ce4f1777 100644
+--- a/fs/jffs2/dir.c
++++ b/fs/jffs2/dir.c
+@@ -102,10 +102,8 @@ static struct dentry *jffs2_lookup(struct inode *dir_i, struct dentry *target,
+ 	mutex_unlock(&dir_f->sem);
+ 	if (ino) {
+ 		inode = jffs2_iget(dir_i->i_sb, ino);
+-		if (IS_ERR(inode)) {
++		if (IS_ERR(inode))
+ 			printk(KERN_WARNING "iget() failed for ino #%u\n", ino);
+-			return ERR_CAST(inode);
+-		}
+ 	}
+ 
+ 	return d_splice_alias(inode, target);
+diff --git a/fs/jfs/namei.c b/fs/jfs/namei.c
+index 1da0dc799286..247331551992 100644
+--- a/fs/jfs/namei.c
++++ b/fs/jfs/namei.c
+@@ -1481,10 +1481,8 @@ static struct dentry *jfs_lookup(struct inode *dip, struct dentry *dentry, struc
+ 	}
+ 
+ 	ip = jfs_iget(dip->i_sb, inum);
+-	if (IS_ERR(ip)) {
++	if (IS_ERR(ip))
+ 		jfs_err("jfs_lookup: iget failed on inum %d", (uint) inum);
+-		return ERR_CAST(ip);
+-	}
+ 
+ 	return d_splice_alias(ip, dentry);
+ }
+diff --git a/fs/logfs/dir.c b/fs/logfs/dir.c
+index 1afae26cf236..b3ff3d894165 100644
+--- a/fs/logfs/dir.c
++++ b/fs/logfs/dir.c
+@@ -371,11 +371,9 @@ static struct dentry *logfs_lookup(struct inode *dir, struct dentry *dentry,
+ 	page_cache_release(page);
+ 
+ 	inode = logfs_iget(dir->i_sb, ino);
+-	if (IS_ERR(inode)) {
++	if (IS_ERR(inode))
+ 		printk(KERN_ERR"LogFS: Cannot read inode #%llx for dentry (%lx, %lx)n",
+ 				ino, dir->i_ino, index);
+-		return ERR_CAST(inode);
+-	}
+ 	return d_splice_alias(inode, dentry);
+ }
+ 
+diff --git a/fs/nilfs2/namei.c b/fs/nilfs2/namei.c
+index 546849b3e88f..a3141990061e 100644
+--- a/fs/nilfs2/namei.c
++++ b/fs/nilfs2/namei.c
+@@ -72,12 +72,7 @@ nilfs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *nd)
+ 		return ERR_PTR(-ENAMETOOLONG);
+ 
+ 	ino = nilfs_inode_by_name(dir, &dentry->d_name);
+-	inode = NULL;
+-	if (ino) {
+-		inode = nilfs_iget(dir->i_sb, NILFS_I(dir)->i_root, ino);
+-		if (IS_ERR(inode))
+-			return ERR_CAST(inode);
+-	}
++	inode = ino ? nilfs_iget(dir->i_sb, NILFS_I(dir)->i_root, ino) : NULL;
+ 	return d_splice_alias(inode, dentry);
+ }
+ 
+diff --git a/fs/squashfs/namei.c b/fs/squashfs/namei.c
+index 51b36958492b..0682b38d7e31 100644
+--- a/fs/squashfs/namei.c
++++ b/fs/squashfs/namei.c
+@@ -220,11 +220,6 @@ static struct dentry *squashfs_lookup(struct inode *dir, struct dentry *dentry,
+ 					blk, off, ino_num);
+ 
+ 				inode = squashfs_iget(dir->i_sb, ino, ino_num);
+-				if (IS_ERR(inode)) {
+-					err = PTR_ERR(inode);
+-					goto failed;
+-				}
+-
+ 				goto exit_lookup;
+ 			}
+ 		}
+diff --git a/fs/ufs/namei.c b/fs/ufs/namei.c
+index b57aab9a1184..639d49162241 100644
+--- a/fs/ufs/namei.c
++++ b/fs/ufs/namei.c
+@@ -59,8 +59,6 @@ static struct dentry *ufs_lookup(struct inode * dir, struct dentry *dentry, stru
+ 	if (ino)
+ 		inode = ufs_iget(dir->i_sb, ino);
+ 	unlock_ufs(dir->i_sb);
+-	if (IS_ERR(inode))
+-		return ERR_CAST(inode);
+ 	return d_splice_alias(inode, dentry);
+ }
+ 
+-- 
+2.17.0
+

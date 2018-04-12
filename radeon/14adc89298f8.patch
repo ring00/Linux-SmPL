@@ -1,0 +1,523 @@
+From 14adc89298f894816ea2f3aef4d8d2d6ede18575 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Date: Mon, 21 Jan 2013 13:58:46 +0100
+Subject: [PATCH] drm/radeon: Deprecate UMS support v2
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+KMS support is out and stable for a couple of years now and
+the userspace code has deprecated or abandoned the old UMS interface.
+
+So make the KMS interface the default and deprecate the UMS interface
+in the kernel as well.
+
+v2: rebased on alex/drm-next-3.9-wip
+
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/Kconfig                |  1 +
+ drivers/gpu/drm/radeon/Kconfig         | 33 ++----------
+ drivers/gpu/drm/radeon/Makefile        | 10 ++--
+ drivers/gpu/drm/radeon/r300_cmdbuf.c   |  2 +
+ drivers/gpu/drm/radeon/r600_blit.c     | 33 +-----------
+ drivers/gpu/drm/radeon/r600_blit_kms.c | 31 ++++++++++++
+ drivers/gpu/drm/radeon/r600_cp.c       |  2 +
+ drivers/gpu/drm/radeon/r600_cs.c       | 26 ++++++----
+ drivers/gpu/drm/radeon/radeon_cp.c     |  2 +
+ drivers/gpu/drm/radeon/radeon_drv.c    | 70 ++++++++++++++------------
+ drivers/gpu/drm/radeon/radeon_drv.h    | 16 ++----
+ drivers/gpu/drm/radeon/radeon_irq.c    |  2 +
+ drivers/gpu/drm/radeon/radeon_mem.c    |  2 +
+ drivers/gpu/drm/radeon/radeon_state.c  |  2 +
+ 14 files changed, 115 insertions(+), 117 deletions(-)
+
+diff --git a/drivers/gpu/drm/Kconfig b/drivers/gpu/drm/Kconfig
+index 983201b450f1..3399b209260a 100644
+--- a/drivers/gpu/drm/Kconfig
++++ b/drivers/gpu/drm/Kconfig
+@@ -96,6 +96,7 @@ config DRM_RADEON
+         select DRM_TTM
+ 	select POWER_SUPPLY
+ 	select HWMON
++	select BACKLIGHT_CLASS_DEVICE
+ 	help
+ 	  Choose this option if you have an ATI Radeon graphics card.  There
+ 	  are both PCI and AGP versions.  You don't need to choose this to
+diff --git a/drivers/gpu/drm/radeon/Kconfig b/drivers/gpu/drm/radeon/Kconfig
+index ea92bbe3ed37..970f8e92dbb7 100644
+--- a/drivers/gpu/drm/radeon/Kconfig
++++ b/drivers/gpu/drm/radeon/Kconfig
+@@ -1,31 +1,8 @@
+-config DRM_RADEON_KMS
+-	bool "Enable modesetting on radeon by default - NEW DRIVER"
++config DRM_RADEON_UMS
++	bool "Enable userspace modesetting on radeon (DEPRECATED)"
+ 	depends on DRM_RADEON
+-	select BACKLIGHT_CLASS_DEVICE
+ 	help
+-	  Choose this option if you want kernel modesetting enabled by default.
++	  Choose this option if you still need userspace modesetting.
+ 
+-	  This is a completely new driver. It's only part of the existing drm
+-	  for compatibility reasons. It requires an entirely different graphics
+-	  stack above it and works very differently from the old drm stack.
+-	  i.e. don't enable this unless you know what you are doing it may
+-	  cause issues or bugs compared to the previous userspace driver stack.
+-
+-	  When kernel modesetting is enabled the IOCTL of radeon/drm
+-	  driver are considered as invalid and an error message is printed
+-	  in the log and they return failure.
+-
+-	  KMS enabled userspace will use new API to talk with the radeon/drm
+-	  driver. The new API provide functions to create/destroy/share/mmap
+-	  buffer object which are then managed by the kernel memory manager
+-	  (here TTM). In order to submit command to the GPU the userspace
+-	  provide a buffer holding the command stream, along this buffer
+-	  userspace have to provide a list of buffer object used by the
+-	  command stream. The kernel radeon driver will then place buffer
+-	  in GPU accessible memory and will update command stream to reflect
+-	  the position of the different buffers.
+-
+-	  The kernel will also perform security check on command stream
+-	  provided by the user, we want to catch and forbid any illegal use
+-	  of the GPU such as DMA into random system memory or into memory
+-	  not owned by the process supplying the command stream.
++	  Userspace modesetting is deprecated for quite some time now, so
++	  enable this only if you have ancient versions of the DDX drivers.
+diff --git a/drivers/gpu/drm/radeon/Makefile b/drivers/gpu/drm/radeon/Makefile
+index a6598fd66423..bf172522ea68 100644
+--- a/drivers/gpu/drm/radeon/Makefile
++++ b/drivers/gpu/drm/radeon/Makefile
+@@ -56,8 +56,12 @@ $(obj)/r600_cs.o: $(obj)/r600_reg_safe.h
+ 
+ $(obj)/evergreen_cs.o: $(obj)/evergreen_reg_safe.h $(obj)/cayman_reg_safe.h
+ 
+-radeon-y := radeon_drv.o radeon_cp.o radeon_state.o radeon_mem.o \
+-	radeon_irq.o r300_cmdbuf.o r600_cp.o
++radeon-y := radeon_drv.o
++
++# add UMS driver
++radeon-$(CONFIG_DRM_RADEON_UMS)+= radeon_cp.o radeon_state.o radeon_mem.o \
++	radeon_irq.o r300_cmdbuf.o r600_cp.o r600_blit.o
++
+ # add KMS driver
+ radeon-y += radeon_device.o radeon_asic.o radeon_kms.o \
+ 	radeon_atombios.o radeon_agp.o atombios_crtc.o radeon_combios.o \
+@@ -67,7 +71,7 @@ radeon-y += radeon_device.o radeon_asic.o radeon_kms.o \
+ 	radeon_clocks.o radeon_fb.o radeon_gem.o radeon_ring.o radeon_irq_kms.o \
+ 	radeon_cs.o radeon_bios.o radeon_benchmark.o r100.o r300.o r420.o \
+ 	rs400.o rs600.o rs690.o rv515.o r520.o r600.o rv770.o radeon_test.o \
+-	r200.o radeon_legacy_tv.o r600_cs.o r600_blit.o r600_blit_shaders.o \
++	r200.o radeon_legacy_tv.o r600_cs.o r600_blit_shaders.o \
+ 	r600_blit_kms.o radeon_pm.o atombios_dp.o r600_audio.o r600_hdmi.o \
+ 	evergreen.o evergreen_cs.o evergreen_blit_shaders.o evergreen_blit_kms.o \
+ 	evergreen_hdmi.o radeon_trace_points.o ni.o cayman_blit_shaders.o \
+diff --git a/drivers/gpu/drm/radeon/r300_cmdbuf.c b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+index 002ab038d2ab..865e2c9980db 100644
+--- a/drivers/gpu/drm/radeon/r300_cmdbuf.c
++++ b/drivers/gpu/drm/radeon/r300_cmdbuf.c
+@@ -29,6 +29,8 @@
+  *
+  * Authors:
+  *    Nicolai Haehnle <prefect_@gmx.net>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <drm/drmP.h>
+diff --git a/drivers/gpu/drm/radeon/r600_blit.c b/drivers/gpu/drm/radeon/r600_blit.c
+index 77da1f9c0b8e..f651881eb0ae 100644
+--- a/drivers/gpu/drm/radeon/r600_blit.c
++++ b/drivers/gpu/drm/radeon/r600_blit.c
+@@ -22,6 +22,8 @@
+  *
+  * Authors:
+  *     Alex Deucher <alexander.deucher@amd.com>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ #include <drm/drmP.h>
+ #include <drm/radeon_drm.h>
+@@ -488,37 +490,6 @@ set_default_state(drm_radeon_private_t *dev_priv)
+ 	ADVANCE_RING();
+ }
+ 
+-/* 23 bits of float fractional data */
+-#define I2F_FRAC_BITS  23
+-#define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
+-
+-/*
+- * Converts unsigned integer into 32-bit IEEE floating point representation.
+- * Will be exact from 0 to 2^24.  Above that, we round towards zero
+- * as the fractional bits will not fit in a float.  (It would be better to
+- * round towards even as the fpu does, but that is slower.)
+- */
+-__pure uint32_t int2float(uint32_t x)
+-{
+-	uint32_t msb, exponent, fraction;
+-
+-	/* Zero is special */
+-	if (!x) return 0;
+-
+-	/* Get location of the most significant bit */
+-	msb = __fls(x);
+-
+-	/*
+-	 * Use a rotate instead of a shift because that works both leftwards
+-	 * and rightwards due to the mod(32) behaviour.  This means we don't
+-	 * need to check to see if we are above 2^24 or not.
+-	 */
+-	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
+-	exponent = (127 + msb) << I2F_FRAC_BITS;
+-
+-	return fraction + exponent;
+-}
+-
+ static int r600_nomm_get_vb(struct drm_device *dev)
+ {
+ 	drm_radeon_private_t *dev_priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/radeon/r600_blit_kms.c b/drivers/gpu/drm/radeon/r600_blit_kms.c
+index e082dca6feee..9fb5780a552f 100644
+--- a/drivers/gpu/drm/radeon/r600_blit_kms.c
++++ b/drivers/gpu/drm/radeon/r600_blit_kms.c
+@@ -31,6 +31,37 @@
+ #include "r600_blit_shaders.h"
+ #include "radeon_blit_common.h"
+ 
++/* 23 bits of float fractional data */
++#define I2F_FRAC_BITS  23
++#define I2F_MASK ((1 << I2F_FRAC_BITS) - 1)
++
++/*
++ * Converts unsigned integer into 32-bit IEEE floating point representation.
++ * Will be exact from 0 to 2^24.  Above that, we round towards zero
++ * as the fractional bits will not fit in a float.  (It would be better to
++ * round towards even as the fpu does, but that is slower.)
++ */
++__pure uint32_t int2float(uint32_t x)
++{
++	uint32_t msb, exponent, fraction;
++
++	/* Zero is special */
++	if (!x) return 0;
++
++	/* Get location of the most significant bit */
++	msb = __fls(x);
++
++	/*
++	 * Use a rotate instead of a shift because that works both leftwards
++	 * and rightwards due to the mod(32) behaviour.  This means we don't
++	 * need to check to see if we are above 2^24 or not.
++	 */
++	fraction = ror32(x, (msb - I2F_FRAC_BITS) & 0x1f) & I2F_MASK;
++	exponent = (127 + msb) << I2F_FRAC_BITS;
++
++	return fraction + exponent;
++}
++
+ /* emits 21 on rv770+, 23 on r600 */
+ static void
+ set_render_target(struct radeon_device *rdev, int format,
+diff --git a/drivers/gpu/drm/radeon/r600_cp.c b/drivers/gpu/drm/radeon/r600_cp.c
+index be85f75aedda..1c51c08b1fde 100644
+--- a/drivers/gpu/drm/radeon/r600_cp.c
++++ b/drivers/gpu/drm/radeon/r600_cp.c
+@@ -24,6 +24,8 @@
+  * Authors:
+  *     Dave Airlie <airlied@redhat.com>
+  *     Alex Deucher <alexander.deucher@amd.com>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/radeon/r600_cs.c b/drivers/gpu/drm/radeon/r600_cs.c
+index 0d210164cdba..931a70289033 100644
+--- a/drivers/gpu/drm/radeon/r600_cs.c
++++ b/drivers/gpu/drm/radeon/r600_cs.c
+@@ -2313,17 +2313,7 @@ int r600_cs_parse(struct radeon_cs_parser *p)
+ 	return 0;
+ }
+ 
+-static int r600_cs_parser_relocs_legacy(struct radeon_cs_parser *p)
+-{
+-	if (p->chunk_relocs_idx == -1) {
+-		return 0;
+-	}
+-	p->relocs = kzalloc(sizeof(struct radeon_cs_reloc), GFP_KERNEL);
+-	if (p->relocs == NULL) {
+-		return -ENOMEM;
+-	}
+-	return 0;
+-}
++#ifdef CONFIG_DRM_RADEON_UMS
+ 
+ /**
+  * cs_parser_fini() - clean parser states
+@@ -2349,6 +2339,18 @@ static void r600_cs_parser_fini(struct radeon_cs_parser *parser, int error)
+ 	kfree(parser->chunks_array);
+ }
+ 
++static int r600_cs_parser_relocs_legacy(struct radeon_cs_parser *p)
++{
++	if (p->chunk_relocs_idx == -1) {
++		return 0;
++	}
++	p->relocs = kzalloc(sizeof(struct radeon_cs_reloc), GFP_KERNEL);
++	if (p->relocs == NULL) {
++		return -ENOMEM;
++	}
++	return 0;
++}
++
+ int r600_cs_legacy(struct drm_device *dev, void *data, struct drm_file *filp,
+ 			unsigned family, u32 *ib, int *l)
+ {
+@@ -2410,6 +2412,8 @@ void r600_cs_legacy_init(void)
+ 	r600_nomm = 1;
+ }
+ 
++#endif
++
+ /*
+  *  DMA
+  */
+diff --git a/drivers/gpu/drm/radeon/radeon_cp.c b/drivers/gpu/drm/radeon/radeon_cp.c
+index 9143fc45e35b..efc4f6441ef4 100644
+--- a/drivers/gpu/drm/radeon/radeon_cp.c
++++ b/drivers/gpu/drm/radeon/radeon_cp.c
+@@ -27,6 +27,8 @@
+  * Authors:
+  *    Kevin E. Martin <martin@valinux.com>
+  *    Gareth Hughes <gareth@valinux.com>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <linux/module.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index d9bf96ee299a..833484da12d9 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -123,15 +123,25 @@ struct dma_buf *radeon_gem_prime_export(struct drm_device *dev,
+ 					int flags);
+ struct drm_gem_object *radeon_gem_prime_import(struct drm_device *dev,
+ 					       struct dma_buf *dma_buf);
++extern long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd,
++				    unsigned long arg);
+ 
+ #if defined(CONFIG_DEBUG_FS)
+ int radeon_debugfs_init(struct drm_minor *minor);
+ void radeon_debugfs_cleanup(struct drm_minor *minor);
+ #endif
+ 
++/* atpx handler */
++#if defined(CONFIG_VGA_SWITCHEROO)
++void radeon_register_atpx_handler(void);
++void radeon_unregister_atpx_handler(void);
++#else
++static inline void radeon_register_atpx_handler(void) {}
++static inline void radeon_unregister_atpx_handler(void) {}
++#endif
+ 
+ int radeon_no_wb;
+-int radeon_modeset = -1;
++int radeon_modeset = 1;
+ int radeon_dynclks = -1;
+ int radeon_r4xx_atom = 0;
+ int radeon_agpmode = 0;
+@@ -199,6 +209,14 @@ module_param_named(msi, radeon_msi, int, 0444);
+ MODULE_PARM_DESC(lockup_timeout, "GPU lockup timeout in ms (defaul 10000 = 10 seconds, 0 = disable)");
+ module_param_named(lockup_timeout, radeon_lockup_timeout, int, 0444);
+ 
++static struct pci_device_id pciidlist[] = {
++	radeon_PCI_IDS
++};
++
++MODULE_DEVICE_TABLE(pci, pciidlist);
++
++#ifdef CONFIG_DRM_RADEON_UMS
++
+ static int radeon_suspend(struct drm_device *dev, pm_message_t state)
+ {
+ 	drm_radeon_private_t *dev_priv = dev->dev_private;
+@@ -227,14 +245,6 @@ static int radeon_resume(struct drm_device *dev)
+ 	return 0;
+ }
+ 
+-static struct pci_device_id pciidlist[] = {
+-	radeon_PCI_IDS
+-};
+-
+-#if defined(CONFIG_DRM_RADEON_KMS)
+-MODULE_DEVICE_TABLE(pci, pciidlist);
+-#endif
+-
+ static const struct file_operations radeon_driver_old_fops = {
+ 	.owner = THIS_MODULE,
+ 	.open = drm_open,
+@@ -284,6 +294,8 @@ static struct drm_driver driver_old = {
+ 	.patchlevel = DRIVER_PATCHLEVEL,
+ };
+ 
++#endif
++
+ static struct drm_driver kms_driver;
+ 
+ static int radeon_kick_out_firmware_fb(struct pci_dev *pdev)
+@@ -411,10 +423,12 @@ static struct drm_driver kms_driver = {
+ static struct drm_driver *driver;
+ static struct pci_driver *pdriver;
+ 
++#ifdef CONFIG_DRM_RADEON_UMS
+ static struct pci_driver radeon_pci_driver = {
+ 	.name = DRIVER_NAME,
+ 	.id_table = pciidlist,
+ };
++#endif
+ 
+ static struct pci_driver radeon_kms_pci_driver = {
+ 	.name = DRIVER_NAME,
+@@ -427,28 +441,6 @@ static struct pci_driver radeon_kms_pci_driver = {
+ 
+ static int __init radeon_init(void)
+ {
+-	driver = &driver_old;
+-	pdriver = &radeon_pci_driver;
+-	driver->num_ioctls = radeon_max_ioctl;
+-#ifdef CONFIG_VGA_CONSOLE
+-	if (vgacon_text_force() && radeon_modeset == -1) {
+-		DRM_INFO("VGACON disable radeon kernel modesetting.\n");
+-		driver = &driver_old;
+-		pdriver = &radeon_pci_driver;
+-		driver->driver_features &= ~DRIVER_MODESET;
+-		radeon_modeset = 0;
+-	}
+-#endif
+-	/* if enabled by default */
+-	if (radeon_modeset == -1) {
+-#ifdef CONFIG_DRM_RADEON_KMS
+-		DRM_INFO("radeon defaulting to kernel modesetting.\n");
+-		radeon_modeset = 1;
+-#else
+-		DRM_INFO("radeon defaulting to userspace modesetting.\n");
+-		radeon_modeset = 0;
+-#endif
+-	}
+ 	if (radeon_modeset == 1) {
+ 		DRM_INFO("radeon kernel modesetting enabled.\n");
+ 		driver = &kms_driver;
+@@ -456,9 +448,21 @@ static int __init radeon_init(void)
+ 		driver->driver_features |= DRIVER_MODESET;
+ 		driver->num_ioctls = radeon_max_kms_ioctl;
+ 		radeon_register_atpx_handler();
++
++	} else {
++#ifdef CONFIG_DRM_RADEON_UMS
++		DRM_INFO("radeon userspace modesetting enabled.\n");
++		driver = &driver_old;
++		pdriver = &radeon_pci_driver;
++		driver->driver_features &= ~DRIVER_MODESET;
++		driver->num_ioctls = radeon_max_ioctl;
++#else
++		DRM_ERROR("No UMS support in radeon module!\n");
++		return -EINVAL;
++#endif
+ 	}
+-	/* if the vga console setting is enabled still
+-	 * let modprobe override it */
++
++	/* let modprobe override vga console setting */
+ 	return drm_pci_init(driver, pdriver);
+ }
+ 
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.h b/drivers/gpu/drm/radeon/radeon_drv.h
+index e7fdf163a8ca..b369d42f7de5 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.h
++++ b/drivers/gpu/drm/radeon/radeon_drv.h
+@@ -113,6 +113,9 @@
+ #define DRIVER_MINOR		33
+ #define DRIVER_PATCHLEVEL	0
+ 
++/* The rest of the file is DEPRECATED! */
++#ifdef CONFIG_DRM_RADEON_UMS
++
+ enum radeon_cp_microcode_version {
+ 	UCODE_R100,
+ 	UCODE_R200,
+@@ -418,8 +421,6 @@ extern int radeon_driver_open(struct drm_device *dev,
+ 			      struct drm_file *file_priv);
+ extern long radeon_compat_ioctl(struct file *filp, unsigned int cmd,
+ 				unsigned long arg);
+-extern long radeon_kms_compat_ioctl(struct file *filp, unsigned int cmd,
+-				    unsigned long arg);
+ 
+ extern int radeon_master_create(struct drm_device *dev, struct drm_master *master);
+ extern void radeon_master_destroy(struct drm_device *dev, struct drm_master *master);
+@@ -462,15 +463,6 @@ extern void r600_blit_swap(struct drm_device *dev,
+ 			   int sx, int sy, int dx, int dy,
+ 			   int w, int h, int src_pitch, int dst_pitch, int cpp);
+ 
+-/* atpx handler */
+-#if defined(CONFIG_VGA_SWITCHEROO)
+-void radeon_register_atpx_handler(void);
+-void radeon_unregister_atpx_handler(void);
+-#else
+-static inline void radeon_register_atpx_handler(void) {}
+-static inline void radeon_unregister_atpx_handler(void) {}
+-#endif
+-
+ /* Flags for stats.boxes
+  */
+ #define RADEON_BOX_DMA_IDLE      0x1
+@@ -2167,4 +2159,6 @@ extern void radeon_commit_ring(drm_radeon_private_t *dev_priv);
+ } while (0)
+ 
+ 
++#endif				/* CONFIG_DRM_RADEON_UMS */
++
+ #endif				/* __RADEON_DRV_H__ */
+diff --git a/drivers/gpu/drm/radeon/radeon_irq.c b/drivers/gpu/drm/radeon/radeon_irq.c
+index e7710339a6a7..8d68e972789a 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq.c
++++ b/drivers/gpu/drm/radeon/radeon_irq.c
+@@ -28,6 +28,8 @@
+  * Authors:
+  *    Keith Whitwell <keith@tungstengraphics.com>
+  *    Michel D�zer <michel@daenzer.net>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <drm/drmP.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_mem.c b/drivers/gpu/drm/radeon/radeon_mem.c
+index b9f067241633..d54d2d7c9031 100644
+--- a/drivers/gpu/drm/radeon/radeon_mem.c
++++ b/drivers/gpu/drm/radeon/radeon_mem.c
+@@ -27,6 +27,8 @@
+  *
+  * Authors:
+  *    Keith Whitwell <keith@tungstengraphics.com>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <drm/drmP.h>
+diff --git a/drivers/gpu/drm/radeon/radeon_state.c b/drivers/gpu/drm/radeon/radeon_state.c
+index 8e9057b6a365..4d20910899d4 100644
+--- a/drivers/gpu/drm/radeon/radeon_state.c
++++ b/drivers/gpu/drm/radeon/radeon_state.c
+@@ -25,6 +25,8 @@
+  * Authors:
+  *    Gareth Hughes <gareth@valinux.com>
+  *    Kevin E. Martin <martin@valinux.com>
++ *
++ * ------------------------ This file is DEPRECATED! -------------------------
+  */
+ 
+ #include <drm/drmP.h>
+-- 
+2.17.0
+

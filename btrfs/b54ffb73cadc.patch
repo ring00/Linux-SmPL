@@ -1,0 +1,347 @@
+From b54ffb73cadcdcff9cc1ae0e11f502407e3e2e4c Mon Sep 17 00:00:00 2001
+From: Kent Overstreet <kent.overstreet@gmail.com>
+Date: Tue, 19 May 2015 14:31:01 +0200
+Subject: [PATCH] block: remove bio_get_nr_vecs()
+
+We can always fill up the bio now, no need to estimate the possible
+size based on queue parameters.
+
+Acked-by: Steven Whitehouse <swhiteho@redhat.com>
+Signed-off-by: Kent Overstreet <kent.overstreet@gmail.com>
+[hch: rebased and wrote a changelog]
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Ming Lin <ming.l@ssi.samsung.com>
+Signed-off-by: Jens Axboe <axboe@fb.com>
+---
+ block/bio.c            | 23 -----------------------
+ drivers/md/dm-io.c     |  2 +-
+ fs/btrfs/compression.c |  5 +----
+ fs/btrfs/extent_io.c   |  9 ++-------
+ fs/btrfs/inode.c       |  3 +--
+ fs/btrfs/scrub.c       | 18 ++----------------
+ fs/direct-io.c         |  2 +-
+ fs/ext4/page-io.c      |  3 +--
+ fs/ext4/readpage.c     |  2 +-
+ fs/f2fs/data.c         |  2 +-
+ fs/gfs2/lops.c         |  9 +--------
+ fs/logfs/dev_bdev.c    |  4 ++--
+ fs/mpage.c             |  4 ++--
+ fs/nilfs2/segbuf.c     |  2 +-
+ fs/xfs/xfs_aops.c      |  3 +--
+ include/linux/bio.h    |  1 -
+ 16 files changed, 18 insertions(+), 74 deletions(-)
+
+diff --git a/block/bio.c b/block/bio.c
+index ba9c4b0c0ff2..425d6d4a2f7a 100644
+--- a/block/bio.c
++++ b/block/bio.c
+@@ -693,29 +693,6 @@ struct bio *bio_clone_bioset(struct bio *bio_src, gfp_t gfp_mask,
+ }
+ EXPORT_SYMBOL(bio_clone_bioset);
+ 
+-/**
+- *	bio_get_nr_vecs		- return approx number of vecs
+- *	@bdev:  I/O target
+- *
+- *	Return the approximate number of pages we can send to this target.
+- *	There's no guarantee that you will be able to fit this number of pages
+- *	into a bio, it does not account for dynamic restrictions that vary
+- *	on offset.
+- */
+-int bio_get_nr_vecs(struct block_device *bdev)
+-{
+-	struct request_queue *q = bdev_get_queue(bdev);
+-	int nr_pages;
+-
+-	nr_pages = min_t(unsigned,
+-		     queue_max_segments(q),
+-		     queue_max_sectors(q) / (PAGE_SIZE >> 9) + 1);
+-
+-	return min_t(unsigned, nr_pages, BIO_MAX_PAGES);
+-
+-}
+-EXPORT_SYMBOL(bio_get_nr_vecs);
+-
+ /**
+  *	bio_add_pc_page	-	attempt to add page to bio
+  *	@q: the target queue
+diff --git a/drivers/md/dm-io.c b/drivers/md/dm-io.c
+index c84714f70378..6f8e83b2a6f8 100644
+--- a/drivers/md/dm-io.c
++++ b/drivers/md/dm-io.c
+@@ -316,7 +316,7 @@ static void do_region(int rw, unsigned region, struct dm_io_region *where,
+ 		if ((rw & REQ_DISCARD) || (rw & REQ_WRITE_SAME))
+ 			num_bvecs = 1;
+ 		else
+-			num_bvecs = min_t(int, bio_get_nr_vecs(where->bdev),
++			num_bvecs = min_t(int, BIO_MAX_PAGES,
+ 					  dm_sector_div_up(remaining, (PAGE_SIZE >> SECTOR_SHIFT)));
+ 
+ 		bio = bio_alloc_bioset(GFP_NOIO, num_bvecs, io->client->bios);
+diff --git a/fs/btrfs/compression.c b/fs/btrfs/compression.c
+index 302266ec2cdb..57ee8ca29b06 100644
+--- a/fs/btrfs/compression.c
++++ b/fs/btrfs/compression.c
+@@ -97,10 +97,7 @@ static inline int compressed_bio_size(struct btrfs_root *root,
+ static struct bio *compressed_bio_alloc(struct block_device *bdev,
+ 					u64 first_byte, gfp_t gfp_flags)
+ {
+-	int nr_vecs;
+-
+-	nr_vecs = bio_get_nr_vecs(bdev);
+-	return btrfs_bio_alloc(bdev, first_byte >> 9, nr_vecs, gfp_flags);
++	return btrfs_bio_alloc(bdev, first_byte >> 9, BIO_MAX_PAGES, gfp_flags);
+ }
+ 
+ static int check_compressed_csum(struct inode *inode,
+diff --git a/fs/btrfs/extent_io.c b/fs/btrfs/extent_io.c
+index c22f175ed024..68b12bbc709f 100644
+--- a/fs/btrfs/extent_io.c
++++ b/fs/btrfs/extent_io.c
+@@ -2795,9 +2795,7 @@ static int submit_extent_page(int rw, struct extent_io_tree *tree,
+ {
+ 	int ret = 0;
+ 	struct bio *bio;
+-	int nr;
+ 	int contig = 0;
+-	int this_compressed = bio_flags & EXTENT_BIO_COMPRESSED;
+ 	int old_compressed = prev_bio_flags & EXTENT_BIO_COMPRESSED;
+ 	size_t page_size = min_t(size_t, size, PAGE_CACHE_SIZE);
+ 
+@@ -2822,12 +2820,9 @@ static int submit_extent_page(int rw, struct extent_io_tree *tree,
+ 			return 0;
+ 		}
+ 	}
+-	if (this_compressed)
+-		nr = BIO_MAX_PAGES;
+-	else
+-		nr = bio_get_nr_vecs(bdev);
+ 
+-	bio = btrfs_bio_alloc(bdev, sector, nr, GFP_NOFS | __GFP_HIGH);
++	bio = btrfs_bio_alloc(bdev, sector, BIO_MAX_PAGES,
++			GFP_NOFS | __GFP_HIGH);
+ 	if (!bio)
+ 		return -ENOMEM;
+ 
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 6b8becfe2057..8635ef01a04a 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -7959,8 +7959,7 @@ static void btrfs_end_dio_bio(struct bio *bio)
+ static struct bio *btrfs_dio_bio_alloc(struct block_device *bdev,
+ 				       u64 first_sector, gfp_t gfp_flags)
+ {
+-	int nr_vecs = bio_get_nr_vecs(bdev);
+-	return btrfs_bio_alloc(bdev, first_sector, nr_vecs, gfp_flags);
++	return btrfs_bio_alloc(bdev, first_sector, BIO_MAX_PAGES, gfp_flags);
+ }
+ 
+ static inline int btrfs_lookup_and_bind_dio_csum(struct btrfs_root *root,
+diff --git a/fs/btrfs/scrub.c b/fs/btrfs/scrub.c
+index ebb8260186fe..9c146d8307b5 100644
+--- a/fs/btrfs/scrub.c
++++ b/fs/btrfs/scrub.c
+@@ -454,27 +454,14 @@ struct scrub_ctx *scrub_setup_ctx(struct btrfs_device *dev, int is_dev_replace)
+ 	struct scrub_ctx *sctx;
+ 	int		i;
+ 	struct btrfs_fs_info *fs_info = dev->dev_root->fs_info;
+-	int pages_per_rd_bio;
+ 	int ret;
+ 
+-	/*
+-	 * the setting of pages_per_rd_bio is correct for scrub but might
+-	 * be wrong for the dev_replace code where we might read from
+-	 * different devices in the initial huge bios. However, that
+-	 * code is able to correctly handle the case when adding a page
+-	 * to a bio fails.
+-	 */
+-	if (dev->bdev)
+-		pages_per_rd_bio = min_t(int, SCRUB_PAGES_PER_RD_BIO,
+-					 bio_get_nr_vecs(dev->bdev));
+-	else
+-		pages_per_rd_bio = SCRUB_PAGES_PER_RD_BIO;
+ 	sctx = kzalloc(sizeof(*sctx), GFP_NOFS);
+ 	if (!sctx)
+ 		goto nomem;
+ 	atomic_set(&sctx->refs, 1);
+ 	sctx->is_dev_replace = is_dev_replace;
+-	sctx->pages_per_rd_bio = pages_per_rd_bio;
++	sctx->pages_per_rd_bio = SCRUB_PAGES_PER_RD_BIO;
+ 	sctx->curr = -1;
+ 	sctx->dev_root = dev->dev_root;
+ 	for (i = 0; i < SCRUB_BIOS_PER_SCTX; ++i) {
+@@ -3896,8 +3883,7 @@ static int scrub_setup_wr_ctx(struct scrub_ctx *sctx,
+ 		return 0;
+ 
+ 	WARN_ON(!dev->bdev);
+-	wr_ctx->pages_per_wr_bio = min_t(int, SCRUB_PAGES_PER_WR_BIO,
+-					 bio_get_nr_vecs(dev->bdev));
++	wr_ctx->pages_per_wr_bio = SCRUB_PAGES_PER_WR_BIO;
+ 	wr_ctx->tgtdev = dev;
+ 	atomic_set(&wr_ctx->flush_all_writes, 0);
+ 	return 0;
+diff --git a/fs/direct-io.c b/fs/direct-io.c
+index 818c647f36d3..11256291642e 100644
+--- a/fs/direct-io.c
++++ b/fs/direct-io.c
+@@ -655,7 +655,7 @@ static inline int dio_new_bio(struct dio *dio, struct dio_submit *sdio,
+ 	if (ret)
+ 		goto out;
+ 	sector = start_sector << (sdio->blkbits - 9);
+-	nr_pages = min(sdio->pages_in_io, bio_get_nr_vecs(map_bh->b_bdev));
++	nr_pages = min(sdio->pages_in_io, BIO_MAX_PAGES);
+ 	BUG_ON(nr_pages <= 0);
+ 	dio_bio_alloc(dio, sdio, map_bh->b_bdev, sector, nr_pages);
+ 	sdio->boundary = 0;
+diff --git a/fs/ext4/page-io.c b/fs/ext4/page-io.c
+index aa95566f14be..8a9d63a0c071 100644
+--- a/fs/ext4/page-io.c
++++ b/fs/ext4/page-io.c
+@@ -372,10 +372,9 @@ void ext4_io_submit_init(struct ext4_io_submit *io,
+ static int io_submit_init_bio(struct ext4_io_submit *io,
+ 			      struct buffer_head *bh)
+ {
+-	int nvecs = bio_get_nr_vecs(bh->b_bdev);
+ 	struct bio *bio;
+ 
+-	bio = bio_alloc(GFP_NOIO, min(nvecs, BIO_MAX_PAGES));
++	bio = bio_alloc(GFP_NOIO, BIO_MAX_PAGES);
+ 	if (!bio)
+ 		return -ENOMEM;
+ 	bio->bi_iter.bi_sector = bh->b_blocknr * (bh->b_size >> 9);
+diff --git a/fs/ext4/readpage.c b/fs/ext4/readpage.c
+index 5de5b871c178..e26803fb210d 100644
+--- a/fs/ext4/readpage.c
++++ b/fs/ext4/readpage.c
+@@ -284,7 +284,7 @@ int ext4_mpage_readpages(struct address_space *mapping,
+ 					goto set_error_page;
+ 			}
+ 			bio = bio_alloc(GFP_KERNEL,
+-				min_t(int, nr_pages, bio_get_nr_vecs(bdev)));
++				min_t(int, nr_pages, BIO_MAX_PAGES));
+ 			if (!bio) {
+ 				if (ctx)
+ 					ext4_release_crypto_ctx(ctx);
+diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
+index 8f0baa7ffb50..b478accb24d9 100644
+--- a/fs/f2fs/data.c
++++ b/fs/f2fs/data.c
+@@ -1552,7 +1552,7 @@ static int f2fs_mpage_readpages(struct address_space *mapping,
+ 			}
+ 
+ 			bio = bio_alloc(GFP_KERNEL,
+-				min_t(int, nr_pages, bio_get_nr_vecs(bdev)));
++				min_t(int, nr_pages, BIO_MAX_PAGES));
+ 			if (!bio) {
+ 				if (ctx)
+ 					f2fs_release_crypto_ctx(ctx);
+diff --git a/fs/gfs2/lops.c b/fs/gfs2/lops.c
+index c0a1b967deba..92324ac58290 100644
+--- a/fs/gfs2/lops.c
++++ b/fs/gfs2/lops.c
+@@ -261,18 +261,11 @@ void gfs2_log_flush_bio(struct gfs2_sbd *sdp, int rw)
+ static struct bio *gfs2_log_alloc_bio(struct gfs2_sbd *sdp, u64 blkno)
+ {
+ 	struct super_block *sb = sdp->sd_vfs;
+-	unsigned nrvecs = bio_get_nr_vecs(sb->s_bdev);
+ 	struct bio *bio;
+ 
+ 	BUG_ON(sdp->sd_log_bio);
+ 
+-	while (1) {
+-		bio = bio_alloc(GFP_NOIO, nrvecs);
+-		if (likely(bio))
+-			break;
+-		nrvecs = max(nrvecs/2, 1U);
+-	}
+-
++	bio = bio_alloc(GFP_NOIO, BIO_MAX_PAGES);
+ 	bio->bi_iter.bi_sector = blkno * (sb->s_blocksize >> 9);
+ 	bio->bi_bdev = sb->s_bdev;
+ 	bio->bi_end_io = gfs2_end_log_write;
+diff --git a/fs/logfs/dev_bdev.c b/fs/logfs/dev_bdev.c
+index cea0cc9878b7..a7fdbd868474 100644
+--- a/fs/logfs/dev_bdev.c
++++ b/fs/logfs/dev_bdev.c
+@@ -81,7 +81,7 @@ static int __bdev_writeseg(struct super_block *sb, u64 ofs, pgoff_t index,
+ 	unsigned int max_pages;
+ 	int i;
+ 
+-	max_pages = min(nr_pages, (size_t) bio_get_nr_vecs(super->s_bdev));
++	max_pages = min(nr_pages, BIO_MAX_PAGES);
+ 
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
+@@ -171,7 +171,7 @@ static int do_erase(struct super_block *sb, u64 ofs, pgoff_t index,
+ 	unsigned int max_pages;
+ 	int i;
+ 
+-	max_pages = min(nr_pages, (size_t) bio_get_nr_vecs(super->s_bdev));
++	max_pages = min(nr_pages, BIO_MAX_PAGES);
+ 
+ 	bio = bio_alloc(GFP_NOFS, max_pages);
+ 	BUG_ON(!bio);
+diff --git a/fs/mpage.c b/fs/mpage.c
+index abac9361b3f1..778a4ddef77a 100644
+--- a/fs/mpage.c
++++ b/fs/mpage.c
+@@ -277,7 +277,7 @@ do_mpage_readpage(struct bio *bio, struct page *page, unsigned nr_pages,
+ 				goto out;
+ 		}
+ 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+-			  	min_t(int, nr_pages, bio_get_nr_vecs(bdev)),
++				min_t(int, nr_pages, BIO_MAX_PAGES),
+ 				GFP_KERNEL);
+ 		if (bio == NULL)
+ 			goto confused;
+@@ -602,7 +602,7 @@ static int __mpage_writepage(struct page *page, struct writeback_control *wbc,
+ 			}
+ 		}
+ 		bio = mpage_alloc(bdev, blocks[0] << (blkbits - 9),
+-				bio_get_nr_vecs(bdev), GFP_NOFS|__GFP_HIGH);
++				BIO_MAX_PAGES, GFP_NOFS|__GFP_HIGH);
+ 		if (bio == NULL)
+ 			goto confused;
+ 
+diff --git a/fs/nilfs2/segbuf.c b/fs/nilfs2/segbuf.c
+index 550b10efb14e..f63620ce3892 100644
+--- a/fs/nilfs2/segbuf.c
++++ b/fs/nilfs2/segbuf.c
+@@ -414,7 +414,7 @@ static void nilfs_segbuf_prepare_write(struct nilfs_segment_buffer *segbuf,
+ {
+ 	wi->bio = NULL;
+ 	wi->rest_blocks = segbuf->sb_sum.nblocks;
+-	wi->max_pages = bio_get_nr_vecs(wi->nilfs->ns_bdev);
++	wi->max_pages = BIO_MAX_PAGES;
+ 	wi->nr_vecs = min(wi->max_pages, wi->rest_blocks);
+ 	wi->start = wi->end = 0;
+ 	wi->blocknr = segbuf->sb_pseg_start;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 3714844a81d8..c77499bcbd7a 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -381,8 +381,7 @@ STATIC struct bio *
+ xfs_alloc_ioend_bio(
+ 	struct buffer_head	*bh)
+ {
+-	int			nvecs = bio_get_nr_vecs(bh->b_bdev);
+-	struct bio		*bio = bio_alloc(GFP_NOIO, nvecs);
++	struct bio		*bio = bio_alloc(GFP_NOIO, BIO_MAX_PAGES);
+ 
+ 	ASSERT(bio->bi_private == NULL);
+ 	bio->bi_iter.bi_sector = bh->b_blocknr * (bh->b_size >> 9);
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index b7892a1906bd..ad7217458812 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -460,7 +460,6 @@ void bio_chain(struct bio *, struct bio *);
+ extern int bio_add_page(struct bio *, struct page *, unsigned int,unsigned int);
+ extern int bio_add_pc_page(struct request_queue *, struct bio *, struct page *,
+ 			   unsigned int, unsigned int);
+-extern int bio_get_nr_vecs(struct block_device *);
+ struct rq_map_data;
+ extern struct bio *bio_map_user_iov(struct request_queue *,
+ 				    const struct iov_iter *, gfp_t);
+-- 
+2.17.0
+

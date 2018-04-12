@@ -1,0 +1,473 @@
+From cea405b172e3b1fd2cf9da5ec05c7d808d6af03d Mon Sep 17 00:00:00 2001
+From: Xihan Zhang <xihan.zhang@amd.com>
+Date: Tue, 17 Mar 2015 19:32:53 +0800
+Subject: [PATCH] drm/amdkfd: Add multiple kgd support
+
+The current code can only support one kgd instance. We have to
+support multiple kgd instances in one system. i.e two amdgpu or two
+radeon or one amdgpu + one radeon or more than two kgd instances.
+
+Signed-off-by: Xihan Zhang <xihan.zhang@amd.com>
+Signed-off-by: Oded Gabbay <oded.gabbay@amd.com>
+---
+ drivers/gpu/drm/amd/amdkfd/kfd_chardev.c      |  3 +-
+ drivers/gpu/drm/amd/amdkfd/kfd_device.c       | 17 +++--
+ .../drm/amd/amdkfd/kfd_device_queue_manager.c | 14 ++--
+ drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c     | 17 ++---
+ drivers/gpu/drm/amd/amdkfd/kfd_module.c       | 12 +---
+ .../gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c  | 13 ++--
+ drivers/gpu/drm/amd/amdkfd/kfd_priv.h         | 12 ++--
+ drivers/gpu/drm/amd/amdkfd/kfd_topology.c     | 12 ++--
+ .../gpu/drm/amd/include/kgd_kfd_interface.h   | 64 +++++++++----------
+ drivers/gpu/drm/radeon/radeon_kfd.c           | 10 +--
+ 10 files changed, 90 insertions(+), 84 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+index 50fc8bad4964..19a4fba46e4e 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_chardev.c
+@@ -442,7 +442,8 @@ static int kfd_ioctl_get_clock_counters(struct file *filep,
+ 		return -EINVAL;
+ 
+ 	/* Reading GPU clock counter from KGD */
+-	args->gpu_clock_counter = kfd2kgd->get_gpu_clock_counter(dev->kgd);
++	args->gpu_clock_counter =
++		dev->kfd2kgd->get_gpu_clock_counter(dev->kgd);
+ 
+ 	/* No access to rdtsc. Using raw monotonic time */
+ 	getrawmonotonic64(&time);
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_device.c b/drivers/gpu/drm/amd/amdkfd/kfd_device.c
+index 5bc32c26b989..ca7f2d3af2ff 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_device.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_device.c
+@@ -94,7 +94,8 @@ static const struct kfd_device_info *lookup_device_info(unsigned short did)
+ 	return NULL;
+ }
+ 
+-struct kfd_dev *kgd2kfd_probe(struct kgd_dev *kgd, struct pci_dev *pdev)
++struct kfd_dev *kgd2kfd_probe(struct kgd_dev *kgd,
++	struct pci_dev *pdev, const struct kfd2kgd_calls *f2g)
+ {
+ 	struct kfd_dev *kfd;
+ 
+@@ -112,6 +113,11 @@ struct kfd_dev *kgd2kfd_probe(struct kgd_dev *kgd, struct pci_dev *pdev)
+ 	kfd->device_info = device_info;
+ 	kfd->pdev = pdev;
+ 	kfd->init_complete = false;
++	kfd->kfd2kgd = f2g;
++
++	mutex_init(&kfd->doorbell_mutex);
++	memset(&kfd->doorbell_available_index, 0,
++		sizeof(kfd->doorbell_available_index));
+ 
+ 	return kfd;
+ }
+@@ -200,8 +206,9 @@ bool kgd2kfd_device_init(struct kfd_dev *kfd,
+ 	/* add another 512KB for all other allocations on gart (HPD, fences) */
+ 	size += 512 * 1024;
+ 
+-	if (kfd2kgd->init_gtt_mem_allocation(kfd->kgd, size, &kfd->gtt_mem,
+-			&kfd->gtt_start_gpu_addr, &kfd->gtt_start_cpu_ptr)) {
++	if (kfd->kfd2kgd->init_gtt_mem_allocation(
++			kfd->kgd, size, &kfd->gtt_mem,
++			&kfd->gtt_start_gpu_addr, &kfd->gtt_start_cpu_ptr)){
+ 		dev_err(kfd_device,
+ 			"Could not allocate %d bytes for device (%x:%x)\n",
+ 			size, kfd->pdev->vendor, kfd->pdev->device);
+@@ -270,7 +277,7 @@ bool kgd2kfd_device_init(struct kfd_dev *kfd,
+ kfd_topology_add_device_error:
+ 	kfd_gtt_sa_fini(kfd);
+ kfd_gtt_sa_init_error:
+-	kfd2kgd->free_gtt_mem(kfd->kgd, kfd->gtt_mem);
++	kfd->kfd2kgd->free_gtt_mem(kfd->kgd, kfd->gtt_mem);
+ 	dev_err(kfd_device,
+ 		"device (%x:%x) NOT added due to errors\n",
+ 		kfd->pdev->vendor, kfd->pdev->device);
+@@ -285,7 +292,7 @@ void kgd2kfd_device_exit(struct kfd_dev *kfd)
+ 		amd_iommu_free_device(kfd->pdev);
+ 		kfd_topology_remove_device(kfd);
+ 		kfd_gtt_sa_fini(kfd);
+-		kfd2kgd->free_gtt_mem(kfd->kgd, kfd->gtt_mem);
++		kfd->kfd2kgd->free_gtt_mem(kfd->kgd, kfd->gtt_mem);
+ 	}
+ 
+ 	kfree(kfd);
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c b/drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c
+index be68d58b564e..d7174300f501 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c
+@@ -82,7 +82,8 @@ static inline unsigned int get_pipes_num_cpsch(void)
+ void program_sh_mem_settings(struct device_queue_manager *dqm,
+ 					struct qcm_process_device *qpd)
+ {
+-	return kfd2kgd->program_sh_mem_settings(dqm->dev->kgd, qpd->vmid,
++	return dqm->dev->kfd2kgd->program_sh_mem_settings(
++						dqm->dev->kgd, qpd->vmid,
+ 						qpd->sh_mem_config,
+ 						qpd->sh_mem_ape1_base,
+ 						qpd->sh_mem_ape1_limit,
+@@ -457,9 +458,12 @@ set_pasid_vmid_mapping(struct device_queue_manager *dqm, unsigned int pasid,
+ {
+ 	uint32_t pasid_mapping;
+ 
+-	pasid_mapping = (pasid == 0) ? 0 : (uint32_t)pasid |
+-						ATC_VMID_PASID_MAPPING_VALID;
+-	return kfd2kgd->set_pasid_vmid_mapping(dqm->dev->kgd, pasid_mapping,
++	pasid_mapping = (pasid == 0) ? 0 :
++		(uint32_t)pasid |
++		ATC_VMID_PASID_MAPPING_VALID;
++
++	return dqm->dev->kfd2kgd->set_pasid_vmid_mapping(
++						dqm->dev->kgd, pasid_mapping,
+ 						vmid);
+ }
+ 
+@@ -511,7 +515,7 @@ int init_pipelines(struct device_queue_manager *dqm,
+ 		pipe_hpd_addr = dqm->pipelines_addr + i * CIK_HPD_EOP_BYTES;
+ 		pr_debug("kfd: pipeline address %llX\n", pipe_hpd_addr);
+ 		/* = log2(bytes/4)-1 */
+-		kfd2kgd->init_pipeline(dqm->dev->kgd, inx,
++		dqm->dev->kfd2kgd->init_pipeline(dqm->dev->kgd, inx,
+ 				CIK_HPD_EOP_BYTES_LOG2 - 3, pipe_hpd_addr);
+ 	}
+ 
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c b/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
+index 1a9b355dd114..17e56dcc8540 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_doorbell.c
+@@ -32,9 +32,6 @@
+  * and that's assures that any user process won't get access to the
+  * kernel doorbells page
+  */
+-static DEFINE_MUTEX(doorbell_mutex);
+-static unsigned long doorbell_available_index[
+-	DIV_ROUND_UP(KFD_MAX_NUM_OF_QUEUES_PER_PROCESS, BITS_PER_LONG)] = { 0 };
+ 
+ #define KERNEL_DOORBELL_PASID 1
+ #define KFD_SIZE_OF_DOORBELL_IN_BYTES 4
+@@ -170,12 +167,12 @@ u32 __iomem *kfd_get_kernel_doorbell(struct kfd_dev *kfd,
+ 
+ 	BUG_ON(!kfd || !doorbell_off);
+ 
+-	mutex_lock(&doorbell_mutex);
+-	inx = find_first_zero_bit(doorbell_available_index,
++	mutex_lock(&kfd->doorbell_mutex);
++	inx = find_first_zero_bit(kfd->doorbell_available_index,
+ 					KFD_MAX_NUM_OF_QUEUES_PER_PROCESS);
+ 
+-	__set_bit(inx, doorbell_available_index);
+-	mutex_unlock(&doorbell_mutex);
++	__set_bit(inx, kfd->doorbell_available_index);
++	mutex_unlock(&kfd->doorbell_mutex);
+ 
+ 	if (inx >= KFD_MAX_NUM_OF_QUEUES_PER_PROCESS)
+ 		return NULL;
+@@ -203,9 +200,9 @@ void kfd_release_kernel_doorbell(struct kfd_dev *kfd, u32 __iomem *db_addr)
+ 
+ 	inx = (unsigned int)(db_addr - kfd->doorbell_kernel_ptr);
+ 
+-	mutex_lock(&doorbell_mutex);
+-	__clear_bit(inx, doorbell_available_index);
+-	mutex_unlock(&doorbell_mutex);
++	mutex_lock(&kfd->doorbell_mutex);
++	__clear_bit(inx, kfd->doorbell_available_index);
++	mutex_unlock(&kfd->doorbell_mutex);
+ }
+ 
+ inline void write_kernel_doorbell(u32 __iomem *db, u32 value)
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_module.c b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
+index 3f34ae16f075..4e0a68f13a77 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_module.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_module.c
+@@ -34,7 +34,6 @@
+ #define KFD_DRIVER_MINOR	7
+ #define KFD_DRIVER_PATCHLEVEL	1
+ 
+-const struct kfd2kgd_calls *kfd2kgd;
+ static const struct kgd2kfd_calls kgd2kfd = {
+ 	.exit		= kgd2kfd_exit,
+ 	.probe		= kgd2kfd_probe,
+@@ -55,9 +54,7 @@ module_param(max_num_of_queues_per_device, int, 0444);
+ MODULE_PARM_DESC(max_num_of_queues_per_device,
+ 	"Maximum number of supported queues per device (1 = Minimum, 4096 = default)");
+ 
+-bool kgd2kfd_init(unsigned interface_version,
+-		  const struct kfd2kgd_calls *f2g,
+-		  const struct kgd2kfd_calls **g2f)
++bool kgd2kfd_init(unsigned interface_version, const struct kgd2kfd_calls **g2f)
+ {
+ 	/*
+ 	 * Only one interface version is supported,
+@@ -66,11 +63,6 @@ bool kgd2kfd_init(unsigned interface_version,
+ 	if (interface_version != KFD_INTERFACE_VERSION)
+ 		return false;
+ 
+-	/* Protection against multiple amd kgd loads */
+-	if (kfd2kgd)
+-		return true;
+-
+-	kfd2kgd = f2g;
+ 	*g2f = &kgd2kfd;
+ 
+ 	return true;
+@@ -85,8 +77,6 @@ static int __init kfd_module_init(void)
+ {
+ 	int err;
+ 
+-	kfd2kgd = NULL;
+-
+ 	/* Verify module parameters */
+ 	if ((sched_policy < KFD_SCHED_POLICY_HWS) ||
+ 		(sched_policy > KFD_SCHED_POLICY_NO_HWS)) {
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c b/drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c
+index a09e18a339f3..434979428fc0 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c
+@@ -151,14 +151,15 @@ static void uninit_mqd_sdma(struct mqd_manager *mm, void *mqd,
+ static int load_mqd(struct mqd_manager *mm, void *mqd, uint32_t pipe_id,
+ 			uint32_t queue_id, uint32_t __user *wptr)
+ {
+-	return kfd2kgd->hqd_load(mm->dev->kgd, mqd, pipe_id, queue_id, wptr);
++	return mm->dev->kfd2kgd->hqd_load
++		(mm->dev->kgd, mqd, pipe_id, queue_id, wptr);
+ }
+ 
+ static int load_mqd_sdma(struct mqd_manager *mm, void *mqd,
+ 			uint32_t pipe_id, uint32_t queue_id,
+ 			uint32_t __user *wptr)
+ {
+-	return kfd2kgd->hqd_sdma_load(mm->dev->kgd, mqd);
++	return mm->dev->kfd2kgd->hqd_sdma_load(mm->dev->kgd, mqd);
+ }
+ 
+ static int update_mqd(struct mqd_manager *mm, void *mqd,
+@@ -245,7 +246,7 @@ static int destroy_mqd(struct mqd_manager *mm, void *mqd,
+ 			unsigned int timeout, uint32_t pipe_id,
+ 			uint32_t queue_id)
+ {
+-	return kfd2kgd->hqd_destroy(mm->dev->kgd, type, timeout,
++	return mm->dev->kfd2kgd->hqd_destroy(mm->dev->kgd, type, timeout,
+ 					pipe_id, queue_id);
+ }
+ 
+@@ -258,7 +259,7 @@ static int destroy_mqd_sdma(struct mqd_manager *mm, void *mqd,
+ 				unsigned int timeout, uint32_t pipe_id,
+ 				uint32_t queue_id)
+ {
+-	return kfd2kgd->hqd_sdma_destroy(mm->dev->kgd, mqd, timeout);
++	return mm->dev->kfd2kgd->hqd_sdma_destroy(mm->dev->kgd, mqd, timeout);
+ }
+ 
+ static bool is_occupied(struct mqd_manager *mm, void *mqd,
+@@ -266,7 +267,7 @@ static bool is_occupied(struct mqd_manager *mm, void *mqd,
+ 			uint32_t queue_id)
+ {
+ 
+-	return kfd2kgd->hqd_is_occupied(mm->dev->kgd, queue_address,
++	return mm->dev->kfd2kgd->hqd_is_occupied(mm->dev->kgd, queue_address,
+ 					pipe_id, queue_id);
+ 
+ }
+@@ -275,7 +276,7 @@ static bool is_occupied_sdma(struct mqd_manager *mm, void *mqd,
+ 			uint64_t queue_address,	uint32_t pipe_id,
+ 			uint32_t queue_id)
+ {
+-	return kfd2kgd->hqd_sdma_is_occupied(mm->dev->kgd, mqd);
++	return mm->dev->kfd2kgd->hqd_sdma_is_occupied(mm->dev->kgd, mqd);
+ }
+ 
+ /*
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_priv.h b/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
+index b7bd7afd6fcf..f21fccebd75b 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_priv.h
+@@ -148,6 +148,11 @@ struct kfd_dev {
+ 
+ 	struct kgd2kfd_shared_resources shared_resources;
+ 
++	const struct kfd2kgd_calls *kfd2kgd;
++	struct mutex doorbell_mutex;
++	unsigned long doorbell_available_index[DIV_ROUND_UP(
++		KFD_MAX_NUM_OF_QUEUES_PER_PROCESS, BITS_PER_LONG)];
++
+ 	void *gtt_mem;
+ 	uint64_t gtt_start_gpu_addr;
+ 	void *gtt_start_cpu_ptr;
+@@ -164,13 +169,12 @@ struct kfd_dev {
+ 
+ /* KGD2KFD callbacks */
+ void kgd2kfd_exit(void);
+-struct kfd_dev *kgd2kfd_probe(struct kgd_dev *kgd, struct pci_dev *pdev);
++struct kfd_dev *kgd2kfd_probe(struct kgd_dev *kgd,
++			struct pci_dev *pdev, const struct kfd2kgd_calls *f2g);
+ bool kgd2kfd_device_init(struct kfd_dev *kfd,
+-			 const struct kgd2kfd_shared_resources *gpu_resources);
++			const struct kgd2kfd_shared_resources *gpu_resources);
+ void kgd2kfd_device_exit(struct kfd_dev *kfd);
+ 
+-extern const struct kfd2kgd_calls *kfd2kgd;
+-
+ enum kfd_mempool {
+ 	KFD_MEMPOOL_SYSTEM_CACHEABLE = 1,
+ 	KFD_MEMPOOL_SYSTEM_WRITECOMBINE = 2,
+diff --git a/drivers/gpu/drm/amd/amdkfd/kfd_topology.c b/drivers/gpu/drm/amd/amdkfd/kfd_topology.c
+index 498399323a8c..661c6605d31b 100644
+--- a/drivers/gpu/drm/amd/amdkfd/kfd_topology.c
++++ b/drivers/gpu/drm/amd/amdkfd/kfd_topology.c
+@@ -726,13 +726,14 @@ static ssize_t node_show(struct kobject *kobj, struct attribute *attr,
+ 		}
+ 
+ 		sysfs_show_32bit_prop(buffer, "max_engine_clk_fcompute",
+-				kfd2kgd->get_max_engine_clock_in_mhz(
++			dev->gpu->kfd2kgd->get_max_engine_clock_in_mhz(
+ 					dev->gpu->kgd));
+ 		sysfs_show_64bit_prop(buffer, "local_mem_size",
+-				kfd2kgd->get_vmem_size(dev->gpu->kgd));
++			dev->gpu->kfd2kgd->get_vmem_size(
++					dev->gpu->kgd));
+ 
+ 		sysfs_show_32bit_prop(buffer, "fw_version",
+-				kfd2kgd->get_fw_version(
++			dev->gpu->kfd2kgd->get_fw_version(
+ 						dev->gpu->kgd,
+ 						KGD_ENGINE_MEC1));
+ 	}
+@@ -1099,8 +1100,9 @@ static uint32_t kfd_generate_gpu_id(struct kfd_dev *gpu)
+ 	buf[2] = gpu->pdev->subsystem_device;
+ 	buf[3] = gpu->pdev->device;
+ 	buf[4] = gpu->pdev->bus->number;
+-	buf[5] = (uint32_t)(kfd2kgd->get_vmem_size(gpu->kgd) & 0xffffffff);
+-	buf[6] = (uint32_t)(kfd2kgd->get_vmem_size(gpu->kgd) >> 32);
++	buf[5] = (uint32_t)(gpu->kfd2kgd->get_vmem_size(gpu->kgd)
++			& 0xffffffff);
++	buf[6] = (uint32_t)(gpu->kfd2kgd->get_vmem_size(gpu->kgd) >> 32);
+ 
+ 	for (i = 0, hashout = 0; i < 7; i++)
+ 		hashout ^= hash_32(buf[i], KFD_GPU_ID_HASH_WIDTH);
+diff --git a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+index 239bc16a1ddd..dabd94446b7b 100644
+--- a/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
++++ b/drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+@@ -76,37 +76,6 @@ struct kgd2kfd_shared_resources {
+ 	size_t doorbell_start_offset;
+ };
+ 
+-/**
+- * struct kgd2kfd_calls
+- *
+- * @exit: Notifies amdkfd that kgd module is unloaded
+- *
+- * @probe: Notifies amdkfd about a probe done on a device in the kgd driver.
+- *
+- * @device_init: Initialize the newly probed device (if it is a device that
+- * amdkfd supports)
+- *
+- * @device_exit: Notifies amdkfd about a removal of a kgd device
+- *
+- * @suspend: Notifies amdkfd about a suspend action done to a kgd device
+- *
+- * @resume: Notifies amdkfd about a resume action done to a kgd device
+- *
+- * This structure contains function callback pointers so the kgd driver
+- * will notify to the amdkfd about certain status changes.
+- *
+- */
+-struct kgd2kfd_calls {
+-	void (*exit)(void);
+-	struct kfd_dev* (*probe)(struct kgd_dev *kgd, struct pci_dev *pdev);
+-	bool (*device_init)(struct kfd_dev *kfd,
+-			const struct kgd2kfd_shared_resources *gpu_resources);
+-	void (*device_exit)(struct kfd_dev *kfd);
+-	void (*interrupt)(struct kfd_dev *kfd, const void *ih_ring_entry);
+-	void (*suspend)(struct kfd_dev *kfd);
+-	int (*resume)(struct kfd_dev *kfd);
+-};
+-
+ /**
+  * struct kfd2kgd_calls
+  *
+@@ -196,8 +165,39 @@ struct kfd2kgd_calls {
+ 				enum kgd_engine_type type);
+ };
+ 
++/**
++ * struct kgd2kfd_calls
++ *
++ * @exit: Notifies amdkfd that kgd module is unloaded
++ *
++ * @probe: Notifies amdkfd about a probe done on a device in the kgd driver.
++ *
++ * @device_init: Initialize the newly probed device (if it is a device that
++ * amdkfd supports)
++ *
++ * @device_exit: Notifies amdkfd about a removal of a kgd device
++ *
++ * @suspend: Notifies amdkfd about a suspend action done to a kgd device
++ *
++ * @resume: Notifies amdkfd about a resume action done to a kgd device
++ *
++ * This structure contains function callback pointers so the kgd driver
++ * will notify to the amdkfd about certain status changes.
++ *
++ */
++struct kgd2kfd_calls {
++	void (*exit)(void);
++	struct kfd_dev* (*probe)(struct kgd_dev *kgd, struct pci_dev *pdev,
++		const struct kfd2kgd_calls *f2g);
++	bool (*device_init)(struct kfd_dev *kfd,
++			const struct kgd2kfd_shared_resources *gpu_resources);
++	void (*device_exit)(struct kfd_dev *kfd);
++	void (*interrupt)(struct kfd_dev *kfd, const void *ih_ring_entry);
++	void (*suspend)(struct kfd_dev *kfd);
++	int (*resume)(struct kfd_dev *kfd);
++};
++
+ bool kgd2kfd_init(unsigned interface_version,
+-		const struct kfd2kgd_calls *f2g,
+ 		const struct kgd2kfd_calls **g2f);
+ 
+ #endif	/* KGD_KFD_INTERFACE_H_INCLUDED */
+diff --git a/drivers/gpu/drm/radeon/radeon_kfd.c b/drivers/gpu/drm/radeon/radeon_kfd.c
+index 061eaa9c19c7..4cdcaf8361e1 100644
+--- a/drivers/gpu/drm/radeon/radeon_kfd.c
++++ b/drivers/gpu/drm/radeon/radeon_kfd.c
+@@ -103,15 +103,14 @@ static const struct kgd2kfd_calls *kgd2kfd;
+ bool radeon_kfd_init(void)
+ {
+ #if defined(CONFIG_HSA_AMD_MODULE)
+-	bool (*kgd2kfd_init_p)(unsigned, const struct kfd2kgd_calls*,
+-				const struct kgd2kfd_calls**);
++	bool (*kgd2kfd_init_p)(unsigned, const struct kgd2kfd_calls**);
+ 
+ 	kgd2kfd_init_p = symbol_request(kgd2kfd_init);
+ 
+ 	if (kgd2kfd_init_p == NULL)
+ 		return false;
+ 
+-	if (!kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kfd2kgd, &kgd2kfd)) {
++	if (!kgd2kfd_init_p(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		symbol_put(kgd2kfd_init);
+ 		kgd2kfd = NULL;
+ 
+@@ -120,7 +119,7 @@ bool radeon_kfd_init(void)
+ 
+ 	return true;
+ #elif defined(CONFIG_HSA_AMD)
+-	if (!kgd2kfd_init(KFD_INTERFACE_VERSION, &kfd2kgd, &kgd2kfd)) {
++	if (!kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) {
+ 		kgd2kfd = NULL;
+ 
+ 		return false;
+@@ -143,7 +142,8 @@ void radeon_kfd_fini(void)
+ void radeon_kfd_device_probe(struct radeon_device *rdev)
+ {
+ 	if (kgd2kfd)
+-		rdev->kfd = kgd2kfd->probe((struct kgd_dev *)rdev, rdev->pdev);
++		rdev->kfd = kgd2kfd->probe((struct kgd_dev *)rdev,
++			rdev->pdev, &kfd2kgd);
+ }
+ 
+ void radeon_kfd_device_init(struct radeon_device *rdev)
+-- 
+2.17.0
+

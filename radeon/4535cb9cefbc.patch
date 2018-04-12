@@ -1,0 +1,55 @@
+From 4535cb9cefbc736b47bc1e7f8628065aba5ca0d7 Mon Sep 17 00:00:00 2001
+From: Alex Deucher <alexander.deucher@amd.com>
+Date: Wed, 1 Oct 2014 11:26:50 -0400
+Subject: [PATCH] drm/radeon: add support for read reg query from radeon info
+ ioctl
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This allows us to query certain registers from userspace
+for profiling and harvest configuration.  E.g., it can
+be used by the GALLIUM_HUD for profiling the status of
+various gfx blocks.
+
+Tested-by: Marek Olšák <marek.olsak@amd.com>
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/radeon/radeon_kms.c | 8 ++++++++
+ include/uapi/drm/radeon_drm.h       | 1 +
+ 2 files changed, 9 insertions(+)
+
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index cf7e54e9b0d1..7b2a7335cc5d 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -568,6 +568,14 @@ static int radeon_info_ioctl(struct drm_device *dev, void *data, struct drm_file
+ 		else
+ 			*value = rdev->pm.current_mclk / 100;
+ 		break;
++	case RADEON_INFO_READ_REG:
++		if (copy_from_user(value, value_ptr, sizeof(uint32_t))) {
++			DRM_ERROR("copy_from_user %s:%u\n", __func__, __LINE__);
++			return -EFAULT;
++		}
++		if (radeon_get_allowed_info_register(rdev, *value, value))
++			return -EINVAL;
++		break;
+ 	default:
+ 		DRM_DEBUG_KMS("Invalid request %d\n", info->request);
+ 		return -EINVAL;
+diff --git a/include/uapi/drm/radeon_drm.h b/include/uapi/drm/radeon_drm.h
+index de7ee21efea2..871e73f99a4d 100644
+--- a/include/uapi/drm/radeon_drm.h
++++ b/include/uapi/drm/radeon_drm.h
+@@ -1037,6 +1037,7 @@ struct drm_radeon_cs {
+ #define RADEON_INFO_CURRENT_GPU_TEMP	0x21
+ #define RADEON_INFO_CURRENT_GPU_SCLK	0x22
+ #define RADEON_INFO_CURRENT_GPU_MCLK	0x23
++#define RADEON_INFO_READ_REG		0x24
+ 
+ struct drm_radeon_info {
+ 	uint32_t		request;
+-- 
+2.17.0
+

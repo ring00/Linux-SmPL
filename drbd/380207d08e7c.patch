@@ -1,0 +1,197 @@
+From 380207d08e7c4d1b19c0323777278992b4fbf9d6 Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Fri, 11 Nov 2011 12:31:20 +0100
+Subject: [PATCH] drbd: Load balancing of read requests
+
+New config option for the disk secition "read-balancing", with
+the values: prefer-local, prefer-remote, round-robin, when-congested-remote.
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_int.h      |  1 +
+ drivers/block/drbd/drbd_receiver.c |  2 +-
+ drivers/block/drbd/drbd_req.c      | 57 +++++++++++++++++++++++++++++-
+ include/linux/drbd.h               |  8 +++++
+ include/linux/drbd_genl.h          |  1 +
+ include/linux/drbd_limits.h        |  1 +
+ 6 files changed, 68 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index d397681fb7aa..e2cccb40f5af 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -698,6 +698,7 @@ enum {
+ 	AHEAD_TO_SYNC_SOURCE,   /* Ahead -> SyncSource queued */
+ 	B_RS_H_DONE,		/* Before resync handler done (already executed) */
+ 	DISCARD_MY_DATA,	/* discard_my_data flag per volume */
++	READ_BALANCE_RR,
+ };
+ 
+ struct drbd_bitmap; /* opaque for drbd_conf */
+diff --git a/drivers/block/drbd/drbd_receiver.c b/drivers/block/drbd/drbd_receiver.c
+index e546dd3fab8a..733b8bd663d5 100644
+--- a/drivers/block/drbd/drbd_receiver.c
++++ b/drivers/block/drbd/drbd_receiver.c
+@@ -4974,7 +4974,7 @@ static int got_NegDReply(struct drbd_tconn *tconn, struct packet_info *pi)
+ 
+ 	update_peer_seq(mdev, be32_to_cpu(p->seq_num));
+ 
+-	dev_err(DEV, "Got NegDReply; Sector %llus, len %u; Fail original request.\n",
++	dev_err(DEV, "Got NegDReply; Sector %llus, len %u.\n",
+ 	    (unsigned long long)sector, be32_to_cpu(p->blksize));
+ 
+ 	return validate_req_change_req_state(mdev, p->block_id, sector,
+diff --git a/drivers/block/drbd/drbd_req.c b/drivers/block/drbd/drbd_req.c
+index ceb04a94aace..98251e2a7fb7 100644
+--- a/drivers/block/drbd/drbd_req.c
++++ b/drivers/block/drbd/drbd_req.c
+@@ -563,6 +563,11 @@ int __req_mod(struct drbd_request *req, enum drbd_req_event what,
+ 		if (req->rq_state & RQ_NET_SENT && req->rq_state & RQ_WRITE)
+ 			atomic_sub(req->i.size >> 9, &mdev->ap_in_flight);
+ 
++		if (!(req->rq_state & RQ_WRITE) &&
++		    mdev->state.disk == D_UP_TO_DATE &&
++		    !IS_ERR_OR_NULL(req->private_bio))
++			goto goto_read_retry_local;
++
+ 		/* if it is still queued, we may not complete it here.
+ 		 * it will be canceled soon. */
+ 		if (!(req->rq_state & RQ_NET_QUEUED))
+@@ -625,10 +630,22 @@ int __req_mod(struct drbd_request *req, enum drbd_req_event what,
+ 		req->rq_state &= ~(RQ_NET_OK|RQ_NET_PENDING);
+ 
+ 		req->rq_state |= RQ_NET_DONE;
++
++		if (!(req->rq_state & RQ_WRITE) &&
++		    mdev->state.disk == D_UP_TO_DATE &&
++		    !IS_ERR_OR_NULL(req->private_bio))
++			goto goto_read_retry_local;
++
+ 		_req_may_be_done_not_susp(req, m);
+ 		/* else: done by HANDED_OVER_TO_NETWORK */
+ 		break;
+ 
++	goto_read_retry_local:
++		req->rq_state |= RQ_LOCAL_PENDING;
++		req->private_bio->bi_bdev = mdev->ldev->backing_bdev;
++		generic_make_request(req->private_bio);
++		break;
++
+ 	case FAIL_FROZEN_DISK_IO:
+ 		if (!(req->rq_state & RQ_LOCAL_COMPLETED))
+ 			break;
+@@ -689,6 +706,11 @@ int __req_mod(struct drbd_request *req, enum drbd_req_event what,
+ 		dec_ap_pending(mdev);
+ 		req->rq_state &= ~RQ_NET_PENDING;
+ 		req->rq_state |= (RQ_NET_OK|RQ_NET_DONE);
++		if (!IS_ERR_OR_NULL(req->private_bio)) {
++			bio_put(req->private_bio);
++			req->private_bio = NULL;
++			put_ldev(mdev);
++		}
+ 		_req_may_be_done_not_susp(req, m);
+ 		break;
+ 	};
+@@ -723,6 +745,35 @@ static bool drbd_may_do_local_read(struct drbd_conf *mdev, sector_t sector, int
+ 	return drbd_bm_count_bits(mdev, sbnr, ebnr) == 0;
+ }
+ 
++static bool remote_due_to_read_balancing(struct drbd_conf *mdev)
++{
++	enum drbd_read_balancing rbm;
++	struct backing_dev_info *bdi;
++
++	if (mdev->state.pdsk < D_UP_TO_DATE)
++		return false;
++
++	rcu_read_lock();
++	rbm = rcu_dereference(mdev->ldev->disk_conf)->read_balancing;
++	rcu_read_unlock();
++
++	switch (rbm) {
++	case RB_CONGESTED_REMOTE:
++		bdi = &mdev->ldev->backing_bdev->bd_disk->queue->backing_dev_info;
++		return bdi_read_congested(bdi);
++	case RB_LEAST_PENDING:
++		return atomic_read(&mdev->local_cnt) >
++			atomic_read(&mdev->ap_pending_cnt) + atomic_read(&mdev->rs_pending_cnt);
++	case RB_ROUND_ROBIN:
++		return test_and_change_bit(READ_BALANCE_RR, &mdev->flags);
++	case RB_PREFER_REMOTE:
++		return true;
++	case RB_PREFER_LOCAL:
++	default:
++		return false;
++	}
++}
++
+ /*
+  * complete_conflicting_writes  -  wait for any conflicting write requests
+  *
+@@ -790,6 +841,10 @@ int __drbd_make_request(struct drbd_conf *mdev, struct bio *bio, unsigned long s
+ 				bio_put(req->private_bio);
+ 				req->private_bio = NULL;
+ 				put_ldev(mdev);
++			} else if (remote_due_to_read_balancing(mdev)) {
++				/* Keep the private bio in case we need it
++				   for a local retry */
++				local = 0;
+ 			}
+ 		}
+ 		remote = !local && mdev->state.pdsk >= D_UP_TO_DATE;
+@@ -1017,7 +1072,7 @@ int __drbd_make_request(struct drbd_conf *mdev, struct bio *bio, unsigned long s
+ 	if (req->rq_state & RQ_IN_ACT_LOG)
+ 		drbd_al_complete_io(mdev, &req->i);
+ fail_and_free_req:
+-	if (local) {
++	if (!IS_ERR_OR_NULL(req->private_bio)) {
+ 		bio_put(req->private_bio);
+ 		req->private_bio = NULL;
+ 		put_ldev(mdev);
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 1e9f754b66ac..157ba3d74dc7 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -102,6 +102,14 @@ enum drbd_on_congestion {
+ 	OC_DISCONNECT,
+ };
+ 
++enum drbd_read_balancing {
++	RB_PREFER_LOCAL,
++	RB_PREFER_REMOTE,
++	RB_ROUND_ROBIN,
++	RB_LEAST_PENDING,
++	RB_CONGESTED_REMOTE,
++};
++
+ /* KEEP the order, do not delete or insert. Only append. */
+ enum drbd_ret_code {
+ 	ERR_CODE_BASE		= 100,
+diff --git a/include/linux/drbd_genl.h b/include/linux/drbd_genl.h
+index 2e6cefefe5e5..826008f297fe 100644
+--- a/include/linux/drbd_genl.h
++++ b/include/linux/drbd_genl.h
+@@ -129,6 +129,7 @@ GENL_struct(DRBD_NLA_DISK_CONF, 3, disk_conf,
+ 	__flg_field_def(18, DRBD_GENLA_F_MANDATORY,	disk_drain, DRBD_DISK_DRAIN_DEF)
+ 	__flg_field_def(19, DRBD_GENLA_F_MANDATORY,	md_flushes, DRBD_MD_FLUSHES_DEF)
+ 	__u32_field_def(20,	DRBD_GENLA_F_MANDATORY,	disk_timeout, DRBD_DISK_TIMEOUT_DEF)
++	__u32_field_def(21,	0 /* OPTIONAL */,       read_balancing, DRBD_READ_BALANCING_DEF)
+ )
+ 
+ GENL_struct(DRBD_NLA_RESOURCE_OPTS, 4, res_opts,
+diff --git a/include/linux/drbd_limits.h b/include/linux/drbd_limits.h
+index 6d0a24331ed2..17ef66a5c114 100644
+--- a/include/linux/drbd_limits.h
++++ b/include/linux/drbd_limits.h
+@@ -161,6 +161,7 @@
+ #define DRBD_RR_CONFLICT_DEF ASB_DISCONNECT
+ #define DRBD_ON_NO_DATA_DEF OND_IO_ERROR
+ #define DRBD_ON_CONGESTION_DEF OC_BLOCK
++#define DRBD_READ_BALANCING_DEF RB_PREFER_LOCAL
+ 
+ #define DRBD_MAX_BIO_BVECS_MIN 0
+ #define DRBD_MAX_BIO_BVECS_MAX 128
+-- 
+2.17.0
+

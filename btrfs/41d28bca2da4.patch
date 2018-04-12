@@ -1,0 +1,203 @@
+From 41d28bca2da4bd75a8915c1ccf2cacf7f4a2e531 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 12 Oct 2014 22:24:21 -0400
+Subject: [PATCH] switch d_materialise_unique() users to d_splice_alias()
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/nfs/Exporting | 23 +++++------------------
+ Documentation/filesystems/porting       |  4 ++++
+ fs/9p/vfs_inode.c                       |  2 +-
+ fs/btrfs/inode.c                        |  2 +-
+ fs/ceph/inode.c                         |  2 +-
+ fs/cifs/readdir.c                       |  2 +-
+ fs/fuse/dir.c                           |  4 ++--
+ fs/kernfs/dir.c                         |  2 +-
+ fs/nfs/dir.c                            |  4 ++--
+ fs/nfs/getroot.c                        |  2 +-
+ include/linux/dcache.h                  |  1 -
+ 11 files changed, 19 insertions(+), 29 deletions(-)
+
+diff --git a/Documentation/filesystems/nfs/Exporting b/Documentation/filesystems/nfs/Exporting
+index c8f036a9b13f..520a4becb75c 100644
+--- a/Documentation/filesystems/nfs/Exporting
++++ b/Documentation/filesystems/nfs/Exporting
+@@ -72,24 +72,11 @@ c/ Helper routines to allocate anonymous dentries, and to help attach
+         DCACHE_DISCONNECTED) dentry is allocated and attached.
+       In the case of a directory, care is taken that only one dentry
+       can ever be attached.
+-    d_splice_alias(inode, dentry) or d_materialise_unique(dentry, inode)
+-      will introduce a new dentry into the tree; either the passed-in
+-      dentry or a preexisting alias for the given inode (such as an
+-      anonymous one created by d_obtain_alias), if appropriate.  The two
+-      functions differ in their handling of directories with preexisting
+-      aliases:
+-        d_splice_alias will use any existing IS_ROOT dentry, but it will
+-	  return -EIO rather than try to move a dentry with a different
+-	  parent.  This is appropriate for local filesystems, which
+-	  should never see such an alias unless the filesystem is
+-	  corrupted somehow (for example, if two on-disk directory
+-	  entries refer to the same directory.)
+-	d_materialise_unique will attempt to move any dentry.  This is
+-	  appropriate for distributed filesystems, where finding a
+-	  directory other than where we last cached it may be a normal
+-	  consequence of concurrent operations on other hosts.
+-      Both functions return NULL when the passed-in dentry is used,
+-      following the calling convention of ->lookup.
++    d_splice_alias(inode, dentry) will introduce a new dentry into the tree;
++      either the passed-in dentry or a preexisting alias for the given inode
++      (such as an anonymous one created by d_obtain_alias), if appropriate.
++      It returns NULL when the passed-in dentry is used, following the calling
++      convention of ->lookup.
+ 
+  
+ Filesystem Issues
+diff --git a/Documentation/filesystems/porting b/Documentation/filesystems/porting
+index 0f3a1390bf00..b6b55a9cffee 100644
+--- a/Documentation/filesystems/porting
++++ b/Documentation/filesystems/porting
+@@ -463,3 +463,7 @@ in your dentry operations instead.
+ 	of the in-tree instances did).  inode_hash_lock is still held,
+ 	of course, so they are still serialized wrt removal from inode hash,
+ 	as well as wrt set() callback of iget5_locked().
++--
++[mandatory]
++	d_materialise_unique() is gone; d_splice_alias() does everything you
++	need now.  Remember that they have opposite orders of arguments ;-/
+diff --git a/fs/9p/vfs_inode.c b/fs/9p/vfs_inode.c
+index 296482fc77a9..9ee5343d4884 100644
+--- a/fs/9p/vfs_inode.c
++++ b/fs/9p/vfs_inode.c
+@@ -832,7 +832,7 @@ struct dentry *v9fs_vfs_lookup(struct inode *dir, struct dentry *dentry,
+ 	 * moved b under k and client parallely did a lookup for
+ 	 * k/b.
+ 	 */
+-	res = d_materialise_unique(dentry, inode);
++	res = d_splice_alias(inode, dentry);
+ 	if (!res)
+ 		v9fs_fid_add(dentry, fid);
+ 	else if (!IS_ERR(res))
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index d23362f4464e..ff0dcc016b71 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -5303,7 +5303,7 @@ static struct dentry *btrfs_lookup(struct inode *dir, struct dentry *dentry,
+ 			return ERR_CAST(inode);
+ 	}
+ 
+-	return d_materialise_unique(dentry, inode);
++	return d_splice_alias(inode, dentry);
+ }
+ 
+ unsigned char btrfs_filetype_table[] = {
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index 7a1df90c7771..90ec8e32c138 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -967,7 +967,7 @@ static struct dentry *splice_dentry(struct dentry *dn, struct inode *in,
+ 	/* dn must be unhashed */
+ 	if (!d_unhashed(dn))
+ 		d_drop(dn);
+-	realdn = d_materialise_unique(dn, in);
++	realdn = d_splice_alias(in, dn);
+ 	if (IS_ERR(realdn)) {
+ 		pr_err("splice_dentry error %ld %p inode %p ino %llx.%llx\n",
+ 		       PTR_ERR(realdn), dn, in, ceph_vinop(in));
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index 8fd2a95860ba..586e3d3b204e 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -123,7 +123,7 @@ cifs_prime_dcache(struct dentry *parent, struct qstr *name,
+ 	if (!inode)
+ 		goto out;
+ 
+-	alias = d_materialise_unique(dentry, inode);
++	alias = d_splice_alias(inode, dentry);
+ 	if (alias && !IS_ERR(alias))
+ 		dput(alias);
+ out:
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index dbab798f5caf..df562cc87763 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -372,7 +372,7 @@ static struct dentry *fuse_lookup(struct inode *dir, struct dentry *entry,
+ 	if (inode && get_node_id(inode) == FUSE_ROOT_ID)
+ 		goto out_iput;
+ 
+-	newent = d_materialise_unique(entry, inode);
++	newent = d_splice_alias(inode, entry);
+ 	err = PTR_ERR(newent);
+ 	if (IS_ERR(newent))
+ 		goto out_err;
+@@ -1320,7 +1320,7 @@ static int fuse_direntplus_link(struct file *file,
+ 	if (!inode)
+ 		goto out;
+ 
+-	alias = d_materialise_unique(dentry, inode);
++	alias = d_splice_alias(inode, dentry);
+ 	err = PTR_ERR(alias);
+ 	if (IS_ERR(alias))
+ 		goto out;
+diff --git a/fs/kernfs/dir.c b/fs/kernfs/dir.c
+index 1c771931bb60..37989f02a226 100644
+--- a/fs/kernfs/dir.c
++++ b/fs/kernfs/dir.c
+@@ -807,7 +807,7 @@ static struct dentry *kernfs_iop_lookup(struct inode *dir,
+ 	}
+ 
+ 	/* instantiate and hash dentry */
+-	ret = d_materialise_unique(dentry, inode);
++	ret = d_splice_alias(inode, dentry);
+  out_unlock:
+ 	mutex_unlock(&kernfs_mutex);
+ 	return ret;
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index 06e8cfcbb670..44d7d0c7e376 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -499,7 +499,7 @@ void nfs_prime_dcache(struct dentry *parent, struct nfs_entry *entry)
+ 	if (IS_ERR(inode))
+ 		goto out;
+ 
+-	alias = d_materialise_unique(dentry, inode);
++	alias = d_splice_alias(inode, dentry);
+ 	if (IS_ERR(alias))
+ 		goto out;
+ 	else if (alias) {
+@@ -1393,7 +1393,7 @@ struct dentry *nfs_lookup(struct inode *dir, struct dentry * dentry, unsigned in
+ 	nfs_advise_use_readdirplus(dir);
+ 
+ no_entry:
+-	res = d_materialise_unique(dentry, inode);
++	res = d_splice_alias(inode, dentry);
+ 	if (res != NULL) {
+ 		if (IS_ERR(res))
+ 			goto out_unblock_sillyrename;
+diff --git a/fs/nfs/getroot.c b/fs/nfs/getroot.c
+index ebc6a0add5ae..9ac3846cb59e 100644
+--- a/fs/nfs/getroot.c
++++ b/fs/nfs/getroot.c
+@@ -51,7 +51,7 @@ static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *i
+ 		/*
+ 		 * Ensure that this dentry is invisible to d_find_alias().
+ 		 * Otherwise, it may be spliced into the tree by
+-		 * d_materialise_unique if a parent directory from the same
++		 * d_splice_alias if a parent directory from the same
+ 		 * filesystem gets mounted at a later time.
+ 		 * This again causes shrink_dcache_for_umount_subtree() to
+ 		 * Oops, since the test for IS_ROOT() will fail.
+diff --git a/include/linux/dcache.h b/include/linux/dcache.h
+index ee569da27b72..5a813988e6d4 100644
+--- a/include/linux/dcache.h
++++ b/include/linux/dcache.h
+@@ -230,7 +230,6 @@ extern seqlock_t rename_lock;
+  */
+ extern void d_instantiate(struct dentry *, struct inode *);
+ extern struct dentry * d_instantiate_unique(struct dentry *, struct inode *);
+-#define d_materialise_unique(d, i) d_splice_alias(i, d)
+ extern int d_instantiate_no_diralias(struct dentry *, struct inode *);
+ extern void __d_drop(struct dentry *dentry);
+ extern void d_drop(struct dentry *dentry);
+-- 
+2.17.0
+

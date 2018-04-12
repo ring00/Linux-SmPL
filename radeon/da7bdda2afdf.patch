@@ -1,0 +1,703 @@
+From da7bdda2afdf1ae58546218b50771c2c646bb079 Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Tue, 7 Feb 2017 17:16:03 +0100
+Subject: [PATCH] drm/fb-helper: Automatically clean up fb_info
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Noticed that everyone duplicates the same logic here and we could safe
+a few lines per driver. Yay for lots of drivers to make such tiny
+refactors worth-while!
+
+v2: Forgot to git add everything :(
+
+v3: Actually remove release_fbi (Sean, Emil, Chris) ...
+
+Cc: Chris Wilson <chris@chris-wilson.co.uk>
+Cc: Sean Paul <seanpaul@chromium.org>
+Cc: Noralf Trønnes <noralf@tronnes.org>
+Cc: Emil Velikov <emil.l.velikov@gmail.com>
+Reviewed-by: Sean Paul <seanpaul@chromium.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@intel.com>
+Link: http://patchwork.freedesktop.org/patch/msgid/20170207161603.17611-1-daniel.vetter@ffwll.ch
+---
+ drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c        | 11 ++----
+ drivers/gpu/drm/armada/armada_fbdev.c         |  2 -
+ drivers/gpu/drm/ast/ast_fb.c                  |  9 ++---
+ drivers/gpu/drm/bochs/bochs_fbdev.c           |  5 +--
+ drivers/gpu/drm/cirrus/cirrus_fbdev.c         |  1 -
+ drivers/gpu/drm/drm_fb_cma_helper.c           |  3 +-
+ drivers/gpu/drm/drm_fb_helper.c               | 39 +++++++------------
+ drivers/gpu/drm/exynos/exynos_drm_fbdev.c     |  2 -
+ drivers/gpu/drm/gma500/framebuffer.c          |  9 ++---
+ .../gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c |  2 -
+ drivers/gpu/drm/i915/intel_fbdev.c            |  5 +--
+ drivers/gpu/drm/mgag200/mgag200_fb.c          |  5 +--
+ drivers/gpu/drm/msm/msm_fbdev.c               |  1 -
+ drivers/gpu/drm/nouveau/nouveau_fbcon.c       |  1 -
+ drivers/gpu/drm/omapdrm/omap_fbdev.c          |  4 --
+ drivers/gpu/drm/qxl/qxl_fb.c                  |  5 +--
+ drivers/gpu/drm/radeon/radeon_fb.c            | 11 ++----
+ drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c |  9 ++---
+ drivers/gpu/drm/tegra/fb.c                    |  5 +--
+ drivers/gpu/drm/udl/udl_fb.c                  |  5 +--
+ drivers/gpu/drm/virtio/virtgpu_fb.c           |  5 +--
+ include/drm/drm_fb_helper.h                   |  4 --
+ 22 files changed, 39 insertions(+), 104 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+index 36ce3cac81ba..72505b15dd13 100644
+--- a/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
++++ b/drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+@@ -224,7 +224,7 @@ static int amdgpufb_create(struct drm_fb_helper *helper,
+ 	info = drm_fb_helper_alloc_fbi(helper);
+ 	if (IS_ERR(info)) {
+ 		ret = PTR_ERR(info);
+-		goto out_unref;
++		goto out;
+ 	}
+ 
+ 	info->par = rfbdev;
+@@ -233,7 +233,7 @@ static int amdgpufb_create(struct drm_fb_helper *helper,
+ 	ret = amdgpu_framebuffer_init(adev->ddev, &rfbdev->rfb, &mode_cmd, gobj);
+ 	if (ret) {
+ 		DRM_ERROR("failed to initialize framebuffer %d\n", ret);
+-		goto out_destroy_fbi;
++		goto out;
+ 	}
+ 
+ 	fb = &rfbdev->rfb.base;
+@@ -266,7 +266,7 @@ static int amdgpufb_create(struct drm_fb_helper *helper,
+ 
+ 	if (info->screen_base == NULL) {
+ 		ret = -ENOSPC;
+-		goto out_destroy_fbi;
++		goto out;
+ 	}
+ 
+ 	DRM_INFO("fb mappable at 0x%lX\n",  info->fix.smem_start);
+@@ -278,9 +278,7 @@ static int amdgpufb_create(struct drm_fb_helper *helper,
+ 	vga_switcheroo_client_fb_set(adev->ddev->pdev, info);
+ 	return 0;
+ 
+-out_destroy_fbi:
+-	drm_fb_helper_release_fbi(helper);
+-out_unref:
++out:
+ 	if (abo) {
+ 
+ 	}
+@@ -304,7 +302,6 @@ static int amdgpu_fbdev_destroy(struct drm_device *dev, struct amdgpu_fbdev *rfb
+ 	struct amdgpu_framebuffer *rfb = &rfbdev->rfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&rfbdev->helper);
+-	drm_fb_helper_release_fbi(&rfbdev->helper);
+ 
+ 	if (rfb->obj) {
+ 		amdgpufb_destroy_pinned_object(rfb->obj);
+diff --git a/drivers/gpu/drm/armada/armada_fbdev.c b/drivers/gpu/drm/armada/armada_fbdev.c
+index 0233e1dc33e1..602dfead8eef 100644
+--- a/drivers/gpu/drm/armada/armada_fbdev.c
++++ b/drivers/gpu/drm/armada/armada_fbdev.c
+@@ -157,7 +157,6 @@ int armada_fbdev_init(struct drm_device *dev)
+ 
+ 	return 0;
+  err_fb_setup:
+-	drm_fb_helper_release_fbi(fbh);
+ 	drm_fb_helper_fini(fbh);
+  err_fb_helper:
+ 	priv->fbdev = NULL;
+@@ -179,7 +178,6 @@ void armada_fbdev_fini(struct drm_device *dev)
+ 
+ 	if (fbh) {
+ 		drm_fb_helper_unregister_fbi(fbh);
+-		drm_fb_helper_release_fbi(fbh);
+ 
+ 		drm_fb_helper_fini(fbh);
+ 
+diff --git a/drivers/gpu/drm/ast/ast_fb.c b/drivers/gpu/drm/ast/ast_fb.c
+index 5d0ffab411a8..4ad4acd0ccab 100644
+--- a/drivers/gpu/drm/ast/ast_fb.c
++++ b/drivers/gpu/drm/ast/ast_fb.c
+@@ -215,13 +215,13 @@ static int astfb_create(struct drm_fb_helper *helper,
+ 	info = drm_fb_helper_alloc_fbi(helper);
+ 	if (IS_ERR(info)) {
+ 		ret = PTR_ERR(info);
+-		goto err_free_vram;
++		goto out;
+ 	}
+ 	info->par = afbdev;
+ 
+ 	ret = ast_framebuffer_init(dev, &afbdev->afb, &mode_cmd, gobj);
+ 	if (ret)
+-		goto err_release_fbi;
++		goto out;
+ 
+ 	afbdev->sysram = sysram;
+ 	afbdev->size = size;
+@@ -250,9 +250,7 @@ static int astfb_create(struct drm_fb_helper *helper,
+ 
+ 	return 0;
+ 
+-err_release_fbi:
+-	drm_fb_helper_release_fbi(helper);
+-err_free_vram:
++out:
+ 	vfree(sysram);
+ 	return ret;
+ }
+@@ -287,7 +285,6 @@ static void ast_fbdev_destroy(struct drm_device *dev,
+ 	struct ast_framebuffer *afb = &afbdev->afb;
+ 
+ 	drm_fb_helper_unregister_fbi(&afbdev->helper);
+-	drm_fb_helper_release_fbi(&afbdev->helper);
+ 
+ 	if (afb->obj) {
+ 		drm_gem_object_unreference_unlocked(afb->obj);
+diff --git a/drivers/gpu/drm/bochs/bochs_fbdev.c b/drivers/gpu/drm/bochs/bochs_fbdev.c
+index 932a769637ef..a11debaad626 100644
+--- a/drivers/gpu/drm/bochs/bochs_fbdev.c
++++ b/drivers/gpu/drm/bochs/bochs_fbdev.c
+@@ -107,10 +107,8 @@ static int bochsfb_create(struct drm_fb_helper *helper,
+ 	info->par = &bochs->fb.helper;
+ 
+ 	ret = bochs_framebuffer_init(bochs->dev, &bochs->fb.gfb, &mode_cmd, gobj);
+-	if (ret) {
+-		drm_fb_helper_release_fbi(helper);
++	if (ret)
+ 		return ret;
+-	}
+ 
+ 	bochs->fb.size = size;
+ 
+@@ -144,7 +142,6 @@ static int bochs_fbdev_destroy(struct bochs_device *bochs)
+ 	DRM_DEBUG_DRIVER("\n");
+ 
+ 	drm_fb_helper_unregister_fbi(&bochs->fb.helper);
+-	drm_fb_helper_release_fbi(&bochs->fb.helper);
+ 
+ 	if (gfb->obj) {
+ 		drm_gem_object_unreference_unlocked(gfb->obj);
+diff --git a/drivers/gpu/drm/cirrus/cirrus_fbdev.c b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+index 4cc679278182..7fa58eeadc9d 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_fbdev.c
++++ b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+@@ -250,7 +250,6 @@ static int cirrus_fbdev_destroy(struct drm_device *dev,
+ 	struct cirrus_framebuffer *gfb = &gfbdev->gfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&gfbdev->helper);
+-	drm_fb_helper_release_fbi(&gfbdev->helper);
+ 
+ 	if (gfb->obj) {
+ 		drm_gem_object_unreference_unlocked(gfb->obj);
+diff --git a/drivers/gpu/drm/drm_fb_cma_helper.c b/drivers/gpu/drm/drm_fb_cma_helper.c
+index 596fabf18c3e..920bb5764cd6 100644
+--- a/drivers/gpu/drm/drm_fb_cma_helper.c
++++ b/drivers/gpu/drm/drm_fb_cma_helper.c
+@@ -475,7 +475,7 @@ drm_fbdev_cma_create(struct drm_fb_helper *helper,
+ err_cma_destroy:
+ 	drm_framebuffer_remove(&fbdev_cma->fb->fb);
+ err_fb_info_destroy:
+-	drm_fb_helper_release_fbi(helper);
++	drm_fb_helper_fini(helper);
+ err_gem_free_object:
+ 	drm_gem_object_unreference_unlocked(&obj->base);
+ 	return ret;
+@@ -570,7 +570,6 @@ void drm_fbdev_cma_fini(struct drm_fbdev_cma *fbdev_cma)
+ 	drm_fb_helper_unregister_fbi(&fbdev_cma->fb_helper);
+ 	if (fbdev_cma->fb_helper.fbdev)
+ 		drm_fbdev_cma_defio_fini(fbdev_cma->fb_helper.fbdev);
+-	drm_fb_helper_release_fbi(&fbdev_cma->fb_helper);
+ 
+ 	if (fbdev_cma->fb)
+ 		drm_framebuffer_remove(&fbdev_cma->fb->fb);
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index d207ea376c0a..c91240598471 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -781,7 +781,9 @@ EXPORT_SYMBOL(drm_fb_helper_init);
+  * @fb_helper: driver-allocated fbdev helper
+  *
+  * A helper to alloc fb_info and the members cmap and apertures. Called
+- * by the driver within the fb_probe fb_helper callback function.
++ * by the driver within the fb_probe fb_helper callback function. Drivers do not
++ * need to release the allocated fb_info structure themselves, this is
++ * automatically done when calling drm_fb_helper_fini().
+  *
+  * RETURNS:
+  * fb_info pointer if things went okay, pointer containing error code
+@@ -834,29 +836,6 @@ void drm_fb_helper_unregister_fbi(struct drm_fb_helper *fb_helper)
+ }
+ EXPORT_SYMBOL(drm_fb_helper_unregister_fbi);
+ 
+-/**
+- * drm_fb_helper_release_fbi - dealloc fb_info and its members
+- * @fb_helper: driver-allocated fbdev helper
+- *
+- * A helper to free memory taken by fb_info and the members cmap and
+- * apertures
+- */
+-void drm_fb_helper_release_fbi(struct drm_fb_helper *fb_helper)
+-{
+-	if (fb_helper) {
+-		struct fb_info *info = fb_helper->fbdev;
+-
+-		if (info) {
+-			if (info->cmap.len)
+-				fb_dealloc_cmap(&info->cmap);
+-			framebuffer_release(info);
+-		}
+-
+-		fb_helper->fbdev = NULL;
+-	}
+-}
+-EXPORT_SYMBOL(drm_fb_helper_release_fbi);
+-
+ /**
+  * drm_fb_helper_fini - finialize a &struct drm_fb_helper
+  * @fb_helper: driver-allocated fbdev helper
+@@ -866,9 +845,19 @@ EXPORT_SYMBOL(drm_fb_helper_release_fbi);
+  */
+ void drm_fb_helper_fini(struct drm_fb_helper *fb_helper)
+ {
+-	if (!drm_fbdev_emulation)
++	struct fb_info *info;
++
++	if (!drm_fbdev_emulation || !fb_helper)
+ 		return;
+ 
++	info = fb_helper->fbdev;
++	if (info) {
++		if (info->cmap.len)
++			fb_dealloc_cmap(&info->cmap);
++		framebuffer_release(info);
++	}
++	fb_helper->fbdev = NULL;
++
+ 	mutex_lock(&kernel_fb_helper_lock);
+ 	if (!list_empty(&fb_helper->kernel_fb_list)) {
+ 		list_del(&fb_helper->kernel_fb_list);
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+index bcdb2720b68e..40aa5056d4ae 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+@@ -99,7 +99,6 @@ static int exynos_drm_fbdev_update(struct drm_fb_helper *helper,
+ 				VM_MAP, pgprot_writecombine(PAGE_KERNEL));
+ 	if (!exynos_gem->kvaddr) {
+ 		DRM_ERROR("failed to map pages to kernel space.\n");
+-		drm_fb_helper_release_fbi(helper);
+ 		return -EIO;
+ 	}
+ 
+@@ -272,7 +271,6 @@ static void exynos_drm_fbdev_destroy(struct drm_device *dev,
+ 	}
+ 
+ 	drm_fb_helper_unregister_fbi(fb_helper);
+-	drm_fb_helper_release_fbi(fb_helper);
+ 
+ 	drm_fb_helper_fini(fb_helper);
+ }
+diff --git a/drivers/gpu/drm/gma500/framebuffer.c b/drivers/gpu/drm/gma500/framebuffer.c
+index da42d2e1d397..9b556b2c7e24 100644
+--- a/drivers/gpu/drm/gma500/framebuffer.c
++++ b/drivers/gpu/drm/gma500/framebuffer.c
+@@ -392,7 +392,7 @@ static int psbfb_create(struct psb_fbdev *fbdev,
+ 	info = drm_fb_helper_alloc_fbi(&fbdev->psb_fb_helper);
+ 	if (IS_ERR(info)) {
+ 		ret = PTR_ERR(info);
+-		goto err_free_range;
++		goto out;
+ 	}
+ 	info->par = fbdev;
+ 
+@@ -400,7 +400,7 @@ static int psbfb_create(struct psb_fbdev *fbdev,
+ 
+ 	ret = psb_framebuffer_init(dev, psbfb, &mode_cmd, backing);
+ 	if (ret)
+-		goto err_release;
++		goto out;
+ 
+ 	fb = &psbfb->base;
+ 	psbfb->fbdev = info;
+@@ -445,9 +445,7 @@ static int psbfb_create(struct psb_fbdev *fbdev,
+ 					psbfb->base.width, psbfb->base.height);
+ 
+ 	return 0;
+-err_release:
+-	drm_fb_helper_release_fbi(&fbdev->psb_fb_helper);
+-err_free_range:
++out:
+ 	psb_gtt_free_range(dev, backing);
+ 	return ret;
+ }
+@@ -536,7 +534,6 @@ static int psb_fbdev_destroy(struct drm_device *dev, struct psb_fbdev *fbdev)
+ 	struct psb_framebuffer *psbfb = &fbdev->pfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&fbdev->psb_fb_helper);
+-	drm_fb_helper_release_fbi(&fbdev->psb_fb_helper);
+ 
+ 	drm_fb_helper_fini(&fbdev->psb_fb_helper);
+ 	drm_framebuffer_unregister_private(&psbfb->base);
+diff --git a/drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c b/drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c
+index d7a4d9095b33..f5ac80daeef2 100644
+--- a/drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c
++++ b/drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c
+@@ -147,7 +147,6 @@ static int hibmc_drm_fb_create(struct drm_fb_helper *helper,
+ 	return 0;
+ 
+ out_release_fbi:
+-	drm_fb_helper_release_fbi(helper);
+ 	ret1 = ttm_bo_reserve(&bo->bo, true, false, NULL);
+ 	if (ret1) {
+ 		DRM_ERROR("failed to rsv ttm_bo when release fbi: %d\n", ret1);
+@@ -170,7 +169,6 @@ static void hibmc_fbdev_destroy(struct hibmc_fbdev *fbdev)
+ 	struct drm_fb_helper *fbh = &fbdev->helper;
+ 
+ 	drm_fb_helper_unregister_fbi(fbh);
+-	drm_fb_helper_release_fbi(fbh);
+ 
+ 	drm_fb_helper_fini(fbh);
+ 
+diff --git a/drivers/gpu/drm/i915/intel_fbdev.c b/drivers/gpu/drm/i915/intel_fbdev.c
+index 1b8ba2e77539..281c5c48a84d 100644
+--- a/drivers/gpu/drm/i915/intel_fbdev.c
++++ b/drivers/gpu/drm/i915/intel_fbdev.c
+@@ -253,7 +253,7 @@ static int intelfb_create(struct drm_fb_helper *helper,
+ 	if (IS_ERR(vaddr)) {
+ 		DRM_ERROR("Failed to remap framebuffer into virtual memory\n");
+ 		ret = PTR_ERR(vaddr);
+-		goto out_destroy_fbi;
++		goto out_unpin;
+ 	}
+ 	info->screen_base = vaddr;
+ 	info->screen_size = vma->node.size;
+@@ -281,8 +281,6 @@ static int intelfb_create(struct drm_fb_helper *helper,
+ 	vga_switcheroo_client_fb_set(pdev, info);
+ 	return 0;
+ 
+-out_destroy_fbi:
+-	drm_fb_helper_release_fbi(helper);
+ out_unpin:
+ 	intel_unpin_fb_vma(vma);
+ out_unlock:
+@@ -543,7 +541,6 @@ static void intel_fbdev_destroy(struct intel_fbdev *ifbdev)
+ 	 */
+ 
+ 	drm_fb_helper_unregister_fbi(&ifbdev->helper);
+-	drm_fb_helper_release_fbi(&ifbdev->helper);
+ 
+ 	drm_fb_helper_fini(&ifbdev->helper);
+ 
+diff --git a/drivers/gpu/drm/mgag200/mgag200_fb.c b/drivers/gpu/drm/mgag200/mgag200_fb.c
+index a449bb91213a..5d3b1fac906f 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_fb.c
++++ b/drivers/gpu/drm/mgag200/mgag200_fb.c
+@@ -198,7 +198,7 @@ static int mgag200fb_create(struct drm_fb_helper *helper,
+ 
+ 	ret = mgag200_framebuffer_init(dev, &mfbdev->mfb, &mode_cmd, gobj);
+ 	if (ret)
+-		goto err_framebuffer_init;
++		goto err_alloc_fbi;
+ 
+ 	mfbdev->sysram = sysram;
+ 	mfbdev->size = size;
+@@ -230,8 +230,6 @@ static int mgag200fb_create(struct drm_fb_helper *helper,
+ 
+ 	return 0;
+ 
+-err_framebuffer_init:
+-	drm_fb_helper_release_fbi(helper);
+ err_alloc_fbi:
+ 	vfree(sysram);
+ err_sysram:
+@@ -246,7 +244,6 @@ static int mga_fbdev_destroy(struct drm_device *dev,
+ 	struct mga_framebuffer *mfb = &mfbdev->mfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&mfbdev->helper);
+-	drm_fb_helper_release_fbi(&mfbdev->helper);
+ 
+ 	if (mfb->obj) {
+ 		drm_gem_object_unreference_unlocked(mfb->obj);
+diff --git a/drivers/gpu/drm/msm/msm_fbdev.c b/drivers/gpu/drm/msm/msm_fbdev.c
+index 6b1b375653f7..951e40faf6e8 100644
+--- a/drivers/gpu/drm/msm/msm_fbdev.c
++++ b/drivers/gpu/drm/msm/msm_fbdev.c
+@@ -235,7 +235,6 @@ void msm_fbdev_free(struct drm_device *dev)
+ 	DBG();
+ 
+ 	drm_fb_helper_unregister_fbi(helper);
+-	drm_fb_helper_release_fbi(helper);
+ 
+ 	drm_fb_helper_fini(helper);
+ 
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.c b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+index 971c147a3984..a9d48100e74f 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+@@ -444,7 +444,6 @@ nouveau_fbcon_destroy(struct drm_device *dev, struct nouveau_fbdev *fbcon)
+ 	struct nouveau_framebuffer *nouveau_fb = nouveau_framebuffer(fbcon->helper.fb);
+ 
+ 	drm_fb_helper_unregister_fbi(&fbcon->helper);
+-	drm_fb_helper_release_fbi(&fbcon->helper);
+ 	drm_fb_helper_fini(&fbcon->helper);
+ 
+ 	if (nouveau_fb->nvbo) {
+diff --git a/drivers/gpu/drm/omapdrm/omap_fbdev.c b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+index 942c4d483008..4e89dd537862 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fbdev.c
++++ b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+@@ -222,9 +222,6 @@ static int omap_fbdev_create(struct drm_fb_helper *helper,
+ fail:
+ 
+ 	if (ret) {
+-
+-		drm_fb_helper_release_fbi(helper);
+-
+ 		if (fb)
+ 			drm_framebuffer_remove(fb);
+ 	}
+@@ -301,7 +298,6 @@ void omap_fbdev_free(struct drm_device *dev)
+ 	DBG();
+ 
+ 	drm_fb_helper_unregister_fbi(helper);
+-	drm_fb_helper_release_fbi(helper);
+ 
+ 	drm_fb_helper_fini(helper);
+ 
+diff --git a/drivers/gpu/drm/qxl/qxl_fb.c b/drivers/gpu/drm/qxl/qxl_fb.c
+index d479b7a7abe4..44e0619083fc 100644
+--- a/drivers/gpu/drm/qxl/qxl_fb.c
++++ b/drivers/gpu/drm/qxl/qxl_fb.c
+@@ -305,7 +305,7 @@ static int qxlfb_create(struct qxl_fbdev *qfbdev,
+ 
+ 	if (info->screen_base == NULL) {
+ 		ret = -ENOSPC;
+-		goto out_destroy_fbi;
++		goto out_unref;
+ 	}
+ 
+ #ifdef CONFIG_DRM_FBDEV_EMULATION
+@@ -320,8 +320,6 @@ static int qxlfb_create(struct qxl_fbdev *qfbdev,
+ 		 fb->format->depth, fb->pitches[0], fb->width, fb->height);
+ 	return 0;
+ 
+-out_destroy_fbi:
+-	drm_fb_helper_release_fbi(&qfbdev->helper);
+ out_unref:
+ 	if (qbo) {
+ 		ret = qxl_bo_reserve(qbo, false);
+@@ -363,7 +361,6 @@ static int qxl_fbdev_destroy(struct drm_device *dev, struct qxl_fbdev *qfbdev)
+ 	struct qxl_framebuffer *qfb = &qfbdev->qfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&qfbdev->helper);
+-	drm_fb_helper_release_fbi(&qfbdev->helper);
+ 
+ 	if (qfb->obj) {
+ 		qxlfb_destroy_pinned_object(qfb->obj);
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index 2be4fe9c7217..8d28fe6a280a 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -242,7 +242,7 @@ static int radeonfb_create(struct drm_fb_helper *helper,
+ 	info = drm_fb_helper_alloc_fbi(helper);
+ 	if (IS_ERR(info)) {
+ 		ret = PTR_ERR(info);
+-		goto out_unref;
++		goto out;
+ 	}
+ 
+ 	info->par = rfbdev;
+@@ -251,7 +251,7 @@ static int radeonfb_create(struct drm_fb_helper *helper,
+ 	ret = radeon_framebuffer_init(rdev->ddev, &rfbdev->rfb, &mode_cmd, gobj);
+ 	if (ret) {
+ 		DRM_ERROR("failed to initialize framebuffer %d\n", ret);
+-		goto out_destroy_fbi;
++		goto out;
+ 	}
+ 
+ 	fb = &rfbdev->rfb.base;
+@@ -284,7 +284,7 @@ static int radeonfb_create(struct drm_fb_helper *helper,
+ 
+ 	if (info->screen_base == NULL) {
+ 		ret = -ENOSPC;
+-		goto out_destroy_fbi;
++		goto out;
+ 	}
+ 
+ 	DRM_INFO("fb mappable at 0x%lX\n",  info->fix.smem_start);
+@@ -296,9 +296,7 @@ static int radeonfb_create(struct drm_fb_helper *helper,
+ 	vga_switcheroo_client_fb_set(rdev->ddev->pdev, info);
+ 	return 0;
+ 
+-out_destroy_fbi:
+-	drm_fb_helper_release_fbi(helper);
+-out_unref:
++out:
+ 	if (rbo) {
+ 
+ 	}
+@@ -322,7 +320,6 @@ static int radeon_fbdev_destroy(struct drm_device *dev, struct radeon_fbdev *rfb
+ 	struct radeon_framebuffer *rfb = &rfbdev->rfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&rfbdev->helper);
+-	drm_fb_helper_release_fbi(&rfbdev->helper);
+ 
+ 	if (rfb->obj) {
+ 		radeonfb_destroy_pinned_object(rfb->obj);
+diff --git a/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c b/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
+index 70ad50dd594d..ce946b9c57a9 100644
+--- a/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
++++ b/drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
+@@ -78,7 +78,7 @@ static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
+ 	if (IS_ERR(fbi)) {
+ 		dev_err(dev->dev, "Failed to create framebuffer info.\n");
+ 		ret = PTR_ERR(fbi);
+-		goto err_rockchip_gem_free_object;
++		goto out;
+ 	}
+ 
+ 	helper->fb = rockchip_drm_framebuffer_init(dev, &mode_cmd,
+@@ -86,7 +86,7 @@ static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
+ 	if (IS_ERR(helper->fb)) {
+ 		dev_err(dev->dev, "Failed to allocate DRM framebuffer.\n");
+ 		ret = PTR_ERR(helper->fb);
+-		goto err_release_fbi;
++		goto out;
+ 	}
+ 
+ 	fbi->par = helper;
+@@ -114,9 +114,7 @@ static int rockchip_drm_fbdev_create(struct drm_fb_helper *helper,
+ 
+ 	return 0;
+ 
+-err_release_fbi:
+-	drm_fb_helper_release_fbi(helper);
+-err_rockchip_gem_free_object:
++out:
+ 	rockchip_gem_free_object(&rk_obj->base);
+ 	return ret;
+ }
+@@ -173,7 +171,6 @@ void rockchip_drm_fbdev_fini(struct drm_device *dev)
+ 	helper = &private->fbdev_helper;
+ 
+ 	drm_fb_helper_unregister_fbi(helper);
+-	drm_fb_helper_release_fbi(helper);
+ 
+ 	if (helper->fb)
+ 		drm_framebuffer_unreference(helper->fb);
+diff --git a/drivers/gpu/drm/tegra/fb.c b/drivers/gpu/drm/tegra/fb.c
+index f142f6a4db25..c61d67d16ce3 100644
+--- a/drivers/gpu/drm/tegra/fb.c
++++ b/drivers/gpu/drm/tegra/fb.c
+@@ -235,7 +235,7 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ 		dev_err(drm->dev, "failed to allocate DRM framebuffer: %d\n",
+ 			err);
+ 		drm_gem_object_unreference_unlocked(&bo->gem);
+-		goto release;
++		return PTR_ERR(fbdev->fb);
+ 	}
+ 
+ 	fb = &fbdev->fb->base;
+@@ -272,8 +272,6 @@ static int tegra_fbdev_probe(struct drm_fb_helper *helper,
+ 
+ destroy:
+ 	drm_framebuffer_remove(fb);
+-release:
+-	drm_fb_helper_release_fbi(helper);
+ 	return err;
+ }
+ 
+@@ -339,7 +337,6 @@ static int tegra_fbdev_init(struct tegra_fbdev *fbdev,
+ static void tegra_fbdev_exit(struct tegra_fbdev *fbdev)
+ {
+ 	drm_fb_helper_unregister_fbi(&fbdev->base);
+-	drm_fb_helper_release_fbi(&fbdev->base);
+ 
+ 	if (fbdev->fb)
+ 		drm_framebuffer_remove(&fbdev->fb->base);
+diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
+index 8e8d60e9a1a2..d05abc69e305 100644
+--- a/drivers/gpu/drm/udl/udl_fb.c
++++ b/drivers/gpu/drm/udl/udl_fb.c
+@@ -381,7 +381,7 @@ static int udlfb_create(struct drm_fb_helper *helper,
+ 
+ 	ret = udl_framebuffer_init(dev, &ufbdev->ufb, &mode_cmd, obj);
+ 	if (ret)
+-		goto out_destroy_fbi;
++		goto out_gfree;
+ 
+ 	fb = &ufbdev->ufb.base;
+ 
+@@ -403,8 +403,6 @@ static int udlfb_create(struct drm_fb_helper *helper,
+ 		      ufbdev->ufb.obj->vmapping);
+ 
+ 	return ret;
+-out_destroy_fbi:
+-	drm_fb_helper_release_fbi(helper);
+ out_gfree:
+ 	drm_gem_object_unreference_unlocked(&ufbdev->ufb.obj->base);
+ out:
+@@ -419,7 +417,6 @@ static void udl_fbdev_destroy(struct drm_device *dev,
+ 			      struct udl_fbdev *ufbdev)
+ {
+ 	drm_fb_helper_unregister_fbi(&ufbdev->helper);
+-	drm_fb_helper_release_fbi(&ufbdev->helper);
+ 	drm_fb_helper_fini(&ufbdev->helper);
+ 	drm_framebuffer_unregister_private(&ufbdev->ufb.base);
+ 	drm_framebuffer_cleanup(&ufbdev->ufb.base);
+diff --git a/drivers/gpu/drm/virtio/virtgpu_fb.c b/drivers/gpu/drm/virtio/virtgpu_fb.c
+index 163a67db8cf1..9bfaef379469 100644
+--- a/drivers/gpu/drm/virtio/virtgpu_fb.c
++++ b/drivers/gpu/drm/virtio/virtgpu_fb.c
+@@ -320,7 +320,7 @@ static int virtio_gpufb_create(struct drm_fb_helper *helper,
+ 	ret = virtio_gpu_framebuffer_init(dev, &vfbdev->vgfb,
+ 					  &mode_cmd, &obj->gem_base);
+ 	if (ret)
+-		goto err_fb_init;
++		goto err_fb_alloc;
+ 
+ 	fb = &vfbdev->vgfb.base;
+ 
+@@ -341,8 +341,6 @@ static int virtio_gpufb_create(struct drm_fb_helper *helper,
+ 	info->fix.mmio_len = 0;
+ 	return 0;
+ 
+-err_fb_init:
+-	drm_fb_helper_release_fbi(helper);
+ err_fb_alloc:
+ 	virtio_gpu_cmd_resource_inval_backing(vgdev, resid);
+ err_obj_attach:
+@@ -357,7 +355,6 @@ static int virtio_gpu_fbdev_destroy(struct drm_device *dev,
+ 	struct virtio_gpu_framebuffer *vgfb = &vgfbdev->vgfb;
+ 
+ 	drm_fb_helper_unregister_fbi(&vgfbdev->helper);
+-	drm_fb_helper_release_fbi(&vgfbdev->helper);
+ 
+ 	if (vgfb->obj)
+ 		vgfb->obj = NULL;
+diff --git a/include/drm/drm_fb_helper.h b/include/drm/drm_fb_helper.h
+index 6f5acebb266a..339226d074f5 100644
+--- a/include/drm/drm_fb_helper.h
++++ b/include/drm/drm_fb_helper.h
+@@ -249,7 +249,6 @@ int drm_fb_helper_restore_fbdev_mode_unlocked(struct drm_fb_helper *fb_helper);
+ 
+ struct fb_info *drm_fb_helper_alloc_fbi(struct drm_fb_helper *fb_helper);
+ void drm_fb_helper_unregister_fbi(struct drm_fb_helper *fb_helper);
+-void drm_fb_helper_release_fbi(struct drm_fb_helper *fb_helper);
+ void drm_fb_helper_fill_var(struct fb_info *info, struct drm_fb_helper *fb_helper,
+ 			    uint32_t fb_width, uint32_t fb_height);
+ void drm_fb_helper_fill_fix(struct fb_info *info, uint32_t pitch,
+@@ -354,9 +353,6 @@ drm_fb_helper_alloc_fbi(struct drm_fb_helper *fb_helper)
+ static inline void drm_fb_helper_unregister_fbi(struct drm_fb_helper *fb_helper)
+ {
+ }
+-static inline void drm_fb_helper_release_fbi(struct drm_fb_helper *fb_helper)
+-{
+-}
+ 
+ static inline void drm_fb_helper_fill_var(struct fb_info *info,
+ 					  struct drm_fb_helper *fb_helper,
+-- 
+2.17.0
+

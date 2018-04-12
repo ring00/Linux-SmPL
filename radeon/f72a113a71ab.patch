@@ -1,0 +1,548 @@
+From f72a113a71ab08c4df8a5f80ab2f8a140feb81f6 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Christian=20K=C3=B6nig?= <christian.koenig@amd.com>
+Date: Thu, 7 Aug 2014 09:36:00 +0200
+Subject: [PATCH] drm/radeon: add userptr support v8
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+This patch adds an IOCTL for turning a pointer supplied by
+userspace into a buffer object.
+
+It imposes several restrictions upon the memory being mapped:
+
+1. It must be page aligned (both start/end addresses, i.e ptr and size).
+
+2. It must be normal system memory, not a pointer into another map of IO
+space (e.g. it must not be a GTT mmapping of another object).
+
+3. The BO is mapped into GTT, so the maximum amount of memory mapped at
+all times is still the GTT limit.
+
+4. The BO is only mapped readonly for now, so no write support.
+
+5. List of backing pages is only acquired once, so they represent a
+snapshot of the first use.
+
+Exporting and sharing as well as mapping of buffer objects created by
+this function is forbidden and results in an -EPERM.
+
+v2: squash all previous changes into first public version
+v3: fix tabs, map readonly, don't use MM callback any more
+v4: set TTM_PAGE_FLAG_SG so that TTM never messes with the pages,
+    pin/unpin pages on bind/unbind instead of populate/unpopulate
+v5: rebased on 3.17-wip, IOCTL renamed to userptr, reject any unknown
+    flags, better handle READONLY flag, improve permission check
+v6: fix ptr cast warning, use set_page_dirty/mark_page_accessed on unpin
+v7: add warning about it's availability in the API definition
+v8: drop access_ok check, fix VM mapping bits
+
+Signed-off-by: Christian König <christian.koenig@amd.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com> (v4)
+Reviewed-by: Jérôme Glisse <jglisse@redhat.com> (v4)
+Signed-off-by: Alex Deucher <alexander.deucher@amd.com>
+---
+ drivers/gpu/drm/radeon/radeon.h        |   6 +
+ drivers/gpu/drm/radeon/radeon_cs.c     |  25 ++++-
+ drivers/gpu/drm/radeon/radeon_drv.c    |   5 +-
+ drivers/gpu/drm/radeon/radeon_gem.c    |  68 ++++++++++++
+ drivers/gpu/drm/radeon/radeon_kms.c    |   1 +
+ drivers/gpu/drm/radeon/radeon_object.c |   3 +
+ drivers/gpu/drm/radeon/radeon_prime.c  |  10 ++
+ drivers/gpu/drm/radeon/radeon_ttm.c    | 145 +++++++++++++++++++++++++
+ drivers/gpu/drm/radeon/radeon_vm.c     |   3 +
+ include/uapi/drm/radeon_drm.h          |  16 +++
+ 10 files changed, 279 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/gpu/drm/radeon/radeon.h b/drivers/gpu/drm/radeon/radeon.h
+index 9e1732eb402c..6f38a23a5810 100644
+--- a/drivers/gpu/drm/radeon/radeon.h
++++ b/drivers/gpu/drm/radeon/radeon.h
+@@ -2138,6 +2138,8 @@ int radeon_gem_info_ioctl(struct drm_device *dev, void *data,
+ 			  struct drm_file *filp);
+ int radeon_gem_create_ioctl(struct drm_device *dev, void *data,
+ 			    struct drm_file *filp);
++int radeon_gem_userptr_ioctl(struct drm_device *dev, void *data,
++			     struct drm_file *filp);
+ int radeon_gem_pin_ioctl(struct drm_device *dev, void *data,
+ 			 struct drm_file *file_priv);
+ int radeon_gem_unpin_ioctl(struct drm_device *dev, void *data,
+@@ -2871,6 +2873,10 @@ extern void radeon_legacy_set_clock_gating(struct radeon_device *rdev, int enabl
+ extern void radeon_atom_set_clock_gating(struct radeon_device *rdev, int enable);
+ extern void radeon_ttm_placement_from_domain(struct radeon_bo *rbo, u32 domain);
+ extern bool radeon_ttm_bo_is_radeon_bo(struct ttm_buffer_object *bo);
++extern int radeon_ttm_tt_set_userptr(struct ttm_tt *ttm, uint64_t addr,
++				     uint32_t flags);
++extern bool radeon_ttm_tt_has_userptr(struct ttm_tt *ttm);
++extern bool radeon_ttm_tt_is_readonly(struct ttm_tt *ttm);
+ extern void radeon_vram_location(struct radeon_device *rdev, struct radeon_mc *mc, u64 base);
+ extern void radeon_gtt_location(struct radeon_device *rdev, struct radeon_mc *mc);
+ extern int radeon_resume_kms(struct drm_device *dev, bool resume, bool fbcon);
+diff --git a/drivers/gpu/drm/radeon/radeon_cs.c b/drivers/gpu/drm/radeon/radeon_cs.c
+index ee712c199b25..1321491cf499 100644
+--- a/drivers/gpu/drm/radeon/radeon_cs.c
++++ b/drivers/gpu/drm/radeon/radeon_cs.c
+@@ -78,7 +78,8 @@ static int radeon_cs_parser_relocs(struct radeon_cs_parser *p)
+ 	struct radeon_cs_chunk *chunk;
+ 	struct radeon_cs_buckets buckets;
+ 	unsigned i, j;
+-	bool duplicate;
++	bool duplicate, need_mmap_lock = false;
++	int r;
+ 
+ 	if (p->chunk_relocs_idx == -1) {
+ 		return 0;
+@@ -164,6 +165,19 @@ static int radeon_cs_parser_relocs(struct radeon_cs_parser *p)
+ 			p->relocs[i].allowed_domains = domain;
+ 		}
+ 
++		if (radeon_ttm_tt_has_userptr(p->relocs[i].robj->tbo.ttm)) {
++			uint32_t domain = p->relocs[i].prefered_domains;
++			if (!(domain & RADEON_GEM_DOMAIN_GTT)) {
++				DRM_ERROR("Only RADEON_GEM_DOMAIN_GTT is "
++					  "allowed for userptr BOs\n");
++				return -EINVAL;
++			}
++			need_mmap_lock = true;
++			domain = RADEON_GEM_DOMAIN_GTT;
++			p->relocs[i].prefered_domains = domain;
++			p->relocs[i].allowed_domains = domain;
++		}
++
+ 		p->relocs[i].tv.bo = &p->relocs[i].robj->tbo;
+ 		p->relocs[i].handle = r->handle;
+ 
+@@ -176,8 +190,15 @@ static int radeon_cs_parser_relocs(struct radeon_cs_parser *p)
+ 	if (p->cs_flags & RADEON_CS_USE_VM)
+ 		p->vm_bos = radeon_vm_get_bos(p->rdev, p->ib.vm,
+ 					      &p->validated);
++	if (need_mmap_lock)
++		down_read(&current->mm->mmap_sem);
++
++	r = radeon_bo_list_validate(p->rdev, &p->ticket, &p->validated, p->ring);
+ 
+-	return radeon_bo_list_validate(p->rdev, &p->ticket, &p->validated, p->ring);
++	if (need_mmap_lock)
++		up_read(&current->mm->mmap_sem);
++
++	return r;
+ }
+ 
+ static int radeon_cs_get_ring(struct radeon_cs_parser *p, u32 ring, s32 priority)
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index a773830c6c40..5b18af926527 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -114,6 +114,9 @@ int radeon_gem_object_open(struct drm_gem_object *obj,
+ 				struct drm_file *file_priv);
+ void radeon_gem_object_close(struct drm_gem_object *obj,
+ 				struct drm_file *file_priv);
++struct dma_buf *radeon_gem_prime_export(struct drm_device *dev,
++					struct drm_gem_object *gobj,
++					int flags);
+ extern int radeon_get_crtc_scanoutpos(struct drm_device *dev, int crtc,
+ 				      unsigned int flags,
+ 				      int *vpos, int *hpos, ktime_t *stime,
+@@ -568,7 +571,7 @@ static struct drm_driver kms_driver = {
+ 
+ 	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
+ 	.prime_fd_to_handle = drm_gem_prime_fd_to_handle,
+-	.gem_prime_export = drm_gem_prime_export,
++	.gem_prime_export = radeon_gem_prime_export,
+ 	.gem_prime_import = drm_gem_prime_import,
+ 	.gem_prime_pin = radeon_gem_prime_pin,
+ 	.gem_prime_unpin = radeon_gem_prime_unpin,
+diff --git a/drivers/gpu/drm/radeon/radeon_gem.c b/drivers/gpu/drm/radeon/radeon_gem.c
+index bfd7e1b0ff3f..993ab223b503 100644
+--- a/drivers/gpu/drm/radeon/radeon_gem.c
++++ b/drivers/gpu/drm/radeon/radeon_gem.c
+@@ -272,6 +272,65 @@ int radeon_gem_create_ioctl(struct drm_device *dev, void *data,
+ 	return 0;
+ }
+ 
++int radeon_gem_userptr_ioctl(struct drm_device *dev, void *data,
++			     struct drm_file *filp)
++{
++	struct radeon_device *rdev = dev->dev_private;
++	struct drm_radeon_gem_userptr *args = data;
++	struct drm_gem_object *gobj;
++	struct radeon_bo *bo;
++	uint32_t handle;
++	int r;
++
++	if (offset_in_page(args->addr | args->size))
++		return -EINVAL;
++
++	/* we only support read only mappings for now */
++	if (!(args->flags & RADEON_GEM_USERPTR_READONLY))
++		return -EACCES;
++
++	/* reject unknown flag values */
++	if (args->flags & ~RADEON_GEM_USERPTR_READONLY)
++		return -EINVAL;
++
++	/* readonly pages not tested on older hardware */
++	if (rdev->family < CHIP_R600)
++		return -EINVAL;
++
++	down_read(&rdev->exclusive_lock);
++
++	/* create a gem object to contain this object in */
++	r = radeon_gem_object_create(rdev, args->size, 0,
++				     RADEON_GEM_DOMAIN_CPU, 0,
++				     false, &gobj);
++	if (r)
++		goto handle_lockup;
++
++	bo = gem_to_radeon_bo(gobj);
++	r = radeon_ttm_tt_set_userptr(bo->tbo.ttm, args->addr, args->flags);
++	if (r)
++		goto release_object;
++
++	r = drm_gem_handle_create(filp, gobj, &handle);
++	/* drop reference from allocate - handle holds it now */
++	drm_gem_object_unreference_unlocked(gobj);
++	if (r)
++		goto handle_lockup;
++
++	args->handle = handle;
++	up_read(&rdev->exclusive_lock);
++	return 0;
++
++release_object:
++	drm_gem_object_unreference_unlocked(gobj);
++
++handle_lockup:
++	up_read(&rdev->exclusive_lock);
++	r = radeon_gem_handle_lockup(rdev, r);
++
++	return r;
++}
++
+ int radeon_gem_set_domain_ioctl(struct drm_device *dev, void *data,
+ 				struct drm_file *filp)
+ {
+@@ -315,6 +374,10 @@ int radeon_mode_dumb_mmap(struct drm_file *filp,
+ 		return -ENOENT;
+ 	}
+ 	robj = gem_to_radeon_bo(gobj);
++	if (radeon_ttm_tt_has_userptr(robj->tbo.ttm)) {
++		drm_gem_object_unreference_unlocked(gobj);
++		return -EPERM;
++	}
+ 	*offset_p = radeon_bo_mmap_offset(robj);
+ 	drm_gem_object_unreference_unlocked(gobj);
+ 	return 0;
+@@ -532,6 +595,11 @@ int radeon_gem_op_ioctl(struct drm_device *dev, void *data,
+ 		return -ENOENT;
+ 	}
+ 	robj = gem_to_radeon_bo(gobj);
++
++	r = -EPERM;
++	if (radeon_ttm_tt_has_userptr(robj->tbo.ttm))
++		goto out;
++
+ 	r = radeon_bo_reserve(robj, false);
+ 	if (unlikely(r))
+ 		goto out;
+diff --git a/drivers/gpu/drm/radeon/radeon_kms.c b/drivers/gpu/drm/radeon/radeon_kms.c
+index eb7164d07985..8309b11e674d 100644
+--- a/drivers/gpu/drm/radeon/radeon_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_kms.c
+@@ -885,5 +885,6 @@ const struct drm_ioctl_desc radeon_ioctls_kms[] = {
+ 	DRM_IOCTL_DEF_DRV(RADEON_GEM_BUSY, radeon_gem_busy_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
+ 	DRM_IOCTL_DEF_DRV(RADEON_GEM_VA, radeon_gem_va_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
+ 	DRM_IOCTL_DEF_DRV(RADEON_GEM_OP, radeon_gem_op_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
++	DRM_IOCTL_DEF_DRV(RADEON_GEM_USERPTR, radeon_gem_userptr_ioctl, DRM_AUTH|DRM_UNLOCKED|DRM_RENDER_ALLOW),
+ };
+ int radeon_max_kms_ioctl = ARRAY_SIZE(radeon_ioctls_kms);
+diff --git a/drivers/gpu/drm/radeon/radeon_object.c b/drivers/gpu/drm/radeon/radeon_object.c
+index 480c87d8edc5..c73c1e320585 100644
+--- a/drivers/gpu/drm/radeon/radeon_object.c
++++ b/drivers/gpu/drm/radeon/radeon_object.c
+@@ -264,6 +264,9 @@ int radeon_bo_pin_restricted(struct radeon_bo *bo, u32 domain, u64 max_offset,
+ {
+ 	int r, i;
+ 
++	if (radeon_ttm_tt_has_userptr(bo->tbo.ttm))
++		return -EPERM;
++
+ 	if (bo->pin_count) {
+ 		bo->pin_count++;
+ 		if (gpu_addr)
+diff --git a/drivers/gpu/drm/radeon/radeon_prime.c b/drivers/gpu/drm/radeon/radeon_prime.c
+index f7e48d329db3..bb18bc74b7d7 100644
+--- a/drivers/gpu/drm/radeon/radeon_prime.c
++++ b/drivers/gpu/drm/radeon/radeon_prime.c
+@@ -103,3 +103,13 @@ void radeon_gem_prime_unpin(struct drm_gem_object *obj)
+ 	radeon_bo_unpin(bo);
+ 	radeon_bo_unreserve(bo);
+ }
++
++struct dma_buf *radeon_gem_prime_export(struct drm_device *dev,
++					struct drm_gem_object *gobj,
++					int flags)
++{
++	struct radeon_bo *bo = gem_to_radeon_bo(gobj);
++	if (radeon_ttm_tt_has_userptr(bo->tbo.ttm))
++		return ERR_PTR(-EPERM);
++	return drm_gem_prime_export(dev, gobj, flags);
++}
+diff --git a/drivers/gpu/drm/radeon/radeon_ttm.c b/drivers/gpu/drm/radeon/radeon_ttm.c
+index 72afe82a95c9..b20933fa35c6 100644
+--- a/drivers/gpu/drm/radeon/radeon_ttm.c
++++ b/drivers/gpu/drm/radeon/radeon_ttm.c
+@@ -39,6 +39,8 @@
+ #include <linux/seq_file.h>
+ #include <linux/slab.h>
+ #include <linux/swiotlb.h>
++#include <linux/swap.h>
++#include <linux/pagemap.h>
+ #include <linux/debugfs.h>
+ #include "radeon_reg.h"
+ #include "radeon.h"
+@@ -515,8 +517,92 @@ struct radeon_ttm_tt {
+ 	struct ttm_dma_tt		ttm;
+ 	struct radeon_device		*rdev;
+ 	u64				offset;
++
++	uint64_t			userptr;
++	struct mm_struct		*usermm;
++	uint32_t			userflags;
+ };
+ 
++/* prepare the sg table with the user pages */
++static int radeon_ttm_tt_pin_userptr(struct ttm_tt *ttm)
++{
++	struct radeon_device *rdev = radeon_get_rdev(ttm->bdev);
++	struct radeon_ttm_tt *gtt = (void *)ttm;
++	unsigned pinned = 0, nents;
++	int r;
++
++	int write = !(gtt->userflags & RADEON_GEM_USERPTR_READONLY);
++	enum dma_data_direction direction = write ?
++		DMA_BIDIRECTIONAL : DMA_TO_DEVICE;
++
++	if (current->mm != gtt->usermm)
++		return -EPERM;
++
++	do {
++		unsigned num_pages = ttm->num_pages - pinned;
++		uint64_t userptr = gtt->userptr + pinned * PAGE_SIZE;
++		struct page **pages = ttm->pages + pinned;
++
++		r = get_user_pages(current, current->mm, userptr, num_pages,
++				   write, 0, pages, NULL);
++		if (r < 0)
++			goto release_pages;
++
++		pinned += r;
++
++	} while (pinned < ttm->num_pages);
++
++	r = sg_alloc_table_from_pages(ttm->sg, ttm->pages, ttm->num_pages, 0,
++				      ttm->num_pages << PAGE_SHIFT,
++				      GFP_KERNEL);
++	if (r)
++		goto release_sg;
++
++	r = -ENOMEM;
++	nents = dma_map_sg(rdev->dev, ttm->sg->sgl, ttm->sg->nents, direction);
++	if (nents != ttm->sg->nents)
++		goto release_sg;
++
++	drm_prime_sg_to_page_addr_arrays(ttm->sg, ttm->pages,
++					 gtt->ttm.dma_address, ttm->num_pages);
++
++	return 0;
++
++release_sg:
++	kfree(ttm->sg);
++
++release_pages:
++	release_pages(ttm->pages, pinned, 0);
++	return r;
++}
++
++static void radeon_ttm_tt_unpin_userptr(struct ttm_tt *ttm)
++{
++	struct radeon_device *rdev = radeon_get_rdev(ttm->bdev);
++	struct radeon_ttm_tt *gtt = (void *)ttm;
++	struct scatterlist *sg;
++	int i;
++
++	int write = !(gtt->userflags & RADEON_GEM_USERPTR_READONLY);
++	enum dma_data_direction direction = write ?
++		DMA_BIDIRECTIONAL : DMA_TO_DEVICE;
++
++	/* free the sg table and pages again */
++	dma_unmap_sg(rdev->dev, ttm->sg->sgl, ttm->sg->nents, direction);
++
++	for_each_sg(ttm->sg->sgl, sg, ttm->sg->nents, i) {
++		struct page *page = sg_page(sg);
++
++		if (!(gtt->userflags & RADEON_GEM_USERPTR_READONLY))
++			set_page_dirty(page);
++
++		mark_page_accessed(page);
++		page_cache_release(page);
++	}
++
++	sg_free_table(ttm->sg);
++}
++
+ static int radeon_ttm_backend_bind(struct ttm_tt *ttm,
+ 				   struct ttm_mem_reg *bo_mem)
+ {
+@@ -525,6 +611,11 @@ static int radeon_ttm_backend_bind(struct ttm_tt *ttm,
+ 		RADEON_GART_PAGE_WRITE;
+ 	int r;
+ 
++	if (gtt->userptr) {
++		radeon_ttm_tt_pin_userptr(ttm);
++		flags &= ~RADEON_GART_PAGE_WRITE;
++	}
++
+ 	gtt->offset = (unsigned long)(bo_mem->start << PAGE_SHIFT);
+ 	if (!ttm->num_pages) {
+ 		WARN(1, "nothing to bind %lu pages for mreg %p back %p!\n",
+@@ -547,6 +638,10 @@ static int radeon_ttm_backend_unbind(struct ttm_tt *ttm)
+ 	struct radeon_ttm_tt *gtt = (void *)ttm;
+ 
+ 	radeon_gart_unbind(gtt->rdev, gtt->offset, ttm->num_pages);
++
++	if (gtt->userptr)
++		radeon_ttm_tt_unpin_userptr(ttm);
++
+ 	return 0;
+ }
+ 
+@@ -603,6 +698,16 @@ static int radeon_ttm_tt_populate(struct ttm_tt *ttm)
+ 	if (ttm->state != tt_unpopulated)
+ 		return 0;
+ 
++	if (gtt->userptr) {
++		ttm->sg = kcalloc(1, sizeof(struct sg_table), GFP_KERNEL);
++		if (!ttm->sg)
++			return -ENOMEM;
++
++		ttm->page_flags |= TTM_PAGE_FLAG_SG;
++		ttm->state = tt_unbound;
++		return 0;
++	}
++
+ 	if (slave && ttm->sg) {
+ 		drm_prime_sg_to_page_addr_arrays(ttm->sg, ttm->pages,
+ 						 gtt->ttm.dma_address, ttm->num_pages);
+@@ -652,6 +757,12 @@ static void radeon_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ 	unsigned i;
+ 	bool slave = !!(ttm->page_flags & TTM_PAGE_FLAG_SG);
+ 
++	if (gtt->userptr) {
++		kfree(ttm->sg);
++		ttm->page_flags &= ~TTM_PAGE_FLAG_SG;
++		return;
++	}
++
+ 	if (slave)
+ 		return;
+ 
+@@ -680,6 +791,40 @@ static void radeon_ttm_tt_unpopulate(struct ttm_tt *ttm)
+ 	ttm_pool_unpopulate(ttm);
+ }
+ 
++int radeon_ttm_tt_set_userptr(struct ttm_tt *ttm, uint64_t addr,
++			      uint32_t flags)
++{
++	struct radeon_ttm_tt *gtt = (void *)ttm;
++
++	if (gtt == NULL)
++		return -EINVAL;
++
++	gtt->userptr = addr;
++	gtt->usermm = current->mm;
++	gtt->userflags = flags;
++	return 0;
++}
++
++bool radeon_ttm_tt_has_userptr(struct ttm_tt *ttm)
++{
++	struct radeon_ttm_tt *gtt = (void *)ttm;
++
++	if (gtt == NULL)
++		return false;
++
++	return !!gtt->userptr;
++}
++
++bool radeon_ttm_tt_is_readonly(struct ttm_tt *ttm)
++{
++	struct radeon_ttm_tt *gtt = (void *)ttm;
++
++	if (gtt == NULL)
++		return false;
++
++	return !!(gtt->userflags & RADEON_GEM_USERPTR_READONLY);
++}
++
+ static struct ttm_bo_driver radeon_bo_driver = {
+ 	.ttm_tt_create = &radeon_ttm_tt_create,
+ 	.ttm_tt_populate = &radeon_ttm_tt_populate,
+diff --git a/drivers/gpu/drm/radeon/radeon_vm.c b/drivers/gpu/drm/radeon/radeon_vm.c
+index ccae4d9dc3de..0e107c5650bf 100644
+--- a/drivers/gpu/drm/radeon/radeon_vm.c
++++ b/drivers/gpu/drm/radeon/radeon_vm.c
+@@ -888,6 +888,9 @@ int radeon_vm_bo_update(struct radeon_device *rdev,
+ 	bo_va->flags &= ~RADEON_VM_PAGE_VALID;
+ 	bo_va->flags &= ~RADEON_VM_PAGE_SYSTEM;
+ 	bo_va->flags &= ~RADEON_VM_PAGE_SNOOPED;
++	if (bo_va->bo && radeon_ttm_tt_is_readonly(bo_va->bo->tbo.ttm))
++		bo_va->flags &= ~RADEON_VM_PAGE_WRITEABLE;
++
+ 	if (mem) {
+ 		addr = mem->start << PAGE_SHIFT;
+ 		if (mem->mem_type != TTM_PL_SYSTEM) {
+diff --git a/include/uapi/drm/radeon_drm.h b/include/uapi/drm/radeon_drm.h
+index 509b2d7a41b7..3a9f20930372 100644
+--- a/include/uapi/drm/radeon_drm.h
++++ b/include/uapi/drm/radeon_drm.h
+@@ -511,6 +511,7 @@ typedef struct {
+ #define DRM_RADEON_GEM_BUSY		0x2a
+ #define DRM_RADEON_GEM_VA		0x2b
+ #define DRM_RADEON_GEM_OP		0x2c
++#define DRM_RADEON_GEM_USERPTR		0x2d
+ 
+ #define DRM_IOCTL_RADEON_CP_INIT    DRM_IOW( DRM_COMMAND_BASE + DRM_RADEON_CP_INIT, drm_radeon_init_t)
+ #define DRM_IOCTL_RADEON_CP_START   DRM_IO(  DRM_COMMAND_BASE + DRM_RADEON_CP_START)
+@@ -554,6 +555,7 @@ typedef struct {
+ #define DRM_IOCTL_RADEON_GEM_BUSY	DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_BUSY, struct drm_radeon_gem_busy)
+ #define DRM_IOCTL_RADEON_GEM_VA		DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_VA, struct drm_radeon_gem_va)
+ #define DRM_IOCTL_RADEON_GEM_OP		DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_OP, struct drm_radeon_gem_op)
++#define DRM_IOCTL_RADEON_GEM_USERPTR	DRM_IOWR(DRM_COMMAND_BASE + DRM_RADEON_GEM_USERPTR, struct drm_radeon_gem_userptr)
+ 
+ typedef struct drm_radeon_init {
+ 	enum {
+@@ -808,6 +810,20 @@ struct drm_radeon_gem_create {
+ 	uint32_t	flags;
+ };
+ 
++/*
++ * This is not a reliable API and you should expect it to fail for any
++ * number of reasons and have fallback path that do not use userptr to
++ * perform any operation.
++ */
++#define RADEON_GEM_USERPTR_READONLY	(1 << 0)
++
++struct drm_radeon_gem_userptr {
++	uint64_t		addr;
++	uint64_t		size;
++	uint32_t		flags;
++	uint32_t		handle;
++};
++
+ #define RADEON_TILING_MACRO				0x1
+ #define RADEON_TILING_MICRO				0x2
+ #define RADEON_TILING_SWAP_16BIT			0x4
+-- 
+2.17.0
+

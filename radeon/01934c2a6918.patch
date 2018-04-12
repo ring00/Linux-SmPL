@@ -1,0 +1,459 @@
+From 01934c2a691882185b3021d437df13bcba07711d Mon Sep 17 00:00:00 2001
+From: Thierry Reding <treding@nvidia.com>
+Date: Fri, 19 Dec 2014 11:21:32 +0100
+Subject: [PATCH] drm/fb-helper: Propagate errors from initial config failure
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Make drm_fb_helper_initial_config() return an int rather than a bool so
+that the error can be properly propagated. While at it, update drivers
+to propagate errors further rather than just ignore them.
+
+v2:
+- cirrus: No cleanup is required, the top-level cirrus_driver_load()
+  will do it as part of cirrus_driver_unload() in its cleanup path.
+  Reported-by: Fengguang Wu <fengguang.wu@intel.com>
+
+Cc: David Airlie <airlied@linux.ie>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Signed-off-by: Thierry Reding <treding@nvidia.com>
+Reviewed-by: Alex Deucher <alexander.deucher@amd.com>
+Reviewed-by: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Reviewed-by: Christian König <christian.koenig@amd.com>
+[danvet: Squash in simplification patch from kbuild.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+---
+ drivers/gpu/drm/ast/ast_fb.c            | 21 +++++++++++++++------
+ drivers/gpu/drm/bochs/bochs_fbdev.c     | 14 ++++++++++++--
+ drivers/gpu/drm/cirrus/cirrus_fbdev.c   | 12 ++++++------
+ drivers/gpu/drm/drm_fb_helper.c         |  2 +-
+ drivers/gpu/drm/gma500/framebuffer.c    | 22 ++++++++++++++++++----
+ drivers/gpu/drm/mgag200/mgag200_fb.c    | 12 ++++++++++--
+ drivers/gpu/drm/msm/msm_fbdev.c         | 10 ++++++++--
+ drivers/gpu/drm/nouveau/nouveau_fbcon.c | 21 +++++++++++++++------
+ drivers/gpu/drm/omapdrm/omap_fbdev.c    | 10 ++++++++--
+ drivers/gpu/drm/qxl/qxl_fb.c            | 22 ++++++++++++++++------
+ drivers/gpu/drm/radeon/radeon_fb.c      | 21 +++++++++++++++------
+ drivers/gpu/drm/udl/udl_fb.c            | 22 +++++++++++++++-------
+ include/drm/drm_fb_helper.h             |  2 +-
+ 13 files changed, 140 insertions(+), 51 deletions(-)
+
+diff --git a/drivers/gpu/drm/ast/ast_fb.c b/drivers/gpu/drm/ast/ast_fb.c
+index 5c60ae524c45..ff68eefae273 100644
+--- a/drivers/gpu/drm/ast/ast_fb.c
++++ b/drivers/gpu/drm/ast/ast_fb.c
+@@ -335,18 +335,27 @@ int ast_fbdev_init(struct drm_device *dev)
+ 
+ 	ret = drm_fb_helper_init(dev, &afbdev->helper,
+ 				 1, 1);
+-	if (ret) {
+-		kfree(afbdev);
+-		return ret;
+-	}
++	if (ret)
++		goto free;
+ 
+-	drm_fb_helper_single_add_all_connectors(&afbdev->helper);
++	ret = drm_fb_helper_single_add_all_connectors(&afbdev->helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(&afbdev->helper, 32);
++	ret = drm_fb_helper_initial_config(&afbdev->helper, 32);
++	if (ret)
++		goto fini;
++
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&afbdev->helper);
++free:
++	kfree(afbdev);
++	return ret;
+ }
+ 
+ void ast_fbdev_fini(struct drm_device *dev)
+diff --git a/drivers/gpu/drm/bochs/bochs_fbdev.c b/drivers/gpu/drm/bochs/bochs_fbdev.c
+index 61dbf09dff5d..976d9798dc99 100644
+--- a/drivers/gpu/drm/bochs/bochs_fbdev.c
++++ b/drivers/gpu/drm/bochs/bochs_fbdev.c
+@@ -207,12 +207,22 @@ int bochs_fbdev_init(struct bochs_device *bochs)
+ 	if (ret)
+ 		return ret;
+ 
+-	drm_fb_helper_single_add_all_connectors(&bochs->fb.helper);
++	ret = drm_fb_helper_single_add_all_connectors(&bochs->fb.helper);
++	if (ret)
++		goto fini;
++
+ 	drm_helper_disable_unused_functions(bochs->dev);
+-	drm_fb_helper_initial_config(&bochs->fb.helper, 32);
++
++	ret = drm_fb_helper_initial_config(&bochs->fb.helper, 32);
++	if (ret)
++		goto fini;
+ 
+ 	bochs->fb.initialized = true;
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&bochs->fb.helper);
++	return ret;
+ }
+ 
+ void bochs_fbdev_fini(struct bochs_device *bochs)
+diff --git a/drivers/gpu/drm/cirrus/cirrus_fbdev.c b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+index 502a89eb54b5..13ddf1c4bb8e 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_fbdev.c
++++ b/drivers/gpu/drm/cirrus/cirrus_fbdev.c
+@@ -317,17 +317,17 @@ int cirrus_fbdev_init(struct cirrus_device *cdev)
+ 
+ 	ret = drm_fb_helper_init(cdev->dev, &gfbdev->helper,
+ 				 cdev->num_crtc, CIRRUSFB_CONN_LIMIT);
+-	if (ret) {
+-		kfree(gfbdev);
++	if (ret)
++		return ret;
++
++	ret = drm_fb_helper_single_add_all_connectors(&gfbdev->helper);
++	if (ret)
+ 		return ret;
+-	}
+-	drm_fb_helper_single_add_all_connectors(&gfbdev->helper);
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(cdev->dev);
+-	drm_fb_helper_initial_config(&gfbdev->helper, bpp_sel);
+ 
+-	return 0;
++	return drm_fb_helper_initial_config(&gfbdev->helper, bpp_sel);
+ }
+ 
+ void cirrus_fbdev_fini(struct cirrus_device *cdev)
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index 52ce26d6b4fb..876f1ef0acd1 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -1688,7 +1688,7 @@ static void drm_setup_crtcs(struct drm_fb_helper *fb_helper)
+  * RETURNS:
+  * Zero if everything went ok, nonzero otherwise.
+  */
+-bool drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
++int drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel)
+ {
+ 	struct drm_device *dev = fb_helper->dev;
+ 	int count = 0;
+diff --git a/drivers/gpu/drm/gma500/framebuffer.c b/drivers/gpu/drm/gma500/framebuffer.c
+index ddd90ddbc200..2d42ce6d3757 100644
+--- a/drivers/gpu/drm/gma500/framebuffer.c
++++ b/drivers/gpu/drm/gma500/framebuffer.c
+@@ -593,6 +593,7 @@ int psb_fbdev_init(struct drm_device *dev)
+ {
+ 	struct psb_fbdev *fbdev;
+ 	struct drm_psb_private *dev_priv = dev->dev_private;
++	int ret;
+ 
+ 	fbdev = kzalloc(sizeof(struct psb_fbdev), GFP_KERNEL);
+ 	if (!fbdev) {
+@@ -604,16 +605,29 @@ int psb_fbdev_init(struct drm_device *dev)
+ 
+ 	drm_fb_helper_prepare(dev, &fbdev->psb_fb_helper, &psb_fb_helper_funcs);
+ 
+-	drm_fb_helper_init(dev, &fbdev->psb_fb_helper, dev_priv->ops->crtcs,
+-							INTELFB_CONN_LIMIT);
++	ret = drm_fb_helper_init(dev, &fbdev->psb_fb_helper,
++				 dev_priv->ops->crtcs, INTELFB_CONN_LIMIT);
++	if (ret)
++		goto free;
+ 
+-	drm_fb_helper_single_add_all_connectors(&fbdev->psb_fb_helper);
++	ret = drm_fb_helper_single_add_all_connectors(&fbdev->psb_fb_helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(&fbdev->psb_fb_helper, 32);
++	ret = drm_fb_helper_initial_config(&fbdev->psb_fb_helper, 32);
++	if (ret)
++		goto fini;
++
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&fbdev->psb_fb_helper);
++free:
++	kfree(fbdev);
++	return ret;
+ }
+ 
+ static void psb_fbdev_fini(struct drm_device *dev)
+diff --git a/drivers/gpu/drm/mgag200/mgag200_fb.c b/drivers/gpu/drm/mgag200/mgag200_fb.c
+index 4415af3666ab..c36b8304042b 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_fb.c
++++ b/drivers/gpu/drm/mgag200/mgag200_fb.c
+@@ -303,14 +303,22 @@ int mgag200_fbdev_init(struct mga_device *mdev)
+ 	if (ret)
+ 		return ret;
+ 
+-	drm_fb_helper_single_add_all_connectors(&mfbdev->helper);
++	ret = drm_fb_helper_single_add_all_connectors(&mfbdev->helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(mdev->dev);
+ 
+-	drm_fb_helper_initial_config(&mfbdev->helper, bpp_sel);
++	ret = drm_fb_helper_initial_config(&mfbdev->helper, bpp_sel);
++	if (ret)
++		goto fini;
+ 
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&mfbdev->helper);
++	return ret;
+ }
+ 
+ void mgag200_fbdev_fini(struct mga_device *mdev)
+diff --git a/drivers/gpu/drm/msm/msm_fbdev.c b/drivers/gpu/drm/msm/msm_fbdev.c
+index 1f3af13ccede..115b509a4a00 100644
+--- a/drivers/gpu/drm/msm/msm_fbdev.c
++++ b/drivers/gpu/drm/msm/msm_fbdev.c
+@@ -241,17 +241,23 @@ struct drm_fb_helper *msm_fbdev_init(struct drm_device *dev)
+ 		goto fail;
+ 	}
+ 
+-	drm_fb_helper_single_add_all_connectors(helper);
++	ret = drm_fb_helper_single_add_all_connectors(helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(helper, 32);
++	ret = drm_fb_helper_initial_config(helper, 32);
++	if (ret)
++		goto fini;
+ 
+ 	priv->fbdev = helper;
+ 
+ 	return helper;
+ 
++fini:
++	drm_fb_helper_fini(helper);
+ fail:
+ 	kfree(fbdev);
+ 	return NULL;
+diff --git a/drivers/gpu/drm/nouveau/nouveau_fbcon.c b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+index 3ed12a8cfc91..5a7705dcd67e 100644
+--- a/drivers/gpu/drm/nouveau/nouveau_fbcon.c
++++ b/drivers/gpu/drm/nouveau/nouveau_fbcon.c
+@@ -539,12 +539,12 @@ nouveau_fbcon_init(struct drm_device *dev)
+ 
+ 	ret = drm_fb_helper_init(dev, &fbcon->helper,
+ 				 dev->mode_config.num_crtc, 4);
+-	if (ret) {
+-		kfree(fbcon);
+-		return ret;
+-	}
++	if (ret)
++		goto free;
+ 
+-	drm_fb_helper_single_add_all_connectors(&fbcon->helper);
++	ret = drm_fb_helper_single_add_all_connectors(&fbcon->helper);
++	if (ret)
++		goto fini;
+ 
+ 	if (drm->device.info.ram_size <= 32 * 1024 * 1024)
+ 		preferred_bpp = 8;
+@@ -557,8 +557,17 @@ nouveau_fbcon_init(struct drm_device *dev)
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
++	ret = drm_fb_helper_initial_config(&fbcon->helper, preferred_bpp);
++	if (ret)
++		goto fini;
++
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&fbcon->helper);
++free:
++	kfree(fbcon);
++	return ret;
+ }
+ 
+ void
+diff --git a/drivers/gpu/drm/omapdrm/omap_fbdev.c b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+index 8436c6857cda..d292d24b3a6e 100644
+--- a/drivers/gpu/drm/omapdrm/omap_fbdev.c
++++ b/drivers/gpu/drm/omapdrm/omap_fbdev.c
+@@ -334,17 +334,23 @@ struct drm_fb_helper *omap_fbdev_init(struct drm_device *dev)
+ 		goto fail;
+ 	}
+ 
+-	drm_fb_helper_single_add_all_connectors(helper);
++	ret = drm_fb_helper_single_add_all_connectors(helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(helper, 32);
++	ret = drm_fb_helper_initial_config(helper, 32);
++	if (ret)
++		goto fini;
+ 
+ 	priv->fbdev = helper;
+ 
+ 	return helper;
+ 
++fini:
++	drm_fb_helper_fini(helper);
+ fail:
+ 	kfree(fbdev);
+ 	return NULL;
+diff --git a/drivers/gpu/drm/qxl/qxl_fb.c b/drivers/gpu/drm/qxl/qxl_fb.c
+index 3d7c1d00a424..f778c0e8ae3c 100644
+--- a/drivers/gpu/drm/qxl/qxl_fb.c
++++ b/drivers/gpu/drm/qxl/qxl_fb.c
+@@ -686,14 +686,24 @@ int qxl_fbdev_init(struct qxl_device *qdev)
+ 	ret = drm_fb_helper_init(qdev->ddev, &qfbdev->helper,
+ 				 qxl_num_crtc /* num_crtc - QXL supports just 1 */,
+ 				 QXLFB_CONN_LIMIT);
+-	if (ret) {
+-		kfree(qfbdev);
+-		return ret;
+-	}
++	if (ret)
++		goto free;
++
++	ret = drm_fb_helper_single_add_all_connectors(&qfbdev->helper);
++	if (ret)
++		goto fini;
++
++	ret = drm_fb_helper_initial_config(&qfbdev->helper, bpp_sel);
++	if (ret)
++		goto fini;
+ 
+-	drm_fb_helper_single_add_all_connectors(&qfbdev->helper);
+-	drm_fb_helper_initial_config(&qfbdev->helper, bpp_sel);
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&qfbdev->helper);
++free:
++	kfree(qfbdev);
++	return ret;
+ }
+ 
+ void qxl_fbdev_fini(struct qxl_device *qdev)
+diff --git a/drivers/gpu/drm/radeon/radeon_fb.c b/drivers/gpu/drm/radeon/radeon_fb.c
+index 29b9220ec399..3000bc4c136b 100644
+--- a/drivers/gpu/drm/radeon/radeon_fb.c
++++ b/drivers/gpu/drm/radeon/radeon_fb.c
+@@ -390,18 +390,27 @@ int radeon_fbdev_init(struct radeon_device *rdev)
+ 	ret = drm_fb_helper_init(rdev->ddev, &rfbdev->helper,
+ 				 rdev->num_crtc,
+ 				 RADEONFB_CONN_LIMIT);
+-	if (ret) {
+-		kfree(rfbdev);
+-		return ret;
+-	}
++	if (ret)
++		goto free;
+ 
+-	drm_fb_helper_single_add_all_connectors(&rfbdev->helper);
++	ret = drm_fb_helper_single_add_all_connectors(&rfbdev->helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(rdev->ddev);
+ 
+-	drm_fb_helper_initial_config(&rfbdev->helper, bpp_sel);
++	ret = drm_fb_helper_initial_config(&rfbdev->helper, bpp_sel);
++	if (ret)
++		goto fini;
++
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&rfbdev->helper);
++free:
++	kfree(rfbdev);
++	return ret;
+ }
+ 
+ void radeon_fbdev_fini(struct radeon_device *rdev)
+diff --git a/drivers/gpu/drm/udl/udl_fb.c b/drivers/gpu/drm/udl/udl_fb.c
+index 8cbcb4589bd3..5fc16cecd3ba 100644
+--- a/drivers/gpu/drm/udl/udl_fb.c
++++ b/drivers/gpu/drm/udl/udl_fb.c
+@@ -589,19 +589,27 @@ int udl_fbdev_init(struct drm_device *dev)
+ 
+ 	ret = drm_fb_helper_init(dev, &ufbdev->helper,
+ 				 1, 1);
+-	if (ret) {
+-		kfree(ufbdev);
+-		return ret;
+-
+-	}
++	if (ret)
++		goto free;
+ 
+-	drm_fb_helper_single_add_all_connectors(&ufbdev->helper);
++	ret = drm_fb_helper_single_add_all_connectors(&ufbdev->helper);
++	if (ret)
++		goto fini;
+ 
+ 	/* disable all the possible outputs/crtcs before entering KMS mode */
+ 	drm_helper_disable_unused_functions(dev);
+ 
+-	drm_fb_helper_initial_config(&ufbdev->helper, bpp_sel);
++	ret = drm_fb_helper_initial_config(&ufbdev->helper, bpp_sel);
++	if (ret)
++		goto fini;
++
+ 	return 0;
++
++fini:
++	drm_fb_helper_fini(&ufbdev->helper);
++free:
++	kfree(ufbdev);
++	return ret;
+ }
+ 
+ void udl_fbdev_cleanup(struct drm_device *dev)
+diff --git a/include/drm/drm_fb_helper.h b/include/drm/drm_fb_helper.h
+index b597068103aa..21b944c456f6 100644
+--- a/include/drm/drm_fb_helper.h
++++ b/include/drm/drm_fb_helper.h
+@@ -125,7 +125,7 @@ void drm_fb_helper_fill_fix(struct fb_info *info, uint32_t pitch,
+ int drm_fb_helper_setcmap(struct fb_cmap *cmap, struct fb_info *info);
+ 
+ int drm_fb_helper_hotplug_event(struct drm_fb_helper *fb_helper);
+-bool drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel);
++int drm_fb_helper_initial_config(struct drm_fb_helper *fb_helper, int bpp_sel);
+ int drm_fb_helper_single_add_all_connectors(struct drm_fb_helper *fb_helper);
+ int drm_fb_helper_debug_enter(struct fb_info *info);
+ int drm_fb_helper_debug_leave(struct fb_info *info);
+-- 
+2.17.0
+

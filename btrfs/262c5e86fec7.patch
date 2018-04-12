@@ -1,0 +1,109 @@
+From 262c5e86fec7cfd59754732001a9ff5b13eba501 Mon Sep 17 00:00:00 2001
+From: Petr Mladek <pmladek@suse.com>
+Date: Mon, 12 Dec 2016 16:45:50 -0800
+Subject: [PATCH] printk/btrfs: handle more message headers
+
+Commit 4bcc595ccd80 ("printk: reinstate KERN_CONT for printing
+continuation lines") allows to define more message headers for a single
+message.  The motivation is that continuous lines might get mixed.
+Therefore it make sense to define the right log level for every piece of
+a cont line.
+
+The current btrfs_printk() macros do not support continuous lines at the
+moment.  But better be prepared for a custom messages and avoid
+potential "lvl" buffer overflow.
+
+This patch iterates over the entire message header.  It is interested
+only into the message level like the original code.
+
+This patch also introduces PRINTK_MAX_SINGLE_HEADER_LEN.  Three bytes
+are enough for the message level header at the moment.  But it used to
+be three, see the commit 04d2c8c83d0e ("printk: convert the format for
+KERN_<LEVEL> to a 2 byte pattern").
+
+Also I fixed the default ratelimit level.  It looked very strange when it
+was different from the default log level.
+
+[pmladek@suse.com: Fix a check of the valid message level]
+  Link: http://lkml.kernel.org/r/20161111183236.GD2145@dhcp128.suse.cz
+Link: http://lkml.kernel.org/r/1478695291-12169-4-git-send-email-pmladek@suse.com
+Signed-off-by: Petr Mladek <pmladek@suse.com>
+Acked-by: David Sterba <dsterba@suse.com>
+Cc: Joe Perches <joe@perches.com>
+Cc: Sergey Senozhatsky <sergey.senozhatsky.work@gmail.com>
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Cc: Jason Wessel <jason.wessel@windriver.com>
+Cc: Jaroslav Kysela <perex@perex.cz>
+Cc: Takashi Iwai <tiwai@suse.com>
+Cc: Chris Mason <clm@fb.com>
+Cc: Josef Bacik <jbacik@fb.com>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ fs/btrfs/super.c       | 26 +++++++++++++++-----------
+ include/linux/printk.h |  2 ++
+ 2 files changed, 17 insertions(+), 11 deletions(-)
+
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index 74ed5aae6cea..180f910339f4 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -202,27 +202,31 @@ static struct ratelimit_state printk_limits[] = {
+ void btrfs_printk(const struct btrfs_fs_info *fs_info, const char *fmt, ...)
+ {
+ 	struct super_block *sb = fs_info->sb;
+-	char lvl[4];
++	char lvl[PRINTK_MAX_SINGLE_HEADER_LEN + 1];
+ 	struct va_format vaf;
+ 	va_list args;
+-	const char *type = logtypes[4];
++	const char *type = NULL;
+ 	int kern_level;
+ 	struct ratelimit_state *ratelimit;
+ 
+ 	va_start(args, fmt);
+ 
+-	kern_level = printk_get_level(fmt);
+-	if (kern_level) {
++	while ((kern_level = printk_get_level(fmt)) != 0) {
+ 		size_t size = printk_skip_level(fmt) - fmt;
+-		memcpy(lvl, fmt,  size);
+-		lvl[size] = '\0';
++
++		if (kern_level >= '0' && kern_level <= '7') {
++			memcpy(lvl, fmt,  size);
++			lvl[size] = '\0';
++			type = logtypes[kern_level - '0'];
++			ratelimit = &printk_limits[kern_level - '0'];
++		}
+ 		fmt += size;
+-		type = logtypes[kern_level - '0'];
+-		ratelimit = &printk_limits[kern_level - '0'];
+-	} else {
++	}
++
++	if (!type) {
+ 		*lvl = '\0';
+-		/* Default to debug output */
+-		ratelimit = &printk_limits[7];
++		type = logtypes[4];
++		ratelimit = &printk_limits[4];
+ 	}
+ 
+ 	vaf.fmt = fmt;
+diff --git a/include/linux/printk.h b/include/linux/printk.h
+index a0859e169bc3..afe8ccec1672 100644
+--- a/include/linux/printk.h
++++ b/include/linux/printk.h
+@@ -10,6 +10,8 @@
+ extern const char linux_banner[];
+ extern const char linux_proc_banner[];
+ 
++#define PRINTK_MAX_SINGLE_HEADER_LEN 2
++
+ static inline int printk_get_level(const char *buffer)
+ {
+ 	if (buffer[0] == KERN_SOH_ASCII && buffer[1]) {
+-- 
+2.17.0
+

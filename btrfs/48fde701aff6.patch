@@ -1,0 +1,1378 @@
+From 48fde701aff662559b38d9a609574068f22d00fe Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 8 Jan 2012 22:15:13 -0500
+Subject: [PATCH] switch open-coded instances of d_make_root() to new helper
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/powerpc/platforms/cell/spufs/inode.c |  4 ++--
+ arch/s390/hypfs/inode.c                   |  6 ++----
+ drivers/misc/ibmasm/ibmasmfs.c            |  6 ++----
+ drivers/oprofile/oprofilefs.c             |  6 ++----
+ drivers/usb/core/inode.c                  |  9 +--------
+ drivers/usb/gadget/f_fs.c                 |  8 ++------
+ drivers/usb/gadget/inode.c                |  4 +---
+ fs/9p/vfs_super.c                         |  3 +--
+ fs/adfs/super.c                           |  3 +--
+ fs/affs/super.c                           |  7 ++-----
+ fs/afs/super.c                            |  7 ++-----
+ fs/autofs4/inode.c                        | 10 ++--------
+ fs/befs/linuxvfs.c                        |  3 +--
+ fs/bfs/inode.c                            |  3 +--
+ fs/btrfs/super.c                          |  8 ++------
+ fs/ceph/super.c                           |  3 +--
+ fs/cifs/cifsfs.c                          |  4 +---
+ fs/coda/inode.c                           |  3 +--
+ fs/configfs/mount.c                       |  3 +--
+ fs/cramfs/inode.c                         |  6 ++----
+ fs/devpts/inode.c                         |  3 +--
+ fs/ecryptfs/main.c                        |  3 +--
+ fs/efs/super.c                            |  3 +--
+ fs/exofs/super.c                          |  3 +--
+ fs/ext2/super.c                           |  3 +--
+ fs/ext3/super.c                           |  3 +--
+ fs/ext4/super.c                           |  3 +--
+ fs/freevxfs/vxfs_super.c                  |  3 +--
+ fs/fuse/inode.c                           |  9 ++-------
+ fs/gfs2/ops_fstype.c                      |  3 +--
+ fs/hfs/super.c                            |  6 ++----
+ fs/hostfs/hostfs_kern.c                   |  4 ++--
+ fs/hpfs/super.c                           |  6 ++----
+ fs/hppfs/hppfs.c                          |  9 ++-------
+ fs/hugetlbfs/inode.c                      | 13 ++----------
+ fs/isofs/inode.c                          |  3 +--
+ fs/jffs2/fs.c                             |  6 ++----
+ fs/jfs/super.c                            |  3 +--
+ fs/libfs.c                                |  6 ++----
+ fs/logfs/super.c                          |  6 ++----
+ fs/ncpfs/inode.c                          |  6 ++----
+ fs/nfs/getroot.c                          |  6 ++----
+ fs/nilfs2/super.c                         |  3 +--
+ fs/ocfs2/dlmfs/dlmfs.c                    | 14 ++-----------
+ fs/ocfs2/super.c                          |  3 +--
+ fs/omfs/inode.c                           |  6 ++----
+ fs/openpromfs/inode.c                     |  3 +--
+ fs/proc/inode.c                           | 15 +++-----------
+ fs/pstore/inode.c                         |  3 +--
+ fs/qnx4/inode.c                           |  6 ++----
+ fs/ramfs/inode.c                          | 12 ++----------
+ fs/reiserfs/super.c                       |  6 ++----
+ fs/romfs/super.c                          |  6 ++----
+ fs/squashfs/super.c                       |  3 +--
+ fs/sysfs/mount.c                          |  3 +--
+ fs/sysv/super.c                           |  3 +--
+ fs/ubifs/super.c                          |  6 ++----
+ fs/udf/super.c                            |  3 +--
+ fs/ufs/super.c                            |  6 ++----
+ fs/xfs/xfs_super.c                        |  6 ++----
+ ipc/mqueue.c                              | 24 +++++++----------------
+ kernel/cgroup.c                           |  8 ++------
+ mm/shmem.c                                |  6 ++----
+ net/sunrpc/rpc_pipe.c                     |  8 ++------
+ 64 files changed, 105 insertions(+), 264 deletions(-)
+
+diff --git a/arch/powerpc/platforms/cell/spufs/inode.c b/arch/powerpc/platforms/cell/spufs/inode.c
+index d4a094ca96f3..17b3211e3641 100644
+--- a/arch/powerpc/platforms/cell/spufs/inode.c
++++ b/arch/powerpc/platforms/cell/spufs/inode.c
+@@ -757,9 +757,9 @@ spufs_create_root(struct super_block *sb, void *data)
+ 		goto out_iput;
+ 
+ 	ret = -ENOMEM;
+-	sb->s_root = d_alloc_root(inode);
++	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root)
+-		goto out_iput;
++		goto out;
+ 
+ 	return 0;
+ out_iput:
+diff --git a/arch/s390/hypfs/inode.c b/arch/s390/hypfs/inode.c
+index 8a2a887478cc..6a2cb560e968 100644
+--- a/arch/s390/hypfs/inode.c
++++ b/arch/s390/hypfs/inode.c
+@@ -293,11 +293,9 @@ static int hypfs_fill_super(struct super_block *sb, void *data, int silent)
+ 		return -ENOMEM;
+ 	root_inode->i_op = &simple_dir_inode_operations;
+ 	root_inode->i_fop = &simple_dir_operations;
+-	sb->s_root = root_dentry = d_alloc_root(root_inode);
+-	if (!root_dentry) {
+-		iput(root_inode);
++	sb->s_root = root_dentry = d_make_root(root_inode);
++	if (!root_dentry)
+ 		return -ENOMEM;
+-	}
+ 	if (MACHINE_IS_VM)
+ 		rc = hypfs_vm_create_files(sb, root_dentry);
+ 	else
+diff --git a/drivers/misc/ibmasm/ibmasmfs.c b/drivers/misc/ibmasm/ibmasmfs.c
+index 35361753b487..15f24f362208 100644
+--- a/drivers/misc/ibmasm/ibmasmfs.c
++++ b/drivers/misc/ibmasm/ibmasmfs.c
+@@ -129,11 +129,9 @@ static int ibmasmfs_fill_super (struct super_block *sb, void *data, int silent)
+ 	root->i_op = &simple_dir_inode_operations;
+ 	root->i_fop = ibmasmfs_dir_ops;
+ 
+-	root_dentry = d_alloc_root(root);
+-	if (!root_dentry) {
+-		iput(root);
++	root_dentry = d_make_root(root);
++	if (!root_dentry)
+ 		return -ENOMEM;
+-	}
+ 	sb->s_root = root_dentry;
+ 
+ 	ibmasmfs_create_files(sb, root_dentry);
+diff --git a/drivers/oprofile/oprofilefs.c b/drivers/oprofile/oprofilefs.c
+index 2f0aa0f700e6..277bb70b8d75 100644
+--- a/drivers/oprofile/oprofilefs.c
++++ b/drivers/oprofile/oprofilefs.c
+@@ -251,11 +251,9 @@ static int oprofilefs_fill_super(struct super_block *sb, void *data, int silent)
+ 		return -ENOMEM;
+ 	root_inode->i_op = &simple_dir_inode_operations;
+ 	root_inode->i_fop = &simple_dir_operations;
+-	root_dentry = d_alloc_root(root_inode);
+-	if (!root_dentry) {
+-		iput(root_inode);
++	root_dentry = d_make_root(root_inode);
++	if (!root_dentry)
+ 		return -ENOMEM;
+-	}
+ 
+ 	sb->s_root = root_dentry;
+ 
+diff --git a/drivers/usb/core/inode.c b/drivers/usb/core/inode.c
+index 9e186f3da839..bdaef8e36020 100644
+--- a/drivers/usb/core/inode.c
++++ b/drivers/usb/core/inode.c
+@@ -462,16 +462,9 @@ static int usbfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_op = &usbfs_ops;
+ 	sb->s_time_gran = 1;
+ 	inode = usbfs_get_inode(sb, S_IFDIR | 0755, 0);
+-
+-	if (!inode) {
+-		dbg("%s: could not get inode!",__func__);
+-		return -ENOMEM;
+-	}
+-
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root) {
+ 		dbg("%s: could not get root dentry!",__func__);
+-		iput(inode);
+ 		return -ENOMEM;
+ 	}
+ 	sb->s_root = root;
+diff --git a/drivers/usb/gadget/f_fs.c b/drivers/usb/gadget/f_fs.c
+index f63dc6c150d2..d825b248728a 100644
+--- a/drivers/usb/gadget/f_fs.c
++++ b/drivers/usb/gadget/f_fs.c
+@@ -1063,13 +1063,9 @@ static int ffs_sb_fill(struct super_block *sb, void *_data, int silent)
+ 				  &simple_dir_operations,
+ 				  &simple_dir_inode_operations,
+ 				  &data->perms);
+-	if (unlikely(!inode))
++	sb->s_root = d_make_root(inode);
++	if (unlikely(!sb->s_root))
+ 		goto Enomem;
+-	sb->s_root = d_alloc_root(inode);
+-	if (unlikely(!sb->s_root)) {
+-		iput(inode);
+-		goto Enomem;
+-	}
+ 
+ 	/* EP0 file */
+ 	if (unlikely(!ffs_sb_create_file(sb, "ep0", ffs,
+diff --git a/drivers/usb/gadget/inode.c b/drivers/usb/gadget/inode.c
+index ae04266dba1b..c95eea43b637 100644
+--- a/drivers/usb/gadget/inode.c
++++ b/drivers/usb/gadget/inode.c
+@@ -2059,10 +2059,8 @@ gadgetfs_fill_super (struct super_block *sb, void *opts, int silent)
+ 	if (!inode)
+ 		goto Enomem;
+ 	inode->i_op = &simple_dir_inode_operations;
+-	if (!(sb->s_root = d_alloc_root (inode))) {
+-		iput(inode);
++	if (!(sb->s_root = d_make_root (inode)))
+ 		goto Enomem;
+-	}
+ 
+ 	/* the ep0 file is named after the controller we expect;
+ 	 * user mode code can use it for sanity checks, like we do.
+diff --git a/fs/9p/vfs_super.c b/fs/9p/vfs_super.c
+index 7b0cd87b07c2..10b7d3c9dba8 100644
+--- a/fs/9p/vfs_super.c
++++ b/fs/9p/vfs_super.c
+@@ -155,9 +155,8 @@ static struct dentry *v9fs_mount(struct file_system_type *fs_type, int flags,
+ 		goto release_sb;
+ 	}
+ 
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root) {
+-		iput(inode);
+ 		retval = -ENOMEM;
+ 		goto release_sb;
+ 	}
+diff --git a/fs/adfs/super.c b/fs/adfs/super.c
+index 8e3b36ace305..06fdcc9382c4 100644
+--- a/fs/adfs/super.c
++++ b/fs/adfs/super.c
+@@ -483,10 +483,9 @@ static int adfs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_d_op = &adfs_dentry_operations;
+ 	root = adfs_iget(sb, &root_obj);
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+ 		int i;
+-		iput(root);
+ 		for (i = 0; i < asb->s_map_size; i++)
+ 			brelse(asb->s_map[i].dm_bh);
+ 		kfree(asb->s_map);
+diff --git a/fs/affs/super.c b/fs/affs/super.c
+index 8ba73fed7964..0782653a05a2 100644
+--- a/fs/affs/super.c
++++ b/fs/affs/super.c
+@@ -473,7 +473,7 @@ static int affs_fill_super(struct super_block *sb, void *data, int silent)
+ 	root_inode = affs_iget(sb, root_block);
+ 	if (IS_ERR(root_inode)) {
+ 		ret = PTR_ERR(root_inode);
+-		goto out_error_noinode;
++		goto out_error;
+ 	}
+ 
+ 	if (AFFS_SB(sb)->s_flags & SF_INTL)
+@@ -481,7 +481,7 @@ static int affs_fill_super(struct super_block *sb, void *data, int silent)
+ 	else
+ 		sb->s_d_op = &affs_dentry_operations;
+ 
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+ 	if (!sb->s_root) {
+ 		printk(KERN_ERR "AFFS: Get root inode failed\n");
+ 		goto out_error;
+@@ -494,9 +494,6 @@ static int affs_fill_super(struct super_block *sb, void *data, int silent)
+ 	 * Begin the cascaded cleanup ...
+ 	 */
+ out_error:
+-	if (root_inode)
+-		iput(root_inode);
+-out_error_noinode:
+ 	kfree(sbi->s_bitmap);
+ 	affs_brelse(root_bh);
+ 	kfree(sbi->s_prefix);
+diff --git a/fs/afs/super.c b/fs/afs/super.c
+index 983ec59fc80d..f02b31e7e648 100644
+--- a/fs/afs/super.c
++++ b/fs/afs/super.c
+@@ -301,7 +301,6 @@ static int afs_fill_super(struct super_block *sb,
+ {
+ 	struct afs_super_info *as = sb->s_fs_info;
+ 	struct afs_fid fid;
+-	struct dentry *root = NULL;
+ 	struct inode *inode = NULL;
+ 	int ret;
+ 
+@@ -327,18 +326,16 @@ static int afs_fill_super(struct super_block *sb,
+ 		set_bit(AFS_VNODE_AUTOCELL, &AFS_FS_I(inode)->flags);
+ 
+ 	ret = -ENOMEM;
+-	root = d_alloc_root(inode);
+-	if (!root)
++	sb->s_root = d_make_root(inode);
++	if (!sb->s_root)
+ 		goto error;
+ 
+ 	sb->s_d_op = &afs_fs_dentry_operations;
+-	sb->s_root = root;
+ 
+ 	_leave(" = 0");
+ 	return 0;
+ 
+ error:
+-	iput(inode);
+ 	_leave(" = %d", ret);
+ 	return ret;
+ }
+diff --git a/fs/autofs4/inode.c b/fs/autofs4/inode.c
+index 06858d955120..d8dc002e9cc3 100644
+--- a/fs/autofs4/inode.c
++++ b/fs/autofs4/inode.c
+@@ -247,12 +247,9 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ 	if (!ino)
+ 		goto fail_free;
+ 	root_inode = autofs4_get_inode(s, S_IFDIR | 0755);
+-	if (!root_inode)
+-		goto fail_ino;
+-
+-	root = d_alloc_root(root_inode);
++	root = d_make_root(root_inode);
+ 	if (!root)
+-		goto fail_iput;
++		goto fail_ino;
+ 	pipe = NULL;
+ 
+ 	root->d_fsdata = ino;
+@@ -317,9 +314,6 @@ int autofs4_fill_super(struct super_block *s, void *data, int silent)
+ fail_dput:
+ 	dput(root);
+ 	goto fail_free;
+-fail_iput:
+-	printk("autofs: get root dentry failed\n");
+-	iput(root_inode);
+ fail_ino:
+ 	kfree(ino);
+ fail_free:
+diff --git a/fs/befs/linuxvfs.c b/fs/befs/linuxvfs.c
+index 6e6d536767fe..e18da23d42b5 100644
+--- a/fs/befs/linuxvfs.c
++++ b/fs/befs/linuxvfs.c
+@@ -852,9 +852,8 @@ befs_fill_super(struct super_block *sb, void *data, int silent)
+ 		ret = PTR_ERR(root);
+ 		goto unacquire_priv_sbp;
+ 	}
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+-		iput(root);
+ 		befs_error(sb, "get root inode failed");
+ 		goto unacquire_priv_sbp;
+ 	}
+diff --git a/fs/bfs/inode.c b/fs/bfs/inode.c
+index b0391bc402b1..e23dc7c8b884 100644
+--- a/fs/bfs/inode.c
++++ b/fs/bfs/inode.c
+@@ -367,9 +367,8 @@ static int bfs_fill_super(struct super_block *s, void *data, int silent)
+ 		ret = PTR_ERR(inode);
+ 		goto out2;
+ 	}
+-	s->s_root = d_alloc_root(inode);
++	s->s_root = d_make_root(inode);
+ 	if (!s->s_root) {
+-		iput(inode);
+ 		ret = -ENOMEM;
+ 		goto out2;
+ 	}
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index 3ce97b217cbe..81df3fec6a6d 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -629,7 +629,6 @@ static int btrfs_fill_super(struct super_block *sb,
+ 			    void *data, int silent)
+ {
+ 	struct inode *inode;
+-	struct dentry *root_dentry;
+ 	struct btrfs_fs_info *fs_info = btrfs_sb(sb);
+ 	struct btrfs_key key;
+ 	int err;
+@@ -660,15 +659,12 @@ static int btrfs_fill_super(struct super_block *sb,
+ 		goto fail_close;
+ 	}
+ 
+-	root_dentry = d_alloc_root(inode);
+-	if (!root_dentry) {
+-		iput(inode);
++	sb->s_root = d_make_root(inode);
++	if (!sb->s_root) {
+ 		err = -ENOMEM;
+ 		goto fail_close;
+ 	}
+ 
+-	sb->s_root = root_dentry;
+-
+ 	save_mount_options(sb, data);
+ 	cleancache_init_fs(sb);
+ 	sb->s_flags |= MS_ACTIVE;
+diff --git a/fs/ceph/super.c b/fs/ceph/super.c
+index 00de2c9568cd..256f85221926 100644
+--- a/fs/ceph/super.c
++++ b/fs/ceph/super.c
+@@ -655,9 +655,8 @@ static struct dentry *open_root_dentry(struct ceph_fs_client *fsc,
+ 		dout("open_root_inode success\n");
+ 		if (ceph_ino(inode) == CEPH_INO_ROOT &&
+ 		    fsc->sb->s_root == NULL) {
+-			root = d_alloc_root(inode);
++			root = d_make_root(inode);
+ 			if (!root) {
+-				iput(inode);
+ 				root = ERR_PTR(-ENOMEM);
+ 				goto out;
+ 			}
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index 8b7d7ff88792..418fc42fb8b2 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -122,11 +122,9 @@ cifs_read_super(struct super_block *sb)
+ 		goto out_no_root;
+ 	}
+ 
+-	sb->s_root = d_alloc_root(inode);
+-
++	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root) {
+ 		rc = -ENOMEM;
+-		iput(inode);
+ 		goto out_no_root;
+ 	}
+ 
+diff --git a/fs/coda/inode.c b/fs/coda/inode.c
+index 32dafc875c14..05156c17b551 100644
+--- a/fs/coda/inode.c
++++ b/fs/coda/inode.c
+@@ -213,9 +213,8 @@ static int coda_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	printk("coda_read_super: rootinode is %ld dev %s\n", 
+ 	       root->i_ino, root->i_sb->s_id);
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+-		iput(root);
+ 		error = -EINVAL;
+ 		goto error;
+ 	}
+diff --git a/fs/configfs/mount.c b/fs/configfs/mount.c
+index 276e15cafd58..07f60455f1c1 100644
+--- a/fs/configfs/mount.c
++++ b/fs/configfs/mount.c
+@@ -91,10 +91,9 @@ static int configfs_fill_super(struct super_block *sb, void *data, int silent)
+ 		return -ENOMEM;
+ 	}
+ 
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root) {
+ 		pr_debug("%s: could not get root dentry!\n",__func__);
+-		iput(inode);
+ 		return -ENOMEM;
+ 	}
+ 	config_group_init(&configfs_root_group);
+diff --git a/fs/cramfs/inode.c b/fs/cramfs/inode.c
+index a2ee8f9f5a38..853480d2b3d1 100644
+--- a/fs/cramfs/inode.c
++++ b/fs/cramfs/inode.c
+@@ -318,11 +318,9 @@ static int cramfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	root = get_cramfs_inode(sb, &super.root, 0);
+ 	if (IS_ERR(root))
+ 		goto out;
+-	sb->s_root = d_alloc_root(root);
+-	if (!sb->s_root) {
+-		iput(root);
++	sb->s_root = d_make_root(root);
++	if (!sb->s_root)
+ 		goto out;
+-	}
+ 	return 0;
+ out:
+ 	kfree(sbi);
+diff --git a/fs/devpts/inode.c b/fs/devpts/inode.c
+index c4e2a58a2e82..57dae0baedf2 100644
+--- a/fs/devpts/inode.c
++++ b/fs/devpts/inode.c
+@@ -309,12 +309,11 @@ devpts_fill_super(struct super_block *s, void *data, int silent)
+ 	inode->i_fop = &simple_dir_operations;
+ 	set_nlink(inode, 2);
+ 
+-	s->s_root = d_alloc_root(inode);
++	s->s_root = d_make_root(inode);
+ 	if (s->s_root)
+ 		return 0;
+ 
+ 	printk(KERN_ERR "devpts: get root dentry failed\n");
+-	iput(inode);
+ 
+ fail:
+ 	return -ENOMEM;
+diff --git a/fs/ecryptfs/main.c b/fs/ecryptfs/main.c
+index b4a6befb1216..6e0e017e6932 100644
+--- a/fs/ecryptfs/main.c
++++ b/fs/ecryptfs/main.c
+@@ -550,9 +550,8 @@ static struct dentry *ecryptfs_mount(struct file_system_type *fs_type, int flags
+ 	if (IS_ERR(inode))
+ 		goto out_free;
+ 
+-	s->s_root = d_alloc_root(inode);
++	s->s_root = d_make_root(inode);
+ 	if (!s->s_root) {
+-		iput(inode);
+ 		rc = -ENOMEM;
+ 		goto out_free;
+ 	}
+diff --git a/fs/efs/super.c b/fs/efs/super.c
+index 981106429a9f..e755ec746c69 100644
+--- a/fs/efs/super.c
++++ b/fs/efs/super.c
+@@ -317,10 +317,9 @@ static int efs_fill_super(struct super_block *s, void *d, int silent)
+ 		goto out_no_fs;
+ 	}
+ 
+-	s->s_root = d_alloc_root(root);
++	s->s_root = d_make_root(root);
+ 	if (!(s->s_root)) {
+ 		printk(KERN_ERR "EFS: get root dentry failed\n");
+-		iput(root);
+ 		ret = -ENOMEM;
+ 		goto out_no_fs;
+ 	}
+diff --git a/fs/exofs/super.c b/fs/exofs/super.c
+index 6cafcadfc3c8..7f2b590a36b7 100644
+--- a/fs/exofs/super.c
++++ b/fs/exofs/super.c
+@@ -819,9 +819,8 @@ static int exofs_fill_super(struct super_block *sb, void *data, int silent)
+ 		ret = PTR_ERR(root);
+ 		goto free_sbi;
+ 	}
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+-		iput(root);
+ 		EXOFS_ERR("ERROR: get root inode failed\n");
+ 		ret = -ENOMEM;
+ 		goto free_sbi;
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 9f6766a3ac1e..e1025c7a437a 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -1088,9 +1088,8 @@ static int ext2_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto failed_mount3;
+ 	}
+ 
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+-		iput(root);
+ 		ext2_msg(sb, KERN_ERR, "error: get root inode failed");
+ 		ret = -ENOMEM;
+ 		goto failed_mount3;
+diff --git a/fs/ext3/super.c b/fs/ext3/super.c
+index 726c7ef6cdf1..e0b45b93327b 100644
+--- a/fs/ext3/super.c
++++ b/fs/ext3/super.c
+@@ -2046,10 +2046,9 @@ static int ext3_fill_super (struct super_block *sb, void *data, int silent)
+ 		ext3_msg(sb, KERN_ERR, "error: corrupt root inode, run e2fsck");
+ 		goto failed_mount3;
+ 	}
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+ 		ext3_msg(sb, KERN_ERR, "error: get root dentry failed");
+-		iput(root);
+ 		ret = -ENOMEM;
+ 		goto failed_mount3;
+ 	}
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 502c61fd7392..d2baea7bcf30 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -3735,9 +3735,8 @@ static int ext4_fill_super(struct super_block *sb, void *data, int silent)
+ 		iput(root);
+ 		goto failed_mount4;
+ 	}
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+-		iput(root);
+ 		ext4_msg(sb, KERN_ERR, "get root dentry failed");
+ 		ret = -ENOMEM;
+ 		goto failed_mount4;
+diff --git a/fs/freevxfs/vxfs_super.c b/fs/freevxfs/vxfs_super.c
+index 9d1c99558389..d4fabd26084e 100644
+--- a/fs/freevxfs/vxfs_super.c
++++ b/fs/freevxfs/vxfs_super.c
+@@ -224,9 +224,8 @@ static int vxfs_fill_super(struct super_block *sbp, void *dp, int silent)
+ 		ret = PTR_ERR(root);
+ 		goto out;
+ 	}
+-	sbp->s_root = d_alloc_root(root);
++	sbp->s_root = d_make_root(root);
+ 	if (!sbp->s_root) {
+-		iput(root);
+ 		printk(KERN_WARNING "vxfs: unable to get root dentry.\n");
+ 		goto out_free_ilist;
+ 	}
+diff --git a/fs/fuse/inode.c b/fs/fuse/inode.c
+index 64cf8d07393e..4aec5995867e 100644
+--- a/fs/fuse/inode.c
++++ b/fs/fuse/inode.c
+@@ -988,14 +988,9 @@ static int fuse_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	err = -ENOMEM;
+ 	root = fuse_get_root_inode(sb, d.rootmode);
+-	if (!root)
++	root_dentry = d_make_root(root);
++	if (!root_dentry)
+ 		goto err_put_conn;
+-
+-	root_dentry = d_alloc_root(root);
+-	if (!root_dentry) {
+-		iput(root);
+-		goto err_put_conn;
+-	}
+ 	/* only now - we want root dentry with NULL ->d_op */
+ 	sb->s_d_op = &fuse_dentry_operations;
+ 
+diff --git a/fs/gfs2/ops_fstype.c b/fs/gfs2/ops_fstype.c
+index 24f609c9ef91..10e848c6d1b5 100644
+--- a/fs/gfs2/ops_fstype.c
++++ b/fs/gfs2/ops_fstype.c
+@@ -431,10 +431,9 @@ static int gfs2_lookup_root(struct super_block *sb, struct dentry **dptr,
+ 		fs_err(sdp, "can't read in %s inode: %ld\n", name, PTR_ERR(inode));
+ 		return PTR_ERR(inode);
+ 	}
+-	dentry = d_alloc_root(inode);
++	dentry = d_make_root(inode);
+ 	if (!dentry) {
+ 		fs_err(sdp, "can't alloc %s dentry\n", name);
+-		iput(inode);
+ 		return -ENOMEM;
+ 	}
+ 	*dptr = dentry;
+diff --git a/fs/hfs/super.c b/fs/hfs/super.c
+index 8137fb3e6780..7b4c537d6e13 100644
+--- a/fs/hfs/super.c
++++ b/fs/hfs/super.c
+@@ -430,15 +430,13 @@ static int hfs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	sb->s_d_op = &hfs_dentry_operations;
+ 	res = -ENOMEM;
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+ 	if (!sb->s_root)
+-		goto bail_iput;
++		goto bail_no_root;
+ 
+ 	/* everything's okay */
+ 	return 0;
+ 
+-bail_iput:
+-	iput(root_inode);
+ bail_no_root:
+ 	printk(KERN_ERR "hfs: get root inode failed.\n");
+ bail:
+diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
+index e130bd46d671..588d45885a6f 100644
+--- a/fs/hostfs/hostfs_kern.c
++++ b/fs/hostfs/hostfs_kern.c
+@@ -966,9 +966,9 @@ static int hostfs_fill_sb_common(struct super_block *sb, void *d, int silent)
+ 	}
+ 
+ 	err = -ENOMEM;
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+ 	if (sb->s_root == NULL)
+-		goto out_put;
++		goto out;
+ 
+ 	return 0;
+ 
+diff --git a/fs/hpfs/super.c b/fs/hpfs/super.c
+index 3690467c944e..54f6eccb79d9 100644
+--- a/fs/hpfs/super.c
++++ b/fs/hpfs/super.c
+@@ -625,11 +625,9 @@ static int hpfs_fill_super(struct super_block *s, void *options, int silent)
+ 	hpfs_init_inode(root);
+ 	hpfs_read_inode(root);
+ 	unlock_new_inode(root);
+-	s->s_root = d_alloc_root(root);
+-	if (!s->s_root) {
+-		iput(root);
++	s->s_root = d_make_root(root);
++	if (!s->s_root)
+ 		goto bail0;
+-	}
+ 
+ 	/*
+ 	 * find the root directory's . pointer & finish filling in the inode
+diff --git a/fs/hppfs/hppfs.c b/fs/hppfs/hppfs.c
+index d92f4ce80925..a80e45a690ac 100644
+--- a/fs/hppfs/hppfs.c
++++ b/fs/hppfs/hppfs.c
+@@ -726,17 +726,12 @@ static int hppfs_fill_super(struct super_block *sb, void *d, int silent)
+ 
+ 	err = -ENOMEM;
+ 	root_inode = get_inode(sb, dget(proc_mnt->mnt_root));
+-	if (!root_inode)
+-		goto out_mntput;
+-
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+ 	if (!sb->s_root)
+-		goto out_iput;
++		goto out_mntput;
+ 
+ 	return 0;
+ 
+- out_iput:
+-	iput(root_inode);
+  out_mntput:
+ 	mntput(proc_mnt);
+  out:
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 1e85a7ac0217..81932fa1861a 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -831,8 +831,6 @@ hugetlbfs_parse_options(char *options, struct hugetlbfs_config *pconfig)
+ static int
+ hugetlbfs_fill_super(struct super_block *sb, void *data, int silent)
+ {
+-	struct inode * inode;
+-	struct dentry * root;
+ 	int ret;
+ 	struct hugetlbfs_config config;
+ 	struct hugetlbfs_sb_info *sbinfo;
+@@ -865,16 +863,9 @@ hugetlbfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_magic = HUGETLBFS_MAGIC;
+ 	sb->s_op = &hugetlbfs_ops;
+ 	sb->s_time_gran = 1;
+-	inode = hugetlbfs_get_root(sb, &config);
+-	if (!inode)
+-		goto out_free;
+-
+-	root = d_alloc_root(inode);
+-	if (!root) {
+-		iput(inode);
++	sb->s_root = d_make_root(hugetlbfs_get_root(sb, &config));
++	if (!sb->s_root)
+ 		goto out_free;
+-	}
+-	sb->s_root = root;
+ 	return 0;
+ out_free:
+ 	kfree(sbinfo);
+diff --git a/fs/isofs/inode.c b/fs/isofs/inode.c
+index bd62c76fb5df..29037c365ba4 100644
+--- a/fs/isofs/inode.c
++++ b/fs/isofs/inode.c
+@@ -947,9 +947,8 @@ static int isofs_fill_super(struct super_block *s, void *data, int silent)
+ 	s->s_d_op = &isofs_dentry_ops[table];
+ 
+ 	/* get the root dentry */
+-	s->s_root = d_alloc_root(inode);
++	s->s_root = d_make_root(inode);
+ 	if (!(s->s_root)) {
+-		iput(inode);
+ 		error = -ENOMEM;
+ 		goto out_no_inode;
+ 	}
+diff --git a/fs/jffs2/fs.c b/fs/jffs2/fs.c
+index 2e0123867cb1..c0d5c9d770da 100644
+--- a/fs/jffs2/fs.c
++++ b/fs/jffs2/fs.c
+@@ -561,9 +561,9 @@ int jffs2_do_fill_super(struct super_block *sb, void *data, int silent)
+ 	ret = -ENOMEM;
+ 
+ 	D1(printk(KERN_DEBUG "jffs2_do_fill_super(): d_alloc_root()\n"));
+-	sb->s_root = d_alloc_root(root_i);
++	sb->s_root = d_make_root(root_i);
+ 	if (!sb->s_root)
+-		goto out_root_i;
++		goto out_root;
+ 
+ 	sb->s_maxbytes = 0xFFFFFFFF;
+ 	sb->s_blocksize = PAGE_CACHE_SIZE;
+@@ -573,8 +573,6 @@ int jffs2_do_fill_super(struct super_block *sb, void *data, int silent)
+ 		jffs2_start_garbage_collect_thread(c);
+ 	return 0;
+ 
+- out_root_i:
+-	iput(root_i);
+ out_root:
+ 	jffs2_free_ino_caches(c);
+ 	jffs2_free_raw_node_refs(c);
+diff --git a/fs/jfs/super.c b/fs/jfs/super.c
+index 4661ad705130..b3bb95504479 100644
+--- a/fs/jfs/super.c
++++ b/fs/jfs/super.c
+@@ -522,7 +522,7 @@ static int jfs_fill_super(struct super_block *sb, void *data, int silent)
+ 		ret = PTR_ERR(inode);
+ 		goto out_no_rw;
+ 	}
+-	sb->s_root = d_alloc_root(inode);
++	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root)
+ 		goto out_no_root;
+ 
+@@ -540,7 +540,6 @@ static int jfs_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ out_no_root:
+ 	jfs_err("jfs_read_super: get root dentry failed");
+-	iput(inode);
+ 
+ out_no_rw:
+ 	rc = jfs_umount(sb);
+diff --git a/fs/libfs.c b/fs/libfs.c
+index 5b2dbb3ba4fc..7c895a763a1e 100644
+--- a/fs/libfs.c
++++ b/fs/libfs.c
+@@ -491,11 +491,9 @@ int simple_fill_super(struct super_block *s, unsigned long magic,
+ 	inode->i_op = &simple_dir_inode_operations;
+ 	inode->i_fop = &simple_dir_operations;
+ 	set_nlink(inode, 2);
+-	root = d_alloc_root(inode);
+-	if (!root) {
+-		iput(inode);
++	root = d_make_root(inode);
++	if (!root)
+ 		return -ENOMEM;
+-	}
+ 	for (i = 0; !files->name || files->name[0]; i++, files++) {
+ 		if (!files->name)
+ 			continue;
+diff --git a/fs/logfs/super.c b/fs/logfs/super.c
+index b1a491a5fe78..7de18c3021fe 100644
+--- a/fs/logfs/super.c
++++ b/fs/logfs/super.c
+@@ -315,11 +315,9 @@ static int logfs_get_sb_final(struct super_block *sb)
+ 	if (IS_ERR(rootdir))
+ 		goto fail;
+ 
+-	sb->s_root = d_alloc_root(rootdir);
+-	if (!sb->s_root) {
+-		iput(rootdir);
++	sb->s_root = d_make_root(rootdir);
++	if (!sb->s_root)
+ 		goto fail;
+-	}
+ 
+ 	/* at that point we know that ->put_super() will be called */
+ 	super->s_erase_page = alloc_pages(GFP_KERNEL, 0);
+diff --git a/fs/ncpfs/inode.c b/fs/ncpfs/inode.c
+index 3d1e34f8a68e..49df0e7f8379 100644
+--- a/fs/ncpfs/inode.c
++++ b/fs/ncpfs/inode.c
+@@ -716,13 +716,11 @@ static int ncp_fill_super(struct super_block *sb, void *raw_data, int silent)
+         if (!root_inode)
+ 		goto out_disconnect;
+ 	DPRINTK("ncp_fill_super: root vol=%d\n", NCP_FINFO(root_inode)->volNumber);
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+         if (!sb->s_root)
+-		goto out_no_root;
++		goto out_disconnect;
+ 	return 0;
+ 
+-out_no_root:
+-	iput(root_inode);
+ out_disconnect:
+ 	ncp_lock_server(server);
+ 	ncp_disconnect(server);
+diff --git a/fs/nfs/getroot.c b/fs/nfs/getroot.c
+index dcb61548887f..801d6d830787 100644
+--- a/fs/nfs/getroot.c
++++ b/fs/nfs/getroot.c
+@@ -49,11 +49,9 @@ static int nfs_superblock_set_dummy_root(struct super_block *sb, struct inode *i
+ {
+ 	/* The mntroot acts as the dummy root dentry for this superblock */
+ 	if (sb->s_root == NULL) {
+-		sb->s_root = d_alloc_root(inode);
+-		if (sb->s_root == NULL) {
+-			iput(inode);
++		sb->s_root = d_make_root(inode);
++		if (sb->s_root == NULL)
+ 			return -ENOMEM;
+-		}
+ 		ihold(inode);
+ 		/*
+ 		 * Ensure that this dentry is invisible to d_find_alias().
+diff --git a/fs/nilfs2/super.c b/fs/nilfs2/super.c
+index 1fc9ad3c1d14..1099a76cee59 100644
+--- a/fs/nilfs2/super.c
++++ b/fs/nilfs2/super.c
+@@ -917,9 +917,8 @@ static int nilfs_get_root_dentry(struct super_block *sb,
+ 	if (root->cno == NILFS_CPTREE_CURRENT_CNO) {
+ 		dentry = d_find_alias(inode);
+ 		if (!dentry) {
+-			dentry = d_alloc_root(inode);
++			dentry = d_make_root(inode);
+ 			if (!dentry) {
+-				iput(inode);
+ 				ret = -ENOMEM;
+ 				goto failed_dentry;
+ 			}
+diff --git a/fs/ocfs2/dlmfs/dlmfs.c b/fs/ocfs2/dlmfs/dlmfs.c
+index abfac0d7ae9c..3b5825ef3193 100644
+--- a/fs/ocfs2/dlmfs/dlmfs.c
++++ b/fs/ocfs2/dlmfs/dlmfs.c
+@@ -582,24 +582,14 @@ static int dlmfs_fill_super(struct super_block * sb,
+ 			    void * data,
+ 			    int silent)
+ {
+-	struct inode * inode;
+-	struct dentry * root;
+-
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+ 	sb->s_blocksize = PAGE_CACHE_SIZE;
+ 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
+ 	sb->s_magic = DLMFS_MAGIC;
+ 	sb->s_op = &dlmfs_ops;
+-	inode = dlmfs_get_root_inode(sb);
+-	if (!inode)
+-		return -ENOMEM;
+-
+-	root = d_alloc_root(inode);
+-	if (!root) {
+-		iput(inode);
++	sb->s_root = d_make_root(dlmfs_get_root_inode(sb));
++	if (!sb->s_root)
+ 		return -ENOMEM;
+-	}
+-	sb->s_root = root;
+ 	return 0;
+ }
+ 
+diff --git a/fs/ocfs2/super.c b/fs/ocfs2/super.c
+index 2b1184f7097f..337687c3e233 100644
+--- a/fs/ocfs2/super.c
++++ b/fs/ocfs2/super.c
+@@ -1166,9 +1166,8 @@ static int ocfs2_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto read_super_error;
+ 	}
+ 
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root) {
+-		iput(inode);
+ 		status = -ENOMEM;
+ 		mlog_errno(status);
+ 		goto read_super_error;
+diff --git a/fs/omfs/inode.c b/fs/omfs/inode.c
+index 6065bb0ba207..dbc842222589 100644
+--- a/fs/omfs/inode.c
++++ b/fs/omfs/inode.c
+@@ -539,11 +539,9 @@ static int omfs_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto out_brelse_bh2;
+ 	}
+ 
+-	sb->s_root = d_alloc_root(root);
+-	if (!sb->s_root) {
+-		iput(root);
++	sb->s_root = d_make_root(root);
++	if (!sb->s_root)
+ 		goto out_brelse_bh2;
+-	}
+ 	printk(KERN_DEBUG "omfs: Mounted volume %s\n", omfs_rb->r_name);
+ 
+ 	ret = 0;
+diff --git a/fs/openpromfs/inode.c b/fs/openpromfs/inode.c
+index a88c03bc749d..bc49c975d501 100644
+--- a/fs/openpromfs/inode.c
++++ b/fs/openpromfs/inode.c
+@@ -408,13 +408,12 @@ static int openprom_fill_super(struct super_block *s, void *data, int silent)
+ 	oi->type = op_inode_node;
+ 	oi->u.node = of_find_node_by_path("/");
+ 
+-	s->s_root = d_alloc_root(root_inode);
++	s->s_root = d_make_root(root_inode);
+ 	if (!s->s_root)
+ 		goto out_no_root_dentry;
+ 	return 0;
+ 
+ out_no_root_dentry:
+-	iput(root_inode);
+ 	ret = -ENOMEM;
+ out_no_root:
+ 	printk("openprom_fill_super: get root inode failed\n");
+diff --git a/fs/proc/inode.c b/fs/proc/inode.c
+index a70af3a44f45..8461a7b82fdb 100644
+--- a/fs/proc/inode.c
++++ b/fs/proc/inode.c
+@@ -486,8 +486,6 @@ struct inode *proc_get_inode(struct super_block *sb, struct proc_dir_entry *de)
+ 
+ int proc_fill_super(struct super_block *s)
+ {
+-	struct inode * root_inode;
+-
+ 	s->s_flags |= MS_NODIRATIME | MS_NOSUID | MS_NOEXEC;
+ 	s->s_blocksize = 1024;
+ 	s->s_blocksize_bits = 10;
+@@ -496,17 +494,10 @@ int proc_fill_super(struct super_block *s)
+ 	s->s_time_gran = 1;
+ 	
+ 	pde_get(&proc_root);
+-	root_inode = proc_get_inode(s, &proc_root);
+-	if (!root_inode)
+-		goto out_no_root;
+-	s->s_root = d_alloc_root(root_inode);
+-	if (!s->s_root) {
+-		iput(root_inode);
+-		goto out_no_root;
+-	}
+-	return 0;
++	s->s_root = d_make_root(proc_get_inode(s, &proc_root));
++	if (s->s_root)
++		return 0;
+ 
+-out_no_root:
+ 	printk("proc_read_super: get root inode failed\n");
+ 	pde_put(&proc_root);
+ 	return -ENOMEM;
+diff --git a/fs/pstore/inode.c b/fs/pstore/inode.c
+index b3b426edb2fd..ec7d1fb6f35a 100644
+--- a/fs/pstore/inode.c
++++ b/fs/pstore/inode.c
+@@ -303,7 +303,7 @@ int pstore_fill_super(struct super_block *sb, void *data, int silent)
+ 	/* override ramfs "dir" options so we catch unlink(2) */
+ 	inode->i_op = &pstore_dir_inode_operations;
+ 
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	sb->s_root = root;
+ 	if (!root) {
+ 		err = -ENOMEM;
+@@ -314,7 +314,6 @@ int pstore_fill_super(struct super_block *sb, void *data, int silent)
+ 
+ 	return 0;
+ fail:
+-	iput(inode);
+ 	return err;
+ }
+ 
+diff --git a/fs/qnx4/inode.c b/fs/qnx4/inode.c
+index 6b009548d2e0..db18d866d981 100644
+--- a/fs/qnx4/inode.c
++++ b/fs/qnx4/inode.c
+@@ -260,15 +260,13 @@ static int qnx4_fill_super(struct super_block *s, void *data, int silent)
+  	}
+ 
+ 	ret = -ENOMEM;
+- 	s->s_root = d_alloc_root(root);
++ 	s->s_root = d_make_root(root);
+  	if (s->s_root == NULL)
+- 		goto outi;
++ 		goto outb;
+ 
+ 	brelse(bh);
+ 	return 0;
+ 
+-      outi:
+-	iput(root);
+       outb:
+ 	kfree(qs->BitMap);
+       out:
+diff --git a/fs/ramfs/inode.c b/fs/ramfs/inode.c
+index aec766abe3af..b6612d2ed718 100644
+--- a/fs/ramfs/inode.c
++++ b/fs/ramfs/inode.c
+@@ -210,7 +210,6 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct ramfs_fs_info *fsi;
+ 	struct inode *inode = NULL;
+-	struct dentry *root;
+ 	int err;
+ 
+ 	save_mount_options(sb, data);
+@@ -234,14 +233,8 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_time_gran		= 1;
+ 
+ 	inode = ramfs_get_inode(sb, NULL, S_IFDIR | fsi->mount_opts.mode, 0);
+-	if (!inode) {
+-		err = -ENOMEM;
+-		goto fail;
+-	}
+-
+-	root = d_alloc_root(inode);
+-	sb->s_root = root;
+-	if (!root) {
++	sb->s_root = d_make_root(inode);
++	if (!sb->s_root) {
+ 		err = -ENOMEM;
+ 		goto fail;
+ 	}
+@@ -250,7 +243,6 @@ int ramfs_fill_super(struct super_block *sb, void *data, int silent)
+ fail:
+ 	kfree(fsi);
+ 	sb->s_fs_info = NULL;
+-	iput(inode);
+ 	return err;
+ }
+ 
+diff --git a/fs/reiserfs/super.c b/fs/reiserfs/super.c
+index e12d8b97cd4d..208dfd144409 100644
+--- a/fs/reiserfs/super.c
++++ b/fs/reiserfs/super.c
+@@ -1874,11 +1874,9 @@ static int reiserfs_fill_super(struct super_block *s, void *data, int silent)
+ 		unlock_new_inode(root_inode);
+ 	}
+ 
+-	s->s_root = d_alloc_root(root_inode);
+-	if (!s->s_root) {
+-		iput(root_inode);
++	s->s_root = d_make_root(root_inode);
++	if (!s->s_root)
+ 		goto error;
+-	}
+ 	// define and initialize hash function
+ 	sbi->s_hash_function = hash_function(s);
+ 	if (sbi->s_hash_function == NULL) {
+diff --git a/fs/romfs/super.c b/fs/romfs/super.c
+index bb36ab74eb45..e64f6b5f7ae5 100644
+--- a/fs/romfs/super.c
++++ b/fs/romfs/super.c
+@@ -538,14 +538,12 @@ static int romfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	if (IS_ERR(root))
+ 		goto error;
+ 
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root)
+-		goto error_i;
++		goto error;
+ 
+ 	return 0;
+ 
+-error_i:
+-	iput(root);
+ error:
+ 	return -EINVAL;
+ error_rsb_inval:
+diff --git a/fs/squashfs/super.c b/fs/squashfs/super.c
+index ecaa2f7bdb8f..970b1167e7cb 100644
+--- a/fs/squashfs/super.c
++++ b/fs/squashfs/super.c
+@@ -316,11 +316,10 @@ static int squashfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 	insert_inode_hash(root);
+ 
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (sb->s_root == NULL) {
+ 		ERROR("Root inode create failed\n");
+ 		err = -ENOMEM;
+-		iput(root);
+ 		goto failed_mount;
+ 	}
+ 
+diff --git a/fs/sysfs/mount.c b/fs/sysfs/mount.c
+index e34f0d99ea4e..2243f8ec64d5 100644
+--- a/fs/sysfs/mount.c
++++ b/fs/sysfs/mount.c
+@@ -61,10 +61,9 @@ static int sysfs_fill_super(struct super_block *sb, void *data, int silent)
+ 	}
+ 
+ 	/* instantiate and link root dentry */
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root) {
+ 		pr_debug("%s: could not get root dentry!\n",__func__);
+-		iput(inode);
+ 		return -ENOMEM;
+ 	}
+ 	root->d_fsdata = &sysfs_root;
+diff --git a/fs/sysv/super.c b/fs/sysv/super.c
+index f467740e088c..7491c33b6468 100644
+--- a/fs/sysv/super.c
++++ b/fs/sysv/super.c
+@@ -341,9 +341,8 @@ static int complete_read_super(struct super_block *sb, int silent, int size)
+ 		printk("SysV FS: get root inode failed\n");
+ 		return 0;
+ 	}
+-	sb->s_root = d_alloc_root(root_inode);
++	sb->s_root = d_make_root(root_inode);
+ 	if (!sb->s_root) {
+-		iput(root_inode);
+ 		printk("SysV FS: get root dentry failed\n");
+ 		return 0;
+ 	}
+diff --git a/fs/ubifs/super.c b/fs/ubifs/super.c
+index 63765d58445b..76e4e0566ad6 100644
+--- a/fs/ubifs/super.c
++++ b/fs/ubifs/super.c
+@@ -2076,15 +2076,13 @@ static int ubifs_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto out_umount;
+ 	}
+ 
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root)
+-		goto out_iput;
++		goto out_umount;
+ 
+ 	mutex_unlock(&c->umount_mutex);
+ 	return 0;
+ 
+-out_iput:
+-	iput(root);
+ out_umount:
+ 	ubifs_umount(c);
+ out_unlock:
+diff --git a/fs/udf/super.c b/fs/udf/super.c
+index 8d8b25336fbb..85067b4c7e14 100644
+--- a/fs/udf/super.c
++++ b/fs/udf/super.c
+@@ -2037,10 +2037,9 @@ static int udf_fill_super(struct super_block *sb, void *options, int silent)
+ 	}
+ 
+ 	/* Allocate a dentry for the root inode */
+-	sb->s_root = d_alloc_root(inode);
++	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root) {
+ 		udf_err(sb, "Couldn't allocate root dentry\n");
+-		iput(inode);
+ 		goto error_out;
+ 	}
+ 	sb->s_maxbytes = MAX_LFS_FILESIZE;
+diff --git a/fs/ufs/super.c b/fs/ufs/super.c
+index ec25d09fcaa8..f636f6b460d0 100644
+--- a/fs/ufs/super.c
++++ b/fs/ufs/super.c
+@@ -1164,10 +1164,10 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 		ret = PTR_ERR(inode);
+ 		goto failed;
+ 	}
+-	sb->s_root = d_alloc_root(inode);
++	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root) {
+ 		ret = -ENOMEM;
+-		goto dalloc_failed;
++		goto failed;
+ 	}
+ 
+ 	ufs_setup_cstotal(sb);
+@@ -1181,8 +1181,6 @@ static int ufs_fill_super(struct super_block *sb, void *data, int silent)
+ 	UFSD("EXIT\n");
+ 	return 0;
+ 
+-dalloc_failed:
+-	iput(inode);
+ failed:
+ 	if (ubh)
+ 		ubh_brelse_uspi (uspi);
+diff --git a/fs/xfs/xfs_super.c b/fs/xfs/xfs_super.c
+index 0e4c5c017fba..baf40e378d35 100644
+--- a/fs/xfs/xfs_super.c
++++ b/fs/xfs/xfs_super.c
+@@ -1362,10 +1362,10 @@ xfs_fs_fill_super(
+ 		error = EINVAL;
+ 		goto out_syncd_stop;
+ 	}
+-	sb->s_root = d_alloc_root(root);
++	sb->s_root = d_make_root(root);
+ 	if (!sb->s_root) {
+ 		error = ENOMEM;
+-		goto out_iput;
++		goto out_syncd_stop;
+ 	}
+ 
+ 	return 0;
+@@ -1384,8 +1384,6 @@ xfs_fs_fill_super(
+  out:
+ 	return -error;
+ 
+- out_iput:
+-	iput(root);
+  out_syncd_stop:
+ 	xfs_syncd_stop(mp);
+  out_unmount:
+diff --git a/ipc/mqueue.c b/ipc/mqueue.c
+index 86ee272de210..28bd64ddeda3 100644
+--- a/ipc/mqueue.c
++++ b/ipc/mqueue.c
+@@ -188,30 +188,20 @@ static int mqueue_fill_super(struct super_block *sb, void *data, int silent)
+ {
+ 	struct inode *inode;
+ 	struct ipc_namespace *ns = data;
+-	int error;
+ 
+ 	sb->s_blocksize = PAGE_CACHE_SIZE;
+ 	sb->s_blocksize_bits = PAGE_CACHE_SHIFT;
+ 	sb->s_magic = MQUEUE_MAGIC;
+ 	sb->s_op = &mqueue_super_ops;
+ 
+-	inode = mqueue_get_inode(sb, ns, S_IFDIR | S_ISVTX | S_IRWXUGO,
+-				NULL);
+-	if (IS_ERR(inode)) {
+-		error = PTR_ERR(inode);
+-		goto out;
+-	}
++	inode = mqueue_get_inode(sb, ns, S_IFDIR | S_ISVTX | S_IRWXUGO, NULL);
++	if (IS_ERR(inode))
++		return PTR_ERR(inode);
+ 
+-	sb->s_root = d_alloc_root(inode);
+-	if (!sb->s_root) {
+-		iput(inode);
+-		error = -ENOMEM;
+-		goto out;
+-	}
+-	error = 0;
+-
+-out:
+-	return error;
++	sb->s_root = d_make_root(inode);
++	if (!sb->s_root)
++		return -ENOMEM;
++	return 0;
+ }
+ 
+ static struct dentry *mqueue_mount(struct file_system_type *fs_type,
+diff --git a/kernel/cgroup.c b/kernel/cgroup.c
+index a5d3b5325f77..711c1a30ceaa 100644
+--- a/kernel/cgroup.c
++++ b/kernel/cgroup.c
+@@ -1472,7 +1472,6 @@ static int cgroup_get_rootdir(struct super_block *sb)
+ 
+ 	struct inode *inode =
+ 		cgroup_new_inode(S_IFDIR | S_IRUGO | S_IXUGO | S_IWUSR, sb);
+-	struct dentry *dentry;
+ 
+ 	if (!inode)
+ 		return -ENOMEM;
+@@ -1481,12 +1480,9 @@ static int cgroup_get_rootdir(struct super_block *sb)
+ 	inode->i_op = &cgroup_dir_inode_operations;
+ 	/* directories start off with i_nlink == 2 (for "." entry) */
+ 	inc_nlink(inode);
+-	dentry = d_alloc_root(inode);
+-	if (!dentry) {
+-		iput(inode);
++	sb->s_root = d_make_root(inode);
++	if (!sb->s_root)
+ 		return -ENOMEM;
+-	}
+-	sb->s_root = dentry;
+ 	/* for everything else we want ->d_op set */
+ 	sb->s_d_op = &cgroup_dops;
+ 	return 0;
+diff --git a/mm/shmem.c b/mm/shmem.c
+index 269d049294ab..154243f0a27c 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -2232,14 +2232,12 @@ int shmem_fill_super(struct super_block *sb, void *data, int silent)
+ 		goto failed;
+ 	inode->i_uid = sbinfo->uid;
+ 	inode->i_gid = sbinfo->gid;
+-	root = d_alloc_root(inode);
++	root = d_make_root(inode);
+ 	if (!root)
+-		goto failed_iput;
++		goto failed;
+ 	sb->s_root = root;
+ 	return 0;
+ 
+-failed_iput:
+-	iput(inode);
+ failed:
+ 	shmem_put_super(sb);
+ 	return err;
+diff --git a/net/sunrpc/rpc_pipe.c b/net/sunrpc/rpc_pipe.c
+index 63a7a7add21e..7d6dd6efbdbe 100644
+--- a/net/sunrpc/rpc_pipe.c
++++ b/net/sunrpc/rpc_pipe.c
+@@ -1033,13 +1033,9 @@ rpc_fill_super(struct super_block *sb, void *data, int silent)
+ 	sb->s_time_gran = 1;
+ 
+ 	inode = rpc_get_inode(sb, S_IFDIR | 0755);
+-	if (!inode)
+-		return -ENOMEM;
+-	sb->s_root = root = d_alloc_root(inode);
+-	if (!root) {
+-		iput(inode);
++	sb->s_root = root = d_make_root(inode);
++	if (!root)
+ 		return -ENOMEM;
+-	}
+ 	if (rpc_populate(root, files, RPCAUTH_lockd, RPCAUTH_RootEOF, NULL))
+ 		return -ENOMEM;
+ 	return 0;
+-- 
+2.17.0
+

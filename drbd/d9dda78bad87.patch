@@ -1,0 +1,2642 @@
+From d9dda78bad879595d8c4220a067fc029d6484a16 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 31 Mar 2013 18:16:14 -0400
+Subject: [PATCH] procfs: new helper - PDE_DATA(inode)
+
+The only part of proc_dir_entry the code outside of fs/proc
+really cares about is PDE(inode)->data.  Provide a helper
+for that; static inline for now, eventually will be moved
+to fs/proc, along with the knowledge of struct proc_dir_entry
+layout.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/alpha/kernel/srm_env.c              |  4 +--
+ arch/arm/kernel/atags_proc.c             |  2 +-
+ arch/blackfin/kernel/cplbinfo.c          |  4 +--
+ arch/ia64/kernel/salinfo.c               | 18 ++++-------
+ arch/mips/lasat/picvue_proc.c            |  4 +--
+ arch/powerpc/kernel/proc_powerpc.c       | 19 +++++-------
+ arch/powerpc/platforms/pseries/scanlog.c |  9 ++----
+ arch/sh/mm/alignment.c                   |  2 +-
+ arch/sparc/kernel/ioport.c               |  2 +-
+ arch/tile/kernel/hardwall.c              |  2 +-
+ arch/xtensa/platforms/iss/simdisk.c      |  4 +--
+ drivers/acpi/ac.c                        |  2 +-
+ drivers/acpi/battery.c                   |  2 +-
+ drivers/acpi/button.c                    |  2 +-
+ drivers/acpi/proc.c                      |  4 +--
+ drivers/acpi/sbs.c                       |  8 ++---
+ drivers/block/DAC960.c                   |  8 ++---
+ drivers/block/cciss.c                    |  2 +-
+ drivers/block/cpqarray.c                 |  2 +-
+ drivers/block/drbd/drbd_proc.c           |  2 +-
+ drivers/block/pktcdvd.c                  |  2 +-
+ drivers/block/ps3vram.c                  |  2 +-
+ drivers/char/ipmi/ipmi_msghandler.c      |  6 ++--
+ drivers/char/ipmi/ipmi_si_intf.c         |  6 ++--
+ drivers/gpu/drm/drm_proc.c               |  2 +-
+ drivers/ide/ide-cd.c                     |  2 +-
+ drivers/ide/ide-disk_proc.c              |  8 ++---
+ drivers/ide/ide-floppy_proc.c            |  2 +-
+ drivers/ide/ide-proc.c                   | 22 +++++++-------
+ drivers/ide/ide-tape.c                   |  2 +-
+ drivers/isdn/gigaset/capi.c              |  2 +-
+ drivers/isdn/hardware/avm/b1.c           |  2 +-
+ drivers/isdn/hardware/avm/b1dma.c        |  2 +-
+ drivers/isdn/hardware/avm/c4.c           |  2 +-
+ drivers/isdn/hardware/eicon/divasproc.c  | 12 ++++----
+ drivers/isdn/hysdn/hycapi.c              |  2 +-
+ drivers/isdn/hysdn/hysdn_procconf.c      |  4 +--
+ drivers/isdn/hysdn/hysdn_proclog.c       |  8 ++---
+ drivers/macintosh/via-pmu.c              |  2 +-
+ drivers/media/pci/zoran/zoran_procfs.c   |  4 +--
+ drivers/message/fusion/mptbase.c         |  4 +--
+ drivers/message/i2o/i2o_proc.c           | 38 ++++++++++++------------
+ drivers/net/bonding/bond_procfs.c        |  4 +--
+ drivers/net/irda/vlsi_ir.c               |  2 +-
+ drivers/net/wireless/airo.c              | 33 +++++++-------------
+ drivers/net/wireless/ray_cs.c            |  2 +-
+ drivers/parisc/led.c                     |  4 +--
+ drivers/pci/proc.c                       | 20 +++++--------
+ drivers/platform/x86/thinkpad_acpi.c     |  4 +--
+ drivers/platform/x86/toshiba_acpi.c      | 18 +++++------
+ drivers/pnp/isapnp/proc.c                |  4 +--
+ drivers/pnp/pnpbios/proc.c               |  4 +--
+ drivers/rtc/rtc-proc.c                   |  2 +-
+ drivers/scsi/scsi_proc.c                 |  4 +--
+ drivers/staging/ccg/rndis.c              |  4 +--
+ drivers/staging/dgrp/dgrp_dpa_ops.c      |  9 +-----
+ drivers/staging/dgrp/dgrp_mon_ops.c      |  9 +-----
+ drivers/staging/dgrp/dgrp_net_ops.c      |  9 +-----
+ drivers/staging/dgrp/dgrp_ports_ops.c    |  2 +-
+ drivers/staging/silicom/bpctl_mod.c      | 38 ++++++++++++------------
+ drivers/tty/serial/serial_core.c         |  2 +-
+ drivers/usb/gadget/at91_udc.c            |  2 +-
+ drivers/usb/gadget/lpc32xx_udc.c         |  2 +-
+ drivers/usb/gadget/rndis.c               |  4 +--
+ drivers/usb/host/isp1362-hcd.c           |  2 +-
+ drivers/usb/host/sl811-hcd.c             |  2 +-
+ drivers/video/bfin_adv7393fb.c           |  2 +-
+ drivers/zorro/proc.c                     |  4 +--
+ fs/afs/proc.c                            |  8 ++---
+ fs/ext4/mballoc.c                        |  2 +-
+ fs/ext4/super.c                          |  2 +-
+ fs/jbd2/journal.c                        |  2 +-
+ fs/proc/generic.c                        |  2 +-
+ fs/proc/proc_devtree.c                   |  2 +-
+ include/linux/proc_fs.h                  |  5 ++++
+ ipc/util.c                               |  2 +-
+ kernel/irq/proc.c                        | 14 ++++-----
+ net/8021q/vlanproc.c                     |  2 +-
+ net/atm/proc.c                           |  2 +-
+ net/bluetooth/af_bluetooth.c             |  2 +-
+ net/bluetooth/cmtp/capi.c                |  2 +-
+ net/can/bcm.c                            |  2 +-
+ net/can/proc.c                           |  2 +-
+ net/core/neighbour.c                     |  2 +-
+ net/core/pktgen.c                        |  6 ++--
+ net/ipv4/netfilter/ipt_CLUSTERIP.c       |  6 ++--
+ net/ipv4/tcp_ipv4.c                      |  2 +-
+ net/ipv4/udp.c                           |  2 +-
+ net/ipv6/proc.c                          |  2 +-
+ net/netfilter/x_tables.c                 |  6 ++--
+ net/netfilter/xt_hashlimit.c             |  2 +-
+ net/netfilter/xt_recent.c                |  6 ++--
+ net/sunrpc/cache.c                       | 24 +++++++--------
+ net/sunrpc/stats.c                       |  2 +-
+ sound/core/info.c                        |  4 +--
+ 95 files changed, 243 insertions(+), 302 deletions(-)
+
+diff --git a/arch/alpha/kernel/srm_env.c b/arch/alpha/kernel/srm_env.c
+index e64559f0a82d..ef8769b6c98b 100644
+--- a/arch/alpha/kernel/srm_env.c
++++ b/arch/alpha/kernel/srm_env.c
+@@ -104,14 +104,14 @@ static int srm_env_proc_show(struct seq_file *m, void *v)
+ 
+ static int srm_env_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, srm_env_proc_show, PDE(inode)->data);
++	return single_open(file, srm_env_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t srm_env_proc_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+ 	int res;
+-	srm_env_t	*entry = PDE(file_inode(file))->data;
++	srm_env_t	*entry = PDE_DATA(file_inode(file));
+ 	char		*buf = (char *) __get_free_page(GFP_USER);
+ 	unsigned long	ret1, ret2;
+ 
+diff --git a/arch/arm/kernel/atags_proc.c b/arch/arm/kernel/atags_proc.c
+index 8c00f75bf1ab..c7ff8073416f 100644
+--- a/arch/arm/kernel/atags_proc.c
++++ b/arch/arm/kernel/atags_proc.c
+@@ -12,7 +12,7 @@ struct buffer {
+ static ssize_t atags_read(struct file *file, char __user *buf,
+ 			  size_t count, loff_t *ppos)
+ {
+-	struct buffer *b = PDE(file_inode(file))->data;
++	struct buffer *b = PDE_DATA(file_inode(file));
+ 	return simple_read_from_buffer(buf, count, ppos, b->data, b->size);
+ }
+ 
+diff --git a/arch/blackfin/kernel/cplbinfo.c b/arch/blackfin/kernel/cplbinfo.c
+index e1d0b24c6070..404045dcc5e4 100644
+--- a/arch/blackfin/kernel/cplbinfo.c
++++ b/arch/blackfin/kernel/cplbinfo.c
+@@ -116,14 +116,12 @@ static const struct seq_operations cplbinfo_sops = {
+ 
+ static int cplbinfo_open(struct inode *inode, struct file *file)
+ {
+-	struct proc_dir_entry *pde = PDE(file_inode(file));
+ 	char cplb_type;
+-	unsigned int cpu;
++	unsigned int cpu = (unsigned long)PDE_DATA(file_inode(file));
+ 	int ret;
+ 	struct seq_file *m;
+ 	struct cplbinfo_data *cdata;
+ 
+-	cpu = (unsigned int)pde->data;
+ 	cplb_type = cpu & CPLBINFO_DCPLB_FLAG ? 'D' : 'I';
+ 	cpu &= ~CPLBINFO_DCPLB_FLAG;
+ 
+diff --git a/arch/ia64/kernel/salinfo.c b/arch/ia64/kernel/salinfo.c
+index aa527d7e91f2..a97d75b9c5ec 100644
+--- a/arch/ia64/kernel/salinfo.c
++++ b/arch/ia64/kernel/salinfo.c
+@@ -301,9 +301,7 @@ salinfo_event_open(struct inode *inode, struct file *file)
+ static ssize_t
+ salinfo_event_read(struct file *file, char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	struct inode *inode = file_inode(file);
+-	struct proc_dir_entry *entry = PDE(inode);
+-	struct salinfo_data *data = entry->data;
++	struct salinfo_data *data = PDE_DATA(file_inode(file));
+ 	char cmd[32];
+ 	size_t size;
+ 	int i, n, cpu = -1;
+@@ -360,8 +358,7 @@ static const struct file_operations salinfo_event_fops = {
+ static int
+ salinfo_log_open(struct inode *inode, struct file *file)
+ {
+-	struct proc_dir_entry *entry = PDE(inode);
+-	struct salinfo_data *data = entry->data;
++	struct salinfo_data *data = PDE_DATA(inode);
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+@@ -386,8 +383,7 @@ salinfo_log_open(struct inode *inode, struct file *file)
+ static int
+ salinfo_log_release(struct inode *inode, struct file *file)
+ {
+-	struct proc_dir_entry *entry = PDE(inode);
+-	struct salinfo_data *data = entry->data;
++	struct salinfo_data *data = PDE_DATA(inode);
+ 
+ 	if (data->state == STATE_NO_DATA) {
+ 		vfree(data->log_buffer);
+@@ -463,9 +459,7 @@ salinfo_log_new_read(int cpu, struct salinfo_data *data)
+ static ssize_t
+ salinfo_log_read(struct file *file, char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	struct inode *inode = file_inode(file);
+-	struct proc_dir_entry *entry = PDE(inode);
+-	struct salinfo_data *data = entry->data;
++	struct salinfo_data *data = PDE_DATA(file_inode(file));
+ 	u8 *buf;
+ 	u64 bufsize;
+ 
+@@ -524,9 +518,7 @@ salinfo_log_clear(struct salinfo_data *data, int cpu)
+ static ssize_t
+ salinfo_log_write(struct file *file, const char __user *buffer, size_t count, loff_t *ppos)
+ {
+-	struct inode *inode = file_inode(file);
+-	struct proc_dir_entry *entry = PDE(inode);
+-	struct salinfo_data *data = entry->data;
++	struct salinfo_data *data = PDE_DATA(file_inode(file));
+ 	char cmd[32];
+ 	size_t size;
+ 	u32 offset;
+diff --git a/arch/mips/lasat/picvue_proc.c b/arch/mips/lasat/picvue_proc.c
+index c592bc8b8c99..638c5db122c9 100644
+--- a/arch/mips/lasat/picvue_proc.c
++++ b/arch/mips/lasat/picvue_proc.c
+@@ -58,13 +58,13 @@ static int pvc_line_proc_show(struct seq_file *m, void *v)
+ 
+ static int pvc_line_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pvc_line_proc_show, PDE(inode)->data);
++	return single_open(file, pvc_line_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t pvc_line_proc_write(struct file *file, const char __user *buf,
+ 				   size_t count, loff_t *pos)
+ {
+-	int lineno = *(int *)PDE(file_inode(file))->data;
++	int lineno = *(int *)PDE_DATA(file_inode(file));
+ 	char kbuf[PVC_LINELEN];
+ 	size_t len;
+ 
+diff --git a/arch/powerpc/kernel/proc_powerpc.c b/arch/powerpc/kernel/proc_powerpc.c
+index f19d0bdc3241..41d8ee9c82f1 100644
+--- a/arch/powerpc/kernel/proc_powerpc.c
++++ b/arch/powerpc/kernel/proc_powerpc.c
+@@ -32,8 +32,6 @@
+ static loff_t page_map_seek( struct file *file, loff_t off, int whence)
+ {
+ 	loff_t new;
+-	struct proc_dir_entry *dp = PDE(file_inode(file));
+-
+ 	switch(whence) {
+ 	case 0:
+ 		new = off;
+@@ -42,12 +40,12 @@ static loff_t page_map_seek( struct file *file, loff_t off, int whence)
+ 		new = file->f_pos + off;
+ 		break;
+ 	case 2:
+-		new = dp->size + off;
++		new = PAGE_SIZE + off;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+ 	}
+-	if ( new < 0 || new > dp->size )
++	if ( new < 0 || new > PAGE_SIZE )
+ 		return -EINVAL;
+ 	return (file->f_pos = new);
+ }
+@@ -55,19 +53,18 @@ static loff_t page_map_seek( struct file *file, loff_t off, int whence)
+ static ssize_t page_map_read( struct file *file, char __user *buf, size_t nbytes,
+ 			      loff_t *ppos)
+ {
+-	struct proc_dir_entry *dp = PDE(file_inode(file));
+-	return simple_read_from_buffer(buf, nbytes, ppos, dp->data, dp->size);
++	return simple_read_from_buffer(buf, nbytes, ppos,
++			PDE_DATA(file_inode(file)), PAGE_SIZE);
+ }
+ 
+ static int page_map_mmap( struct file *file, struct vm_area_struct *vma )
+ {
+-	struct proc_dir_entry *dp = PDE(file_inode(file));
+-
+-	if ((vma->vm_end - vma->vm_start) > dp->size)
++	if ((vma->vm_end - vma->vm_start) > PAGE_SIZE)
+ 		return -EINVAL;
+ 
+-	remap_pfn_range(vma, vma->vm_start, __pa(dp->data) >> PAGE_SHIFT,
+-						dp->size, vma->vm_page_prot);
++	remap_pfn_range(vma, vma->vm_start,
++			__pa(PDE_DATA(file_inode(file))) >> PAGE_SHIFT,
++			PAGE_SIZE, vma->vm_page_prot);
+ 	return 0;
+ }
+ 
+diff --git a/arch/powerpc/platforms/pseries/scanlog.c b/arch/powerpc/platforms/pseries/scanlog.c
+index 47f3cda2a68b..cc220d2061b2 100644
+--- a/arch/powerpc/platforms/pseries/scanlog.c
++++ b/arch/powerpc/platforms/pseries/scanlog.c
+@@ -46,8 +46,7 @@ static struct proc_dir_entry *proc_ppc64_scan_log_dump;	/* The proc file */
+ static ssize_t scanlog_read(struct file *file, char __user *buf,
+ 			    size_t count, loff_t *ppos)
+ {
+-	struct proc_dir_entry *dp = PDE(file_inode(file));
+-	unsigned int *data = (unsigned int *)dp->data;
++	unsigned int *data = PDE_DATA(file_inode(file));
+ 	int status;
+ 	unsigned long len, off;
+ 	unsigned int wait_time;
+@@ -135,8 +134,7 @@ static ssize_t scanlog_write(struct file * file, const char __user * buf,
+ 
+ static int scanlog_open(struct inode * inode, struct file * file)
+ {
+-	struct proc_dir_entry *dp = PDE(inode);
+-	unsigned int *data = (unsigned int *)dp->data;
++	unsigned int *data = PDE_DATA(file_inode(file));
+ 
+ 	if (data[0] != 0) {
+ 		/* This imperfect test stops a second copy of the
+@@ -152,8 +150,7 @@ static int scanlog_open(struct inode * inode, struct file * file)
+ 
+ static int scanlog_release(struct inode * inode, struct file * file)
+ {
+-	struct proc_dir_entry *dp = PDE(inode);
+-	unsigned int *data = (unsigned int *)dp->data;
++	unsigned int *data = PDE_DATA(file_inode(file));
+ 
+ 	data[0] = 0;
+ 
+diff --git a/arch/sh/mm/alignment.c b/arch/sh/mm/alignment.c
+index aea14855e656..ec2b25302427 100644
+--- a/arch/sh/mm/alignment.c
++++ b/arch/sh/mm/alignment.c
+@@ -140,7 +140,7 @@ static int alignment_proc_open(struct inode *inode, struct file *file)
+ static ssize_t alignment_proc_write(struct file *file,
+ 		const char __user *buffer, size_t count, loff_t *pos)
+ {
+-	int *data = PDE(file_inode(file))->data;
++	int *data = PDE_DATA(file_inode(file));
+ 	char mode;
+ 
+ 	if (count > 0) {
+diff --git a/arch/sparc/kernel/ioport.c b/arch/sparc/kernel/ioport.c
+index 0f094db918c7..2096468de9b2 100644
+--- a/arch/sparc/kernel/ioport.c
++++ b/arch/sparc/kernel/ioport.c
+@@ -693,7 +693,7 @@ static int sparc_io_proc_show(struct seq_file *m, void *v)
+ 
+ static int sparc_io_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, sparc_io_proc_show, PDE(inode)->data);
++	return single_open(file, sparc_io_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations sparc_io_proc_fops = {
+diff --git a/arch/tile/kernel/hardwall.c b/arch/tile/kernel/hardwall.c
+index 20273ee37deb..38ac189d9575 100644
+--- a/arch/tile/kernel/hardwall.c
++++ b/arch/tile/kernel/hardwall.c
+@@ -914,7 +914,7 @@ static int hardwall_proc_show(struct seq_file *sf, void *v)
+ static int hardwall_proc_open(struct inode *inode,
+ 			      struct file *file)
+ {
+-	return single_open(file, hardwall_proc_show, PDE(inode)->data);
++	return single_open(file, hardwall_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations hardwall_proc_fops = {
+diff --git a/arch/xtensa/platforms/iss/simdisk.c b/arch/xtensa/platforms/iss/simdisk.c
+index 47ccef7839c9..4a06d70ddf5e 100644
+--- a/arch/xtensa/platforms/iss/simdisk.c
++++ b/arch/xtensa/platforms/iss/simdisk.c
+@@ -217,7 +217,7 @@ static int simdisk_detach(struct simdisk *dev)
+ static ssize_t proc_read_simdisk(struct file *file, char __user *buf,
+ 			size_t size, loff_t *ppos)
+ {
+-	struct simdisk *dev = PDE(file_inode(file))->data;
++	struct simdisk *dev = PDE_DATA(file_inode(file));
+ 	char *s = dev->filename;
+ 	if (s) {
+ 		ssize_t n = simple_read_from_buffer(buf, size, ppos,
+@@ -234,7 +234,7 @@ static ssize_t proc_write_simdisk(struct file *file, const char __user *buf,
+ 			size_t size, loff_t *ppos)
+ {
+ 	char *tmp = kmalloc(count + 1, GFP_KERNEL);
+-	struct simdisk *dev = PDE(file_inode(file))->data;
++	struct simdisk *dev = PDE_DATA(file_inode(file));
+ 	int err;
+ 
+ 	if (tmp == NULL)
+diff --git a/drivers/acpi/ac.c b/drivers/acpi/ac.c
+index 6d5bf649196d..00d2efd674df 100644
+--- a/drivers/acpi/ac.c
++++ b/drivers/acpi/ac.c
+@@ -194,7 +194,7 @@ static int acpi_ac_seq_show(struct seq_file *seq, void *offset)
+ 
+ static int acpi_ac_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_ac_seq_show, PDE(inode)->data);
++	return single_open(file, acpi_ac_seq_show, PDE_DATA(inode));
+ }
+ 
+ static int acpi_ac_add_fs(struct acpi_device *device)
+diff --git a/drivers/acpi/battery.c b/drivers/acpi/battery.c
+index c5cd5b5513e6..169ced7e540d 100644
+--- a/drivers/acpi/battery.c
++++ b/drivers/acpi/battery.c
+@@ -929,7 +929,7 @@ static int acpi_battery_read_##_name(struct seq_file *seq, void *offset) \
+ } \
+ static int acpi_battery_##_name##_open_fs(struct inode *inode, struct file *file) \
+ { \
+-	return single_open(file, acpi_battery_read_##_name, PDE(inode)->data); \
++	return single_open(file, acpi_battery_read_##_name, PDE_DATA(inode)); \
+ }
+ 
+ DECLARE_FILE_FUNCTIONS(info);
+diff --git a/drivers/acpi/button.c b/drivers/acpi/button.c
+index 86c7d5445c38..5d57cd513f4f 100644
+--- a/drivers/acpi/button.c
++++ b/drivers/acpi/button.c
+@@ -128,7 +128,7 @@ static int acpi_button_state_seq_show(struct seq_file *seq, void *offset)
+ 
+ static int acpi_button_state_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_button_state_seq_show, PDE(inode)->data);
++	return single_open(file, acpi_button_state_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations acpi_button_state_fops = {
+diff --git a/drivers/acpi/proc.c b/drivers/acpi/proc.c
+index 52ce76725c20..aa1227a7e3f2 100644
+--- a/drivers/acpi/proc.c
++++ b/drivers/acpi/proc.c
+@@ -120,7 +120,7 @@ static int acpi_system_alarm_seq_show(struct seq_file *seq, void *offset)
+ 
+ static int acpi_system_alarm_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_system_alarm_seq_show, PDE(inode)->data);
++	return single_open(file, acpi_system_alarm_seq_show, PDE_DATA(inode));
+ }
+ 
+ static int get_date_field(char **p, u32 * value)
+@@ -397,7 +397,7 @@ static int
+ acpi_system_wakeup_device_open_fs(struct inode *inode, struct file *file)
+ {
+ 	return single_open(file, acpi_system_wakeup_device_seq_show,
+-			   PDE(inode)->data);
++			   PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations acpi_system_wakeup_device_fops = {
+diff --git a/drivers/acpi/sbs.c b/drivers/acpi/sbs.c
+index e523245643ac..a296e08d76b6 100644
+--- a/drivers/acpi/sbs.c
++++ b/drivers/acpi/sbs.c
+@@ -584,7 +584,7 @@ static int acpi_battery_read_info(struct seq_file *seq, void *offset)
+ 
+ static int acpi_battery_info_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_battery_read_info, PDE(inode)->data);
++	return single_open(file, acpi_battery_read_info, PDE_DATA(inode));
+ }
+ 
+ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+@@ -623,7 +623,7 @@ static int acpi_battery_read_state(struct seq_file *seq, void *offset)
+ 
+ static int acpi_battery_state_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_battery_read_state, PDE(inode)->data);
++	return single_open(file, acpi_battery_read_state, PDE_DATA(inode));
+ }
+ 
+ static int acpi_battery_read_alarm(struct seq_file *seq, void *offset)
+@@ -688,7 +688,7 @@ acpi_battery_write_alarm(struct file *file, const char __user * buffer,
+ 
+ static int acpi_battery_alarm_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_battery_read_alarm, PDE(inode)->data);
++	return single_open(file, acpi_battery_read_alarm, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations acpi_battery_info_fops = {
+@@ -736,7 +736,7 @@ static int acpi_ac_read_state(struct seq_file *seq, void *offset)
+ 
+ static int acpi_ac_state_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, acpi_ac_read_state, PDE(inode)->data);
++	return single_open(file, acpi_ac_read_state, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations acpi_ac_state_fops = {
+diff --git a/drivers/block/DAC960.c b/drivers/block/DAC960.c
+index 5b5ee79ff236..eb3950113e42 100644
+--- a/drivers/block/DAC960.c
++++ b/drivers/block/DAC960.c
+@@ -6473,7 +6473,7 @@ static int dac960_initial_status_proc_show(struct seq_file *m, void *v)
+ 
+ static int dac960_initial_status_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, dac960_initial_status_proc_show, PDE(inode)->data);
++	return single_open(file, dac960_initial_status_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations dac960_initial_status_proc_fops = {
+@@ -6519,7 +6519,7 @@ static int dac960_current_status_proc_show(struct seq_file *m, void *v)
+ 
+ static int dac960_current_status_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, dac960_current_status_proc_show, PDE(inode)->data);
++	return single_open(file, dac960_current_status_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations dac960_current_status_proc_fops = {
+@@ -6540,14 +6540,14 @@ static int dac960_user_command_proc_show(struct seq_file *m, void *v)
+ 
+ static int dac960_user_command_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, dac960_user_command_proc_show, PDE(inode)->data);
++	return single_open(file, dac960_user_command_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t dac960_user_command_proc_write(struct file *file,
+ 				       const char __user *Buffer,
+ 				       size_t Count, loff_t *pos)
+ {
+-  DAC960_Controller_T *Controller = (DAC960_Controller_T *) PDE(file_inode(file))->data;
++  DAC960_Controller_T *Controller = PDE_DATA(file_inode(file));
+   unsigned char CommandBuffer[80];
+   int Length;
+   if (Count > sizeof(CommandBuffer)-1) return -EINVAL;
+diff --git a/drivers/block/cciss.c b/drivers/block/cciss.c
+index ade58bc8f3c4..d150fe1248bf 100644
+--- a/drivers/block/cciss.c
++++ b/drivers/block/cciss.c
+@@ -493,7 +493,7 @@ static int cciss_seq_open(struct inode *inode, struct file *file)
+ 	struct seq_file *seq = file->private_data;
+ 
+ 	if (!ret)
+-		seq->private = PDE(inode)->data;
++		seq->private = PDE_DATA(inode);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/block/cpqarray.c b/drivers/block/cpqarray.c
+index 3f087133a25a..3b9e8ebcb96b 100644
+--- a/drivers/block/cpqarray.c
++++ b/drivers/block/cpqarray.c
+@@ -296,7 +296,7 @@ static int ida_proc_show(struct seq_file *m, void *v)
+ 
+ static int ida_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ida_proc_show, PDE(inode)->data);
++	return single_open(file, ida_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ida_proc_fops = {
+diff --git a/drivers/block/drbd/drbd_proc.c b/drivers/block/drbd/drbd_proc.c
+index 56672a61eb94..928adb815b09 100644
+--- a/drivers/block/drbd/drbd_proc.c
++++ b/drivers/block/drbd/drbd_proc.c
+@@ -314,7 +314,7 @@ static int drbd_seq_show(struct seq_file *seq, void *v)
+ static int drbd_proc_open(struct inode *inode, struct file *file)
+ {
+ 	if (try_module_get(THIS_MODULE))
+-		return single_open(file, drbd_seq_show, PDE(inode)->data);
++		return single_open(file, drbd_seq_show, PDE_DATA(inode));
+ 	return -ENODEV;
+ }
+ 
+diff --git a/drivers/block/pktcdvd.c b/drivers/block/pktcdvd.c
+index 2e7de7a59bfc..e0588c6dd86f 100644
+--- a/drivers/block/pktcdvd.c
++++ b/drivers/block/pktcdvd.c
+@@ -2648,7 +2648,7 @@ static int pkt_seq_show(struct seq_file *m, void *p)
+ 
+ static int pkt_seq_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pkt_seq_show, PDE(inode)->data);
++	return single_open(file, pkt_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations pkt_proc_fops = {
+diff --git a/drivers/block/ps3vram.c b/drivers/block/ps3vram.c
+index 75e112d66006..06a2e53e5f37 100644
+--- a/drivers/block/ps3vram.c
++++ b/drivers/block/ps3vram.c
+@@ -525,7 +525,7 @@ static int ps3vram_proc_show(struct seq_file *m, void *v)
+ 
+ static int ps3vram_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ps3vram_proc_show, PDE(inode)->data);
++	return single_open(file, ps3vram_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ps3vram_proc_fops = {
+diff --git a/drivers/char/ipmi/ipmi_msghandler.c b/drivers/char/ipmi/ipmi_msghandler.c
+index 053201b062a4..1420bbbe1a61 100644
+--- a/drivers/char/ipmi/ipmi_msghandler.c
++++ b/drivers/char/ipmi/ipmi_msghandler.c
+@@ -1917,7 +1917,7 @@ static int smi_ipmb_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_ipmb_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_ipmb_proc_show, PDE(inode)->data);
++	return single_open(file, smi_ipmb_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_ipmb_proc_ops = {
+@@ -1938,7 +1938,7 @@ static int smi_version_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_version_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_version_proc_show, PDE(inode)->data);
++	return single_open(file, smi_version_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_version_proc_ops = {
+@@ -2013,7 +2013,7 @@ static int smi_stats_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_stats_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_stats_proc_show, PDE(inode)->data);
++	return single_open(file, smi_stats_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_stats_proc_ops = {
+diff --git a/drivers/char/ipmi/ipmi_si_intf.c b/drivers/char/ipmi/ipmi_si_intf.c
+index 0ac9b45a585e..313538abe63c 100644
+--- a/drivers/char/ipmi/ipmi_si_intf.c
++++ b/drivers/char/ipmi/ipmi_si_intf.c
+@@ -2839,7 +2839,7 @@ static int smi_type_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_type_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_type_proc_show, PDE(inode)->data);
++	return single_open(file, smi_type_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_type_proc_ops = {
+@@ -2882,7 +2882,7 @@ static int smi_si_stats_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_si_stats_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_si_stats_proc_show, PDE(inode)->data);
++	return single_open(file, smi_si_stats_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_si_stats_proc_ops = {
+@@ -2910,7 +2910,7 @@ static int smi_params_proc_show(struct seq_file *m, void *v)
+ 
+ static int smi_params_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, smi_params_proc_show, PDE(inode)->data);
++	return single_open(file, smi_params_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations smi_params_proc_ops = {
+diff --git a/drivers/gpu/drm/drm_proc.c b/drivers/gpu/drm/drm_proc.c
+index ff5456b7df72..e06431897f4e 100644
+--- a/drivers/gpu/drm/drm_proc.c
++++ b/drivers/gpu/drm/drm_proc.c
+@@ -63,7 +63,7 @@ static struct drm_info_list drm_proc_list[] = {
+ 
+ static int drm_proc_open(struct inode *inode, struct file *file)
+ {
+-	struct drm_info_node* node = PDE(inode)->data;
++	struct drm_info_node* node = PDE_DATA(inode);
+ 
+ 	return single_open(file, node->info_ent->show, node);
+ }
+diff --git a/drivers/ide/ide-cd.c b/drivers/ide/ide-cd.c
+index 8126824daccb..b23113926388 100644
+--- a/drivers/ide/ide-cd.c
++++ b/drivers/ide/ide-cd.c
+@@ -1408,7 +1408,7 @@ static int idecd_capacity_proc_show(struct seq_file *m, void *v)
+ 
+ static int idecd_capacity_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idecd_capacity_proc_show, PDE(inode)->data);
++	return single_open(file, idecd_capacity_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idecd_capacity_proc_fops = {
+diff --git a/drivers/ide/ide-disk_proc.c b/drivers/ide/ide-disk_proc.c
+index 8b570a17bcd9..0d1fae6cba6d 100644
+--- a/drivers/ide/ide-disk_proc.c
++++ b/drivers/ide/ide-disk_proc.c
+@@ -53,7 +53,7 @@ static int idedisk_cache_proc_show(struct seq_file *m, void *v)
+ 
+ static int idedisk_cache_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idedisk_cache_proc_show, PDE(inode)->data);
++	return single_open(file, idedisk_cache_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idedisk_cache_proc_fops = {
+@@ -74,7 +74,7 @@ static int idedisk_capacity_proc_show(struct seq_file *m, void *v)
+ 
+ static int idedisk_capacity_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idedisk_capacity_proc_show, PDE(inode)->data);
++	return single_open(file, idedisk_capacity_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idedisk_capacity_proc_fops = {
+@@ -115,7 +115,7 @@ static int idedisk_sv_proc_show(struct seq_file *m, void *v)
+ 
+ static int idedisk_sv_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idedisk_sv_proc_show, PDE(inode)->data);
++	return single_open(file, idedisk_sv_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idedisk_sv_proc_fops = {
+@@ -133,7 +133,7 @@ static int idedisk_st_proc_show(struct seq_file *m, void *v)
+ 
+ static int idedisk_st_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idedisk_st_proc_show, PDE(inode)->data);
++	return single_open(file, idedisk_st_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idedisk_st_proc_fops = {
+diff --git a/drivers/ide/ide-floppy_proc.c b/drivers/ide/ide-floppy_proc.c
+index 1600720f3e86..e7a25ea757df 100644
+--- a/drivers/ide/ide-floppy_proc.c
++++ b/drivers/ide/ide-floppy_proc.c
+@@ -15,7 +15,7 @@ static int idefloppy_capacity_proc_show(struct seq_file *m, void *v)
+ 
+ static int idefloppy_capacity_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idefloppy_capacity_proc_show, PDE(inode)->data);
++	return single_open(file, idefloppy_capacity_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idefloppy_capacity_proc_fops = {
+diff --git a/drivers/ide/ide-proc.c b/drivers/ide/ide-proc.c
+index 2abcc4790f12..97c070077774 100644
+--- a/drivers/ide/ide-proc.c
++++ b/drivers/ide/ide-proc.c
+@@ -58,7 +58,7 @@ static int ide_imodel_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_imodel_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_imodel_proc_show, PDE(inode)->data);
++	return single_open(file, ide_imodel_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_imodel_proc_fops = {
+@@ -82,7 +82,7 @@ static int ide_mate_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_mate_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_mate_proc_show, PDE(inode)->data);
++	return single_open(file, ide_mate_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_mate_proc_fops = {
+@@ -103,7 +103,7 @@ static int ide_channel_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_channel_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_channel_proc_show, PDE(inode)->data);
++	return single_open(file, ide_channel_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_channel_proc_fops = {
+@@ -143,7 +143,7 @@ static int ide_identify_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_identify_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_identify_proc_show, PDE(inode)->data);
++	return single_open(file, ide_identify_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_identify_proc_fops = {
+@@ -325,7 +325,7 @@ static int ide_settings_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_settings_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_settings_proc_show, PDE(inode)->data);
++	return single_open(file, ide_settings_proc_show, PDE_DATA(inode));
+ }
+ 
+ #define MAX_LEN	30
+@@ -333,7 +333,7 @@ static int ide_settings_proc_open(struct inode *inode, struct file *file)
+ static ssize_t ide_settings_proc_write(struct file *file, const char __user *buffer,
+ 				       size_t count, loff_t *pos)
+ {
+-	ide_drive_t	*drive = (ide_drive_t *) PDE(file_inode(file))->data;
++	ide_drive_t	*drive = PDE_DATA(file_inode(file));
+ 	char		name[MAX_LEN + 1];
+ 	int		for_real = 0, mul_factor, div_factor;
+ 	unsigned long	n;
+@@ -474,7 +474,7 @@ static int ide_geometry_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_geometry_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_geometry_proc_show, PDE(inode)->data);
++	return single_open(file, ide_geometry_proc_show, PDE_DATA(inode));
+ }
+ 
+ const struct file_operations ide_geometry_proc_fops = {
+@@ -497,7 +497,7 @@ static int ide_dmodel_proc_show(struct seq_file *seq, void *v)
+ 
+ static int ide_dmodel_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_dmodel_proc_show, PDE(inode)->data);
++	return single_open(file, ide_dmodel_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_dmodel_proc_fops = {
+@@ -525,7 +525,7 @@ static int ide_driver_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_driver_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_driver_proc_show, PDE(inode)->data);
++	return single_open(file, ide_driver_proc_show, PDE_DATA(inode));
+ }
+ 
+ static int ide_replace_subdriver(ide_drive_t *drive, const char *driver)
+@@ -558,7 +558,7 @@ static int ide_replace_subdriver(ide_drive_t *drive, const char *driver)
+ static ssize_t ide_driver_proc_write(struct file *file, const char __user *buffer,
+ 				     size_t count, loff_t *pos)
+ {
+-	ide_drive_t	*drive = (ide_drive_t *) PDE(file_inode(file))->data;
++	ide_drive_t	*drive = PDE_DATA(file_inode(file));
+ 	char name[32];
+ 
+ 	if (!capable(CAP_SYS_ADMIN))
+@@ -601,7 +601,7 @@ static int ide_media_proc_show(struct seq_file *m, void *v)
+ 
+ static int ide_media_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, ide_media_proc_show, PDE(inode)->data);
++	return single_open(file, ide_media_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ide_media_proc_fops = {
+diff --git a/drivers/ide/ide-tape.c b/drivers/ide/ide-tape.c
+index ce8237d36159..89f859591bbb 100644
+--- a/drivers/ide/ide-tape.c
++++ b/drivers/ide/ide-tape.c
+@@ -1847,7 +1847,7 @@ static int idetape_name_proc_show(struct seq_file *m, void *v)
+ 
+ static int idetape_name_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, idetape_name_proc_show, PDE(inode)->data);
++	return single_open(file, idetape_name_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations idetape_name_proc_fops = {
+diff --git a/drivers/isdn/gigaset/capi.c b/drivers/isdn/gigaset/capi.c
+index 03a0a01a4054..3286903a95d2 100644
+--- a/drivers/isdn/gigaset/capi.c
++++ b/drivers/isdn/gigaset/capi.c
+@@ -2334,7 +2334,7 @@ static int gigaset_proc_show(struct seq_file *m, void *v)
+ 
+ static int gigaset_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, gigaset_proc_show, PDE(inode)->data);
++	return single_open(file, gigaset_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations gigaset_proc_fops = {
+diff --git a/drivers/isdn/hardware/avm/b1.c b/drivers/isdn/hardware/avm/b1.c
+index 821f7ac33b37..4d9b195547c5 100644
+--- a/drivers/isdn/hardware/avm/b1.c
++++ b/drivers/isdn/hardware/avm/b1.c
+@@ -702,7 +702,7 @@ static int b1ctl_proc_show(struct seq_file *m, void *v)
+ 
+ static int b1ctl_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, b1ctl_proc_show, PDE(inode)->data);
++	return single_open(file, b1ctl_proc_show, PDE_DATA(inode));
+ }
+ 
+ const struct file_operations b1ctl_proc_fops = {
+diff --git a/drivers/isdn/hardware/avm/b1dma.c b/drivers/isdn/hardware/avm/b1dma.c
+index 0896aa86fc08..19b113faeb7b 100644
+--- a/drivers/isdn/hardware/avm/b1dma.c
++++ b/drivers/isdn/hardware/avm/b1dma.c
+@@ -944,7 +944,7 @@ static int b1dmactl_proc_show(struct seq_file *m, void *v)
+ 
+ static int b1dmactl_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, b1dmactl_proc_show, PDE(inode)->data);
++	return single_open(file, b1dmactl_proc_show, PDE_DATA(inode));
+ }
+ 
+ const struct file_operations b1dmactl_proc_fops = {
+diff --git a/drivers/isdn/hardware/avm/c4.c b/drivers/isdn/hardware/avm/c4.c
+index 1d7fc44e3eef..5d00d72fe482 100644
+--- a/drivers/isdn/hardware/avm/c4.c
++++ b/drivers/isdn/hardware/avm/c4.c
+@@ -1129,7 +1129,7 @@ static int c4_proc_show(struct seq_file *m, void *v)
+ 
+ static int c4_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, c4_proc_show, PDE(inode)->data);
++	return single_open(file, c4_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations c4_proc_fops = {
+diff --git a/drivers/isdn/hardware/eicon/divasproc.c b/drivers/isdn/hardware/eicon/divasproc.c
+index 3a4165c61196..56ce98a4e248 100644
+--- a/drivers/isdn/hardware/eicon/divasproc.c
++++ b/drivers/isdn/hardware/eicon/divasproc.c
+@@ -145,7 +145,7 @@ void remove_divas_proc(void)
+ static ssize_t grp_opt_proc_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+-	diva_os_xdi_adapter_t *a = PDE(file_inode(file))->data;
++	diva_os_xdi_adapter_t *a = PDE_DATA(file_inode(file));
+ 	PISDN_ADAPTER IoAdapter = IoAdapters[a->controller - 1];
+ 
+ 	if ((count == 1) || (count == 2)) {
+@@ -172,7 +172,7 @@ static ssize_t grp_opt_proc_write(struct file *file, const char __user *buffer,
+ static ssize_t d_l1_down_proc_write(struct file *file, const char __user *buffer,
+ 				    size_t count, loff_t *pos)
+ {
+-	diva_os_xdi_adapter_t *a = PDE(file_inode(file))->data;
++	diva_os_xdi_adapter_t *a = PDE_DATA(file_inode(file));
+ 	PISDN_ADAPTER IoAdapter = IoAdapters[a->controller - 1];
+ 
+ 	if ((count == 1) || (count == 2)) {
+@@ -210,7 +210,7 @@ static int d_l1_down_proc_show(struct seq_file *m, void *v)
+ 
+ static int d_l1_down_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, d_l1_down_proc_show, PDE(inode)->data);
++	return single_open(file, d_l1_down_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations d_l1_down_proc_fops = {
+@@ -236,7 +236,7 @@ static int grp_opt_proc_show(struct seq_file *m, void *v)
+ 
+ static int grp_opt_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, grp_opt_proc_show, PDE(inode)->data);
++	return single_open(file, grp_opt_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations grp_opt_proc_fops = {
+@@ -251,7 +251,7 @@ static const struct file_operations grp_opt_proc_fops = {
+ static ssize_t info_proc_write(struct file *file, const char __user *buffer,
+ 			       size_t count, loff_t *pos)
+ {
+-	diva_os_xdi_adapter_t *a = PDE(file_inode(file))->data;
++	diva_os_xdi_adapter_t *a = PDE_DATA(file_inode(file));
+ 	PISDN_ADAPTER IoAdapter = IoAdapters[a->controller - 1];
+ 	char c[4];
+ 
+@@ -335,7 +335,7 @@ static int info_proc_show(struct seq_file *m, void *v)
+ 
+ static int info_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, info_proc_show, PDE(inode)->data);
++	return single_open(file, info_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations info_proc_fops = {
+diff --git a/drivers/isdn/hysdn/hycapi.c b/drivers/isdn/hysdn/hycapi.c
+index 931f916c9c23..00aad10507d8 100644
+--- a/drivers/isdn/hysdn/hycapi.c
++++ b/drivers/isdn/hysdn/hycapi.c
+@@ -469,7 +469,7 @@ static int hycapi_proc_show(struct seq_file *m, void *v)
+ 
+ static int hycapi_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, hycapi_proc_show, PDE(inode)->data);
++	return single_open(file, hycapi_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations hycapi_proc_fops = {
+diff --git a/drivers/isdn/hysdn/hysdn_procconf.c b/drivers/isdn/hysdn/hysdn_procconf.c
+index dc88bcb25029..73079213ec94 100644
+--- a/drivers/isdn/hysdn/hysdn_procconf.c
++++ b/drivers/isdn/hysdn/hysdn_procconf.c
+@@ -234,7 +234,7 @@ hysdn_conf_open(struct inode *ino, struct file *filep)
+ 
+ 	/* now search the addressed card */
+ 	mutex_lock(&hysdn_conf_mutex);
+-	card = PDE(ino)->data;
++	card = PDE_DATA(ino);
+ 	if (card->debug_flags & (LOG_PROC_OPEN | LOG_PROC_ALL))
+ 		hysdn_addlog(card, "config open for uid=%d gid=%d mode=0x%x",
+ 			     filep->f_cred->fsuid, filep->f_cred->fsgid,
+@@ -308,7 +308,7 @@ hysdn_conf_close(struct inode *ino, struct file *filep)
+ 	int retval = 0;
+ 
+ 	mutex_lock(&hysdn_conf_mutex);
+-	card = PDE(ino)->data;
++	card = PDE_DATA(ino);
+ 	if (card->debug_flags & (LOG_PROC_OPEN | LOG_PROC_ALL))
+ 		hysdn_addlog(card, "config close for uid=%d gid=%d mode=0x%x",
+ 			     filep->f_cred->fsuid, filep->f_cred->fsgid,
+diff --git a/drivers/isdn/hysdn/hysdn_proclog.c b/drivers/isdn/hysdn/hysdn_proclog.c
+index 22f0e4ef1fb1..b61e8d5e84ad 100644
+--- a/drivers/isdn/hysdn/hysdn_proclog.c
++++ b/drivers/isdn/hysdn/hysdn_proclog.c
+@@ -173,7 +173,7 @@ hysdn_log_read(struct file *file, char __user *buf, size_t count, loff_t *off)
+ {
+ 	struct log_data *inf;
+ 	int len;
+-	hysdn_card *card = PDE(file_inode(file))->data;
++	hysdn_card *card = PDE_DATA(file_inode(file));
+ 
+ 	if (!*((struct log_data **) file->private_data)) {
+ 		struct procdata *pd = card->proclog;
+@@ -202,7 +202,7 @@ hysdn_log_read(struct file *file, char __user *buf, size_t count, loff_t *off)
+ static int
+ hysdn_log_open(struct inode *ino, struct file *filep)
+ {
+-	hysdn_card *card = PDE(ino)->data;
++	hysdn_card *card = PDE_DATA(ino);
+ 
+ 	mutex_lock(&hysdn_log_mutex);
+ 	if ((filep->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE) {
+@@ -255,7 +255,7 @@ hysdn_log_close(struct inode *ino, struct file *filep)
+ 			pd = (struct procdata *) inf->proc_ctrl;	/* still entries there */
+ 		else {
+ 			/* no info available -> search card */
+-			card = PDE(file_inode(filep))->data;
++			card = PDE_DATA(file_inode(filep));
+ 			pd = card->proclog;	/* pointer to procfs log */
+ 		}
+ 		if (pd)
+@@ -286,7 +286,7 @@ static unsigned int
+ hysdn_log_poll(struct file *file, poll_table *wait)
+ {
+ 	unsigned int mask = 0;
+-	hysdn_card *card = PDE(file_inode(file))->data;
++	hysdn_card *card = PDE_DATA(file_inode(file));
+ 	struct procdata *pd = card->proclog;
+ 
+ 	if ((file->f_mode & (FMODE_READ | FMODE_WRITE)) == FMODE_WRITE)
+diff --git a/drivers/macintosh/via-pmu.c b/drivers/macintosh/via-pmu.c
+index 22b8ce4191cc..c31fbab6aa82 100644
+--- a/drivers/macintosh/via-pmu.c
++++ b/drivers/macintosh/via-pmu.c
+@@ -869,7 +869,7 @@ static int pmu_battery_proc_show(struct seq_file *m, void *v)
+ 
+ static int pmu_battery_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pmu_battery_proc_show, PDE(inode)->data);
++	return single_open(file, pmu_battery_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations pmu_battery_proc_fops = {
+diff --git a/drivers/media/pci/zoran/zoran_procfs.c b/drivers/media/pci/zoran/zoran_procfs.c
+index e084b0a21b1b..07a104d2bd1d 100644
+--- a/drivers/media/pci/zoran/zoran_procfs.c
++++ b/drivers/media/pci/zoran/zoran_procfs.c
+@@ -130,14 +130,14 @@ static int zoran_show(struct seq_file *p, void *v)
+ 
+ static int zoran_open(struct inode *inode, struct file *file)
+ {
+-	struct zoran *data = PDE(inode)->data;
++	struct zoran *data = PDE_DATA(inode);
+ 	return single_open(file, zoran_show, data);
+ }
+ 
+ static ssize_t zoran_write(struct file *file, const char __user *buffer,
+ 			size_t count, loff_t *ppos)
+ {
+-	struct zoran *zr = PDE(file_inode(file))->data;
++	struct zoran *zr = PDE_DATA(file_inode(file));
+ 	char *string, *sp;
+ 	char *line, *ldelim, *varname, *svar, *tdelim;
+ 
+diff --git a/drivers/message/fusion/mptbase.c b/drivers/message/fusion/mptbase.c
+index fb69baa06ca8..767ff4d839f4 100644
+--- a/drivers/message/fusion/mptbase.c
++++ b/drivers/message/fusion/mptbase.c
+@@ -6656,7 +6656,7 @@ static int mpt_summary_proc_show(struct seq_file *m, void *v)
+ 
+ static int mpt_summary_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, mpt_summary_proc_show, PDE(inode)->data);
++	return single_open(file, mpt_summary_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations mpt_summary_proc_fops = {
+@@ -6805,7 +6805,7 @@ static int mpt_iocinfo_proc_show(struct seq_file *m, void *v)
+ 
+ static int mpt_iocinfo_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, mpt_iocinfo_proc_show, PDE(inode)->data);
++	return single_open(file, mpt_iocinfo_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations mpt_iocinfo_proc_fops = {
+diff --git a/drivers/message/i2o/i2o_proc.c b/drivers/message/i2o/i2o_proc.c
+index 15c1e480c0dd..70a840f9b283 100644
+--- a/drivers/message/i2o/i2o_proc.c
++++ b/drivers/message/i2o/i2o_proc.c
+@@ -1599,98 +1599,98 @@ static int i2o_seq_show_sensors(struct seq_file *seq, void *v)
+ 
+ static int i2o_seq_open_hrt(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_hrt, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_hrt, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_lct(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_lct, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_lct, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_status(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_status, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_status, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_hw(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_hw, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_hw, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_ddm_table(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_ddm_table, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_ddm_table, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_driver_store(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_driver_store, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_driver_store, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_drivers_stored(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_drivers_stored, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_drivers_stored, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_groups(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_groups, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_groups, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_phys_device(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_phys_device, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_phys_device, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_claimed(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_claimed, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_claimed, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_users(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_users, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_users, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_priv_msgs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_priv_msgs, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_priv_msgs, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_authorized_users(struct inode *inode, struct file *file)
+ {
+ 	return single_open(file, i2o_seq_show_authorized_users,
+-			   PDE(inode)->data);
++			   PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_dev_identity(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_dev_identity, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_dev_identity, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_ddm_identity(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_ddm_identity, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_ddm_identity, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_uinfo(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_uinfo, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_uinfo, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_sgl_limits(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_sgl_limits, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_sgl_limits, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_sensors(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_sensors, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_sensors, PDE_DATA(inode));
+ };
+ 
+ static int i2o_seq_open_dev_name(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, i2o_seq_show_dev_name, PDE(inode)->data);
++	return single_open(file, i2o_seq_show_dev_name, PDE_DATA(inode));
+ };
+ 
+ static const struct file_operations i2o_seq_fops_lct = {
+diff --git a/drivers/net/bonding/bond_procfs.c b/drivers/net/bonding/bond_procfs.c
+index 3cea38d37344..94d06f1307b8 100644
+--- a/drivers/net/bonding/bond_procfs.c
++++ b/drivers/net/bonding/bond_procfs.c
+@@ -218,15 +218,13 @@ static const struct seq_operations bond_info_seq_ops = {
+ static int bond_info_open(struct inode *inode, struct file *file)
+ {
+ 	struct seq_file *seq;
+-	struct proc_dir_entry *proc;
+ 	int res;
+ 
+ 	res = seq_open(file, &bond_info_seq_ops);
+ 	if (!res) {
+ 		/* recover the pointer buried in proc_dir_entry data */
+ 		seq = file->private_data;
+-		proc = PDE(inode);
+-		seq->private = proc->data;
++		seq->private = PDE_DATA(inode);
+ 	}
+ 
+ 	return res;
+diff --git a/drivers/net/irda/vlsi_ir.c b/drivers/net/irda/vlsi_ir.c
+index 2f99f8881dfc..e22cd4e7017a 100644
+--- a/drivers/net/irda/vlsi_ir.c
++++ b/drivers/net/irda/vlsi_ir.c
+@@ -383,7 +383,7 @@ static int vlsi_seq_show(struct seq_file *seq, void *v)
+ 
+ static int vlsi_seq_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, vlsi_seq_show, PDE(inode)->data);
++	return single_open(file, vlsi_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations vlsi_proc_fops = {
+diff --git a/drivers/net/wireless/airo.c b/drivers/net/wireless/airo.c
+index 53295418f576..66e398d4730d 100644
+--- a/drivers/net/wireless/airo.c
++++ b/drivers/net/wireless/airo.c
+@@ -4663,8 +4663,7 @@ static ssize_t proc_write( struct file *file,
+ static int proc_status_open(struct inode *inode, struct file *file)
+ {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *apriv = dev->ml_priv;
+ 	CapabilityRid cap_rid;
+ 	StatusRid status_rid;
+@@ -4746,8 +4745,7 @@ static int proc_stats_rid_open( struct inode *inode,
+ 				u16 rid )
+ {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *apriv = dev->ml_priv;
+ 	StatsRid stats;
+ 	int i, j;
+@@ -4809,8 +4807,7 @@ static inline int sniffing_mode(struct airo_info *ai)
+ static void proc_config_on_close(struct inode *inode, struct file *file)
+ {
+ 	struct proc_data *data = file->private_data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	char *line;
+ 
+@@ -5021,8 +5018,7 @@ static const char *get_rmode(__le16 mode)
+ static int proc_config_open(struct inode *inode, struct file *file)
+ {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	int i;
+ 	__le16 mode;
+@@ -5112,8 +5108,7 @@ static int proc_config_open(struct inode *inode, struct file *file)
+ static void proc_SSID_on_close(struct inode *inode, struct file *file)
+ {
+ 	struct proc_data *data = file->private_data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	SsidRid SSID_rid;
+ 	int i;
+@@ -5148,8 +5143,7 @@ static void proc_SSID_on_close(struct inode *inode, struct file *file)
+ 
+ static void proc_APList_on_close( struct inode *inode, struct file *file ) {
+ 	struct proc_data *data = file->private_data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	APListRid APList_rid;
+ 	int i;
+@@ -5283,8 +5277,7 @@ static int set_wep_tx_idx(struct airo_info *ai, u16 index, int perm, int lock)
+ 
+ static void proc_wepkey_on_close( struct inode *inode, struct file *file ) {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	int i, rc;
+ 	char key[16];
+@@ -5335,8 +5328,7 @@ static void proc_wepkey_on_close( struct inode *inode, struct file *file ) {
+ static int proc_wepkey_open( struct inode *inode, struct file *file )
+ {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	char *ptr;
+ 	WepKeyRid wkr;
+@@ -5384,8 +5376,7 @@ static int proc_wepkey_open( struct inode *inode, struct file *file )
+ static int proc_SSID_open(struct inode *inode, struct file *file)
+ {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	int i;
+ 	char *ptr;
+@@ -5428,8 +5419,7 @@ static int proc_SSID_open(struct inode *inode, struct file *file)
+ 
+ static int proc_APList_open( struct inode *inode, struct file *file ) {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	int i;
+ 	char *ptr;
+@@ -5468,8 +5458,7 @@ static int proc_APList_open( struct inode *inode, struct file *file ) {
+ 
+ static int proc_BSSList_open( struct inode *inode, struct file *file ) {
+ 	struct proc_data *data;
+-	struct proc_dir_entry *dp = PDE(inode);
+-	struct net_device *dev = dp->data;
++	struct net_device *dev = PDE_DATA(inode);
+ 	struct airo_info *ai = dev->ml_priv;
+ 	char *ptr;
+ 	BSSListRid BSSList_rid;
+diff --git a/drivers/net/wireless/ray_cs.c b/drivers/net/wireless/ray_cs.c
+index 3109c0db66e1..a6f660c01902 100644
+--- a/drivers/net/wireless/ray_cs.c
++++ b/drivers/net/wireless/ray_cs.c
+@@ -2778,7 +2778,7 @@ static ssize_t int_proc_write(struct file *file, const char __user *buffer,
+ 		nr = nr * 10 + c;
+ 		p++;
+ 	} while (--len);
+-	*(int *)PDE(file_inode(file))->data = nr;
++	*(int *)PDE_DATA(file_inode(file)) = nr;
+ 	return count;
+ }
+ 
+diff --git a/drivers/parisc/led.c b/drivers/parisc/led.c
+index d4d800c54d86..b48243131993 100644
+--- a/drivers/parisc/led.c
++++ b/drivers/parisc/led.c
+@@ -172,14 +172,14 @@ static int led_proc_show(struct seq_file *m, void *v)
+ 
+ static int led_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, led_proc_show, PDE(inode)->data);
++	return single_open(file, led_proc_show, PDE_DATA(inode));
+ }
+ 
+ 
+ static ssize_t led_proc_write(struct file *file, const char *buf,
+ 	size_t count, loff_t *pos)
+ {
+-	void *data = PDE(file_inode(file))->data;
++	void *data = PDE_DATA(file_inode(file));
+ 	char *cur, lbuf[32];
+ 	int d;
+ 
+diff --git a/drivers/pci/proc.c b/drivers/pci/proc.c
+index 0b009470e6db..12e4fb5824c1 100644
+--- a/drivers/pci/proc.c
++++ b/drivers/pci/proc.c
+@@ -46,9 +46,7 @@ proc_bus_pci_lseek(struct file *file, loff_t off, int whence)
+ static ssize_t
+ proc_bus_pci_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+-	const struct inode *ino = file_inode(file);
+-	const struct proc_dir_entry *dp = PDE(ino);
+-	struct pci_dev *dev = dp->data;
++	struct pci_dev *dev = PDE_DATA(file_inode(file));
+ 	unsigned int pos = *ppos;
+ 	unsigned int cnt, size;
+ 
+@@ -59,7 +57,7 @@ proc_bus_pci_read(struct file *file, char __user *buf, size_t nbytes, loff_t *pp
+ 	 */
+ 
+ 	if (capable(CAP_SYS_ADMIN))
+-		size = dp->size;
++		size = dev->cfg_size;
+ 	else if (dev->hdr_type == PCI_HEADER_TYPE_CARDBUS)
+ 		size = 128;
+ 	else
+@@ -133,10 +131,9 @@ static ssize_t
+ proc_bus_pci_write(struct file *file, const char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+ 	struct inode *ino = file_inode(file);
+-	const struct proc_dir_entry *dp = PDE(ino);
+-	struct pci_dev *dev = dp->data;
++	struct pci_dev *dev = PDE_DATA(ino);
+ 	int pos = *ppos;
+-	int size = dp->size;
++	int size = dev->cfg_size;
+ 	int cnt;
+ 
+ 	if (pos >= size)
+@@ -200,7 +197,7 @@ proc_bus_pci_write(struct file *file, const char __user *buf, size_t nbytes, lof
+ 	pci_config_pm_runtime_put(dev);
+ 
+ 	*ppos = pos;
+-	i_size_write(ino, dp->size);
++	i_size_write(ino, dev->cfg_size);
+ 	return nbytes;
+ }
+ 
+@@ -212,8 +209,7 @@ struct pci_filp_private {
+ static long proc_bus_pci_ioctl(struct file *file, unsigned int cmd,
+ 			       unsigned long arg)
+ {
+-	const struct proc_dir_entry *dp = PDE(file_inode(file));
+-	struct pci_dev *dev = dp->data;
++	struct pci_dev *dev = PDE_DATA(file_inode(file));
+ #ifdef HAVE_PCI_MMAP
+ 	struct pci_filp_private *fpriv = file->private_data;
+ #endif /* HAVE_PCI_MMAP */
+@@ -253,9 +249,7 @@ static long proc_bus_pci_ioctl(struct file *file, unsigned int cmd,
+ #ifdef HAVE_PCI_MMAP
+ static int proc_bus_pci_mmap(struct file *file, struct vm_area_struct *vma)
+ {
+-	struct inode *inode = file_inode(file);
+-	const struct proc_dir_entry *dp = PDE(inode);
+-	struct pci_dev *dev = dp->data;
++	struct pci_dev *dev = PDE_DATA(file_inode(file));
+ 	struct pci_filp_private *fpriv = file->private_data;
+ 	int i, ret;
+ 
+diff --git a/drivers/platform/x86/thinkpad_acpi.c b/drivers/platform/x86/thinkpad_acpi.c
+index 9a907567f41e..05272e676a28 100644
+--- a/drivers/platform/x86/thinkpad_acpi.c
++++ b/drivers/platform/x86/thinkpad_acpi.c
+@@ -844,14 +844,14 @@ static int dispatch_proc_show(struct seq_file *m, void *v)
+ 
+ static int dispatch_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, dispatch_proc_show, PDE(inode)->data);
++	return single_open(file, dispatch_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t dispatch_proc_write(struct file *file,
+ 			const char __user *userbuf,
+ 			size_t count, loff_t *pos)
+ {
+-	struct ibm_struct *ibm = PDE(file_inode(file))->data;
++	struct ibm_struct *ibm = PDE_DATA(file_inode(file));
+ 	char *kernbuf;
+ 	int ret;
+ 
+diff --git a/drivers/platform/x86/toshiba_acpi.c b/drivers/platform/x86/toshiba_acpi.c
+index 242abac62d8b..eb3467ea6d86 100644
+--- a/drivers/platform/x86/toshiba_acpi.c
++++ b/drivers/platform/x86/toshiba_acpi.c
+@@ -553,7 +553,7 @@ static int lcd_proc_show(struct seq_file *m, void *v)
+ 
+ static int lcd_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, lcd_proc_show, PDE(inode)->data);
++	return single_open(file, lcd_proc_show, PDE_DATA(inode));
+ }
+ 
+ static int set_lcd_brightness(struct toshiba_acpi_dev *dev, int value)
+@@ -583,7 +583,7 @@ static int set_lcd_status(struct backlight_device *bd)
+ static ssize_t lcd_proc_write(struct file *file, const char __user *buf,
+ 			      size_t count, loff_t *pos)
+ {
+-	struct toshiba_acpi_dev *dev = PDE(file_inode(file))->data;
++	struct toshiba_acpi_dev *dev = PDE_DATA(file_inode(file));
+ 	char cmd[42];
+ 	size_t len;
+ 	int value;
+@@ -644,13 +644,13 @@ static int video_proc_show(struct seq_file *m, void *v)
+ 
+ static int video_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, video_proc_show, PDE(inode)->data);
++	return single_open(file, video_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t video_proc_write(struct file *file, const char __user *buf,
+ 				size_t count, loff_t *pos)
+ {
+-	struct toshiba_acpi_dev *dev = PDE(file_inode(file))->data;
++	struct toshiba_acpi_dev *dev = PDE_DATA(file_inode(file));
+ 	char *cmd, *buffer;
+ 	int ret;
+ 	int value;
+@@ -744,13 +744,13 @@ static int fan_proc_show(struct seq_file *m, void *v)
+ 
+ static int fan_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, fan_proc_show, PDE(inode)->data);
++	return single_open(file, fan_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t fan_proc_write(struct file *file, const char __user *buf,
+ 			      size_t count, loff_t *pos)
+ {
+-	struct toshiba_acpi_dev *dev = PDE(file_inode(file))->data;
++	struct toshiba_acpi_dev *dev = PDE_DATA(file_inode(file));
+ 	char cmd[42];
+ 	size_t len;
+ 	int value;
+@@ -816,13 +816,13 @@ static int keys_proc_show(struct seq_file *m, void *v)
+ 
+ static int keys_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, keys_proc_show, PDE(inode)->data);
++	return single_open(file, keys_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t keys_proc_write(struct file *file, const char __user *buf,
+ 			       size_t count, loff_t *pos)
+ {
+-	struct toshiba_acpi_dev *dev = PDE(file_inode(file))->data;
++	struct toshiba_acpi_dev *dev = PDE_DATA(file_inode(file));
+ 	char cmd[42];
+ 	size_t len;
+ 	int value;
+@@ -859,7 +859,7 @@ static int version_proc_show(struct seq_file *m, void *v)
+ 
+ static int version_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, version_proc_show, PDE(inode)->data);
++	return single_open(file, version_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations version_proc_fops = {
+diff --git a/drivers/pnp/isapnp/proc.c b/drivers/pnp/isapnp/proc.c
+index 65f735ac6b3b..af4d40affb79 100644
+--- a/drivers/pnp/isapnp/proc.c
++++ b/drivers/pnp/isapnp/proc.c
+@@ -55,9 +55,7 @@ static loff_t isapnp_proc_bus_lseek(struct file *file, loff_t off, int whence)
+ static ssize_t isapnp_proc_bus_read(struct file *file, char __user * buf,
+ 				    size_t nbytes, loff_t * ppos)
+ {
+-	struct inode *ino = file_inode(file);
+-	struct proc_dir_entry *dp = PDE(ino);
+-	struct pnp_dev *dev = dp->data;
++	struct pnp_dev *dev = PDE_DATA(file_inode(file));
+ 	int pos = *ppos;
+ 	int cnt, size = 256;
+ 
+diff --git a/drivers/pnp/pnpbios/proc.c b/drivers/pnp/pnpbios/proc.c
+index 63ddb0173456..8dafd65d4758 100644
+--- a/drivers/pnp/pnpbios/proc.c
++++ b/drivers/pnp/pnpbios/proc.c
+@@ -238,13 +238,13 @@ static int pnpbios_proc_show(struct seq_file *m, void *v)
+ 
+ static int pnpbios_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pnpbios_proc_show, PDE(inode)->data);
++	return single_open(file, pnpbios_proc_show, PDE_DATA(inode));
+ }
+ 
+ static ssize_t pnpbios_proc_write(struct file *file, const char __user *buf,
+ 				  size_t count, loff_t *pos)
+ {
+-	void *data = PDE(file_inode(file))->data;
++	void *data = PDE_DATA(file_inode(file));
+ 	struct pnp_bios_node *node;
+ 	int boot = (long)data >> 8;
+ 	u8 nodenum = (long)data;
+diff --git a/drivers/rtc/rtc-proc.c b/drivers/rtc/rtc-proc.c
+index e96236ac2e78..ffa69e1c9245 100644
+--- a/drivers/rtc/rtc-proc.c
++++ b/drivers/rtc/rtc-proc.c
+@@ -110,7 +110,7 @@ static int rtc_proc_show(struct seq_file *seq, void *offset)
+ static int rtc_proc_open(struct inode *inode, struct file *file)
+ {
+ 	int ret;
+-	struct rtc_device *rtc = PDE(inode)->data;
++	struct rtc_device *rtc = PDE_DATA(inode);
+ 
+ 	if (!try_module_get(THIS_MODULE))
+ 		return -ENODEV;
+diff --git a/drivers/scsi/scsi_proc.c b/drivers/scsi/scsi_proc.c
+index 1eb34c34d7b9..db66357211ed 100644
+--- a/drivers/scsi/scsi_proc.c
++++ b/drivers/scsi/scsi_proc.c
+@@ -48,7 +48,7 @@ static DEFINE_MUTEX(global_host_template_mutex);
+ static ssize_t proc_scsi_host_write(struct file *file, const char __user *buf,
+                            size_t count, loff_t *ppos)
+ {
+-	struct Scsi_Host *shost = PDE(file_inode(file))->data;
++	struct Scsi_Host *shost = PDE_DATA(file_inode(file));
+ 	ssize_t ret = -ENOMEM;
+ 	char *page;
+     
+@@ -78,7 +78,7 @@ static int proc_scsi_show(struct seq_file *m, void *v)
+ 
+ static int proc_scsi_host_open(struct inode *inode, struct file *file)
+ {
+-	return single_open_size(file, proc_scsi_show, PDE(inode)->data,
++	return single_open_size(file, proc_scsi_show, PDE_DATA(inode),
+ 				4 * PAGE_SIZE);
+ }
+ 
+diff --git a/drivers/staging/ccg/rndis.c b/drivers/staging/ccg/rndis.c
+index d9297eebbf73..1e4cfb05f70b 100644
+--- a/drivers/staging/ccg/rndis.c
++++ b/drivers/staging/ccg/rndis.c
+@@ -1065,7 +1065,7 @@ static int rndis_proc_show(struct seq_file *m, void *v)
+ static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
+ 				size_t count, loff_t *ppos)
+ {
+-	rndis_params *p = PDE(file_inode(file))->data;
++	rndis_params *p = PDE_DATA(file_inode(file));
+ 	u32 speed = 0;
+ 	int i, fl_speed = 0;
+ 
+@@ -1109,7 +1109,7 @@ static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
+ 
+ static int rndis_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, rndis_proc_show, PDE(inode)->data);
++	return single_open(file, rndis_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations rndis_proc_fops = {
+diff --git a/drivers/staging/dgrp/dgrp_dpa_ops.c b/drivers/staging/dgrp/dgrp_dpa_ops.c
+index cfa8e82404f9..43209c163a43 100644
+--- a/drivers/staging/dgrp/dgrp_dpa_ops.c
++++ b/drivers/staging/dgrp/dgrp_dpa_ops.c
+@@ -113,8 +113,6 @@ static int dgrp_dpa_open(struct inode *inode, struct file *file)
+ 	struct nd_struct *nd;
+ 	int rtn = 0;
+ 
+-	struct proc_dir_entry *de;
+-
+ 	rtn = try_module_get(THIS_MODULE);
+ 	if (!rtn)
+ 		return -ENXIO;
+@@ -137,12 +135,7 @@ static int dgrp_dpa_open(struct inode *inode, struct file *file)
+ 	/*
+ 	 *  Get the node pointer, and fail if it doesn't exist.
+ 	 */
+-	de = PDE(inode);
+-	if (!de) {
+-		rtn = -ENXIO;
+-		goto done;
+-	}
+-	nd = (struct nd_struct *)de->data;
++	nd = PDE_DATA(inode);
+ 	if (!nd) {
+ 		rtn = -ENXIO;
+ 		goto done;
+diff --git a/drivers/staging/dgrp/dgrp_mon_ops.c b/drivers/staging/dgrp/dgrp_mon_ops.c
+index 52493b5c1673..6edbbf069150 100644
+--- a/drivers/staging/dgrp/dgrp_mon_ops.c
++++ b/drivers/staging/dgrp/dgrp_mon_ops.c
+@@ -67,7 +67,6 @@ const struct file_operations dgrp_mon_ops = {
+ static int dgrp_mon_open(struct inode *inode, struct file *file)
+ {
+ 	struct nd_struct *nd;
+-	struct proc_dir_entry *de;
+ 	struct timeval tv;
+ 	uint32_t time;
+ 	u8 *buf;
+@@ -95,13 +94,7 @@ static int dgrp_mon_open(struct inode *inode, struct file *file)
+ 	/*
+ 	 *  Get the node pointer, and fail if it doesn't exist.
+ 	 */
+-	de = PDE(inode);
+-	if (!de) {
+-		rtn = -ENXIO;
+-		goto done;
+-	}
+-
+-	nd = (struct nd_struct *)de->data;
++	nd = PDE_DATA(inode);
+ 	if (!nd) {
+ 		rtn = -ENXIO;
+ 		goto done;
+diff --git a/drivers/staging/dgrp/dgrp_net_ops.c b/drivers/staging/dgrp/dgrp_net_ops.c
+index dc826b2cf907..5448fc78bcad 100644
+--- a/drivers/staging/dgrp/dgrp_net_ops.c
++++ b/drivers/staging/dgrp/dgrp_net_ops.c
+@@ -784,7 +784,6 @@ static int alloc_nd_buffers(struct nd_struct *nd)
+ static int dgrp_net_open(struct inode *inode, struct file *file)
+ {
+ 	struct nd_struct *nd;
+-	struct proc_dir_entry *de;
+ 	ulong  lock_flags;
+ 	int rtn;
+ 
+@@ -808,13 +807,7 @@ static int dgrp_net_open(struct inode *inode, struct file *file)
+ 	/*
+ 	 *  Get the node pointer, and fail if it doesn't exist.
+ 	 */
+-	de = PDE(inode);
+-	if (!de) {
+-		rtn = -ENXIO;
+-		goto done;
+-	}
+-
+-	nd = (struct nd_struct *) de->data;
++	nd = PDE_DATA(inode);
+ 	if (!nd) {
+ 		rtn = -ENXIO;
+ 		goto done;
+diff --git a/drivers/staging/dgrp/dgrp_ports_ops.c b/drivers/staging/dgrp/dgrp_ports_ops.c
+index 48e9079c6355..4ce030815f27 100644
+--- a/drivers/staging/dgrp/dgrp_ports_ops.c
++++ b/drivers/staging/dgrp/dgrp_ports_ops.c
+@@ -149,7 +149,7 @@ static int dgrp_ports_open(struct inode *inode, struct file *file)
+ 	rtn = seq_open(file, &ports_seq_ops);
+ 	if (!rtn) {
+ 		seq = file->private_data;
+-		seq->private = PDE(inode)->data;
++		seq->private = PDE_DATA(inode);
+ 	}
+ 
+ 	return rtn;
+diff --git a/drivers/staging/silicom/bpctl_mod.c b/drivers/staging/silicom/bpctl_mod.c
+index f64ee07c15ac..e2da0fb3f98e 100644
+--- a/drivers/staging/silicom/bpctl_mod.c
++++ b/drivers/staging/silicom/bpctl_mod.c
+@@ -7250,7 +7250,7 @@ static int procfs_add(char *proc_name, const struct file_operations *fops,
+ #define RO_FOPS(name)	\
+ static int name##_open(struct inode *inode, struct file *file)	\
+ {								\
+-	return single_open(file, show_##name, PDE(inode)->data);\
++	return single_open(file, show_##name, PDE_DATA(inode));\
+ }								\
+ static const struct file_operations name##_ops = {		\
+ 	.open = name##_open,					\
+@@ -7262,7 +7262,7 @@ static const struct file_operations name##_ops = {		\
+ #define RW_FOPS(name)	\
+ static int name##_open(struct inode *inode, struct file *file)	\
+ {								\
+-	return single_open(file, show_##name, PDE(inode)->data);\
++	return single_open(file, show_##name, PDE_DATA(inode));\
+ }								\
+ static const struct file_operations name##_ops = {		\
+ 	.open = name##_open,					\
+@@ -7351,7 +7351,7 @@ static ssize_t bypass_write(struct file *file, const char __user *buffer,
+ 	if (bypass_param < 0)
+ 		return -1;
+ 
+-	set_bypass_fn(PDE(file_inode(file))->data, bypass_param);
++	set_bypass_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 	return count;
+ }
+ static int show_bypass(struct seq_file *m, void *v)
+@@ -7375,7 +7375,7 @@ static ssize_t tap_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -1;
+ 
+-	set_tap_fn(PDE(file_inode(file))->data, tap_param);
++	set_tap_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_tap(struct seq_file *m, void *v)
+@@ -7399,7 +7399,7 @@ static ssize_t disc_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -1;
+ 
+-	set_disc_fn(PDE(file_inode(file))->data, tap_param);
++	set_disc_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_disc(struct seq_file *m, void *v)
+@@ -7461,7 +7461,7 @@ RO_FOPS(disc_change)
+ static ssize_t bypass_wd_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+-	bpctl_dev_t *dev = PDE(file_inode(file))->data;
++	bpctl_dev_t *dev = PDE_DATA(file_inode(file));
+ 	int timeout;
+ 	int ret = kstrtoint_from_user(buffer, count, 10, &timeout);
+ 	if (ret)
+@@ -7507,7 +7507,7 @@ RO_FOPS(wd_expire_time)
+ static ssize_t tpl_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+-	bpctl_dev_t *dev = PDE(file_inode(file))->data;
++	bpctl_dev_t *dev = PDE_DATA(file_inode(file));
+ 	int tpl_param = user_on_off(buffer, count);
+ 	if (tpl_param < 0)
+ 		return -1;
+@@ -7533,7 +7533,7 @@ RW_FOPS(tpl)
+ static ssize_t wait_at_pwup_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+-	bpctl_dev_t *dev = PDE(file_inode(file))->data;
++	bpctl_dev_t *dev = PDE_DATA(file_inode(file));
+ 	int tpl_param = user_on_off(buffer, count);
+ 	if (tpl_param < 0)
+ 		return -1;
+@@ -7558,7 +7558,7 @@ RW_FOPS(wait_at_pwup)
+ static ssize_t hw_reset_write(struct file *file, const char __user *buffer,
+ 				  size_t count, loff_t *pos)
+ {
+-	bpctl_dev_t *dev = PDE(file_inode(file))->data;
++	bpctl_dev_t *dev = PDE_DATA(file_inode(file));
+ 	int tpl_param = user_on_off(buffer, count);
+ 	if (tpl_param < 0)
+ 		return -1;
+@@ -7603,7 +7603,7 @@ static ssize_t dis_bypass_write(struct file *file, const char __user *buffer,
+ 	if (bypass_param < 0)
+ 		return -EINVAL;
+ 
+-	set_dis_bypass_fn(PDE(file_inode(file))->data, bypass_param);
++	set_dis_bypass_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 	return count;
+ }
+ static int show_dis_bypass(struct seq_file *m, void *v)
+@@ -7627,7 +7627,7 @@ static ssize_t dis_tap_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -EINVAL;
+ 
+-	set_dis_tap_fn(PDE(file_inode(file))->data, tap_param);
++	set_dis_tap_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_dis_tap(struct seq_file *m, void *v)
+@@ -7651,7 +7651,7 @@ static ssize_t dis_disc_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -EINVAL;
+ 
+-	set_dis_disc_fn(PDE(file_inode(file))->data, tap_param);
++	set_dis_disc_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_dis_disc(struct seq_file *m, void *v)
+@@ -7675,7 +7675,7 @@ static ssize_t bypass_pwup_write(struct file *file, const char __user *buffer,
+ 	if (bypass_param < 0)
+ 		return -EINVAL;
+ 
+-	set_bypass_pwup_fn(PDE(file_inode(file))->data, bypass_param);
++	set_bypass_pwup_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 	return count;
+ }
+ static int show_bypass_pwup(struct seq_file *m, void *v)
+@@ -7699,7 +7699,7 @@ static ssize_t bypass_pwoff_write(struct file *file, const char __user *buffer,
+ 	if (bypass_param < 0)
+ 		return -EINVAL;
+ 
+-	set_bypass_pwoff_fn(PDE(file_inode(file))->data, bypass_param);
++	set_bypass_pwoff_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 	return count;
+ }
+ static int show_bypass_pwoff(struct seq_file *m, void *v)
+@@ -7723,7 +7723,7 @@ static ssize_t tap_pwup_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -EINVAL;
+ 
+-	set_tap_pwup_fn(PDE(file_inode(file))->data, tap_param);
++	set_tap_pwup_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_tap_pwup(struct seq_file *m, void *v)
+@@ -7747,7 +7747,7 @@ static ssize_t disc_pwup_write(struct file *file, const char __user *buffer,
+ 	if (tap_param < 0)
+ 		return -EINVAL;
+ 
+-	set_disc_pwup_fn(PDE(file_inode(file))->data, tap_param);
++	set_disc_pwup_fn(PDE_DATA(file_inode(file)), tap_param);
+ 	return count;
+ }
+ static int show_disc_pwup(struct seq_file *m, void *v)
+@@ -7771,7 +7771,7 @@ static ssize_t std_nic_write(struct file *file, const char __user *buffer,
+ 	if (bypass_param < 0)
+ 		return -EINVAL;
+ 
+-	set_std_nic_fn(PDE(file_inode(file))->data, bypass_param);
++	set_std_nic_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 	return count;
+ }
+ static int show_std_nic(struct seq_file *m, void *v)
+@@ -7812,7 +7812,7 @@ static ssize_t wd_exp_mode_write(struct file *file, const char __user *buffer,
+ 	else if (strcmp(kbuf, "disc") == 0)
+ 		bypass_param = 2;
+ 
+-	set_wd_exp_mode_fn(PDE(file_inode(file))->data, bypass_param);
++	set_wd_exp_mode_fn(PDE_DATA(file_inode(file)), bypass_param);
+ 
+ 	return count;
+ }
+@@ -7839,7 +7839,7 @@ static ssize_t wd_autoreset_write(struct file *file, const char __user *buffer,
+ 	int ret = kstrtoint_from_user(buffer, count, 10, &timeout);
+ 	if (ret)
+ 		return ret;
+-	set_wd_autoreset_fn(PDE(file_inode(file))->data, timeout);
++	set_wd_autoreset_fn(PDE_DATA(file_inode(file)), timeout);
+ 	return count;
+ }
+ static int show_wd_autoreset(struct seq_file *m, void *v)
+diff --git a/drivers/tty/serial/serial_core.c b/drivers/tty/serial/serial_core.c
+index a400002dfa84..19cc749f8386 100644
+--- a/drivers/tty/serial/serial_core.c
++++ b/drivers/tty/serial/serial_core.c
+@@ -1711,7 +1711,7 @@ static int uart_proc_show(struct seq_file *m, void *v)
+ 
+ static int uart_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, uart_proc_show, PDE(inode)->data);
++	return single_open(file, uart_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations uart_proc_fops = {
+diff --git a/drivers/usb/gadget/at91_udc.c b/drivers/usb/gadget/at91_udc.c
+index 45dd2929a671..88966e0508a5 100644
+--- a/drivers/usb/gadget/at91_udc.c
++++ b/drivers/usb/gadget/at91_udc.c
+@@ -221,7 +221,7 @@ static int proc_udc_show(struct seq_file *s, void *unused)
+ 
+ static int proc_udc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, proc_udc_show, PDE(inode)->data);
++	return single_open(file, proc_udc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations proc_ops = {
+diff --git a/drivers/usb/gadget/lpc32xx_udc.c b/drivers/usb/gadget/lpc32xx_udc.c
+index aa04089d6899..1049d3745d7a 100644
+--- a/drivers/usb/gadget/lpc32xx_udc.c
++++ b/drivers/usb/gadget/lpc32xx_udc.c
+@@ -565,7 +565,7 @@ static int proc_udc_show(struct seq_file *s, void *unused)
+ 
+ static int proc_udc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, proc_udc_show, PDE(inode)->data);
++	return single_open(file, proc_udc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations proc_ops = {
+diff --git a/drivers/usb/gadget/rndis.c b/drivers/usb/gadget/rndis.c
+index d9297eebbf73..1e4cfb05f70b 100644
+--- a/drivers/usb/gadget/rndis.c
++++ b/drivers/usb/gadget/rndis.c
+@@ -1065,7 +1065,7 @@ static int rndis_proc_show(struct seq_file *m, void *v)
+ static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
+ 				size_t count, loff_t *ppos)
+ {
+-	rndis_params *p = PDE(file_inode(file))->data;
++	rndis_params *p = PDE_DATA(file_inode(file));
+ 	u32 speed = 0;
+ 	int i, fl_speed = 0;
+ 
+@@ -1109,7 +1109,7 @@ static ssize_t rndis_proc_write(struct file *file, const char __user *buffer,
+ 
+ static int rndis_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, rndis_proc_show, PDE(inode)->data);
++	return single_open(file, rndis_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations rndis_proc_fops = {
+diff --git a/drivers/usb/host/isp1362-hcd.c b/drivers/usb/host/isp1362-hcd.c
+index 9137caadb1c8..b04e8ece4d35 100644
+--- a/drivers/usb/host/isp1362-hcd.c
++++ b/drivers/usb/host/isp1362-hcd.c
+@@ -2175,7 +2175,7 @@ static int proc_isp1362_show(struct seq_file *s, void *unused)
+ 
+ static int proc_isp1362_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, proc_isp1362_show, PDE(inode)->data);
++	return single_open(file, proc_isp1362_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations proc_ops = {
+diff --git a/drivers/usb/host/sl811-hcd.c b/drivers/usb/host/sl811-hcd.c
+index d62f0404baaa..313d0bbfff29 100644
+--- a/drivers/usb/host/sl811-hcd.c
++++ b/drivers/usb/host/sl811-hcd.c
+@@ -1494,7 +1494,7 @@ static int proc_sl811h_show(struct seq_file *s, void *unused)
+ 
+ static int proc_sl811h_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, proc_sl811h_show, PDE(inode)->data);
++	return single_open(file, proc_sl811h_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations proc_ops = {
+diff --git a/drivers/video/bfin_adv7393fb.c b/drivers/video/bfin_adv7393fb.c
+index b65c1f9dc154..a54f7f7d763b 100644
+--- a/drivers/video/bfin_adv7393fb.c
++++ b/drivers/video/bfin_adv7393fb.c
+@@ -349,7 +349,7 @@ static ssize_t
+ adv7393_write_proc(struct file *file, const char __user * buffer,
+ 		   size_t count, loff_t *ppos)
+ {
+-	struct adv7393fb_device *fbdev = PDE(file_inode(file))->data;
++	struct adv7393fb_device *fbdev = PDE_DATA(file_inode(file));
+ 	unsigned int val;
+ 	int ret;
+ 
+diff --git a/drivers/zorro/proc.c b/drivers/zorro/proc.c
+index 73b33837e12c..6d3a602c004b 100644
+--- a/drivers/zorro/proc.c
++++ b/drivers/zorro/proc.c
+@@ -47,9 +47,7 @@ proc_bus_zorro_lseek(struct file *file, loff_t off, int whence)
+ static ssize_t
+ proc_bus_zorro_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+ {
+-	struct inode *ino = file_inode(file);
+-	struct proc_dir_entry *dp = PDE(ino);
+-	struct zorro_dev *z = dp->data;
++	struct zorro_dev *z = PDE_DATA(file_inode(file));
+ 	struct ConfigDev cd;
+ 	loff_t pos = *ppos;
+ 
+diff --git a/fs/afs/proc.c b/fs/afs/proc.c
+index 096b23f821a1..526e4bbbde59 100644
+--- a/fs/afs/proc.c
++++ b/fs/afs/proc.c
+@@ -190,7 +190,7 @@ static int afs_proc_cells_open(struct inode *inode, struct file *file)
+ 		return ret;
+ 
+ 	m = file->private_data;
+-	m->private = PDE(inode)->data;
++	m->private = PDE_DATA(inode);
+ 
+ 	return 0;
+ }
+@@ -448,7 +448,7 @@ static int afs_proc_cell_volumes_open(struct inode *inode, struct file *file)
+ 	struct seq_file *m;
+ 	int ret;
+ 
+-	cell = PDE(inode)->data;
++	cell = PDE_DATA(inode);
+ 	if (!cell)
+ 		return -ENOENT;
+ 
+@@ -554,7 +554,7 @@ static int afs_proc_cell_vlservers_open(struct inode *inode, struct file *file)
+ 	struct seq_file *m;
+ 	int ret;
+ 
+-	cell = PDE(inode)->data;
++	cell = PDE_DATA(inode);
+ 	if (!cell)
+ 		return -ENOENT;
+ 
+@@ -659,7 +659,7 @@ static int afs_proc_cell_servers_open(struct inode *inode, struct file *file)
+ 	struct seq_file *m;
+ 	int ret;
+ 
+-	cell = PDE(inode)->data;
++	cell = PDE_DATA(inode);
+ 	if (!cell)
+ 		return -ENOENT;
+ 
+diff --git a/fs/ext4/mballoc.c b/fs/ext4/mballoc.c
+index ee6614bdb639..28e421c208a5 100644
+--- a/fs/ext4/mballoc.c
++++ b/fs/ext4/mballoc.c
+@@ -2149,7 +2149,7 @@ static const struct seq_operations ext4_mb_seq_groups_ops = {
+ 
+ static int ext4_mb_seq_groups_open(struct inode *inode, struct file *file)
+ {
+-	struct super_block *sb = PDE(inode)->data;
++	struct super_block *sb = PDE_DATA(inode);
+ 	int rc;
+ 
+ 	rc = seq_open(file, &ext4_mb_seq_groups_ops);
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 5d6d53578124..c65510548355 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -1802,7 +1802,7 @@ static int options_seq_show(struct seq_file *seq, void *offset)
+ 
+ static int options_open_fs(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, options_seq_show, PDE(inode)->data);
++	return single_open(file, options_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations ext4_seq_options_fops = {
+diff --git a/fs/jbd2/journal.c b/fs/jbd2/journal.c
+index ed10991ab006..154592ea5632 100644
+--- a/fs/jbd2/journal.c
++++ b/fs/jbd2/journal.c
+@@ -950,7 +950,7 @@ static const struct seq_operations jbd2_seq_info_ops = {
+ 
+ static int jbd2_seq_info_open(struct inode *inode, struct file *file)
+ {
+-	journal_t *journal = PDE(inode)->data;
++	journal_t *journal = PDE_DATA(inode);
+ 	struct jbd2_stats_proc_session *s;
+ 	int rc, size;
+ 
+diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+index 51fcb201e289..c0ad720c37b9 100644
+--- a/fs/proc/generic.c
++++ b/fs/proc/generic.c
+@@ -346,7 +346,7 @@ void proc_free_inum(unsigned int inum)
+ 
+ static void *proc_follow_link(struct dentry *dentry, struct nameidata *nd)
+ {
+-	nd_set_link(nd, PDE(dentry->d_inode)->data);
++	nd_set_link(nd, PDE_DATA(dentry->d_inode));
+ 	return NULL;
+ }
+ 
+diff --git a/fs/proc/proc_devtree.c b/fs/proc/proc_devtree.c
+index 30b590f5bd35..e0043c7e7ab7 100644
+--- a/fs/proc/proc_devtree.c
++++ b/fs/proc/proc_devtree.c
+@@ -41,7 +41,7 @@ static int property_proc_show(struct seq_file *m, void *v)
+ 
+ static int property_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, property_proc_show, PDE(inode)->data);
++	return single_open(file, property_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations property_proc_fops = {
+diff --git a/include/linux/proc_fs.h b/include/linux/proc_fs.h
+index 4f4137a0bd8a..5ae73e273e7e 100644
+--- a/include/linux/proc_fs.h
++++ b/include/linux/proc_fs.h
+@@ -306,6 +306,11 @@ static inline struct proc_dir_entry *PDE(const struct inode *inode)
+ 	return PROC_I(inode)->pde;
+ }
+ 
++static inline void *PDE_DATA(const struct inode *inode)
++{
++	return PROC_I(inode)->pde->data;
++}
++
+ static inline struct net *PDE_NET(struct proc_dir_entry *pde)
+ {
+ 	return pde->parent->data;
+diff --git a/ipc/util.c b/ipc/util.c
+index 464a8abd779f..b6db68131a0e 100644
+--- a/ipc/util.c
++++ b/ipc/util.c
+@@ -964,7 +964,7 @@ static int sysvipc_proc_open(struct inode *inode, struct file *file)
+ 	seq = file->private_data;
+ 	seq->private = iter;
+ 
+-	iter->iface = PDE(inode)->data;
++	iter->iface = PDE_DATA(inode);
+ 	iter->ns    = get_ipc_ns(current->nsproxy->ipc_ns);
+ out:
+ 	return ret;
+diff --git a/kernel/irq/proc.c b/kernel/irq/proc.c
+index 397db02209ed..d59ae3751a33 100644
+--- a/kernel/irq/proc.c
++++ b/kernel/irq/proc.c
+@@ -76,7 +76,7 @@ static int irq_affinity_list_proc_show(struct seq_file *m, void *v)
+ static ssize_t write_irq_affinity(int type, struct file *file,
+ 		const char __user *buffer, size_t count, loff_t *pos)
+ {
+-	unsigned int irq = (int)(long)PDE(file_inode(file))->data;
++	unsigned int irq = (int)(long)PDE_DATA(file_inode(file));
+ 	cpumask_var_t new_value;
+ 	int err;
+ 
+@@ -131,17 +131,17 @@ static ssize_t irq_affinity_list_proc_write(struct file *file,
+ 
+ static int irq_affinity_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, irq_affinity_proc_show, PDE(inode)->data);
++	return single_open(file, irq_affinity_proc_show, PDE_DATA(inode));
+ }
+ 
+ static int irq_affinity_list_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, irq_affinity_list_proc_show, PDE(inode)->data);
++	return single_open(file, irq_affinity_list_proc_show, PDE_DATA(inode));
+ }
+ 
+ static int irq_affinity_hint_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, irq_affinity_hint_proc_show, PDE(inode)->data);
++	return single_open(file, irq_affinity_hint_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations irq_affinity_proc_fops = {
+@@ -212,7 +212,7 @@ static ssize_t default_affinity_write(struct file *file,
+ 
+ static int default_affinity_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, default_affinity_show, PDE(inode)->data);
++	return single_open(file, default_affinity_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations default_affinity_proc_fops = {
+@@ -233,7 +233,7 @@ static int irq_node_proc_show(struct seq_file *m, void *v)
+ 
+ static int irq_node_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, irq_node_proc_show, PDE(inode)->data);
++	return single_open(file, irq_node_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations irq_node_proc_fops = {
+@@ -256,7 +256,7 @@ static int irq_spurious_proc_show(struct seq_file *m, void *v)
+ 
+ static int irq_spurious_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, irq_spurious_proc_show, PDE(inode)->data);
++	return single_open(file, irq_spurious_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations irq_spurious_proc_fops = {
+diff --git a/net/8021q/vlanproc.c b/net/8021q/vlanproc.c
+index dc526ec965e4..959ddbb0ca4d 100644
+--- a/net/8021q/vlanproc.c
++++ b/net/8021q/vlanproc.c
+@@ -93,7 +93,7 @@ static const struct file_operations vlan_fops = {
+ 
+ static int vlandev_seq_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, vlandev_seq_show, PDE(inode)->data);
++	return single_open(file, vlandev_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations vlandev_fops = {
+diff --git a/net/atm/proc.c b/net/atm/proc.c
+index 6ac35ff0d6b9..bbb6461a4b7f 100644
+--- a/net/atm/proc.c
++++ b/net/atm/proc.c
+@@ -385,7 +385,7 @@ static ssize_t proc_dev_atm_read(struct file *file, char __user *buf,
+ 	page = get_zeroed_page(GFP_KERNEL);
+ 	if (!page)
+ 		return -ENOMEM;
+-	dev = PDE(file_inode(file))->data;
++	dev = PDE_DATA(file_inode(file));
+ 	if (!dev->ops->proc_read)
+ 		length = -EINVAL;
+ 	else {
+diff --git a/net/bluetooth/af_bluetooth.c b/net/bluetooth/af_bluetooth.c
+index d3ee69b35a78..82040e46b24b 100644
+--- a/net/bluetooth/af_bluetooth.c
++++ b/net/bluetooth/af_bluetooth.c
+@@ -617,7 +617,7 @@ static int bt_seq_open(struct inode *inode, struct file *file)
+ 	struct bt_sock_list *sk_list;
+ 	struct bt_seq_state *s;
+ 
+-	sk_list = PDE(inode)->data;
++	sk_list = PDE_DATA(inode);
+ 	s = __seq_open_private(file, &bt_seq_ops,
+ 			       sizeof(struct bt_seq_state));
+ 	if (!s)
+diff --git a/net/bluetooth/cmtp/capi.c b/net/bluetooth/cmtp/capi.c
+index a4a9d4b6816c..cd75e4d64b90 100644
+--- a/net/bluetooth/cmtp/capi.c
++++ b/net/bluetooth/cmtp/capi.c
+@@ -539,7 +539,7 @@ static int cmtp_proc_show(struct seq_file *m, void *v)
+ 
+ static int cmtp_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, cmtp_proc_show, PDE(inode)->data);
++	return single_open(file, cmtp_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations cmtp_proc_fops = {
+diff --git a/net/can/bcm.c b/net/can/bcm.c
+index 5dcb20076f39..8f113e6ff327 100644
+--- a/net/can/bcm.c
++++ b/net/can/bcm.c
+@@ -226,7 +226,7 @@ static int bcm_proc_show(struct seq_file *m, void *v)
+ 
+ static int bcm_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, bcm_proc_show, PDE(inode)->data);
++	return single_open(file, bcm_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations bcm_proc_fops = {
+diff --git a/net/can/proc.c b/net/can/proc.c
+index 1ab8c888f102..b543470c8f8b 100644
+--- a/net/can/proc.c
++++ b/net/can/proc.c
+@@ -378,7 +378,7 @@ static int can_rcvlist_proc_show(struct seq_file *m, void *v)
+ 
+ static int can_rcvlist_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, can_rcvlist_proc_show, PDE(inode)->data);
++	return single_open(file, can_rcvlist_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations can_rcvlist_proc_fops = {
+diff --git a/net/core/neighbour.c b/net/core/neighbour.c
+index 3863b8f639c5..537301a2c31f 100644
+--- a/net/core/neighbour.c
++++ b/net/core/neighbour.c
+@@ -2714,7 +2714,7 @@ static int neigh_stat_seq_open(struct inode *inode, struct file *file)
+ 
+ 	if (!ret) {
+ 		struct seq_file *sf = file->private_data;
+-		sf->private = PDE(inode)->data;
++		sf->private = PDE_DATA(inode);
+ 	}
+ 	return ret;
+ };
+diff --git a/net/core/pktgen.c b/net/core/pktgen.c
+index 6048fc1da1c2..f6af4fe59f2e 100644
+--- a/net/core/pktgen.c
++++ b/net/core/pktgen.c
+@@ -508,7 +508,7 @@ static ssize_t pgctrl_write(struct file *file, const char __user *buf,
+ 
+ static int pgctrl_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pgctrl_show, PDE(inode)->data);
++	return single_open(file, pgctrl_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations pktgen_fops = {
+@@ -1685,7 +1685,7 @@ static ssize_t pktgen_if_write(struct file *file,
+ 
+ static int pktgen_if_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pktgen_if_show, PDE(inode)->data);
++	return single_open(file, pktgen_if_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations pktgen_if_fops = {
+@@ -1823,7 +1823,7 @@ static ssize_t pktgen_thread_write(struct file *file,
+ 
+ static int pktgen_thread_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, pktgen_thread_show, PDE(inode)->data);
++	return single_open(file, pktgen_thread_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations pktgen_thread_fops = {
+diff --git a/net/ipv4/netfilter/ipt_CLUSTERIP.c b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+index 5852b249054f..e4738fef070a 100644
+--- a/net/ipv4/netfilter/ipt_CLUSTERIP.c
++++ b/net/ipv4/netfilter/ipt_CLUSTERIP.c
+@@ -631,7 +631,7 @@ static int clusterip_proc_open(struct inode *inode, struct file *file)
+ 
+ 	if (!ret) {
+ 		struct seq_file *sf = file->private_data;
+-		struct clusterip_config *c = PDE(inode)->data;
++		struct clusterip_config *c = PDE_DATA(inode);
+ 
+ 		sf->private = c;
+ 
+@@ -643,7 +643,7 @@ static int clusterip_proc_open(struct inode *inode, struct file *file)
+ 
+ static int clusterip_proc_release(struct inode *inode, struct file *file)
+ {
+-	struct clusterip_config *c = PDE(inode)->data;
++	struct clusterip_config *c = PDE_DATA(inode);
+ 	int ret;
+ 
+ 	ret = seq_release(inode, file);
+@@ -657,7 +657,7 @@ static int clusterip_proc_release(struct inode *inode, struct file *file)
+ static ssize_t clusterip_proc_write(struct file *file, const char __user *input,
+ 				size_t size, loff_t *ofs)
+ {
+-	struct clusterip_config *c = PDE(file_inode(file))->data;
++	struct clusterip_config *c = PDE_DATA(file_inode(file));
+ #define PROC_WRITELEN	10
+ 	char buffer[PROC_WRITELEN+1];
+ 	unsigned long nodenum;
+diff --git a/net/ipv4/tcp_ipv4.c b/net/ipv4/tcp_ipv4.c
+index d09203c63264..fc55a1c79bd9 100644
+--- a/net/ipv4/tcp_ipv4.c
++++ b/net/ipv4/tcp_ipv4.c
+@@ -2580,7 +2580,7 @@ static void tcp_seq_stop(struct seq_file *seq, void *v)
+ 
+ int tcp_seq_open(struct inode *inode, struct file *file)
+ {
+-	struct tcp_seq_afinfo *afinfo = PDE(inode)->data;
++	struct tcp_seq_afinfo *afinfo = PDE_DATA(inode);
+ 	struct tcp_iter_state *s;
+ 	int err;
+ 
+diff --git a/net/ipv4/udp.c b/net/ipv4/udp.c
+index 0a073a263720..d27264318315 100644
+--- a/net/ipv4/udp.c
++++ b/net/ipv4/udp.c
+@@ -2093,7 +2093,7 @@ static void udp_seq_stop(struct seq_file *seq, void *v)
+ 
+ int udp_seq_open(struct inode *inode, struct file *file)
+ {
+-	struct udp_seq_afinfo *afinfo = PDE(inode)->data;
++	struct udp_seq_afinfo *afinfo = PDE_DATA(inode);
+ 	struct udp_iter_state *s;
+ 	int err;
+ 
+diff --git a/net/ipv6/proc.c b/net/ipv6/proc.c
+index bbbe53a99b57..7ea6e180139c 100644
+--- a/net/ipv6/proc.c
++++ b/net/ipv6/proc.c
+@@ -247,7 +247,7 @@ static int snmp6_dev_seq_show(struct seq_file *seq, void *v)
+ 
+ static int snmp6_dev_seq_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, snmp6_dev_seq_show, PDE(inode)->data);
++	return single_open(file, snmp6_dev_seq_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations snmp6_dev_seq_fops = {
+diff --git a/net/netfilter/x_tables.c b/net/netfilter/x_tables.c
+index 686c7715d777..67fb7bff9bbc 100644
+--- a/net/netfilter/x_tables.c
++++ b/net/netfilter/x_tables.c
+@@ -999,7 +999,7 @@ static int xt_table_open(struct inode *inode, struct file *file)
+ 			   sizeof(struct xt_names_priv));
+ 	if (!ret) {
+ 		priv = ((struct seq_file *)file->private_data)->private;
+-		priv->af = (unsigned long)PDE(inode)->data;
++		priv->af = (unsigned long)PDE_DATA(inode);
+ 	}
+ 	return ret;
+ }
+@@ -1147,7 +1147,7 @@ static int xt_match_open(struct inode *inode, struct file *file)
+ 
+ 	seq = file->private_data;
+ 	seq->private = trav;
+-	trav->nfproto = (unsigned long)PDE(inode)->data;
++	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+ 
+@@ -1211,7 +1211,7 @@ static int xt_target_open(struct inode *inode, struct file *file)
+ 
+ 	seq = file->private_data;
+ 	seq->private = trav;
+-	trav->nfproto = (unsigned long)PDE(inode)->data;
++	trav->nfproto = (unsigned long)PDE_DATA(inode);
+ 	return 0;
+ }
+ 
+diff --git a/net/netfilter/xt_hashlimit.c b/net/netfilter/xt_hashlimit.c
+index f330e8beaf69..ebfad037b11f 100644
+--- a/net/netfilter/xt_hashlimit.c
++++ b/net/netfilter/xt_hashlimit.c
+@@ -841,7 +841,7 @@ static int dl_proc_open(struct inode *inode, struct file *file)
+ 
+ 	if (!ret) {
+ 		struct seq_file *sf = file->private_data;
+-		sf->private = PDE(inode)->data;
++		sf->private = PDE_DATA(inode);
+ 	}
+ 	return ret;
+ }
+diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+index d9cad315229d..3db2d387cf52 100644
+--- a/net/netfilter/xt_recent.c
++++ b/net/netfilter/xt_recent.c
+@@ -525,14 +525,13 @@ static const struct seq_operations recent_seq_ops = {
+ 
+ static int recent_seq_open(struct inode *inode, struct file *file)
+ {
+-	struct proc_dir_entry *pde = PDE(inode);
+ 	struct recent_iter_state *st;
+ 
+ 	st = __seq_open_private(file, &recent_seq_ops, sizeof(*st));
+ 	if (st == NULL)
+ 		return -ENOMEM;
+ 
+-	st->table    = pde->data;
++	st->table    = PDE_DATA(inode);
+ 	return 0;
+ }
+ 
+@@ -540,8 +539,7 @@ static ssize_t
+ recent_mt_proc_write(struct file *file, const char __user *input,
+ 		     size_t size, loff_t *loff)
+ {
+-	const struct proc_dir_entry *pde = PDE(file_inode(file));
+-	struct recent_table *t = pde->data;
++	struct recent_table *t = PDE_DATA(file_inode(file));
+ 	struct recent_entry *e;
+ 	char buf[sizeof("+b335:1d35:1e55:dead:c0de:1715:5afe:c0de")];
+ 	const char *c = buf;
+diff --git a/net/sunrpc/cache.c b/net/sunrpc/cache.c
+index 25d58e766014..d9828b6799a3 100644
+--- a/net/sunrpc/cache.c
++++ b/net/sunrpc/cache.c
+@@ -1461,7 +1461,7 @@ static ssize_t write_flush(struct file *file, const char __user *buf,
+ static ssize_t cache_read_procfs(struct file *filp, char __user *buf,
+ 				 size_t count, loff_t *ppos)
+ {
+-	struct cache_detail *cd = PDE(file_inode(filp))->data;
++	struct cache_detail *cd = PDE_DATA(file_inode(filp));
+ 
+ 	return cache_read(filp, buf, count, ppos, cd);
+ }
+@@ -1469,14 +1469,14 @@ static ssize_t cache_read_procfs(struct file *filp, char __user *buf,
+ static ssize_t cache_write_procfs(struct file *filp, const char __user *buf,
+ 				  size_t count, loff_t *ppos)
+ {
+-	struct cache_detail *cd = PDE(file_inode(filp))->data;
++	struct cache_detail *cd = PDE_DATA(file_inode(filp));
+ 
+ 	return cache_write(filp, buf, count, ppos, cd);
+ }
+ 
+ static unsigned int cache_poll_procfs(struct file *filp, poll_table *wait)
+ {
+-	struct cache_detail *cd = PDE(file_inode(filp))->data;
++	struct cache_detail *cd = PDE_DATA(file_inode(filp));
+ 
+ 	return cache_poll(filp, wait, cd);
+ }
+@@ -1485,21 +1485,21 @@ static long cache_ioctl_procfs(struct file *filp,
+ 			       unsigned int cmd, unsigned long arg)
+ {
+ 	struct inode *inode = file_inode(filp);
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return cache_ioctl(inode, filp, cmd, arg, cd);
+ }
+ 
+ static int cache_open_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return cache_open(inode, filp, cd);
+ }
+ 
+ static int cache_release_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return cache_release(inode, filp, cd);
+ }
+@@ -1517,14 +1517,14 @@ static const struct file_operations cache_file_operations_procfs = {
+ 
+ static int content_open_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return content_open(inode, filp, cd);
+ }
+ 
+ static int content_release_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return content_release(inode, filp, cd);
+ }
+@@ -1538,14 +1538,14 @@ static const struct file_operations content_file_operations_procfs = {
+ 
+ static int open_flush_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return open_flush(inode, filp, cd);
+ }
+ 
+ static int release_flush_procfs(struct inode *inode, struct file *filp)
+ {
+-	struct cache_detail *cd = PDE(inode)->data;
++	struct cache_detail *cd = PDE_DATA(inode);
+ 
+ 	return release_flush(inode, filp, cd);
+ }
+@@ -1553,7 +1553,7 @@ static int release_flush_procfs(struct inode *inode, struct file *filp)
+ static ssize_t read_flush_procfs(struct file *filp, char __user *buf,
+ 			    size_t count, loff_t *ppos)
+ {
+-	struct cache_detail *cd = PDE(file_inode(filp))->data;
++	struct cache_detail *cd = PDE_DATA(file_inode(filp));
+ 
+ 	return read_flush(filp, buf, count, ppos, cd);
+ }
+@@ -1562,7 +1562,7 @@ static ssize_t write_flush_procfs(struct file *filp,
+ 				  const char __user *buf,
+ 				  size_t count, loff_t *ppos)
+ {
+-	struct cache_detail *cd = PDE(file_inode(filp))->data;
++	struct cache_detail *cd = PDE_DATA(file_inode(filp));
+ 
+ 	return write_flush(filp, buf, count, ppos, cd);
+ }
+diff --git a/net/sunrpc/stats.c b/net/sunrpc/stats.c
+index bc2068ee795b..21b75cb08c03 100644
+--- a/net/sunrpc/stats.c
++++ b/net/sunrpc/stats.c
+@@ -64,7 +64,7 @@ static int rpc_proc_show(struct seq_file *seq, void *v) {
+ 
+ static int rpc_proc_open(struct inode *inode, struct file *file)
+ {
+-	return single_open(file, rpc_proc_show, PDE(inode)->data);
++	return single_open(file, rpc_proc_show, PDE_DATA(inode));
+ }
+ 
+ static const struct file_operations rpc_proc_fops = {
+diff --git a/sound/core/info.c b/sound/core/info.c
+index a4e2de6874df..3aa88640808e 100644
+--- a/sound/core/info.c
++++ b/sound/core/info.c
+@@ -310,12 +310,10 @@ static int snd_info_entry_open(struct inode *inode, struct file *file)
+ 	struct snd_info_entry *entry;
+ 	struct snd_info_private_data *data;
+ 	struct snd_info_buffer *buffer;
+-	struct proc_dir_entry *p;
+ 	int mode, err;
+ 
+ 	mutex_lock(&info_mutex);
+-	p = PDE(inode);
+-	entry = p == NULL ? NULL : (struct snd_info_entry *)p->data;
++	entry = PDE_DATA(inode);
+ 	if (entry == NULL || ! entry->p) {
+ 		mutex_unlock(&info_mutex);
+ 		return -ENODEV;
+-- 
+2.17.0
+

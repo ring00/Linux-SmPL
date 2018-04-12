@@ -1,0 +1,360 @@
+From e9f0d76f3bcd4dda7136baaaaf45bda3b13ff40f Mon Sep 17 00:00:00 2001
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+Date: Wed, 11 Dec 2013 11:34:42 +0100
+Subject: [PATCH] drm: Kill DRM_IRQ_ARGS
+
+I've killed them a long time ago in drm/i915, let's get rid of this
+remnant of shared drm core days for good.
+
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Dave Airlie <airlied@redhat.com>
+---
+ drivers/gpu/drm/cirrus/cirrus_drv.h     | 2 +-
+ drivers/gpu/drm/gma500/psb_drv.h        | 2 +-
+ drivers/gpu/drm/gma500/psb_irq.c        | 2 +-
+ drivers/gpu/drm/gma500/psb_irq.h        | 2 +-
+ drivers/gpu/drm/mga/mga_drv.h           | 2 +-
+ drivers/gpu/drm/mga/mga_irq.c           | 2 +-
+ drivers/gpu/drm/msm/msm_drv.c           | 2 +-
+ drivers/gpu/drm/omapdrm/omap_drv.h      | 2 +-
+ drivers/gpu/drm/omapdrm/omap_irq.c      | 2 +-
+ drivers/gpu/drm/qxl/qxl_drv.h           | 2 +-
+ drivers/gpu/drm/qxl/qxl_irq.c           | 2 +-
+ drivers/gpu/drm/r128/r128_drv.h         | 2 +-
+ drivers/gpu/drm/r128/r128_irq.c         | 2 +-
+ drivers/gpu/drm/radeon/radeon_drv.c     | 2 +-
+ drivers/gpu/drm/radeon/radeon_drv.h     | 2 +-
+ drivers/gpu/drm/radeon/radeon_irq.c     | 2 +-
+ drivers/gpu/drm/radeon/radeon_irq_kms.c | 4 ++--
+ drivers/gpu/drm/tilcdc/tilcdc_drv.c     | 2 +-
+ drivers/gpu/drm/via/via_drv.h           | 2 +-
+ drivers/gpu/drm/via/via_irq.c           | 2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_drv.h     | 2 +-
+ drivers/gpu/drm/vmwgfx/vmwgfx_irq.c     | 2 +-
+ include/drm/drmP.h                      | 2 +-
+ include/drm/drm_os_linux.h              | 3 ---
+ 24 files changed, 24 insertions(+), 27 deletions(-)
+
+diff --git a/drivers/gpu/drm/cirrus/cirrus_drv.h b/drivers/gpu/drm/cirrus/cirrus_drv.h
+index b6aded73838b..117d3eca5e37 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_drv.h
++++ b/drivers/gpu/drm/cirrus/cirrus_drv.h
+@@ -222,7 +222,7 @@ void cirrus_fbdev_fini(struct cirrus_device *cdev);
+ void cirrus_driver_irq_preinstall(struct drm_device *dev);
+ int cirrus_driver_irq_postinstall(struct drm_device *dev);
+ void cirrus_driver_irq_uninstall(struct drm_device *dev);
+-irqreturn_t cirrus_driver_irq_handler(DRM_IRQ_ARGS);
++irqreturn_t cirrus_driver_irq_handler(int irq, void *arg);
+ 
+ 				/* cirrus_kms.c */
+ int cirrus_driver_load(struct drm_device *dev, unsigned long flags);
+diff --git a/drivers/gpu/drm/gma500/psb_drv.h b/drivers/gpu/drm/gma500/psb_drv.h
+index 8d2a395edbd2..5ad6a03e477e 100644
+--- a/drivers/gpu/drm/gma500/psb_drv.h
++++ b/drivers/gpu/drm/gma500/psb_drv.h
+@@ -769,7 +769,7 @@ extern void psb_mmu_remove_pages(struct psb_mmu_pd *pd,
+  *psb_irq.c
+  */
+ 
+-extern irqreturn_t psb_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t psb_irq_handler(int irq, void *arg);
+ extern int psb_irq_enable_dpst(struct drm_device *dev);
+ extern int psb_irq_disable_dpst(struct drm_device *dev);
+ extern void psb_irq_preinstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/gma500/psb_irq.c b/drivers/gpu/drm/gma500/psb_irq.c
+index 76224721177e..ef00bce9991a 100644
+--- a/drivers/gpu/drm/gma500/psb_irq.c
++++ b/drivers/gpu/drm/gma500/psb_irq.c
+@@ -200,7 +200,7 @@ static void psb_vdc_interrupt(struct drm_device *dev, uint32_t vdc_stat)
+ 		mid_pipe_event_handler(dev, 1);
+ }
+ 
+-irqreturn_t psb_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t psb_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = arg;
+ 	struct drm_psb_private *dev_priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/gma500/psb_irq.h b/drivers/gpu/drm/gma500/psb_irq.h
+index debb7f190c06..d0b45ffa1126 100644
+--- a/drivers/gpu/drm/gma500/psb_irq.h
++++ b/drivers/gpu/drm/gma500/psb_irq.h
+@@ -32,7 +32,7 @@ void sysirq_uninit(struct drm_device *dev);
+ void psb_irq_preinstall(struct drm_device *dev);
+ int  psb_irq_postinstall(struct drm_device *dev);
+ void psb_irq_uninstall(struct drm_device *dev);
+-irqreturn_t psb_irq_handler(DRM_IRQ_ARGS);
++irqreturn_t psb_irq_handler(int irq, void *arg);
+ 
+ int psb_irq_enable_dpst(struct drm_device *dev);
+ int psb_irq_disable_dpst(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/mga/mga_drv.h b/drivers/gpu/drm/mga/mga_drv.h
+index ca4bc54ea214..901e4f935fed 100644
+--- a/drivers/gpu/drm/mga/mga_drv.h
++++ b/drivers/gpu/drm/mga/mga_drv.h
+@@ -186,7 +186,7 @@ extern void mga_disable_vblank(struct drm_device *dev, int crtc);
+ extern u32 mga_get_vblank_counter(struct drm_device *dev, int crtc);
+ extern int mga_driver_fence_wait(struct drm_device *dev, unsigned int *sequence);
+ extern int mga_driver_vblank_wait(struct drm_device *dev, unsigned int *sequence);
+-extern irqreturn_t mga_driver_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t mga_driver_irq_handler(int irq, void *arg);
+ extern void mga_driver_irq_preinstall(struct drm_device *dev);
+ extern int mga_driver_irq_postinstall(struct drm_device *dev);
+ extern void mga_driver_irq_uninstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/mga/mga_irq.c b/drivers/gpu/drm/mga/mga_irq.c
+index 8a92edb6bd61..14c0e3ca2b07 100644
+--- a/drivers/gpu/drm/mga/mga_irq.c
++++ b/drivers/gpu/drm/mga/mga_irq.c
+@@ -47,7 +47,7 @@ u32 mga_get_vblank_counter(struct drm_device *dev, int crtc)
+ }
+ 
+ 
+-irqreturn_t mga_driver_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t mga_driver_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	drm_mga_private_t *dev_priv = (drm_mga_private_t *) dev->dev_private;
+diff --git a/drivers/gpu/drm/msm/msm_drv.c b/drivers/gpu/drm/msm/msm_drv.c
+index aa5f3546bbec..28b57eb6f9a1 100644
+--- a/drivers/gpu/drm/msm/msm_drv.c
++++ b/drivers/gpu/drm/msm/msm_drv.c
+@@ -326,7 +326,7 @@ static void msm_lastclose(struct drm_device *dev)
+ 	}
+ }
+ 
+-static irqreturn_t msm_irq(DRM_IRQ_ARGS)
++static irqreturn_t msm_irq(int irq, void *arg)
+ {
+ 	struct drm_device *dev = arg;
+ 	struct msm_drm_private *priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/omapdrm/omap_drv.h b/drivers/gpu/drm/omapdrm/omap_drv.h
+index 07847693cf49..c88fea32dbf6 100644
+--- a/drivers/gpu/drm/omapdrm/omap_drv.h
++++ b/drivers/gpu/drm/omapdrm/omap_drv.h
+@@ -141,7 +141,7 @@ int omap_gem_resume(struct device *dev);
+ 
+ int omap_irq_enable_vblank(struct drm_device *dev, int crtc_id);
+ void omap_irq_disable_vblank(struct drm_device *dev, int crtc_id);
+-irqreturn_t omap_irq_handler(DRM_IRQ_ARGS);
++irqreturn_t omap_irq_handler(int irq, void *arg);
+ void omap_irq_preinstall(struct drm_device *dev);
+ int omap_irq_postinstall(struct drm_device *dev);
+ void omap_irq_uninstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/omapdrm/omap_irq.c b/drivers/gpu/drm/omapdrm/omap_irq.c
+index cb858600185f..615bea967337 100644
+--- a/drivers/gpu/drm/omapdrm/omap_irq.c
++++ b/drivers/gpu/drm/omapdrm/omap_irq.c
+@@ -173,7 +173,7 @@ void omap_irq_disable_vblank(struct drm_device *dev, int crtc_id)
+ 	dispc_runtime_put();
+ }
+ 
+-irqreturn_t omap_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t omap_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	struct omap_drm_private *priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/qxl/qxl_drv.h b/drivers/gpu/drm/qxl/qxl_drv.h
+index 7bda32f68d3b..36ed40ba773f 100644
+--- a/drivers/gpu/drm/qxl/qxl_drv.h
++++ b/drivers/gpu/drm/qxl/qxl_drv.h
+@@ -534,7 +534,7 @@ void qxl_debugfs_takedown(struct drm_minor *minor);
+ 
+ /* qxl_irq.c */
+ int qxl_irq_init(struct qxl_device *qdev);
+-irqreturn_t qxl_irq_handler(DRM_IRQ_ARGS);
++irqreturn_t qxl_irq_handler(int irq, void *arg);
+ 
+ /* qxl_fb.c */
+ int qxl_fb_init(struct qxl_device *qdev);
+diff --git a/drivers/gpu/drm/qxl/qxl_irq.c b/drivers/gpu/drm/qxl/qxl_irq.c
+index 21393dc4700a..28f84b4fce32 100644
+--- a/drivers/gpu/drm/qxl/qxl_irq.c
++++ b/drivers/gpu/drm/qxl/qxl_irq.c
+@@ -25,7 +25,7 @@
+ 
+ #include "qxl_drv.h"
+ 
+-irqreturn_t qxl_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t qxl_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	struct qxl_device *qdev = (struct qxl_device *)dev->dev_private;
+diff --git a/drivers/gpu/drm/r128/r128_drv.h b/drivers/gpu/drm/r128/r128_drv.h
+index 56eb5e3f5439..4318bfa845cb 100644
+--- a/drivers/gpu/drm/r128/r128_drv.h
++++ b/drivers/gpu/drm/r128/r128_drv.h
+@@ -154,7 +154,7 @@ extern int r128_do_cleanup_cce(struct drm_device *dev);
+ extern int r128_enable_vblank(struct drm_device *dev, int crtc);
+ extern void r128_disable_vblank(struct drm_device *dev, int crtc);
+ extern u32 r128_get_vblank_counter(struct drm_device *dev, int crtc);
+-extern irqreturn_t r128_driver_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t r128_driver_irq_handler(int irq, void *arg);
+ extern void r128_driver_irq_preinstall(struct drm_device *dev);
+ extern int r128_driver_irq_postinstall(struct drm_device *dev);
+ extern void r128_driver_irq_uninstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/r128/r128_irq.c b/drivers/gpu/drm/r128/r128_irq.c
+index 2ea4f09d2691..c2ae496babb7 100644
+--- a/drivers/gpu/drm/r128/r128_irq.c
++++ b/drivers/gpu/drm/r128/r128_irq.c
+@@ -44,7 +44,7 @@ u32 r128_get_vblank_counter(struct drm_device *dev, int crtc)
+ 	return atomic_read(&dev_priv->vbl_received);
+ }
+ 
+-irqreturn_t r128_driver_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t r128_driver_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	drm_r128_private_t *dev_priv = (drm_r128_private_t *) dev->dev_private;
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.c b/drivers/gpu/drm/radeon/radeon_drv.c
+index 9f5ff28864f6..f6f30b9e9ff5 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.c
++++ b/drivers/gpu/drm/radeon/radeon_drv.c
+@@ -101,7 +101,7 @@ int radeon_get_vblank_timestamp_kms(struct drm_device *dev, int crtc,
+ void radeon_driver_irq_preinstall_kms(struct drm_device *dev);
+ int radeon_driver_irq_postinstall_kms(struct drm_device *dev);
+ void radeon_driver_irq_uninstall_kms(struct drm_device *dev);
+-irqreturn_t radeon_driver_irq_handler_kms(DRM_IRQ_ARGS);
++irqreturn_t radeon_driver_irq_handler_kms(int irq, void *arg);
+ void radeon_gem_object_free(struct drm_gem_object *obj);
+ int radeon_gem_object_open(struct drm_gem_object *obj,
+ 				struct drm_file *file_priv);
+diff --git a/drivers/gpu/drm/radeon/radeon_drv.h b/drivers/gpu/drm/radeon/radeon_drv.h
+index 00e0d449021c..dafd812e4571 100644
+--- a/drivers/gpu/drm/radeon/radeon_drv.h
++++ b/drivers/gpu/drm/radeon/radeon_drv.h
+@@ -405,7 +405,7 @@ extern void radeon_do_release(struct drm_device * dev);
+ extern u32 radeon_get_vblank_counter(struct drm_device *dev, int crtc);
+ extern int radeon_enable_vblank(struct drm_device *dev, int crtc);
+ extern void radeon_disable_vblank(struct drm_device *dev, int crtc);
+-extern irqreturn_t radeon_driver_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t radeon_driver_irq_handler(int irq, void *arg);
+ extern void radeon_driver_irq_preinstall(struct drm_device * dev);
+ extern int radeon_driver_irq_postinstall(struct drm_device *dev);
+ extern void radeon_driver_irq_uninstall(struct drm_device * dev);
+diff --git a/drivers/gpu/drm/radeon/radeon_irq.c b/drivers/gpu/drm/radeon/radeon_irq.c
+index 0b69d6ab869d..22fa979163fd 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq.c
++++ b/drivers/gpu/drm/radeon/radeon_irq.c
+@@ -181,7 +181,7 @@ static u32 radeon_acknowledge_irqs(drm_radeon_private_t *dev_priv, u32 *r500_dis
+  * tied to dma at all, this is just a hangover from dri prehistory.
+  */
+ 
+-irqreturn_t radeon_driver_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t radeon_driver_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	drm_radeon_private_t *dev_priv =
+diff --git a/drivers/gpu/drm/radeon/radeon_irq_kms.c b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+index ec6240b00469..089c9ffb0aa9 100644
+--- a/drivers/gpu/drm/radeon/radeon_irq_kms.c
++++ b/drivers/gpu/drm/radeon/radeon_irq_kms.c
+@@ -39,13 +39,13 @@
+ /**
+  * radeon_driver_irq_handler_kms - irq handler for KMS
+  *
+- * @DRM_IRQ_ARGS: args
++ * @int irq, void *arg: args
+  *
+  * This is the irq handler for the radeon KMS driver (all asics).
+  * radeon_irq_process is a macro that points to the per-asic
+  * irq handler callback.
+  */
+-irqreturn_t radeon_driver_irq_handler_kms(DRM_IRQ_ARGS)
++irqreturn_t radeon_driver_irq_handler_kms(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	struct radeon_device *rdev = dev->dev_private;
+diff --git a/drivers/gpu/drm/tilcdc/tilcdc_drv.c b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+index e6d77d02e444..0c22b6ca7fd2 100644
+--- a/drivers/gpu/drm/tilcdc/tilcdc_drv.c
++++ b/drivers/gpu/drm/tilcdc/tilcdc_drv.c
+@@ -311,7 +311,7 @@ static void tilcdc_lastclose(struct drm_device *dev)
+ 	drm_fbdev_cma_restore_mode(priv->fbdev);
+ }
+ 
+-static irqreturn_t tilcdc_irq(DRM_IRQ_ARGS)
++static irqreturn_t tilcdc_irq(int irq, void *arg)
+ {
+ 	struct drm_device *dev = arg;
+ 	struct tilcdc_drm_private *priv = dev->dev_private;
+diff --git a/drivers/gpu/drm/via/via_drv.h b/drivers/gpu/drm/via/via_drv.h
+index a811ef2b505f..ad0273256beb 100644
+--- a/drivers/gpu/drm/via/via_drv.h
++++ b/drivers/gpu/drm/via/via_drv.h
+@@ -138,7 +138,7 @@ extern u32 via_get_vblank_counter(struct drm_device *dev, int crtc);
+ extern int via_enable_vblank(struct drm_device *dev, int crtc);
+ extern void via_disable_vblank(struct drm_device *dev, int crtc);
+ 
+-extern irqreturn_t via_driver_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t via_driver_irq_handler(int irq, void *arg);
+ extern void via_driver_irq_preinstall(struct drm_device *dev);
+ extern int via_driver_irq_postinstall(struct drm_device *dev);
+ extern void via_driver_irq_uninstall(struct drm_device *dev);
+diff --git a/drivers/gpu/drm/via/via_irq.c b/drivers/gpu/drm/via/via_irq.c
+index d0e2b988d067..85a4cb955204 100644
+--- a/drivers/gpu/drm/via/via_irq.c
++++ b/drivers/gpu/drm/via/via_irq.c
+@@ -104,7 +104,7 @@ u32 via_get_vblank_counter(struct drm_device *dev, int crtc)
+ 	return atomic_read(&dev_priv->vbl_received);
+ }
+ 
+-irqreturn_t via_driver_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t via_driver_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *) arg;
+ 	drm_via_private_t *dev_priv = (drm_via_private_t *) dev->dev_private;
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+index 20890ad8408b..036629dd992a 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+@@ -701,7 +701,7 @@ extern void vmw_execbuf_copy_fence_user(struct vmw_private *dev_priv,
+  * IRQs and wating - vmwgfx_irq.c
+  */
+ 
+-extern irqreturn_t vmw_irq_handler(DRM_IRQ_ARGS);
++extern irqreturn_t vmw_irq_handler(int irq, void *arg);
+ extern int vmw_wait_seqno(struct vmw_private *dev_priv, bool lazy,
+ 			     uint32_t seqno, bool interruptible,
+ 			     unsigned long timeout);
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c b/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
+index 4640adbcaf91..0c423766c441 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_irq.c
+@@ -30,7 +30,7 @@
+ 
+ #define VMW_FENCE_WRAP (1 << 24)
+ 
+-irqreturn_t vmw_irq_handler(DRM_IRQ_ARGS)
++irqreturn_t vmw_irq_handler(int irq, void *arg)
+ {
+ 	struct drm_device *dev = (struct drm_device *)arg;
+ 	struct vmw_private *dev_priv = vmw_priv(dev);
+diff --git a/include/drm/drmP.h b/include/drm/drmP.h
+index 90a99807e48d..c34a2cc2d9b6 100644
+--- a/include/drm/drmP.h
++++ b/include/drm/drmP.h
+@@ -915,7 +915,7 @@ struct drm_driver {
+ 
+ 	/* these have to be filled in */
+ 
+-	irqreturn_t(*irq_handler) (DRM_IRQ_ARGS);
++	irqreturn_t(*irq_handler) (int irq, void *arg);
+ 	void (*irq_preinstall) (struct drm_device *dev);
+ 	int (*irq_postinstall) (struct drm_device *dev);
+ 	void (*irq_uninstall) (struct drm_device *dev);
+diff --git a/include/drm/drm_os_linux.h b/include/drm/drm_os_linux.h
+index 42ce450420dd..2794cfeb4dfb 100644
+--- a/include/drm/drm_os_linux.h
++++ b/include/drm/drm_os_linux.h
+@@ -48,9 +48,6 @@ static inline void writeq(u64 val, void __iomem *reg)
+ /** Read/write memory barrier */
+ #define DRM_MEMORYBARRIER()		mb()
+ 
+-/** IRQ handler arguments and return type and values */
+-#define DRM_IRQ_ARGS		int irq, void *arg
+-
+ /** Other copying of data to kernel space */
+ #define DRM_COPY_FROM_USER(arg1, arg2, arg3)		\
+ 	copy_from_user(arg1, arg2, arg3)
+-- 
+2.17.0
+

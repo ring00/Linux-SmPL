@@ -1,0 +1,922 @@
+From 18bb1db3e7607e4a997d50991a6f9fa5b0f8722c Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Tue, 26 Jul 2011 01:41:39 -0400
+Subject: [PATCH] switch vfs_mkdir() and ->mkdir() to umode_t
+
+vfs_mkdir() gets int, but immediately drops everything that might not
+fit into umode_t and that's the only caller of ->mkdir()...
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking | 2 +-
+ Documentation/filesystems/vfs.txt | 2 +-
+ drivers/staging/pohmelfs/dir.c    | 2 +-
+ fs/9p/vfs_inode.c                 | 2 +-
+ fs/9p/vfs_inode_dotl.c            | 2 +-
+ fs/affs/affs.h                    | 2 +-
+ fs/affs/namei.c                   | 4 ++--
+ fs/afs/dir.c                      | 6 +++---
+ fs/autofs4/root.c                 | 4 ++--
+ fs/bad_inode.c                    | 2 +-
+ fs/btrfs/inode.c                  | 2 +-
+ fs/ceph/dir.c                     | 4 ++--
+ fs/cifs/cifsfs.h                  | 2 +-
+ fs/cifs/inode.c                   | 4 ++--
+ fs/coda/dir.c                     | 4 ++--
+ fs/configfs/dir.c                 | 2 +-
+ fs/ecryptfs/inode.c               | 2 +-
+ fs/exofs/namei.c                  | 2 +-
+ fs/ext2/namei.c                   | 2 +-
+ fs/ext3/namei.c                   | 2 +-
+ fs/ext4/namei.c                   | 2 +-
+ fs/fat/namei_msdos.c              | 2 +-
+ fs/fat/namei_vfat.c               | 2 +-
+ fs/fuse/dir.c                     | 2 +-
+ fs/gfs2/inode.c                   | 2 +-
+ fs/hfs/dir.c                      | 2 +-
+ fs/hfsplus/dir.c                  | 2 +-
+ fs/hostfs/hostfs_kern.c           | 2 +-
+ fs/hpfs/namei.c                   | 2 +-
+ fs/hugetlbfs/inode.c              | 2 +-
+ fs/jffs2/dir.c                    | 4 ++--
+ fs/jfs/namei.c                    | 2 +-
+ fs/logfs/dir.c                    | 2 +-
+ fs/minix/namei.c                  | 2 +-
+ fs/namei.c                        | 2 +-
+ fs/ncpfs/dir.c                    | 4 ++--
+ fs/nfs/dir.c                      | 4 ++--
+ fs/nilfs2/namei.c                 | 2 +-
+ fs/ocfs2/dlmfs/dlmfs.c            | 2 +-
+ fs/ocfs2/namei.c                  | 2 +-
+ fs/omfs/dir.c                     | 2 +-
+ fs/ramfs/inode.c                  | 2 +-
+ fs/reiserfs/namei.c               | 2 +-
+ fs/reiserfs/xattr.c               | 2 +-
+ fs/sysv/namei.c                   | 2 +-
+ fs/ubifs/dir.c                    | 4 ++--
+ fs/udf/namei.c                    | 2 +-
+ fs/ufs/namei.c                    | 2 +-
+ fs/xfs/xfs_iops.c                 | 2 +-
+ include/linux/fs.h                | 4 ++--
+ include/linux/security.h          | 4 ++--
+ kernel/cgroup.c                   | 4 ++--
+ mm/shmem.c                        | 2 +-
+ security/capability.c             | 2 +-
+ security/security.c               | 2 +-
+ security/selinux/hooks.c          | 2 +-
+ 56 files changed, 70 insertions(+), 70 deletions(-)
+
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index d819ba16a0c7..6c7676d9c0ea 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -43,7 +43,7 @@ ata *);
+ 	int (*link) (struct dentry *,struct inode *,struct dentry *);
+ 	int (*unlink) (struct inode *,struct dentry *);
+ 	int (*symlink) (struct inode *,struct dentry *,const char *);
+-	int (*mkdir) (struct inode *,struct dentry *,int);
++	int (*mkdir) (struct inode *,struct dentry *,umode_t);
+ 	int (*rmdir) (struct inode *,struct dentry *);
+ 	int (*mknod) (struct inode *,struct dentry *,int,dev_t);
+ 	int (*rename) (struct inode *, struct dentry *,
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 43cbd0821721..0c147c79cdd8 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -346,7 +346,7 @@ struct inode_operations {
+ 	int (*link) (struct dentry *,struct inode *,struct dentry *);
+ 	int (*unlink) (struct inode *,struct dentry *);
+ 	int (*symlink) (struct inode *,struct dentry *,const char *);
+-	int (*mkdir) (struct inode *,struct dentry *,int);
++	int (*mkdir) (struct inode *,struct dentry *,umode_t);
+ 	int (*rmdir) (struct inode *,struct dentry *);
+ 	int (*mknod) (struct inode *,struct dentry *,int,dev_t);
+ 	int (*rename) (struct inode *, struct dentry *,
+diff --git a/drivers/staging/pohmelfs/dir.c b/drivers/staging/pohmelfs/dir.c
+index 7598e77672a5..d3ad4dde991f 100644
+--- a/drivers/staging/pohmelfs/dir.c
++++ b/drivers/staging/pohmelfs/dir.c
+@@ -667,7 +667,7 @@ static int pohmelfs_create(struct inode *dir, struct dentry *dentry, int mode,
+ 	return pohmelfs_create_entry(dir, dentry, 0, mode);
+ }
+ 
+-static int pohmelfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int pohmelfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int err;
+ 
+diff --git a/fs/9p/vfs_inode.c b/fs/9p/vfs_inode.c
+index 2310cc9eb402..3e54900f3b7e 100644
+--- a/fs/9p/vfs_inode.c
++++ b/fs/9p/vfs_inode.c
+@@ -785,7 +785,7 @@ v9fs_vfs_create(struct inode *dir, struct dentry *dentry, int mode,
+  *
+  */
+ 
+-static int v9fs_vfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int v9fs_vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int err;
+ 	u32 perm;
+diff --git a/fs/9p/vfs_inode_dotl.c b/fs/9p/vfs_inode_dotl.c
+index 0b5745e21946..87e46b19b21b 100644
+--- a/fs/9p/vfs_inode_dotl.c
++++ b/fs/9p/vfs_inode_dotl.c
+@@ -395,7 +395,7 @@ v9fs_vfs_create_dotl(struct inode *dir, struct dentry *dentry, int omode,
+  */
+ 
+ static int v9fs_vfs_mkdir_dotl(struct inode *dir,
+-			       struct dentry *dentry, int omode)
++			       struct dentry *dentry, umode_t omode)
+ {
+ 	int err;
+ 	struct v9fs_session_info *v9ses;
+diff --git a/fs/affs/affs.h b/fs/affs/affs.h
+index c2b9c79eb64e..8abcad7c935f 100644
+--- a/fs/affs/affs.h
++++ b/fs/affs/affs.h
+@@ -157,7 +157,7 @@ extern int	affs_hash_name(struct super_block *sb, const u8 *name, unsigned int l
+ extern struct dentry *affs_lookup(struct inode *dir, struct dentry *dentry, struct nameidata *);
+ extern int	affs_unlink(struct inode *dir, struct dentry *dentry);
+ extern int	affs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata *);
+-extern int	affs_mkdir(struct inode *dir, struct dentry *dentry, int mode);
++extern int	affs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
+ extern int	affs_rmdir(struct inode *dir, struct dentry *dentry);
+ extern int	affs_link(struct dentry *olddentry, struct inode *dir,
+ 			  struct dentry *dentry);
+diff --git a/fs/affs/namei.c b/fs/affs/namei.c
+index 780a11dc6318..7bb7660f805d 100644
+--- a/fs/affs/namei.c
++++ b/fs/affs/namei.c
+@@ -285,12 +285,12 @@ affs_create(struct inode *dir, struct dentry *dentry, int mode, struct nameidata
+ }
+ 
+ int
+-affs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++affs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode		*inode;
+ 	int			 error;
+ 
+-	pr_debug("AFFS: mkdir(%lu,\"%.*s\",0%o)\n",dir->i_ino,
++	pr_debug("AFFS: mkdir(%lu,\"%.*s\",0%ho)\n",dir->i_ino,
+ 		 (int)dentry->d_name.len,dentry->d_name.name,mode);
+ 
+ 	inode = affs_new_inode(dir);
+diff --git a/fs/afs/dir.c b/fs/afs/dir.c
+index 1b0b19550015..e6ea58abde3b 100644
+--- a/fs/afs/dir.c
++++ b/fs/afs/dir.c
+@@ -30,7 +30,7 @@ static int afs_lookup_filldir(void *_cookie, const char *name, int nlen,
+ 				  loff_t fpos, u64 ino, unsigned dtype);
+ static int afs_create(struct inode *dir, struct dentry *dentry, int mode,
+ 		      struct nameidata *nd);
+-static int afs_mkdir(struct inode *dir, struct dentry *dentry, int mode);
++static int afs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
+ static int afs_rmdir(struct inode *dir, struct dentry *dentry);
+ static int afs_unlink(struct inode *dir, struct dentry *dentry);
+ static int afs_link(struct dentry *from, struct inode *dir,
+@@ -764,7 +764,7 @@ static void afs_d_release(struct dentry *dentry)
+ /*
+  * create a directory on an AFS filesystem
+  */
+-static int afs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int afs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct afs_file_status status;
+ 	struct afs_callback cb;
+@@ -777,7 +777,7 @@ static int afs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 
+ 	dvnode = AFS_FS_I(dir);
+ 
+-	_enter("{%x:%u},{%s},%o",
++	_enter("{%x:%u},{%s},%ho",
+ 	       dvnode->fid.vid, dvnode->fid.vnode, dentry->d_name.name, mode);
+ 
+ 	ret = -ENAMETOOLONG;
+diff --git a/fs/autofs4/root.c b/fs/autofs4/root.c
+index f55ae23b137e..75e5f1c8e028 100644
+--- a/fs/autofs4/root.c
++++ b/fs/autofs4/root.c
+@@ -26,7 +26,7 @@
+ static int autofs4_dir_symlink(struct inode *,struct dentry *,const char *);
+ static int autofs4_dir_unlink(struct inode *,struct dentry *);
+ static int autofs4_dir_rmdir(struct inode *,struct dentry *);
+-static int autofs4_dir_mkdir(struct inode *,struct dentry *,int);
++static int autofs4_dir_mkdir(struct inode *,struct dentry *,umode_t);
+ static long autofs4_root_ioctl(struct file *,unsigned int,unsigned long);
+ #ifdef CONFIG_COMPAT
+ static long autofs4_root_compat_ioctl(struct file *,unsigned int,unsigned long);
+@@ -699,7 +699,7 @@ static int autofs4_dir_rmdir(struct inode *dir, struct dentry *dentry)
+ 	return 0;
+ }
+ 
+-static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int autofs4_dir_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct autofs_sb_info *sbi = autofs4_sbi(dir->i_sb);
+ 	struct autofs_info *ino = autofs4_dentry_ino(dentry);
+diff --git a/fs/bad_inode.c b/fs/bad_inode.c
+index 9205cf25f1c6..5a2738c1f315 100644
+--- a/fs/bad_inode.c
++++ b/fs/bad_inode.c
+@@ -202,7 +202,7 @@ static int bad_inode_symlink (struct inode *dir, struct dentry *dentry,
+ }
+ 
+ static int bad_inode_mkdir(struct inode *dir, struct dentry *dentry,
+-			int mode)
++			umode_t mode)
+ {
+ 	return -EIO;
+ }
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index f8ff9738558a..e30de56e6b62 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -4792,7 +4792,7 @@ static int btrfs_link(struct dentry *old_dentry, struct inode *dir,
+ 	return err;
+ }
+ 
+-static int btrfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int btrfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode = NULL;
+ 	struct btrfs_trans_handle *trans;
+diff --git a/fs/ceph/dir.c b/fs/ceph/dir.c
+index 98954003a8d3..96141ae3d8be 100644
+--- a/fs/ceph/dir.c
++++ b/fs/ceph/dir.c
+@@ -753,7 +753,7 @@ static int ceph_symlink(struct inode *dir, struct dentry *dentry,
+ 	return err;
+ }
+ 
+-static int ceph_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int ceph_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct ceph_fs_client *fsc = ceph_sb_to_client(dir->i_sb);
+ 	struct ceph_mds_client *mdsc = fsc->mdsc;
+@@ -767,7 +767,7 @@ static int ceph_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 		dout("mksnap dir %p snap '%.*s' dn %p\n", dir,
+ 		     dentry->d_name.len, dentry->d_name.name, dentry);
+ 	} else if (ceph_snap(dir) == CEPH_NOSNAP) {
+-		dout("mkdir dir %p dn %p mode 0%o\n", dir, dentry, mode);
++		dout("mkdir dir %p dn %p mode 0%ho\n", dir, dentry, mode);
+ 		op = CEPH_MDS_OP_MKDIR;
+ 	} else {
+ 		goto out;
+diff --git a/fs/cifs/cifsfs.h b/fs/cifs/cifsfs.h
+index 30ff56005d8f..add64454fd51 100644
+--- a/fs/cifs/cifsfs.h
++++ b/fs/cifs/cifsfs.h
+@@ -51,7 +51,7 @@ extern struct dentry *cifs_lookup(struct inode *, struct dentry *,
+ extern int cifs_unlink(struct inode *dir, struct dentry *dentry);
+ extern int cifs_hardlink(struct dentry *, struct inode *, struct dentry *);
+ extern int cifs_mknod(struct inode *, struct dentry *, int, dev_t);
+-extern int cifs_mkdir(struct inode *, struct dentry *, int);
++extern int cifs_mkdir(struct inode *, struct dentry *, umode_t);
+ extern int cifs_rmdir(struct inode *, struct dentry *);
+ extern int cifs_rename(struct inode *, struct dentry *, struct inode *,
+ 		       struct dentry *);
+diff --git a/fs/cifs/inode.c b/fs/cifs/inode.c
+index e851d5b8931e..a5f54b7d9822 100644
+--- a/fs/cifs/inode.c
++++ b/fs/cifs/inode.c
+@@ -1264,7 +1264,7 @@ int cifs_unlink(struct inode *dir, struct dentry *dentry)
+ 	return rc;
+ }
+ 
+-int cifs_mkdir(struct inode *inode, struct dentry *direntry, int mode)
++int cifs_mkdir(struct inode *inode, struct dentry *direntry, umode_t mode)
+ {
+ 	int rc = 0, tmprc;
+ 	int xid;
+@@ -1275,7 +1275,7 @@ int cifs_mkdir(struct inode *inode, struct dentry *direntry, int mode)
+ 	struct inode *newinode = NULL;
+ 	struct cifs_fattr fattr;
+ 
+-	cFYI(1, "In cifs_mkdir, mode = 0x%x inode = 0x%p", mode, inode);
++	cFYI(1, "In cifs_mkdir, mode = 0x%hx inode = 0x%p", mode, inode);
+ 
+ 	cifs_sb = CIFS_SB(inode->i_sb);
+ 	tlink = cifs_sb_tlink(cifs_sb);
+diff --git a/fs/coda/dir.c b/fs/coda/dir.c
+index 28e7e135cfab..a74ae6fcfb7e 100644
+--- a/fs/coda/dir.c
++++ b/fs/coda/dir.c
+@@ -37,7 +37,7 @@ static int coda_link(struct dentry *old_dentry, struct inode *dir_inode,
+ static int coda_unlink(struct inode *dir_inode, struct dentry *entry);
+ static int coda_symlink(struct inode *dir_inode, struct dentry *entry,
+ 			const char *symname);
+-static int coda_mkdir(struct inode *dir_inode, struct dentry *entry, int mode);
++static int coda_mkdir(struct inode *dir_inode, struct dentry *entry, umode_t mode);
+ static int coda_rmdir(struct inode *dir_inode, struct dentry *entry);
+ static int coda_rename(struct inode *old_inode, struct dentry *old_dentry, 
+                        struct inode *new_inode, struct dentry *new_dentry);
+@@ -223,7 +223,7 @@ static int coda_create(struct inode *dir, struct dentry *de, int mode, struct na
+ 	return error;
+ }
+ 
+-static int coda_mkdir(struct inode *dir, struct dentry *de, int mode)
++static int coda_mkdir(struct inode *dir, struct dentry *de, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	struct coda_vattr attrs;
+diff --git a/fs/configfs/dir.c b/fs/configfs/dir.c
+index 1c5296911104..5ddd7ebd9dcd 100644
+--- a/fs/configfs/dir.c
++++ b/fs/configfs/dir.c
+@@ -1170,7 +1170,7 @@ void configfs_undepend_item(struct configfs_subsystem *subsys,
+ }
+ EXPORT_SYMBOL(configfs_undepend_item);
+ 
+-static int configfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int configfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int ret = 0;
+ 	int module_got = 0;
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 32f90a3ae63e..ebf8726482b6 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -559,7 +559,7 @@ static int ecryptfs_symlink(struct inode *dir, struct dentry *dentry,
+ 	return rc;
+ }
+ 
+-static int ecryptfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int ecryptfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int rc;
+ 	struct dentry *lower_dentry;
+diff --git a/fs/exofs/namei.c b/fs/exofs/namei.c
+index b54c43775f17..ff1c8286cd69 100644
+--- a/fs/exofs/namei.c
++++ b/fs/exofs/namei.c
+@@ -153,7 +153,7 @@ static int exofs_link(struct dentry *old_dentry, struct inode *dir,
+ 	return exofs_add_nondir(dentry, inode);
+ }
+ 
+-static int exofs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int exofs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	int err = -EMLINK;
+diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+index 761fde807fc9..e3f3672b2020 100644
+--- a/fs/ext2/namei.c
++++ b/fs/ext2/namei.c
+@@ -214,7 +214,7 @@ static int ext2_link (struct dentry * old_dentry, struct inode * dir,
+ 	return err;
+ }
+ 
+-static int ext2_mkdir(struct inode * dir, struct dentry * dentry, int mode)
++static int ext2_mkdir(struct inode * dir, struct dentry * dentry, umode_t mode)
+ {
+ 	struct inode * inode;
+ 	int err = -EMLINK;
+diff --git a/fs/ext3/namei.c b/fs/ext3/namei.c
+index 642dc6d66dfd..08ecb53a33ea 100644
+--- a/fs/ext3/namei.c
++++ b/fs/ext3/namei.c
+@@ -1768,7 +1768,7 @@ static int ext3_mknod (struct inode * dir, struct dentry *dentry,
+ 	return err;
+ }
+ 
+-static int ext3_mkdir(struct inode * dir, struct dentry * dentry, int mode)
++static int ext3_mkdir(struct inode * dir, struct dentry * dentry, umode_t mode)
+ {
+ 	handle_t *handle;
+ 	struct inode * inode;
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index aa4c782c9dd7..e506746724cf 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -1806,7 +1806,7 @@ static int ext4_mknod(struct inode *dir, struct dentry *dentry,
+ 	return err;
+ }
+ 
+-static int ext4_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int ext4_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	handle_t *handle;
+ 	struct inode *inode;
+diff --git a/fs/fat/namei_msdos.c b/fs/fat/namei_msdos.c
+index 216b419f30e2..d1f53cae897c 100644
+--- a/fs/fat/namei_msdos.c
++++ b/fs/fat/namei_msdos.c
+@@ -346,7 +346,7 @@ static int msdos_rmdir(struct inode *dir, struct dentry *dentry)
+ }
+ 
+ /***** Make a directory */
+-static int msdos_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int msdos_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct super_block *sb = dir->i_sb;
+ 	struct fat_slot_info sinfo;
+diff --git a/fs/fat/namei_vfat.c b/fs/fat/namei_vfat.c
+index a87a65663c25..fde2eda6332e 100644
+--- a/fs/fat/namei_vfat.c
++++ b/fs/fat/namei_vfat.c
+@@ -870,7 +870,7 @@ static int vfat_unlink(struct inode *dir, struct dentry *dentry)
+ 	return err;
+ }
+ 
+-static int vfat_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int vfat_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct super_block *sb = dir->i_sb;
+ 	struct inode *inode;
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 9f63e493a9b6..4848a1acb3bb 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -585,7 +585,7 @@ static int fuse_create(struct inode *dir, struct dentry *entry, int mode,
+ 	return fuse_mknod(dir, entry, mode, 0);
+ }
+ 
+-static int fuse_mkdir(struct inode *dir, struct dentry *entry, int mode)
++static int fuse_mkdir(struct inode *dir, struct dentry *entry, umode_t mode)
+ {
+ 	struct fuse_mkdir_in inarg;
+ 	struct fuse_conn *fc = get_fuse_conn(dir);
+diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
+index cfd4959b218c..eecfc39c07e6 100644
+--- a/fs/gfs2/inode.c
++++ b/fs/gfs2/inode.c
+@@ -1129,7 +1129,7 @@ static int gfs2_symlink(struct inode *dir, struct dentry *dentry,
+  * Returns: errno
+  */
+ 
+-static int gfs2_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int gfs2_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	return gfs2_create_inode(dir, dentry, S_IFDIR | mode, 0, NULL, 0, 0);
+ }
+diff --git a/fs/hfs/dir.c b/fs/hfs/dir.c
+index bce4eef91a06..06dc161e911c 100644
+--- a/fs/hfs/dir.c
++++ b/fs/hfs/dir.c
+@@ -216,7 +216,7 @@ static int hfs_create(struct inode *dir, struct dentry *dentry, int mode,
+  * in a directory, given the inode for the parent directory and the
+  * name (and its length) of the new directory.
+  */
+-static int hfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int hfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	int res;
+diff --git a/fs/hfsplus/dir.c b/fs/hfsplus/dir.c
+index 4536cd3f15ae..ed321f0384d7 100644
+--- a/fs/hfsplus/dir.c
++++ b/fs/hfsplus/dir.c
+@@ -459,7 +459,7 @@ static int hfsplus_create(struct inode *dir, struct dentry *dentry, int mode,
+ 	return hfsplus_mknod(dir, dentry, mode, 0);
+ }
+ 
+-static int hfsplus_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int hfsplus_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	return hfsplus_mknod(dir, dentry, mode | S_IFDIR, 0);
+ }
+diff --git a/fs/hostfs/hostfs_kern.c b/fs/hostfs/hostfs_kern.c
+index 343ea632b97c..d35240fbbd73 100644
+--- a/fs/hostfs/hostfs_kern.c
++++ b/fs/hostfs/hostfs_kern.c
+@@ -676,7 +676,7 @@ int hostfs_symlink(struct inode *ino, struct dentry *dentry, const char *to)
+ 	return err;
+ }
+ 
+-int hostfs_mkdir(struct inode *ino, struct dentry *dentry, int mode)
++int hostfs_mkdir(struct inode *ino, struct dentry *dentry, umode_t mode)
+ {
+ 	char *file;
+ 	int err;
+diff --git a/fs/hpfs/namei.c b/fs/hpfs/namei.c
+index ea91fcb0ef9b..a2f89f2b9503 100644
+--- a/fs/hpfs/namei.c
++++ b/fs/hpfs/namei.c
+@@ -8,7 +8,7 @@
+ #include <linux/sched.h>
+ #include "hpfs_fn.h"
+ 
+-static int hpfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int hpfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	const unsigned char *name = dentry->d_name.name;
+ 	unsigned len = dentry->d_name.len;
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 9c4ec538725b..ba269706e798 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -523,7 +523,7 @@ static int hugetlbfs_mknod(struct inode *dir,
+ 	return error;
+ }
+ 
+-static int hugetlbfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int hugetlbfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int retval = hugetlbfs_mknod(dir, dentry, mode | S_IFDIR, 0);
+ 	if (!retval)
+diff --git a/fs/jffs2/dir.c b/fs/jffs2/dir.c
+index be6169bd8acd..5dc458f19bc9 100644
+--- a/fs/jffs2/dir.c
++++ b/fs/jffs2/dir.c
+@@ -29,7 +29,7 @@ static struct dentry *jffs2_lookup (struct inode *,struct dentry *,
+ static int jffs2_link (struct dentry *,struct inode *,struct dentry *);
+ static int jffs2_unlink (struct inode *,struct dentry *);
+ static int jffs2_symlink (struct inode *,struct dentry *,const char *);
+-static int jffs2_mkdir (struct inode *,struct dentry *,int);
++static int jffs2_mkdir (struct inode *,struct dentry *,umode_t);
+ static int jffs2_rmdir (struct inode *,struct dentry *);
+ static int jffs2_mknod (struct inode *,struct dentry *,int,dev_t);
+ static int jffs2_rename (struct inode *, struct dentry *,
+@@ -450,7 +450,7 @@ static int jffs2_symlink (struct inode *dir_i, struct dentry *dentry, const char
+ }
+ 
+ 
+-static int jffs2_mkdir (struct inode *dir_i, struct dentry *dentry, int mode)
++static int jffs2_mkdir (struct inode *dir_i, struct dentry *dentry, umode_t mode)
+ {
+ 	struct jffs2_inode_info *f, *dir_f;
+ 	struct jffs2_sb_info *c;
+diff --git a/fs/jfs/namei.c b/fs/jfs/namei.c
+index a112ad96e474..17ea85835715 100644
+--- a/fs/jfs/namei.c
++++ b/fs/jfs/namei.c
+@@ -205,7 +205,7 @@ static int jfs_create(struct inode *dip, struct dentry *dentry, int mode,
+  * note:
+  * EACCESS: user needs search+write permission on the parent directory
+  */
+-static int jfs_mkdir(struct inode *dip, struct dentry *dentry, int mode)
++static int jfs_mkdir(struct inode *dip, struct dentry *dentry, umode_t mode)
+ {
+ 	int rc = 0;
+ 	tid_t tid;		/* transaction id */
+diff --git a/fs/logfs/dir.c b/fs/logfs/dir.c
+index b7d7f67cee5a..25c5cbf8c123 100644
+--- a/fs/logfs/dir.c
++++ b/fs/logfs/dir.c
+@@ -482,7 +482,7 @@ static int __logfs_create(struct inode *dir, struct dentry *dentry,
+ 	return ret;
+ }
+ 
+-static int logfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int logfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 
+diff --git a/fs/minix/namei.c b/fs/minix/namei.c
+index 6e6777f1b4b2..0e7a1a22e554 100644
+--- a/fs/minix/namei.c
++++ b/fs/minix/namei.c
+@@ -103,7 +103,7 @@ static int minix_link(struct dentry * old_dentry, struct inode * dir,
+ 	return add_nondir(dentry, inode);
+ }
+ 
+-static int minix_mkdir(struct inode * dir, struct dentry *dentry, int mode)
++static int minix_mkdir(struct inode * dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode * inode;
+ 	int err = -EMLINK;
+diff --git a/fs/namei.c b/fs/namei.c
+index f6b3c73e862c..443c703249b3 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -2541,7 +2541,7 @@ SYSCALL_DEFINE3(mknod, const char __user *, filename, umode_t, mode, unsigned, d
+ 	return sys_mknodat(AT_FDCWD, filename, mode, dev);
+ }
+ 
+-int vfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++int vfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int error = may_create(dir, dentry);
+ 
+diff --git a/fs/ncpfs/dir.c b/fs/ncpfs/dir.c
+index 9c51f621e901..dfb51f084407 100644
+--- a/fs/ncpfs/dir.c
++++ b/fs/ncpfs/dir.c
+@@ -33,7 +33,7 @@ static int ncp_readdir(struct file *, void *, filldir_t);
+ static int ncp_create(struct inode *, struct dentry *, int, struct nameidata *);
+ static struct dentry *ncp_lookup(struct inode *, struct dentry *, struct nameidata *);
+ static int ncp_unlink(struct inode *, struct dentry *);
+-static int ncp_mkdir(struct inode *, struct dentry *, int);
++static int ncp_mkdir(struct inode *, struct dentry *, umode_t);
+ static int ncp_rmdir(struct inode *, struct dentry *);
+ static int ncp_rename(struct inode *, struct dentry *,
+ 	  	      struct inode *, struct dentry *);
+@@ -985,7 +985,7 @@ static int ncp_create(struct inode *dir, struct dentry *dentry, int mode,
+ 	return ncp_create_new(dir, dentry, mode, 0, 0);
+ }
+ 
+-static int ncp_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int ncp_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct ncp_entry_info finfo;
+ 	struct ncp_server *server = NCP_SERVER(dir);
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index 23be134b3193..5d67d92a4248 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -48,7 +48,7 @@ static int nfs_closedir(struct inode *, struct file *);
+ static int nfs_readdir(struct file *, void *, filldir_t);
+ static struct dentry *nfs_lookup(struct inode *, struct dentry *, struct nameidata *);
+ static int nfs_create(struct inode *, struct dentry *, int, struct nameidata *);
+-static int nfs_mkdir(struct inode *, struct dentry *, int);
++static int nfs_mkdir(struct inode *, struct dentry *, umode_t);
+ static int nfs_rmdir(struct inode *, struct dentry *);
+ static int nfs_unlink(struct inode *, struct dentry *);
+ static int nfs_symlink(struct inode *, struct dentry *, const char *);
+@@ -1719,7 +1719,7 @@ nfs_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t rdev)
+ /*
+  * See comments for nfs_proc_create regarding failed operations.
+  */
+-static int nfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int nfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct iattr attr;
+ 	int error;
+diff --git a/fs/nilfs2/namei.c b/fs/nilfs2/namei.c
+index 768982de10e4..e5e7311f1b92 100644
+--- a/fs/nilfs2/namei.c
++++ b/fs/nilfs2/namei.c
+@@ -213,7 +213,7 @@ static int nilfs_link(struct dentry *old_dentry, struct inode *dir,
+ 	return err;
+ }
+ 
+-static int nilfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int nilfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	struct nilfs_transaction_info ti;
+diff --git a/fs/ocfs2/dlmfs/dlmfs.c b/fs/ocfs2/dlmfs/dlmfs.c
+index a9f007de1da8..77c8d8069461 100644
+--- a/fs/ocfs2/dlmfs/dlmfs.c
++++ b/fs/ocfs2/dlmfs/dlmfs.c
+@@ -488,7 +488,7 @@ static struct inode *dlmfs_get_inode(struct inode *parent,
+ /* SMP-safe */
+ static int dlmfs_mkdir(struct inode * dir,
+ 		       struct dentry * dentry,
+-		       int mode)
++		       umode_t mode)
+ {
+ 	int status;
+ 	struct inode *inode = NULL;
+diff --git a/fs/ocfs2/namei.c b/fs/ocfs2/namei.c
+index a8b2bfea574e..c779f8bfc8a6 100644
+--- a/fs/ocfs2/namei.c
++++ b/fs/ocfs2/namei.c
+@@ -602,7 +602,7 @@ static int ocfs2_mknod_locked(struct ocfs2_super *osb,
+ 
+ static int ocfs2_mkdir(struct inode *dir,
+ 		       struct dentry *dentry,
+-		       int mode)
++		       umode_t mode)
+ {
+ 	int ret;
+ 
+diff --git a/fs/omfs/dir.c b/fs/omfs/dir.c
+index 98e544274390..667dc7ff28c0 100644
+--- a/fs/omfs/dir.c
++++ b/fs/omfs/dir.c
+@@ -279,7 +279,7 @@ static int omfs_add_node(struct inode *dir, struct dentry *dentry, int mode)
+ 	return err;
+ }
+ 
+-static int omfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int omfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	return omfs_add_node(dir, dentry, mode | S_IFDIR);
+ }
+diff --git a/fs/ramfs/inode.c b/fs/ramfs/inode.c
+index 462ceb38fec6..61972bee0561 100644
+--- a/fs/ramfs/inode.c
++++ b/fs/ramfs/inode.c
+@@ -106,7 +106,7 @@ ramfs_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t dev)
+ 	return error;
+ }
+ 
+-static int ramfs_mkdir(struct inode * dir, struct dentry * dentry, int mode)
++static int ramfs_mkdir(struct inode * dir, struct dentry * dentry, umode_t mode)
+ {
+ 	int retval = ramfs_mknod(dir, dentry, mode | S_IFDIR, 0);
+ 	if (!retval)
+diff --git a/fs/reiserfs/namei.c b/fs/reiserfs/namei.c
+index 80058e8ce361..763239a7e8dd 100644
+--- a/fs/reiserfs/namei.c
++++ b/fs/reiserfs/namei.c
+@@ -721,7 +721,7 @@ static int reiserfs_mknod(struct inode *dir, struct dentry *dentry, int mode,
+ 	return retval;
+ }
+ 
+-static int reiserfs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int reiserfs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int retval;
+ 	struct inode *inode;
+diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
+index 6bc346c160e7..c24deda8a8bc 100644
+--- a/fs/reiserfs/xattr.c
++++ b/fs/reiserfs/xattr.c
+@@ -66,7 +66,7 @@ static int xattr_create(struct inode *dir, struct dentry *dentry, int mode)
+ }
+ #endif
+ 
+-static int xattr_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int xattr_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	BUG_ON(!mutex_is_locked(&dir->i_mutex));
+ 	return dir->i_op->mkdir(dir, dentry, mode);
+diff --git a/fs/sysv/namei.c b/fs/sysv/namei.c
+index e474fbcf8bde..3368425a4ce2 100644
+--- a/fs/sysv/namei.c
++++ b/fs/sysv/namei.c
+@@ -131,7 +131,7 @@ static int sysv_link(struct dentry * old_dentry, struct inode * dir,
+ 	return add_nondir(dentry, inode);
+ }
+ 
+-static int sysv_mkdir(struct inode * dir, struct dentry *dentry, int mode)
++static int sysv_mkdir(struct inode * dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode * inode;
+ 	int err = -EMLINK;
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index 683492043317..f5102f368160 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -712,7 +712,7 @@ static int ubifs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	return err;
+ }
+ 
+-static int ubifs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int ubifs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	struct ubifs_inode *dir_ui = ubifs_inode(dir);
+@@ -725,7 +725,7 @@ static int ubifs_mkdir(struct inode *dir, struct dentry *dentry, int mode)
+ 	 * directory inode.
+ 	 */
+ 
+-	dbg_gen("dent '%.*s', mode %#x in dir ino %lu",
++	dbg_gen("dent '%.*s', mode %#hx in dir ino %lu",
+ 		dentry->d_name.len, dentry->d_name.name, mode, dir->i_ino);
+ 
+ 	err = ubifs_budget_space(c, &req);
+diff --git a/fs/udf/namei.c b/fs/udf/namei.c
+index 4639e137222f..7f8ee32842be 100644
+--- a/fs/udf/namei.c
++++ b/fs/udf/namei.c
+@@ -640,7 +640,7 @@ static int udf_mknod(struct inode *dir, struct dentry *dentry, int mode,
+ 	return err;
+ }
+ 
+-static int udf_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int udf_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct inode *inode;
+ 	struct udf_fileident_bh fibh;
+diff --git a/fs/ufs/namei.c b/fs/ufs/namei.c
+index 639d49162241..fa743aaa327c 100644
+--- a/fs/ufs/namei.c
++++ b/fs/ufs/namei.c
+@@ -180,7 +180,7 @@ static int ufs_link (struct dentry * old_dentry, struct inode * dir,
+ 	return error;
+ }
+ 
+-static int ufs_mkdir(struct inode * dir, struct dentry * dentry, int mode)
++static int ufs_mkdir(struct inode * dir, struct dentry * dentry, umode_t mode)
+ {
+ 	struct inode * inode;
+ 	int err = -EMLINK;
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 23ce927973a4..99b324d43c98 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -241,7 +241,7 @@ STATIC int
+ xfs_vn_mkdir(
+ 	struct inode	*dir,
+ 	struct dentry	*dentry,
+-	int		mode)
++	umode_t		mode)
+ {
+ 	return xfs_vn_mknod(dir, dentry, mode|S_IFDIR, 0);
+ }
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index cec429d76ab0..3f7bd8b12e37 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1517,7 +1517,7 @@ extern void unlock_super(struct super_block *);
+  * VFS helper functions..
+  */
+ extern int vfs_create(struct inode *, struct dentry *, int, struct nameidata *);
+-extern int vfs_mkdir(struct inode *, struct dentry *, int);
++extern int vfs_mkdir(struct inode *, struct dentry *, umode_t);
+ extern int vfs_mknod(struct inode *, struct dentry *, int, dev_t);
+ extern int vfs_symlink(struct inode *, struct dentry *, const char *);
+ extern int vfs_link(struct dentry *, struct inode *, struct dentry *);
+@@ -1623,7 +1623,7 @@ struct inode_operations {
+ 	int (*link) (struct dentry *,struct inode *,struct dentry *);
+ 	int (*unlink) (struct inode *,struct dentry *);
+ 	int (*symlink) (struct inode *,struct dentry *,const char *);
+-	int (*mkdir) (struct inode *,struct dentry *,int);
++	int (*mkdir) (struct inode *,struct dentry *,umode_t);
+ 	int (*rmdir) (struct inode *,struct dentry *);
+ 	int (*mknod) (struct inode *,struct dentry *,int,dev_t);
+ 	int (*rename) (struct inode *, struct dentry *,
+diff --git a/include/linux/security.h b/include/linux/security.h
+index e8c619d39291..16cbc58cb13b 100644
+--- a/include/linux/security.h
++++ b/include/linux/security.h
+@@ -1453,7 +1453,7 @@ struct security_operations {
+ 	int (*inode_unlink) (struct inode *dir, struct dentry *dentry);
+ 	int (*inode_symlink) (struct inode *dir,
+ 			      struct dentry *dentry, const char *old_name);
+-	int (*inode_mkdir) (struct inode *dir, struct dentry *dentry, int mode);
++	int (*inode_mkdir) (struct inode *dir, struct dentry *dentry, umode_t mode);
+ 	int (*inode_rmdir) (struct inode *dir, struct dentry *dentry);
+ 	int (*inode_mknod) (struct inode *dir, struct dentry *dentry,
+ 			    int mode, dev_t dev);
+@@ -1722,7 +1722,7 @@ int security_inode_link(struct dentry *old_dentry, struct inode *dir,
+ int security_inode_unlink(struct inode *dir, struct dentry *dentry);
+ int security_inode_symlink(struct inode *dir, struct dentry *dentry,
+ 			   const char *old_name);
+-int security_inode_mkdir(struct inode *dir, struct dentry *dentry, int mode);
++int security_inode_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
+ int security_inode_rmdir(struct inode *dir, struct dentry *dentry);
+ int security_inode_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t dev);
+ int security_inode_rename(struct inode *old_dir, struct dentry *old_dentry,
+diff --git a/kernel/cgroup.c b/kernel/cgroup.c
+index a184470cf9b5..b37a0ea55114 100644
+--- a/kernel/cgroup.c
++++ b/kernel/cgroup.c
+@@ -760,7 +760,7 @@ EXPORT_SYMBOL_GPL(cgroup_unlock);
+  * -> cgroup_mkdir.
+  */
+ 
+-static int cgroup_mkdir(struct inode *dir, struct dentry *dentry, int mode);
++static int cgroup_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode);
+ static struct dentry *cgroup_lookup(struct inode *, struct dentry *, struct nameidata *);
+ static int cgroup_rmdir(struct inode *unused_dir, struct dentry *dentry);
+ static int cgroup_populate_dir(struct cgroup *cgrp);
+@@ -3846,7 +3846,7 @@ static long cgroup_create(struct cgroup *parent, struct dentry *dentry,
+ 	return err;
+ }
+ 
+-static int cgroup_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int cgroup_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	struct cgroup *c_parent = dentry->d_parent->d_fsdata;
+ 
+diff --git a/mm/shmem.c b/mm/shmem.c
+index c58594c06569..b8a8ddf069d0 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -1489,7 +1489,7 @@ shmem_mknod(struct inode *dir, struct dentry *dentry, int mode, dev_t dev)
+ 	return error;
+ }
+ 
+-static int shmem_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++static int shmem_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	int error;
+ 
+diff --git a/security/capability.c b/security/capability.c
+index 2984ea4f776f..ddd17892826a 100644
+--- a/security/capability.c
++++ b/security/capability.c
+@@ -148,7 +148,7 @@ static int cap_inode_symlink(struct inode *inode, struct dentry *dentry,
+ }
+ 
+ static int cap_inode_mkdir(struct inode *inode, struct dentry *dentry,
+-			   int mask)
++			   umode_t mask)
+ {
+ 	return 0;
+ }
+diff --git a/security/security.c b/security/security.c
+index e2f684aeb70c..be49eb5768bc 100644
+--- a/security/security.c
++++ b/security/security.c
+@@ -506,7 +506,7 @@ int security_inode_symlink(struct inode *dir, struct dentry *dentry,
+ 	return security_ops->inode_symlink(dir, dentry, old_name);
+ }
+ 
+-int security_inode_mkdir(struct inode *dir, struct dentry *dentry, int mode)
++int security_inode_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ {
+ 	if (unlikely(IS_PRIVATE(dir)))
+ 		return 0;
+diff --git a/security/selinux/hooks.c b/security/selinux/hooks.c
+index 1126c10a5e82..ad74ad24ce2a 100644
+--- a/security/selinux/hooks.c
++++ b/security/selinux/hooks.c
+@@ -2618,7 +2618,7 @@ static int selinux_inode_symlink(struct inode *dir, struct dentry *dentry, const
+ 	return may_create(dir, dentry, SECCLASS_LNK_FILE);
+ }
+ 
+-static int selinux_inode_mkdir(struct inode *dir, struct dentry *dentry, int mask)
++static int selinux_inode_mkdir(struct inode *dir, struct dentry *dentry, umode_t mask)
+ {
+ 	return may_create(dir, dentry, SECCLASS_DIR);
+ }
+-- 
+2.17.0
+

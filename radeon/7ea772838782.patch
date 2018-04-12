@@ -1,0 +1,571 @@
+From 7ea7728387820a21a89a7c3845dbe60926f82dc4 Mon Sep 17 00:00:00 2001
+From: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+Date: Tue, 7 Jun 2016 12:49:30 +0200
+Subject: [PATCH] drm/core: Change declaration for gamma_set.
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Change return value to int to propagate errors from gamma_set,
+and remove start parameter. Updates always use the full size,
+and some drivers even ignore the start parameter altogether.
+
+This is needed for atomic drivers, where an atomic commit can
+fail with -EINTR or -ENOMEM and should be restarted. This is already
+and issue for drm_atomic_helper_legacy_set_gamma, which this patch
+fixes up.
+
+Changes since v1:
+- Fix compiler warning. (Emil)
+- Fix commit message (Daniel)
+
+Cc: Alex Deucher <alexander.deucher@amd.com>
+Acked-by: Alex Deucher <alexander.deucher@amd.com>
+Cc: Christian König <christian.koenig@amd.com>
+Cc: David Airlie <airlied@linux.ie>
+Cc: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Cc: Ben Skeggs <bskeggs@redhat.com>
+Cc: Eric Anholt <eric@anholt.net>
+Cc: VMware Graphics <linux-graphics-maintainer@vmware.com>
+Cc: Mathieu Larouche <mathieu.larouche@matrox.com>
+Cc: Thierry Reding <treding@nvidia.com>
+Acked-by: Patrik Jakobsson <patrik.r.jakobsson@gmail.com>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@linux.intel.com>
+[danvet: Improve commit message a bit more, mention that this fixes
+the helper.]
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Link: http://patchwork.freedesktop.org/patch/msgid/742944bc-9f41-1acb-df4f-0fd4c8a10168@linux.intel.com
+---
+ drivers/gpu/drm/amd/amdgpu/dce_v10_0.c  | 10 ++++++----
+ drivers/gpu/drm/amd/amdgpu/dce_v11_0.c  | 10 ++++++----
+ drivers/gpu/drm/amd/amdgpu/dce_v8_0.c   | 10 ++++++----
+ drivers/gpu/drm/ast/ast_mode.c          | 10 ++++++----
+ drivers/gpu/drm/cirrus/cirrus_mode.c    |  8 +++++---
+ drivers/gpu/drm/drm_atomic_helper.c     | 13 ++++++-------
+ drivers/gpu/drm/drm_crtc.c              |  2 +-
+ drivers/gpu/drm/drm_fb_helper.c         |  2 +-
+ drivers/gpu/drm/gma500/gma_display.c    |  9 +++++----
+ drivers/gpu/drm/gma500/gma_display.h    |  4 ++--
+ drivers/gpu/drm/mgag200/mgag200_mode.c  |  9 +++++----
+ drivers/gpu/drm/nouveau/dispnv04/crtc.c | 12 +++++++-----
+ drivers/gpu/drm/nouveau/nv50_display.c  |  9 +++++----
+ drivers/gpu/drm/radeon/radeon_display.c | 11 +++++++----
+ drivers/gpu/drm/vc4/vc4_crtc.c          |  8 +++++---
+ drivers/gpu/drm/vmwgfx/vmwgfx_kms.c     |  8 +++++---
+ drivers/gpu/drm/vmwgfx/vmwgfx_kms.h     |  4 ++--
+ include/drm/drm_atomic_helper.h         |  6 +++---
+ include/drm/drm_crtc.h                  |  4 ++--
+ 19 files changed, 85 insertions(+), 64 deletions(-)
+
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+index 7e57447bf5f4..112e358f0f9b 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+@@ -2667,19 +2667,21 @@ static void dce_v10_0_cursor_reset(struct drm_crtc *crtc)
+ 	}
+ }
+ 
+-static void dce_v10_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				    u16 *blue, uint32_t start, uint32_t size)
++static int dce_v10_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++				    u16 *blue, uint32_t size)
+ {
+ 	struct amdgpu_crtc *amdgpu_crtc = to_amdgpu_crtc(crtc);
+-	int end = (start + size > 256) ? 256 : start + size, i;
++	int i;
+ 
+ 	/* userspace palettes are always correct as is */
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		amdgpu_crtc->lut_r[i] = red[i] >> 6;
+ 		amdgpu_crtc->lut_g[i] = green[i] >> 6;
+ 		amdgpu_crtc->lut_b[i] = blue[i] >> 6;
+ 	}
+ 	dce_v10_0_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ static void dce_v10_0_crtc_destroy(struct drm_crtc *crtc)
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+index da101551960b..b522fa2435a8 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+@@ -2678,19 +2678,21 @@ static void dce_v11_0_cursor_reset(struct drm_crtc *crtc)
+ 	}
+ }
+ 
+-static void dce_v11_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				    u16 *blue, uint32_t start, uint32_t size)
++static int dce_v11_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++				    u16 *blue, uint32_t size)
+ {
+ 	struct amdgpu_crtc *amdgpu_crtc = to_amdgpu_crtc(crtc);
+-	int end = (start + size > 256) ? 256 : start + size, i;
++	int i;
+ 
+ 	/* userspace palettes are always correct as is */
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		amdgpu_crtc->lut_r[i] = red[i] >> 6;
+ 		amdgpu_crtc->lut_g[i] = green[i] >> 6;
+ 		amdgpu_crtc->lut_b[i] = blue[i] >> 6;
+ 	}
+ 	dce_v11_0_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ static void dce_v11_0_crtc_destroy(struct drm_crtc *crtc)
+diff --git a/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c b/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+index 41d9bc5f9c0e..b50ed72feedb 100644
+--- a/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
++++ b/drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+@@ -2574,19 +2574,21 @@ static void dce_v8_0_cursor_reset(struct drm_crtc *crtc)
+ 	}
+ }
+ 
+-static void dce_v8_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				    u16 *blue, uint32_t start, uint32_t size)
++static int dce_v8_0_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++				   u16 *blue, uint32_t size)
+ {
+ 	struct amdgpu_crtc *amdgpu_crtc = to_amdgpu_crtc(crtc);
+-	int end = (start + size > 256) ? 256 : start + size, i;
++	int i;
+ 
+ 	/* userspace palettes are always correct as is */
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		amdgpu_crtc->lut_r[i] = red[i] >> 6;
+ 		amdgpu_crtc->lut_g[i] = green[i] >> 6;
+ 		amdgpu_crtc->lut_b[i] = blue[i] >> 6;
+ 	}
+ 	dce_v8_0_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ static void dce_v8_0_crtc_destroy(struct drm_crtc *crtc)
+diff --git a/drivers/gpu/drm/ast/ast_mode.c b/drivers/gpu/drm/ast/ast_mode.c
+index c337922606e3..5957c3e659fe 100644
+--- a/drivers/gpu/drm/ast/ast_mode.c
++++ b/drivers/gpu/drm/ast/ast_mode.c
+@@ -624,19 +624,21 @@ static void ast_crtc_reset(struct drm_crtc *crtc)
+ 
+ }
+ 
+-static void ast_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				 u16 *blue, uint32_t start, uint32_t size)
++static int ast_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++			      u16 *blue, uint32_t size)
+ {
+ 	struct ast_crtc *ast_crtc = to_ast_crtc(crtc);
+-	int end = (start + size > 256) ? 256 : start + size, i;
++	int i;
+ 
+ 	/* userspace palettes are always correct as is */
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		ast_crtc->lut_r[i] = red[i] >> 8;
+ 		ast_crtc->lut_g[i] = green[i] >> 8;
+ 		ast_crtc->lut_b[i] = blue[i] >> 8;
+ 	}
+ 	ast_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ 
+diff --git a/drivers/gpu/drm/cirrus/cirrus_mode.c b/drivers/gpu/drm/cirrus/cirrus_mode.c
+index 0b1a411cb89e..17c915d9a03e 100644
+--- a/drivers/gpu/drm/cirrus/cirrus_mode.c
++++ b/drivers/gpu/drm/cirrus/cirrus_mode.c
+@@ -325,18 +325,20 @@ static void cirrus_crtc_commit(struct drm_crtc *crtc)
+  * use this for 8-bit mode so can't perform smooth fades on deeper modes,
+  * but it's a requirement that we provide the function
+  */
+-static void cirrus_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				  u16 *blue, uint32_t start, uint32_t size)
++static int cirrus_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++				 u16 *blue, uint32_t size)
+ {
+ 	struct cirrus_crtc *cirrus_crtc = to_cirrus_crtc(crtc);
+ 	int i;
+ 
+-	for (i = 0; i < CIRRUS_LUT_SIZE; i++) {
++	for (i = 0; i < size; i++) {
+ 		cirrus_crtc->lut_r[i] = red[i];
+ 		cirrus_crtc->lut_g[i] = green[i];
+ 		cirrus_crtc->lut_b[i] = blue[i];
+ 	}
+ 	cirrus_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ /* Simple cleanup function */
+diff --git a/drivers/gpu/drm/drm_atomic_helper.c b/drivers/gpu/drm/drm_atomic_helper.c
+index 4342f3dfc0e1..191d84f12e67 100644
+--- a/drivers/gpu/drm/drm_atomic_helper.c
++++ b/drivers/gpu/drm/drm_atomic_helper.c
+@@ -2920,16 +2920,15 @@ EXPORT_SYMBOL(drm_atomic_helper_connector_destroy_state);
+  * @red: red correction table
+  * @green: green correction table
+  * @blue: green correction table
+- * @start: first entry, must always be 0
+  * @size: size of the tables
+  *
+  * Implements support for legacy gamma correction table for drivers
+  * that support color management through the DEGAMMA_LUT/GAMMA_LUT
+  * properties.
+  */
+-void drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+-					u16 *red, u16 *green, u16 *blue,
+-					uint32_t start, uint32_t size)
++int drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
++				       u16 *red, u16 *green, u16 *blue,
++				       uint32_t size)
+ {
+ 	struct drm_device *dev = crtc->dev;
+ 	struct drm_mode_config *config = &dev->mode_config;
+@@ -2941,7 +2940,7 @@ void drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+ 
+ 	state = drm_atomic_state_alloc(crtc->dev);
+ 	if (!state)
+-		return;
++		return -ENOMEM;
+ 
+ 	blob = drm_property_create_blob(dev,
+ 					sizeof(struct drm_color_lut) * size,
+@@ -2992,7 +2991,7 @@ void drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+ 
+ 	drm_property_unreference_blob(blob);
+ 
+-	return;
++	return 0;
+ fail:
+ 	if (ret == -EDEADLK)
+ 		goto backoff;
+@@ -3000,7 +2999,7 @@ void drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+ 	drm_atomic_state_free(state);
+ 	drm_property_unreference_blob(blob);
+ 
+-	return;
++	return ret;
+ backoff:
+ 	drm_atomic_state_clear(state);
+ 	drm_atomic_legacy_backoff(state);
+diff --git a/drivers/gpu/drm/drm_crtc.c b/drivers/gpu/drm/drm_crtc.c
+index ba6174fc117c..889e01f1b3f2 100644
+--- a/drivers/gpu/drm/drm_crtc.c
++++ b/drivers/gpu/drm/drm_crtc.c
+@@ -5172,7 +5172,7 @@ int drm_mode_gamma_set_ioctl(struct drm_device *dev,
+ 		goto out;
+ 	}
+ 
+-	crtc->funcs->gamma_set(crtc, r_base, g_base, b_base, 0, crtc->gamma_size);
++	ret = crtc->funcs->gamma_set(crtc, r_base, g_base, b_base, crtc->gamma_size);
+ 
+ out:
+ 	drm_modeset_unlock_all(dev);
+diff --git a/drivers/gpu/drm/drm_fb_helper.c b/drivers/gpu/drm/drm_fb_helper.c
+index 7590df5e2e72..58ed6e6d4f12 100644
+--- a/drivers/gpu/drm/drm_fb_helper.c
++++ b/drivers/gpu/drm/drm_fb_helper.c
+@@ -227,7 +227,7 @@ static void drm_fb_helper_restore_lut_atomic(struct drm_crtc *crtc)
+ 	g_base = r_base + crtc->gamma_size;
+ 	b_base = g_base + crtc->gamma_size;
+ 
+-	crtc->funcs->gamma_set(crtc, r_base, g_base, b_base, 0, crtc->gamma_size);
++	crtc->funcs->gamma_set(crtc, r_base, g_base, b_base, crtc->gamma_size);
+ }
+ 
+ /**
+diff --git a/drivers/gpu/drm/gma500/gma_display.c b/drivers/gpu/drm/gma500/gma_display.c
+index c95406e6f44d..5b636bf0b467 100644
+--- a/drivers/gpu/drm/gma500/gma_display.c
++++ b/drivers/gpu/drm/gma500/gma_display.c
+@@ -175,20 +175,21 @@ void gma_crtc_load_lut(struct drm_crtc *crtc)
+ 	}
+ }
+ 
+-void gma_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green, u16 *blue,
+-			u32 start, u32 size)
++int gma_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green, u16 *blue,
++		       u32 size)
+ {
+ 	struct gma_crtc *gma_crtc = to_gma_crtc(crtc);
+ 	int i;
+-	int end = (start + size > 256) ? 256 : start + size;
+ 
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		gma_crtc->lut_r[i] = red[i] >> 8;
+ 		gma_crtc->lut_g[i] = green[i] >> 8;
+ 		gma_crtc->lut_b[i] = blue[i] >> 8;
+ 	}
+ 
+ 	gma_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ /**
+diff --git a/drivers/gpu/drm/gma500/gma_display.h b/drivers/gpu/drm/gma500/gma_display.h
+index b2491c65f053..e72dd08b701b 100644
+--- a/drivers/gpu/drm/gma500/gma_display.h
++++ b/drivers/gpu/drm/gma500/gma_display.h
+@@ -72,8 +72,8 @@ extern int gma_crtc_cursor_set(struct drm_crtc *crtc,
+ 			       uint32_t width, uint32_t height);
+ extern int gma_crtc_cursor_move(struct drm_crtc *crtc, int x, int y);
+ extern void gma_crtc_load_lut(struct drm_crtc *crtc);
+-extern void gma_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-			       u16 *blue, u32 start, u32 size);
++extern int gma_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++			      u16 *blue, u32 size);
+ extern void gma_crtc_dpms(struct drm_crtc *crtc, int mode);
+ extern void gma_crtc_prepare(struct drm_crtc *crtc);
+ extern void gma_crtc_commit(struct drm_crtc *crtc);
+diff --git a/drivers/gpu/drm/mgag200/mgag200_mode.c b/drivers/gpu/drm/mgag200/mgag200_mode.c
+index 14e64e08909e..f6d5892d03f1 100644
+--- a/drivers/gpu/drm/mgag200/mgag200_mode.c
++++ b/drivers/gpu/drm/mgag200/mgag200_mode.c
+@@ -1344,19 +1344,20 @@ static void mga_crtc_commit(struct drm_crtc *crtc)
+  * use this for 8-bit mode so can't perform smooth fades on deeper modes,
+  * but it's a requirement that we provide the function
+  */
+-static void mga_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				  u16 *blue, uint32_t start, uint32_t size)
++static int mga_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++			      u16 *blue, uint32_t size)
+ {
+ 	struct mga_crtc *mga_crtc = to_mga_crtc(crtc);
+-	int end = (start + size > MGAG200_LUT_SIZE) ? MGAG200_LUT_SIZE : start + size;
+ 	int i;
+ 
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		mga_crtc->lut_r[i] = red[i] >> 8;
+ 		mga_crtc->lut_g[i] = green[i] >> 8;
+ 		mga_crtc->lut_b[i] = blue[i] >> 8;
+ 	}
+ 	mga_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ /* Simple cleanup function */
+diff --git a/drivers/gpu/drm/nouveau/dispnv04/crtc.c b/drivers/gpu/drm/nouveau/dispnv04/crtc.c
+index 6f318c54da33..0cb7a18cde26 100644
+--- a/drivers/gpu/drm/nouveau/dispnv04/crtc.c
++++ b/drivers/gpu/drm/nouveau/dispnv04/crtc.c
+@@ -785,14 +785,14 @@ nv_crtc_disable(struct drm_crtc *crtc)
+ 	nouveau_bo_ref(NULL, &disp->image[nv_crtc->index]);
+ }
+ 
+-static void
+-nv_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b, uint32_t start,
++static int
++nv_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
+ 		  uint32_t size)
+ {
+-	int end = (start + size > 256) ? 256 : start + size, i;
+ 	struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
++	int i;
+ 
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		nv_crtc->lut.r[i] = r[i];
+ 		nv_crtc->lut.g[i] = g[i];
+ 		nv_crtc->lut.b[i] = b[i];
+@@ -805,10 +805,12 @@ nv_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b, uint32_t start,
+ 	 */
+ 	if (!nv_crtc->base.primary->fb) {
+ 		nv_crtc->lut.depth = 0;
+-		return;
++		return 0;
+ 	}
+ 
+ 	nv_crtc_gamma_load(crtc);
++
++	return 0;
+ }
+ 
+ static int
+diff --git a/drivers/gpu/drm/nouveau/nv50_display.c b/drivers/gpu/drm/nouveau/nv50_display.c
+index 3ffc2b0057bf..7a7788212df7 100644
+--- a/drivers/gpu/drm/nouveau/nv50_display.c
++++ b/drivers/gpu/drm/nouveau/nv50_display.c
+@@ -1346,21 +1346,22 @@ nv50_crtc_cursor_move(struct drm_crtc *crtc, int x, int y)
+ 	return 0;
+ }
+ 
+-static void
++static int
+ nv50_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
+-		    uint32_t start, uint32_t size)
++		    uint32_t size)
+ {
+ 	struct nouveau_crtc *nv_crtc = nouveau_crtc(crtc);
+-	u32 end = min_t(u32, start + size, 256);
+ 	u32 i;
+ 
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		nv_crtc->lut.r[i] = r[i];
+ 		nv_crtc->lut.g[i] = g[i];
+ 		nv_crtc->lut.b[i] = b[i];
+ 	}
+ 
+ 	nv50_crtc_lut_load(crtc);
++
++	return 0;
+ }
+ 
+ static void
+diff --git a/drivers/gpu/drm/radeon/radeon_display.c b/drivers/gpu/drm/radeon/radeon_display.c
+index 2fb18f13395c..e85c7a2f565b 100644
+--- a/drivers/gpu/drm/radeon/radeon_display.c
++++ b/drivers/gpu/drm/radeon/radeon_display.c
+@@ -231,19 +231,21 @@ void radeon_crtc_fb_gamma_get(struct drm_crtc *crtc, u16 *red, u16 *green,
+ 	*blue = radeon_crtc->lut_b[regno] << 6;
+ }
+ 
+-static void radeon_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
+-				  u16 *blue, uint32_t start, uint32_t size)
++static int radeon_crtc_gamma_set(struct drm_crtc *crtc, u16 *red, u16 *green,
++				 u16 *blue, uint32_t size)
+ {
+ 	struct radeon_crtc *radeon_crtc = to_radeon_crtc(crtc);
+-	int end = (start + size > 256) ? 256 : start + size, i;
++	int i;
+ 
+ 	/* userspace palettes are always correct as is */
+-	for (i = start; i < end; i++) {
++	for (i = 0; i < size; i++) {
+ 		radeon_crtc->lut_r[i] = red[i] >> 6;
+ 		radeon_crtc->lut_g[i] = green[i] >> 6;
+ 		radeon_crtc->lut_b[i] = blue[i] >> 6;
+ 	}
+ 	radeon_crtc_load_lut(crtc);
++
++	return 0;
+ }
+ 
+ static void radeon_crtc_destroy(struct drm_crtc *crtc)
+@@ -688,6 +690,7 @@ radeon_crtc_set_config(struct drm_mode_set *set)
+ 	pm_runtime_put_autosuspend(dev->dev);
+ 	return ret;
+ }
++
+ static const struct drm_crtc_funcs radeon_crtc_funcs = {
+ 	.cursor_set2 = radeon_crtc_cursor_set2,
+ 	.cursor_move = radeon_crtc_cursor_move,
+diff --git a/drivers/gpu/drm/vc4/vc4_crtc.c b/drivers/gpu/drm/vc4/vc4_crtc.c
+index ba2e373ec901..4c0f26a644a3 100644
+--- a/drivers/gpu/drm/vc4/vc4_crtc.c
++++ b/drivers/gpu/drm/vc4/vc4_crtc.c
+@@ -175,20 +175,22 @@ vc4_crtc_lut_load(struct drm_crtc *crtc)
+ 		HVS_WRITE(SCALER_GAMDATA, vc4_crtc->lut_b[i]);
+ }
+ 
+-static void
++static int
+ vc4_crtc_gamma_set(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
+-		   uint32_t start, uint32_t size)
++		   uint32_t size)
+ {
+ 	struct vc4_crtc *vc4_crtc = to_vc4_crtc(crtc);
+ 	u32 i;
+ 
+-	for (i = start; i < start + size; i++) {
++	for (i = 0; i < size; i++) {
+ 		vc4_crtc->lut_r[i] = r[i] >> 8;
+ 		vc4_crtc->lut_g[i] = g[i] >> 8;
+ 		vc4_crtc->lut_b[i] = b[i] >> 8;
+ 	}
+ 
+ 	vc4_crtc_lut_load(crtc);
++
++	return 0;
+ }
+ 
+ static u32 vc4_get_fifo_full_level(u32 format)
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+index 55231cce73a0..8a69d4da40b5 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+@@ -1404,9 +1404,9 @@ static int vmw_du_update_layout(struct vmw_private *dev_priv, unsigned num,
+ 	return 0;
+ }
+ 
+-void vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
+-			   u16 *r, u16 *g, u16 *b,
+-			   uint32_t start, uint32_t size)
++int vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
++			  u16 *r, u16 *g, u16 *b,
++			  uint32_t size)
+ {
+ 	struct vmw_private *dev_priv = vmw_priv(crtc->dev);
+ 	int i;
+@@ -1418,6 +1418,8 @@ void vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
+ 		vmw_write(dev_priv, SVGA_PALETTE_BASE + i * 3 + 1, g[i] >> 8);
+ 		vmw_write(dev_priv, SVGA_PALETTE_BASE + i * 3 + 2, b[i] >> 8);
+ 	}
++
++	return 0;
+ }
+ 
+ int vmw_du_connector_dpms(struct drm_connector *connector, int mode)
+diff --git a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+index 57203212c501..ff4803c107bc 100644
+--- a/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
++++ b/drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+@@ -195,9 +195,9 @@ struct vmw_display_unit {
+ void vmw_du_cleanup(struct vmw_display_unit *du);
+ void vmw_du_crtc_save(struct drm_crtc *crtc);
+ void vmw_du_crtc_restore(struct drm_crtc *crtc);
+-void vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
++int vmw_du_crtc_gamma_set(struct drm_crtc *crtc,
+ 			   u16 *r, u16 *g, u16 *b,
+-			   uint32_t start, uint32_t size);
++			   uint32_t size);
+ int vmw_du_crtc_cursor_set2(struct drm_crtc *crtc, struct drm_file *file_priv,
+ 			    uint32_t handle, uint32_t width, uint32_t height,
+ 			    int32_t hot_x, int32_t hot_y);
+diff --git a/include/drm/drm_atomic_helper.h b/include/drm/drm_atomic_helper.h
+index b03bd83703b4..1877a7c18d8e 100644
+--- a/include/drm/drm_atomic_helper.h
++++ b/include/drm/drm_atomic_helper.h
+@@ -147,9 +147,9 @@ void
+ __drm_atomic_helper_connector_destroy_state(struct drm_connector_state *state);
+ void drm_atomic_helper_connector_destroy_state(struct drm_connector *connector,
+ 					  struct drm_connector_state *state);
+-void drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
+-					u16 *red, u16 *green, u16 *blue,
+-					uint32_t start, uint32_t size);
++int drm_atomic_helper_legacy_gamma_set(struct drm_crtc *crtc,
++				       u16 *red, u16 *green, u16 *blue,
++				       uint32_t size);
+ 
+ /**
+  * drm_atomic_crtc_for_each_plane - iterate over planes currently attached to CRTC
+diff --git a/include/drm/drm_crtc.h b/include/drm/drm_crtc.h
+index f59d8a2d8920..411be4f45506 100644
+--- a/include/drm/drm_crtc.h
++++ b/include/drm/drm_crtc.h
+@@ -479,8 +479,8 @@ struct drm_crtc_funcs {
+ 	 * going on, which should eventually be unified to just one set of
+ 	 * hooks.
+ 	 */
+-	void (*gamma_set)(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
+-			  uint32_t start, uint32_t size);
++	int (*gamma_set)(struct drm_crtc *crtc, u16 *r, u16 *g, u16 *b,
++			 uint32_t size);
+ 
+ 	/**
+ 	 * @destroy:
+-- 
+2.17.0
+

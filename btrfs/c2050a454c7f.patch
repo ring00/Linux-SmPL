@@ -1,0 +1,805 @@
+From c2050a454c7f123d7a57fa1d76ff61bd43643abb Mon Sep 17 00:00:00 2001
+From: Deepa Dinamani <deepa.kernel@gmail.com>
+Date: Wed, 14 Sep 2016 07:48:06 -0700
+Subject: [PATCH] fs: Replace current_fs_time() with current_time()
+
+current_fs_time() uses struct super_block* as an argument.
+As per Linus's suggestion, this is changed to take struct
+inode* as a parameter instead. This is because the function
+is primarily meant for vfs inode timestamps.
+Also the function was renamed as per Arnd's suggestion.
+
+Change all calls to current_fs_time() to use the new
+current_time() function instead. current_fs_time() will be
+deleted.
+
+Signed-off-by: Deepa Dinamani <deepa.kernel@gmail.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ drivers/char/sonypi.c              |  2 +-
+ drivers/platform/x86/sony-laptop.c |  2 +-
+ fs/attr.c                          |  2 +-
+ fs/bad_inode.c                     |  2 +-
+ fs/binfmt_misc.c                   |  2 +-
+ fs/btrfs/file.c                    |  6 +++---
+ fs/btrfs/inode.c                   | 22 +++++++++++-----------
+ fs/btrfs/ioctl.c                   |  8 ++++----
+ fs/btrfs/transaction.c             |  4 ++--
+ fs/btrfs/xattr.c                   |  2 +-
+ fs/ceph/file.c                     |  4 ++--
+ fs/ceph/inode.c                    |  2 +-
+ fs/ceph/xattr.c                    |  2 +-
+ fs/cifs/file.c                     |  4 ++--
+ fs/configfs/inode.c                |  6 +++---
+ fs/debugfs/inode.c                 |  2 +-
+ fs/f2fs/xattr.c                    |  2 +-
+ fs/fat/file.c                      |  2 +-
+ fs/fuse/dir.c                      |  2 +-
+ fs/inode.c                         |  6 +++---
+ fs/jfs/namei.c                     |  2 +-
+ fs/kernfs/inode.c                  |  2 +-
+ fs/locks.c                         |  2 +-
+ fs/nfsd/blocklayout.c              |  2 +-
+ fs/ntfs/inode.c                    |  2 +-
+ fs/ntfs/mft.c                      |  2 +-
+ fs/orangefs/namei.c                | 10 +++++-----
+ fs/udf/ialloc.c                    |  2 +-
+ fs/udf/inode.c                     |  4 ++--
+ fs/udf/namei.c                     | 20 ++++++++++----------
+ fs/xfs/xfs_acl.c                   |  2 +-
+ fs/xfs/xfs_inode.c                 |  2 +-
+ fs/xfs/xfs_iops.c                  |  2 +-
+ fs/xfs/xfs_trans_inode.c           |  2 +-
+ 34 files changed, 70 insertions(+), 70 deletions(-)
+
+diff --git a/drivers/char/sonypi.c b/drivers/char/sonypi.c
+index e496daefe9e0..719c5b4eed39 100644
+--- a/drivers/char/sonypi.c
++++ b/drivers/char/sonypi.c
+@@ -934,7 +934,7 @@ static ssize_t sonypi_misc_read(struct file *file, char __user *buf,
+ 
+ 	if (ret > 0) {
+ 		struct inode *inode = file_inode(file);
+-		inode->i_atime = current_fs_time(inode->i_sb);
++		inode->i_atime = current_time(inode);
+ 	}
+ 
+ 	return ret;
+diff --git a/drivers/platform/x86/sony-laptop.c b/drivers/platform/x86/sony-laptop.c
+index 1dba3598cfcb..c890a49587e4 100644
+--- a/drivers/platform/x86/sony-laptop.c
++++ b/drivers/platform/x86/sony-laptop.c
+@@ -4116,7 +4116,7 @@ static ssize_t sonypi_misc_read(struct file *file, char __user *buf,
+ 
+ 	if (ret > 0) {
+ 		struct inode *inode = file_inode(file);
+-		inode->i_atime = current_fs_time(inode->i_sb);
++		inode->i_atime = current_time(inode);
+ 	}
+ 
+ 	return ret;
+diff --git a/fs/attr.c b/fs/attr.c
+index 42bb42bb3c72..236d11300216 100644
+--- a/fs/attr.c
++++ b/fs/attr.c
+@@ -209,7 +209,7 @@ int notify_change(struct dentry * dentry, struct iattr * attr, struct inode **de
+ 			inode->i_flags &= ~S_NOSEC;
+ 	}
+ 
+-	now = current_fs_time(inode->i_sb);
++	now = current_time(inode);
+ 
+ 	attr->ia_ctime = now;
+ 	if (!(ia_valid & ATTR_ATIME_SET))
+diff --git a/fs/bad_inode.c b/fs/bad_inode.c
+index 3ba385eaa26e..3c8ec390b446 100644
+--- a/fs/bad_inode.c
++++ b/fs/bad_inode.c
+@@ -173,7 +173,7 @@ void make_bad_inode(struct inode *inode)
+ 
+ 	inode->i_mode = S_IFREG;
+ 	inode->i_atime = inode->i_mtime = inode->i_ctime =
+-		current_fs_time(inode->i_sb);
++		current_time(inode);
+ 	inode->i_op = &bad_inode_ops;	
+ 	inode->i_fop = &bad_file_ops;	
+ }
+diff --git a/fs/binfmt_misc.c b/fs/binfmt_misc.c
+index 6103a6362ccd..9b4688ab1d8e 100644
+--- a/fs/binfmt_misc.c
++++ b/fs/binfmt_misc.c
+@@ -584,7 +584,7 @@ static struct inode *bm_get_inode(struct super_block *sb, int mode)
+ 		inode->i_ino = get_next_ino();
+ 		inode->i_mode = mode;
+ 		inode->i_atime = inode->i_mtime = inode->i_ctime =
+-			current_fs_time(inode->i_sb);
++			current_time(inode);
+ 	}
+ 	return inode;
+ }
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index fea31a4a6e36..dad53ce54d91 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1757,7 +1757,7 @@ static void update_time_for_write(struct inode *inode)
+ 	if (IS_NOCMTIME(inode))
+ 		return;
+ 
+-	now = current_fs_time(inode->i_sb);
++	now = current_time(inode);
+ 	if (!timespec_equal(&inode->i_mtime, &now))
+ 		inode->i_mtime = now;
+ 
+@@ -2578,7 +2578,7 @@ static int btrfs_punch_hole(struct inode *inode, loff_t offset, loff_t len)
+ 		goto out_free;
+ 
+ 	inode_inc_iversion(inode);
+-	inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_mtime = inode->i_ctime = current_time(inode);
+ 
+ 	trans->block_rsv = &root->fs_info->trans_block_rsv;
+ 	ret = btrfs_update_inode(trans, root, inode);
+@@ -2842,7 +2842,7 @@ static long btrfs_fallocate(struct file *file, int mode,
+ 		if (IS_ERR(trans)) {
+ 			ret = PTR_ERR(trans);
+ 		} else {
+-			inode->i_ctime = current_fs_time(inode->i_sb);
++			inode->i_ctime = current_time(inode);
+ 			i_size_write(inode, actual_end);
+ 			btrfs_ordered_update_i_size(inode, actual_end, NULL);
+ 			ret = btrfs_update_inode(trans, root, inode);
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index e6811c42e41e..2924774343e3 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -4059,7 +4059,7 @@ static int __btrfs_unlink_inode(struct btrfs_trans_handle *trans,
+ 	inode_inc_iversion(inode);
+ 	inode_inc_iversion(dir);
+ 	inode->i_ctime = dir->i_mtime =
+-		dir->i_ctime = current_fs_time(inode->i_sb);
++		dir->i_ctime = current_time(inode);
+ 	ret = btrfs_update_inode(trans, root, dir);
+ out:
+ 	return ret;
+@@ -4202,7 +4202,7 @@ int btrfs_unlink_subvol(struct btrfs_trans_handle *trans,
+ 
+ 	btrfs_i_size_write(dir, dir->i_size - name_len * 2);
+ 	inode_inc_iversion(dir);
+-	dir->i_mtime = dir->i_ctime = current_fs_time(dir->i_sb);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	ret = btrfs_update_inode_fallback(trans, root, dir);
+ 	if (ret)
+ 		btrfs_abort_transaction(trans, ret);
+@@ -4965,7 +4965,7 @@ static int btrfs_setsize(struct inode *inode, struct iattr *attr)
+ 		inode_inc_iversion(inode);
+ 		if (!(mask & (ATTR_CTIME | ATTR_MTIME)))
+ 			inode->i_ctime = inode->i_mtime =
+-				current_fs_time(inode->i_sb);
++				current_time(inode);
+ 	}
+ 
+ 	if (newsize > oldsize) {
+@@ -5672,7 +5672,7 @@ static struct inode *new_simple_dir(struct super_block *s,
+ 	inode->i_op = &btrfs_dir_ro_inode_operations;
+ 	inode->i_fop = &simple_dir_operations;
+ 	inode->i_mode = S_IFDIR | S_IRUGO | S_IWUSR | S_IXUGO;
+-	inode->i_mtime = current_fs_time(inode->i_sb);
++	inode->i_mtime = current_time(inode);
+ 	inode->i_atime = inode->i_mtime;
+ 	inode->i_ctime = inode->i_mtime;
+ 	BTRFS_I(inode)->i_otime = inode->i_mtime;
+@@ -6258,7 +6258,7 @@ static struct inode *btrfs_new_inode(struct btrfs_trans_handle *trans,
+ 	inode_init_owner(inode, dir, mode);
+ 	inode_set_bytes(inode, 0);
+ 
+-	inode->i_mtime = current_fs_time(inode->i_sb);
++	inode->i_mtime = current_time(inode);
+ 	inode->i_atime = inode->i_mtime;
+ 	inode->i_ctime = inode->i_mtime;
+ 	BTRFS_I(inode)->i_otime = inode->i_mtime;
+@@ -6372,7 +6372,7 @@ int btrfs_add_link(struct btrfs_trans_handle *trans,
+ 			   name_len * 2);
+ 	inode_inc_iversion(parent_inode);
+ 	parent_inode->i_mtime = parent_inode->i_ctime =
+-		current_fs_time(parent_inode->i_sb);
++		current_time(parent_inode);
+ 	ret = btrfs_update_inode(trans, root, parent_inode);
+ 	if (ret)
+ 		btrfs_abort_transaction(trans, ret);
+@@ -6590,7 +6590,7 @@ static int btrfs_link(struct dentry *old_dentry, struct inode *dir,
+ 	BTRFS_I(inode)->dir_index = 0ULL;
+ 	inc_nlink(inode);
+ 	inode_inc_iversion(inode);
+-	inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_ctime = current_time(inode);
+ 	ihold(inode);
+ 	set_bit(BTRFS_INODE_COPY_EVERYTHING, &BTRFS_I(inode)->runtime_flags);
+ 
+@@ -9492,7 +9492,7 @@ static int btrfs_rename_exchange(struct inode *old_dir,
+ 	struct btrfs_root *dest = BTRFS_I(new_dir)->root;
+ 	struct inode *new_inode = new_dentry->d_inode;
+ 	struct inode *old_inode = old_dentry->d_inode;
+-	struct timespec ctime = CURRENT_TIME;
++	struct timespec ctime = current_time(old_inode);
+ 	struct dentry *parent;
+ 	u64 old_ino = btrfs_ino(old_inode);
+ 	u64 new_ino = btrfs_ino(new_inode);
+@@ -9860,7 +9860,7 @@ static int btrfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	inode_inc_iversion(old_inode);
+ 	old_dir->i_ctime = old_dir->i_mtime =
+ 	new_dir->i_ctime = new_dir->i_mtime =
+-	old_inode->i_ctime = current_fs_time(old_dir->i_sb);
++	old_inode->i_ctime = current_time(old_dir);
+ 
+ 	if (old_dentry->d_parent != new_dentry->d_parent)
+ 		btrfs_record_unlink_dir(trans, old_dir, old_inode, 1);
+@@ -9885,7 +9885,7 @@ static int btrfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 
+ 	if (new_inode) {
+ 		inode_inc_iversion(new_inode);
+-		new_inode->i_ctime = current_fs_time(new_inode->i_sb);
++		new_inode->i_ctime = current_time(new_inode);
+ 		if (unlikely(btrfs_ino(new_inode) ==
+ 			     BTRFS_EMPTY_SUBVOL_DIR_OBJECTID)) {
+ 			root_objectid = BTRFS_I(new_inode)->location.objectid;
+@@ -10403,7 +10403,7 @@ static int __btrfs_prealloc_file_range(struct inode *inode, int mode,
+ 		*alloc_hint = ins.objectid + ins.offset;
+ 
+ 		inode_inc_iversion(inode);
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ 		BTRFS_I(inode)->flags |= BTRFS_INODE_PREALLOC;
+ 		if (!(mode & FALLOC_FL_KEEP_SIZE) &&
+ 		    (actual_len > inode->i_size) &&
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index b2a2da5893af..c48e37444717 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -349,7 +349,7 @@ static int btrfs_ioctl_setflags(struct file *file, void __user *arg)
+ 
+ 	btrfs_update_iflags(inode);
+ 	inode_inc_iversion(inode);
+-	inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_ctime = current_time(inode);
+ 	ret = btrfs_update_inode(trans, root, inode);
+ 
+ 	btrfs_end_transaction(trans, root);
+@@ -445,7 +445,7 @@ static noinline int create_subvol(struct inode *dir,
+ 	struct btrfs_root *root = BTRFS_I(dir)->root;
+ 	struct btrfs_root *new_root;
+ 	struct btrfs_block_rsv block_rsv;
+-	struct timespec cur_time = current_fs_time(dir->i_sb);
++	struct timespec cur_time = current_time(dir);
+ 	struct inode *inode;
+ 	int ret;
+ 	int err;
+@@ -3279,7 +3279,7 @@ static int clone_finish_inode_update(struct btrfs_trans_handle *trans,
+ 
+ 	inode_inc_iversion(inode);
+ 	if (!no_time_update)
+-		inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_mtime = inode->i_ctime = current_time(inode);
+ 	/*
+ 	 * We round up to the block size at eof when determining which
+ 	 * extents to clone above, but shouldn't round up the file size.
+@@ -5094,7 +5094,7 @@ static long _btrfs_ioctl_set_received_subvol(struct file *file,
+ 	struct btrfs_root *root = BTRFS_I(inode)->root;
+ 	struct btrfs_root_item *root_item = &root->root_item;
+ 	struct btrfs_trans_handle *trans;
+-	struct timespec ct = current_fs_time(inode->i_sb);
++	struct timespec ct = current_time(inode);
+ 	int ret = 0;
+ 	int received_uuid_changed;
+ 
+diff --git a/fs/btrfs/transaction.c b/fs/btrfs/transaction.c
+index 95d41919d034..c294313ea2c8 100644
+--- a/fs/btrfs/transaction.c
++++ b/fs/btrfs/transaction.c
+@@ -1474,7 +1474,7 @@ static noinline int create_pending_snapshot(struct btrfs_trans_handle *trans,
+ 	parent_root = BTRFS_I(parent_inode)->root;
+ 	record_root_in_trans(trans, parent_root, 0);
+ 
+-	cur_time = current_fs_time(parent_inode->i_sb);
++	cur_time = current_time(parent_inode);
+ 
+ 	/*
+ 	 * insert the directory item
+@@ -1630,7 +1630,7 @@ static noinline int create_pending_snapshot(struct btrfs_trans_handle *trans,
+ 	btrfs_i_size_write(parent_inode, parent_inode->i_size +
+ 					 dentry->d_name.len * 2);
+ 	parent_inode->i_mtime = parent_inode->i_ctime =
+-		current_fs_time(parent_inode->i_sb);
++		current_time(parent_inode);
+ 	ret = btrfs_update_inode_fallback(trans, parent_root, parent_inode);
+ 	if (ret) {
+ 		btrfs_abort_transaction(trans, ret);
+diff --git a/fs/btrfs/xattr.c b/fs/btrfs/xattr.c
+index d1a177a3dbe8..fccbf5567e78 100644
+--- a/fs/btrfs/xattr.c
++++ b/fs/btrfs/xattr.c
+@@ -252,7 +252,7 @@ int __btrfs_setxattr(struct btrfs_trans_handle *trans,
+ 		goto out;
+ 
+ 	inode_inc_iversion(inode);
+-	inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_ctime = current_time(inode);
+ 	set_bit(BTRFS_INODE_COPY_EVERYTHING, &BTRFS_I(inode)->runtime_flags);
+ 	ret = btrfs_update_inode(trans, root, inode);
+ 	BUG_ON(ret);
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 0f5375d8e030..a37a343fbd0f 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -886,7 +886,7 @@ ceph_direct_read_write(struct kiocb *iocb, struct iov_iter *iter,
+ 	int num_pages = 0;
+ 	int flags;
+ 	int ret;
+-	struct timespec mtime = current_fs_time(inode->i_sb);
++	struct timespec mtime = current_time(inode);
+ 	size_t count = iov_iter_count(iter);
+ 	loff_t pos = iocb->ki_pos;
+ 	bool write = iov_iter_rw(iter) == WRITE;
+@@ -1091,7 +1091,7 @@ ceph_sync_write(struct kiocb *iocb, struct iov_iter *from, loff_t pos,
+ 	int flags;
+ 	int check_caps = 0;
+ 	int ret;
+-	struct timespec mtime = current_fs_time(inode->i_sb);
++	struct timespec mtime = current_time(inode);
+ 	size_t count = iov_iter_count(from);
+ 
+ 	if (ceph_snap(file_inode(file)) != CEPH_NOSNAP)
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index dd3a6dbf71eb..ca1ccf741771 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -2080,7 +2080,7 @@ int __ceph_setattr(struct inode *inode, struct iattr *attr)
+ 	if (dirtied) {
+ 		inode_dirty_flags = __ceph_mark_dirty_caps(ci, dirtied,
+ 							   &prealloc_cf);
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ 	}
+ 
+ 	release &= issued;
+diff --git a/fs/ceph/xattr.c b/fs/ceph/xattr.c
+index adc231892b0d..40b703217977 100644
+--- a/fs/ceph/xattr.c
++++ b/fs/ceph/xattr.c
+@@ -1034,7 +1034,7 @@ int __ceph_setxattr(struct inode *inode, const char *name,
+ 		dirty = __ceph_mark_dirty_caps(ci, CEPH_CAP_XATTR_EXCL,
+ 					       &prealloc_cf);
+ 		ci->i_xattrs.dirty = true;
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ 	}
+ 
+ 	spin_unlock(&ci->i_ceph_lock);
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 579e41b350a2..00b6bf08cdba 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -1878,7 +1878,7 @@ static int cifs_partialpagewrite(struct page *page, unsigned from, unsigned to)
+ 					   write_data, to - from, &offset);
+ 		cifsFileInfo_put(open_file);
+ 		/* Does mm or vfs already set times? */
+-		inode->i_atime = inode->i_mtime = current_fs_time(inode->i_sb);
++		inode->i_atime = inode->i_mtime = current_time(inode);
+ 		if ((bytes_written > 0) && (offset))
+ 			rc = 0;
+ 		else if (bytes_written < 0)
+@@ -3571,7 +3571,7 @@ static int cifs_readpage_worker(struct file *file, struct page *page,
+ 		cifs_dbg(FYI, "Bytes read %d\n", rc);
+ 
+ 	file_inode(file)->i_atime =
+-		current_fs_time(file_inode(file)->i_sb);
++		current_time(file_inode(file));
+ 
+ 	if (PAGE_SIZE > rc)
+ 		memset(read_data + rc, 0, PAGE_SIZE - rc);
+diff --git a/fs/configfs/inode.c b/fs/configfs/inode.c
+index 0387968e6f47..ad718e5e37bb 100644
+--- a/fs/configfs/inode.c
++++ b/fs/configfs/inode.c
+@@ -76,7 +76,7 @@ int configfs_setattr(struct dentry * dentry, struct iattr * iattr)
+ 		sd_iattr->ia_uid = GLOBAL_ROOT_UID;
+ 		sd_iattr->ia_gid = GLOBAL_ROOT_GID;
+ 		sd_iattr->ia_atime = sd_iattr->ia_mtime =
+-			sd_iattr->ia_ctime = current_fs_time(inode->i_sb);
++			sd_iattr->ia_ctime = current_time(inode);
+ 		sd->s_iattr = sd_iattr;
+ 	}
+ 	/* attributes were changed atleast once in past */
+@@ -113,7 +113,7 @@ static inline void set_default_inode_attr(struct inode * inode, umode_t mode)
+ {
+ 	inode->i_mode = mode;
+ 	inode->i_atime = inode->i_mtime =
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ }
+ 
+ static inline void set_inode_attr(struct inode * inode, struct iattr * iattr)
+@@ -197,7 +197,7 @@ int configfs_create(struct dentry * dentry, umode_t mode, void (*init)(struct in
+ 		return -ENOMEM;
+ 
+ 	p_inode = d_inode(dentry->d_parent);
+-	p_inode->i_mtime = p_inode->i_ctime = current_fs_time(p_inode->i_sb);
++	p_inode->i_mtime = p_inode->i_ctime = current_time(p_inode);
+ 	configfs_set_inode_lock_class(sd, inode);
+ 
+ 	init(inode);
+diff --git a/fs/debugfs/inode.c b/fs/debugfs/inode.c
+index 72361baf9da7..56a3c82a5785 100644
+--- a/fs/debugfs/inode.c
++++ b/fs/debugfs/inode.c
+@@ -45,7 +45,7 @@ static struct inode *debugfs_get_inode(struct super_block *sb)
+ 	if (inode) {
+ 		inode->i_ino = get_next_ino();
+ 		inode->i_atime = inode->i_mtime =
+-			inode->i_ctime = current_fs_time(sb);
++			inode->i_ctime = current_time(inode);
+ 	}
+ 	return inode;
+ }
+diff --git a/fs/f2fs/xattr.c b/fs/f2fs/xattr.c
+index c8898b5148eb..62f76ea6cb3c 100644
+--- a/fs/f2fs/xattr.c
++++ b/fs/f2fs/xattr.c
+@@ -541,7 +541,7 @@ static int __f2fs_setxattr(struct inode *inode, int index,
+ 
+ 	if (is_inode_flag_set(inode, FI_ACL_MODE)) {
+ 		inode->i_mode = F2FS_I(inode)->i_acl_mode;
+-		inode->i_ctime = CURRENT_TIME;
++		inode->i_ctime = current_time(inode);
+ 		clear_inode_flag(inode, FI_ACL_MODE);
+ 	}
+ 	if (index == F2FS_XATTR_INDEX_ENCRYPTION &&
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index 811bbe0ab7a3..fc71ff524367 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -63,7 +63,7 @@ static int fat_ioctl_set_attributes(struct file *file, u32 __user *user_attr)
+ 
+ 	/* Equivalent to a chmod() */
+ 	ia.ia_valid = ATTR_MODE | ATTR_CTIME;
+-	ia.ia_ctime = current_fs_time(inode->i_sb);
++	ia.ia_ctime = current_time(inode);
+ 	if (is_dir)
+ 		ia.ia_mode = fat_make_mode(sbi, attr, S_IRWXUGO);
+ 	else {
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index c47b7780ce37..8de80dc563c5 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -637,7 +637,7 @@ static int fuse_symlink(struct inode *dir, struct dentry *entry,
+ static inline void fuse_update_ctime(struct inode *inode)
+ {
+ 	if (!IS_NOCMTIME(inode)) {
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ 		mark_inode_dirty_sync(inode);
+ 	}
+ }
+diff --git a/fs/inode.c b/fs/inode.c
+index 2172d0f77011..cadf75fb579e 100644
+--- a/fs/inode.c
++++ b/fs/inode.c
+@@ -1636,7 +1636,7 @@ bool atime_needs_update(const struct path *path, struct inode *inode)
+ 	if ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode))
+ 		return false;
+ 
+-	now = current_fs_time(inode->i_sb);
++	now = current_time(inode);
+ 
+ 	if (!relatime_need_update(mnt, inode, now))
+ 		return false;
+@@ -1670,7 +1670,7 @@ void touch_atime(const struct path *path)
+ 	 * We may also fail on filesystems that have the ability to make parts
+ 	 * of the fs read only, e.g. subvolumes in Btrfs.
+ 	 */
+-	now = current_fs_time(inode->i_sb);
++	now = current_time(inode);
+ 	update_time(inode, &now, S_ATIME);
+ 	__mnt_drop_write(mnt);
+ skip_update:
+@@ -1793,7 +1793,7 @@ int file_update_time(struct file *file)
+ 	if (IS_NOCMTIME(inode))
+ 		return 0;
+ 
+-	now = current_fs_time(inode->i_sb);
++	now = current_time(inode);
+ 	if (!timespec_equal(&inode->i_mtime, &now))
+ 		sync_it = S_MTIME;
+ 
+diff --git a/fs/jfs/namei.c b/fs/jfs/namei.c
+index b05d0b4c68f6..10449c1deac0 100644
+--- a/fs/jfs/namei.c
++++ b/fs/jfs/namei.c
+@@ -1281,7 +1281,7 @@ static int jfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	old_ip->i_ctime = current_time(old_ip);
+ 	mark_inode_dirty(old_ip);
+ 
+-	new_dir->i_ctime = new_dir->i_mtime = current_fs_time(new_dir->i_sb);
++	new_dir->i_ctime = new_dir->i_mtime = current_time(new_dir);
+ 	mark_inode_dirty(new_dir);
+ 
+ 	/* Build list of inodes modified by this transaction */
+diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
+index 63b925d5ba1e..43f6848266d5 100644
+--- a/fs/kernfs/inode.c
++++ b/fs/kernfs/inode.c
+@@ -241,7 +241,7 @@ static inline void set_default_inode_attr(struct inode *inode, umode_t mode)
+ {
+ 	inode->i_mode = mode;
+ 	inode->i_atime = inode->i_mtime =
+-		inode->i_ctime = current_fs_time(inode->i_sb);
++		inode->i_ctime = current_time(inode);
+ }
+ 
+ static inline void set_inode_attr(struct inode *inode, struct iattr *iattr)
+diff --git a/fs/locks.c b/fs/locks.c
+index ee1b15f6fc13..b5152b067f37 100644
+--- a/fs/locks.c
++++ b/fs/locks.c
+@@ -1539,7 +1539,7 @@ void lease_get_mtime(struct inode *inode, struct timespec *time)
+ 	}
+ 
+ 	if (has_lease)
+-		*time = current_fs_time(inode->i_sb);
++		*time = current_time(inode);
+ 	else
+ 		*time = inode->i_mtime;
+ }
+diff --git a/fs/nfsd/blocklayout.c b/fs/nfsd/blocklayout.c
+index 5a1708441510..0780ff864539 100644
+--- a/fs/nfsd/blocklayout.c
++++ b/fs/nfsd/blocklayout.c
+@@ -123,7 +123,7 @@ nfsd4_block_commit_blocks(struct inode *inode, struct nfsd4_layoutcommit *lcp,
+ 
+ 	if (lcp->lc_mtime.tv_nsec == UTIME_NOW ||
+ 	    timespec_compare(&lcp->lc_mtime, &inode->i_mtime) < 0)
+-		lcp->lc_mtime = current_fs_time(inode->i_sb);
++		lcp->lc_mtime = current_time(inode);
+ 	iattr.ia_valid |= ATTR_ATIME | ATTR_CTIME | ATTR_MTIME;
+ 	iattr.ia_atime = iattr.ia_ctime = iattr.ia_mtime = lcp->lc_mtime;
+ 
+diff --git a/fs/ntfs/inode.c b/fs/ntfs/inode.c
+index e01287c964a8..6b7588a6f98c 100644
+--- a/fs/ntfs/inode.c
++++ b/fs/ntfs/inode.c
+@@ -2813,7 +2813,7 @@ int ntfs_truncate(struct inode *vi)
+ 	 * for real.
+ 	 */
+ 	if (!IS_NOCMTIME(VFS_I(base_ni)) && !IS_RDONLY(VFS_I(base_ni))) {
+-		struct timespec now = current_fs_time(VFS_I(base_ni)->i_sb);
++		struct timespec now = current_time(VFS_I(base_ni));
+ 		int sync_it = 0;
+ 
+ 		if (!timespec_equal(&VFS_I(base_ni)->i_mtime, &now) ||
+diff --git a/fs/ntfs/mft.c b/fs/ntfs/mft.c
+index d15d492ce47b..d3c009626032 100644
+--- a/fs/ntfs/mft.c
++++ b/fs/ntfs/mft.c
+@@ -2692,7 +2692,7 @@ ntfs_inode *ntfs_mft_record_alloc(ntfs_volume *vol, const int mode,
+ 
+ 		/* Set the inode times to the current time. */
+ 		vi->i_atime = vi->i_mtime = vi->i_ctime =
+-			current_fs_time(vi->i_sb);
++			current_time(vi);
+ 		/*
+ 		 * Set the file size to 0, the ntfs inode sizes are set to 0 by
+ 		 * the call to ntfs_init_big_inode() below.
+diff --git a/fs/orangefs/namei.c b/fs/orangefs/namei.c
+index 62c525936ee8..e1ab95529231 100644
+--- a/fs/orangefs/namei.c
++++ b/fs/orangefs/namei.c
+@@ -81,7 +81,7 @@ static int orangefs_create(struct inode *dir,
+ 		     dentry->d_name.name);
+ 
+ 	SetMtimeFlag(parent);
+-	dir->i_mtime = dir->i_ctime = current_fs_time(dir->i_sb);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	mark_inode_dirty_sync(dir);
+ 	ret = 0;
+ out:
+@@ -254,7 +254,7 @@ static int orangefs_unlink(struct inode *dir, struct dentry *dentry)
+ 		drop_nlink(inode);
+ 
+ 		SetMtimeFlag(parent);
+-		dir->i_mtime = dir->i_ctime = current_fs_time(dir->i_sb);
++		dir->i_mtime = dir->i_ctime = current_time(dir);
+ 		mark_inode_dirty_sync(dir);
+ 	}
+ 	return ret;
+@@ -331,7 +331,7 @@ static int orangefs_symlink(struct inode *dir,
+ 		     dentry->d_name.name);
+ 
+ 	SetMtimeFlag(parent);
+-	dir->i_mtime = dir->i_ctime = current_fs_time(dir->i_sb);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	mark_inode_dirty_sync(dir);
+ 	ret = 0;
+ out:
+@@ -399,7 +399,7 @@ static int orangefs_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode
+ 	 * across clients; keep constant at 1.
+ 	 */
+ 	SetMtimeFlag(parent);
+-	dir->i_mtime = dir->i_ctime = current_fs_time(dir->i_sb);
++	dir->i_mtime = dir->i_ctime = current_time(dir);
+ 	mark_inode_dirty_sync(dir);
+ out:
+ 	op_release(new_op);
+@@ -443,7 +443,7 @@ static int orangefs_rename(struct inode *old_dir,
+ 		     ret);
+ 
+ 	if (new_dentry->d_inode)
+-		new_dentry->d_inode->i_ctime = CURRENT_TIME;
++		new_dentry->d_inode->i_ctime = current_time(new_dentry->d_inode);
+ 
+ 	op_release(new_op);
+ 	return ret;
+diff --git a/fs/udf/ialloc.c b/fs/udf/ialloc.c
+index e77db621ec89..c1ed18a10ce4 100644
+--- a/fs/udf/ialloc.c
++++ b/fs/udf/ialloc.c
+@@ -121,7 +121,7 @@ struct inode *udf_new_inode(struct inode *dir, umode_t mode)
+ 	else
+ 		iinfo->i_alloc_type = ICBTAG_FLAG_AD_LONG;
+ 	inode->i_mtime = inode->i_atime = inode->i_ctime =
+-		iinfo->i_crtime = current_fs_time(inode->i_sb);
++		iinfo->i_crtime = current_time(inode);
+ 	if (unlikely(insert_inode_locked(inode) < 0)) {
+ 		make_bad_inode(inode);
+ 		iput(inode);
+diff --git a/fs/udf/inode.c b/fs/udf/inode.c
+index 55aa587bbc38..aad46401ede5 100644
+--- a/fs/udf/inode.c
++++ b/fs/udf/inode.c
+@@ -886,7 +886,7 @@ static sector_t inode_getblk(struct inode *inode, sector_t block,
+ 	*new = 1;
+ 	iinfo->i_next_alloc_block = block;
+ 	iinfo->i_next_alloc_goal = newblocknum;
+-	inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_ctime = current_time(inode);
+ 
+ 	if (IS_SYNC(inode))
+ 		udf_sync_inode(inode);
+@@ -1268,7 +1268,7 @@ int udf_setsize(struct inode *inode, loff_t newsize)
+ 		up_write(&iinfo->i_data_sem);
+ 	}
+ update_time:
+-	inode->i_mtime = inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_mtime = inode->i_ctime = current_time(inode);
+ 	if (IS_SYNC(inode))
+ 		udf_sync_inode(inode);
+ 	else
+diff --git a/fs/udf/namei.c b/fs/udf/namei.c
+index c3e5c9679371..61af3f1e1973 100644
+--- a/fs/udf/namei.c
++++ b/fs/udf/namei.c
+@@ -616,7 +616,7 @@ static int udf_add_nondir(struct dentry *dentry, struct inode *inode)
+ 	*(__le32 *)((struct allocDescImpUse *)cfi.icb.impUse)->impUse =
+ 		cpu_to_le32(iinfo->i_unique & 0x00000000FFFFFFFFUL);
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+-	dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
++	dir->i_ctime = dir->i_mtime = current_time(dir);
+ 	mark_inode_dirty(dir);
+ 	if (fibh.sbh != fibh.ebh)
+ 		brelse(fibh.ebh);
+@@ -730,7 +730,7 @@ static int udf_mkdir(struct inode *dir, struct dentry *dentry, umode_t mode)
+ 	cfi.fileCharacteristics |= FID_FILE_CHAR_DIRECTORY;
+ 	udf_write_fi(dir, &cfi, fi, &fibh, NULL, NULL);
+ 	inc_nlink(dir);
+-	dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
++	dir->i_ctime = dir->i_mtime = current_time(dir);
+ 	mark_inode_dirty(dir);
+ 	unlock_new_inode(inode);
+ 	d_instantiate(dentry, inode);
+@@ -845,7 +845,7 @@ static int udf_rmdir(struct inode *dir, struct dentry *dentry)
+ 	inode->i_size = 0;
+ 	inode_dec_link_count(dir);
+ 	inode->i_ctime = dir->i_ctime = dir->i_mtime =
+-						current_fs_time(dir->i_sb);
++						current_time(inode);
+ 	mark_inode_dirty(dir);
+ 
+ end_rmdir:
+@@ -888,7 +888,7 @@ static int udf_unlink(struct inode *dir, struct dentry *dentry)
+ 	retval = udf_delete_entry(dir, fi, &fibh, &cfi);
+ 	if (retval)
+ 		goto end_unlink;
+-	dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
++	dir->i_ctime = dir->i_mtime = current_time(dir);
+ 	mark_inode_dirty(dir);
+ 	inode_dec_link_count(inode);
+ 	inode->i_ctime = dir->i_ctime;
+@@ -1079,9 +1079,9 @@ static int udf_link(struct dentry *old_dentry, struct inode *dir,
+ 		brelse(fibh.ebh);
+ 	brelse(fibh.sbh);
+ 	inc_nlink(inode);
+-	inode->i_ctime = current_fs_time(inode->i_sb);
++	inode->i_ctime = current_time(inode);
+ 	mark_inode_dirty(inode);
+-	dir->i_ctime = dir->i_mtime = current_fs_time(dir->i_sb);
++	dir->i_ctime = dir->i_mtime = current_time(dir);
+ 	mark_inode_dirty(dir);
+ 	ihold(inode);
+ 	d_instantiate(dentry, inode);
+@@ -1172,7 +1172,7 @@ static int udf_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	 * Like most other Unix systems, set the ctime for inodes on a
+ 	 * rename.
+ 	 */
+-	old_inode->i_ctime = current_fs_time(old_inode->i_sb);
++	old_inode->i_ctime = current_time(old_inode);
+ 	mark_inode_dirty(old_inode);
+ 
+ 	/*
+@@ -1188,11 +1188,11 @@ static int udf_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	udf_delete_entry(old_dir, ofi, &ofibh, &ocfi);
+ 
+ 	if (new_inode) {
+-		new_inode->i_ctime = current_fs_time(new_inode->i_sb);
++		new_inode->i_ctime = current_time(new_inode);
+ 		inode_dec_link_count(new_inode);
+ 	}
+-	old_dir->i_ctime = old_dir->i_mtime = current_fs_time(old_dir->i_sb);
+-	new_dir->i_ctime = new_dir->i_mtime = current_fs_time(new_dir->i_sb);
++	old_dir->i_ctime = old_dir->i_mtime = current_time(old_dir);
++	new_dir->i_ctime = new_dir->i_mtime = current_time(new_dir);
+ 	mark_inode_dirty(old_dir);
+ 	mark_inode_dirty(new_dir);
+ 
+diff --git a/fs/xfs/xfs_acl.c b/fs/xfs/xfs_acl.c
+index b6e527b8eccb..74f7c68105b9 100644
+--- a/fs/xfs/xfs_acl.c
++++ b/fs/xfs/xfs_acl.c
+@@ -236,7 +236,7 @@ xfs_set_mode(struct inode *inode, umode_t mode)
+ 
+ 		iattr.ia_valid = ATTR_MODE | ATTR_CTIME;
+ 		iattr.ia_mode = mode;
+-		iattr.ia_ctime = current_fs_time(inode->i_sb);
++		iattr.ia_ctime = current_time(inode);
+ 
+ 		error = xfs_setattr_nonsize(XFS_I(inode), &iattr, XFS_ATTR_NOACL);
+ 	}
+diff --git a/fs/xfs/xfs_inode.c b/fs/xfs/xfs_inode.c
+index e08eaea6327b..020110b76a40 100644
+--- a/fs/xfs/xfs_inode.c
++++ b/fs/xfs/xfs_inode.c
+@@ -821,7 +821,7 @@ xfs_ialloc(
+ 	ip->i_d.di_nextents = 0;
+ 	ASSERT(ip->i_d.di_nblocks == 0);
+ 
+-	tv = current_fs_time(mp->m_super);
++	tv = current_time(inode);
+ 	inode->i_mtime = tv;
+ 	inode->i_atime = tv;
+ 	inode->i_ctime = tv;
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index b24c3102fa93..08c33f7fbe49 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -882,7 +882,7 @@ xfs_setattr_size(
+ 	if (newsize != oldsize &&
+ 	    !(iattr->ia_valid & (ATTR_CTIME | ATTR_MTIME))) {
+ 		iattr->ia_ctime = iattr->ia_mtime =
+-			current_fs_time(inode->i_sb);
++			current_time(inode);
+ 		iattr->ia_valid |= ATTR_CTIME | ATTR_MTIME;
+ 	}
+ 
+diff --git a/fs/xfs/xfs_trans_inode.c b/fs/xfs/xfs_trans_inode.c
+index 11a3af08b5c7..dab8daa676f9 100644
+--- a/fs/xfs/xfs_trans_inode.c
++++ b/fs/xfs/xfs_trans_inode.c
+@@ -73,7 +73,7 @@ xfs_trans_ichgtime(
+ 	ASSERT(tp);
+ 	ASSERT(xfs_isilocked(ip, XFS_ILOCK_EXCL));
+ 
+-	tv = current_fs_time(inode->i_sb);
++	tv = current_time(inode);
+ 
+ 	if (flags & XFS_ICHGTIME_MOD)
+ 		inode->i_mtime = tv;
+-- 
+2.17.0
+

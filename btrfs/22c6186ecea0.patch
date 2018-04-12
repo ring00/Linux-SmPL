@@ -1,0 +1,509 @@
+From 22c6186ecea0be9eff1c399298ad36e94a59995f Mon Sep 17 00:00:00 2001
+From: Omar Sandoval <osandov@osandov.com>
+Date: Mon, 16 Mar 2015 04:33:53 -0700
+Subject: [PATCH] direct_IO: remove rw from a_ops->direct_IO()
+
+Now that no one is using rw, remove it completely.
+
+Signed-off-by: Omar Sandoval <osandov@osandov.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking          | 2 +-
+ Documentation/filesystems/vfs.txt          | 2 +-
+ drivers/staging/lustre/lustre/llite/rw26.c | 4 ++--
+ fs/9p/vfs_addr.c                           | 3 +--
+ fs/affs/file.c                             | 3 +--
+ fs/block_dev.c                             | 3 +--
+ fs/btrfs/inode.c                           | 4 ++--
+ fs/ceph/addr.c                             | 3 +--
+ fs/cifs/file.c                             | 3 +--
+ fs/exofs/inode.c                           | 4 ++--
+ fs/ext2/inode.c                            | 3 +--
+ fs/ext3/inode.c                            | 4 ++--
+ fs/ext4/inode.c                            | 4 ++--
+ fs/f2fs/data.c                             | 4 ++--
+ fs/fat/inode.c                             | 3 +--
+ fs/fuse/file.c                             | 3 +--
+ fs/gfs2/aops.c                             | 4 ++--
+ fs/hfs/inode.c                             | 4 ++--
+ fs/hfsplus/inode.c                         | 4 ++--
+ fs/jfs/inode.c                             | 4 ++--
+ fs/nfs/direct.c                            | 3 +--
+ fs/nilfs2/inode.c                          | 3 +--
+ fs/ocfs2/aops.c                            | 4 +---
+ fs/reiserfs/inode.c                        | 4 ++--
+ fs/udf/file.c                              | 3 +--
+ fs/udf/inode.c                             | 3 +--
+ fs/xfs/xfs_aops.c                          | 1 -
+ include/linux/fs.h                         | 2 +-
+ include/linux/nfs_fs.h                     | 2 +-
+ mm/filemap.c                               | 4 ++--
+ mm/page_io.c                               | 4 +---
+ 31 files changed, 42 insertions(+), 59 deletions(-)
+
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index c3cd6279e92e..7cdbca44e343 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -196,7 +196,7 @@ prototypes:
+ 	void (*invalidatepage) (struct page *, unsigned int, unsigned int);
+ 	int (*releasepage) (struct page *, int);
+ 	void (*freepage)(struct page *);
+-	int (*direct_IO)(int, struct kiocb *, struct iov_iter *iter, loff_t offset);
++	int (*direct_IO)(struct kiocb *, struct iov_iter *iter, loff_t offset);
+ 	int (*migratepage)(struct address_space *, struct page *, struct page *);
+ 	int (*launder_page)(struct page *);
+ 	int (*is_partially_uptodate)(struct page *, unsigned long, unsigned long);
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index 207cdca68bed..5d833b32bbcd 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -590,7 +590,7 @@ struct address_space_operations {
+ 	void (*invalidatepage) (struct page *, unsigned int, unsigned int);
+ 	int (*releasepage) (struct page *, int);
+ 	void (*freepage)(struct page *);
+-	ssize_t (*direct_IO)(int, struct kiocb *, struct iov_iter *iter, loff_t offset);
++	ssize_t (*direct_IO)(struct kiocb *, struct iov_iter *iter, loff_t offset);
+ 	/* migrate the contents of a page to the specified target */
+ 	int (*migratepage) (struct page *, struct page *);
+ 	int (*launder_page) (struct page *);
+diff --git a/drivers/staging/lustre/lustre/llite/rw26.c b/drivers/staging/lustre/lustre/llite/rw26.c
+index 3aa9de6bcc40..0d7ce6b0e23c 100644
+--- a/drivers/staging/lustre/lustre/llite/rw26.c
++++ b/drivers/staging/lustre/lustre/llite/rw26.c
+@@ -359,8 +359,8 @@ static ssize_t ll_direct_IO_26_seg(const struct lu_env *env, struct cl_io *io,
+  * up to 22MB for 128kB kmalloc and up to 682MB for 4MB kmalloc. */
+ #define MAX_DIO_SIZE ((MAX_MALLOC / sizeof(struct brw_page) * PAGE_CACHE_SIZE) & \
+ 		      ~(DT_MAX_BRW_SIZE - 1))
+-static ssize_t ll_direct_IO_26(int rw, struct kiocb *iocb,
+-			       struct iov_iter *iter, loff_t file_offset)
++static ssize_t ll_direct_IO_26(struct kiocb *iocb, struct iov_iter *iter,
++			       loff_t file_offset)
+ {
+ 	struct lu_env *env;
+ 	struct cl_io *io;
+diff --git a/fs/9p/vfs_addr.c b/fs/9p/vfs_addr.c
+index dd5543b1d183..be35d05a4d0e 100644
+--- a/fs/9p/vfs_addr.c
++++ b/fs/9p/vfs_addr.c
+@@ -230,7 +230,6 @@ static int v9fs_launder_page(struct page *page)
+ 
+ /**
+  * v9fs_direct_IO - 9P address space operation for direct I/O
+- * @rw: direction (read or write)
+  * @iocb: target I/O control block
+  * @iov: array of vectors that define I/O buffer
+  * @pos: offset in file to begin the operation
+@@ -248,7 +247,7 @@ static int v9fs_launder_page(struct page *page)
+  *
+  */
+ static ssize_t
+-v9fs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter, loff_t pos)
++v9fs_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t pos)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	ssize_t n;
+diff --git a/fs/affs/file.c b/fs/affs/file.c
+index 7f05a468d594..dcf27951781c 100644
+--- a/fs/affs/file.c
++++ b/fs/affs/file.c
+@@ -389,8 +389,7 @@ static void affs_write_failed(struct address_space *mapping, loff_t to)
+ }
+ 
+ static ssize_t
+-affs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-	       loff_t offset)
++affs_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index bc23afd35fdb..6e3de63c3055 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -146,8 +146,7 @@ blkdev_get_block(struct inode *inode, sector_t iblock,
+ }
+ 
+ static ssize_t
+-blkdev_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-			loff_t offset)
++blkdev_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index ca69e83d4f3c..43192e10cc43 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -8114,8 +8114,8 @@ static ssize_t check_direct_IO(struct btrfs_root *root, struct kiocb *iocb,
+ 	return retval;
+ }
+ 
+-static ssize_t btrfs_direct_IO(int rw, struct kiocb *iocb,
+-			struct iov_iter *iter, loff_t offset)
++static ssize_t btrfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			       loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/ceph/addr.c b/fs/ceph/addr.c
+index fd5599d32362..155ab9c0246b 100644
+--- a/fs/ceph/addr.c
++++ b/fs/ceph/addr.c
+@@ -1198,8 +1198,7 @@ static int ceph_write_end(struct file *file, struct address_space *mapping,
+  * intercept O_DIRECT reads and writes early, this function should
+  * never get called.
+  */
+-static ssize_t ceph_direct_io(int rw, struct kiocb *iocb,
+-			      struct iov_iter *iter,
++static ssize_t ceph_direct_io(struct kiocb *iocb, struct iov_iter *iter,
+ 			      loff_t pos)
+ {
+ 	WARN_ON(1);
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index ca30c391a894..72394c5abd0f 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -3877,8 +3877,7 @@ void cifs_oplock_break(struct work_struct *work)
+  * Direct IO is not yet supported in the cached mode. 
+  */
+ static ssize_t
+-cifs_direct_io(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-               loff_t pos)
++cifs_direct_io(struct kiocb *iocb, struct iov_iter *iter, loff_t pos)
+ {
+         /*
+          * FIXME
+diff --git a/fs/exofs/inode.c b/fs/exofs/inode.c
+index a198e94813fe..35073aaec6e0 100644
+--- a/fs/exofs/inode.c
++++ b/fs/exofs/inode.c
+@@ -963,8 +963,8 @@ static void exofs_invalidatepage(struct page *page, unsigned int offset,
+ 
+ 
+  /* TODO: Should be easy enough to do proprly */
+-static ssize_t exofs_direct_IO(int rw, struct kiocb *iocb,
+-		struct iov_iter *iter, loff_t offset)
++static ssize_t exofs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			       loff_t offset)
+ {
+ 	return 0;
+ }
+diff --git a/fs/ext2/inode.c b/fs/ext2/inode.c
+index 685e514c57dd..e1abf75e994c 100644
+--- a/fs/ext2/inode.c
++++ b/fs/ext2/inode.c
+@@ -851,8 +851,7 @@ static sector_t ext2_bmap(struct address_space *mapping, sector_t block)
+ }
+ 
+ static ssize_t
+-ext2_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-			loff_t offset)
++ext2_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/ext3/inode.c b/fs/ext3/inode.c
+index c70839d26ccd..13c0868c7160 100644
+--- a/fs/ext3/inode.c
++++ b/fs/ext3/inode.c
+@@ -1820,8 +1820,8 @@ static int ext3_releasepage(struct page *page, gfp_t wait)
+  * crashes then stale disk data _may_ be exposed inside the file. But current
+  * VFS code falls back into buffered path in that case so we are safe.
+  */
+-static ssize_t ext3_direct_IO(int rw, struct kiocb *iocb,
+-			struct iov_iter *iter, loff_t offset)
++static ssize_t ext3_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			      loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index cf6ba6536035..42c942a950e1 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3089,8 +3089,8 @@ static ssize_t ext4_ext_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ 	return ret;
+ }
+ 
+-static ssize_t ext4_direct_IO(int rw, struct kiocb *iocb,
+-			      struct iov_iter *iter, loff_t offset)
++static ssize_t ext4_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			      loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/f2fs/data.c b/fs/f2fs/data.c
+index ce25f62edfa7..319eda511c4f 100644
+--- a/fs/f2fs/data.c
++++ b/fs/f2fs/data.c
+@@ -1135,8 +1135,8 @@ static int check_direct_IO(struct inode *inode, struct iov_iter *iter,
+ 	return 0;
+ }
+ 
+-static ssize_t f2fs_direct_IO(int rw, struct kiocb *iocb,
+-		struct iov_iter *iter, loff_t offset)
++static ssize_t f2fs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			      loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/fat/inode.c b/fs/fat/inode.c
+index 342d791b28db..41b729933638 100644
+--- a/fs/fat/inode.c
++++ b/fs/fat/inode.c
+@@ -245,8 +245,7 @@ static int fat_write_end(struct file *file, struct address_space *mapping,
+ 	return err;
+ }
+ 
+-static ssize_t fat_direct_IO(int rw, struct kiocb *iocb,
+-			     struct iov_iter *iter,
++static ssize_t fat_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ 			     loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index c1a67da6a8a0..3d355e946991 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -2782,8 +2782,7 @@ static inline loff_t fuse_round_up(loff_t off)
+ }
+ 
+ static ssize_t
+-fuse_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-			loff_t offset)
++fuse_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	DECLARE_COMPLETION_ONSTACK(wait);
+ 	ssize_t ret = 0;
+diff --git a/fs/gfs2/aops.c b/fs/gfs2/aops.c
+index e22e6e686a11..20dd33da92de 100644
+--- a/fs/gfs2/aops.c
++++ b/fs/gfs2/aops.c
+@@ -1038,8 +1038,8 @@ static int gfs2_ok_for_dio(struct gfs2_inode *ip, loff_t offset)
+ 
+ 
+ 
+-static ssize_t gfs2_direct_IO(int rw, struct kiocb *iocb,
+-			      struct iov_iter *iter, loff_t offset)
++static ssize_t gfs2_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			      loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index 0085d527a55c..75fd5d873c19 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -124,8 +124,8 @@ static int hfs_releasepage(struct page *page, gfp_t mask)
+ 	return res ? try_to_free_buffers(page) : 0;
+ }
+ 
+-static ssize_t hfs_direct_IO(int rw, struct kiocb *iocb,
+-		struct iov_iter *iter, loff_t offset)
++static ssize_t hfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			     loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/hfsplus/inode.c b/fs/hfsplus/inode.c
+index afcde36b506b..a43811f90935 100644
+--- a/fs/hfsplus/inode.c
++++ b/fs/hfsplus/inode.c
+@@ -122,8 +122,8 @@ static int hfsplus_releasepage(struct page *page, gfp_t mask)
+ 	return res ? try_to_free_buffers(page) : 0;
+ }
+ 
+-static ssize_t hfsplus_direct_IO(int rw, struct kiocb *iocb,
+-		struct iov_iter *iter, loff_t offset)
++static ssize_t hfsplus_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++				 loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/jfs/inode.c b/fs/jfs/inode.c
+index e7047b63ffc5..070dc4b33544 100644
+--- a/fs/jfs/inode.c
++++ b/fs/jfs/inode.c
+@@ -330,8 +330,8 @@ static sector_t jfs_bmap(struct address_space *mapping, sector_t block)
+ 	return generic_block_bmap(mapping, block, jfs_get_block);
+ }
+ 
+-static ssize_t jfs_direct_IO(int rw, struct kiocb *iocb,
+-	struct iov_iter *iter, loff_t offset)
++static ssize_t jfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++			     loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
+index e8482b8f4830..06503bc604e1 100644
+--- a/fs/nfs/direct.c
++++ b/fs/nfs/direct.c
+@@ -240,7 +240,6 @@ static int nfs_direct_cmp_commit_data_verf(struct nfs_direct_req *dreq,
+ 
+ /**
+  * nfs_direct_IO - NFS address space operation for direct I/O
+- * @rw: direction (read or write)
+  * @iocb: target I/O control block
+  * @iov: array of vectors that define I/O buffer
+  * @pos: offset in file to begin the operation
+@@ -251,7 +250,7 @@ static int nfs_direct_cmp_commit_data_verf(struct nfs_direct_req *dreq,
+  * shunt off direct read and write requests before the VFS gets them,
+  * so this method is only ever called for swap.
+  */
+-ssize_t nfs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter, loff_t pos)
++ssize_t nfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t pos)
+ {
+ 	struct inode *inode = iocb->ki_filp->f_mapping->host;
+ 
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index 4726f1493d5d..36f057fa8aa3 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -305,8 +305,7 @@ static int nilfs_write_end(struct file *file, struct address_space *mapping,
+ }
+ 
+ static ssize_t
+-nilfs_direct_IO(int rw, struct kiocb *iocb, struct iov_iter *iter,
+-		loff_t offset)
++nilfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter, loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct address_space *mapping = file->f_mapping;
+diff --git a/fs/ocfs2/aops.c b/fs/ocfs2/aops.c
+index 0ee9474cca46..28b5ad81bbec 100644
+--- a/fs/ocfs2/aops.c
++++ b/fs/ocfs2/aops.c
+@@ -818,9 +818,7 @@ static ssize_t ocfs2_direct_IO_write(struct kiocb *iocb,
+ 	return ret;
+ }
+ 
+-static ssize_t ocfs2_direct_IO(int rw,
+-			       struct kiocb *iocb,
+-			       struct iov_iter *iter,
++static ssize_t ocfs2_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ 			       loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+diff --git a/fs/reiserfs/inode.c b/fs/reiserfs/inode.c
+index d61ab13244a8..742242b60972 100644
+--- a/fs/reiserfs/inode.c
++++ b/fs/reiserfs/inode.c
+@@ -3278,8 +3278,8 @@ static int reiserfs_releasepage(struct page *page, gfp_t unused_gfp_flags)
+  * We thank Mingming Cao for helping us understand in great detail what
+  * to do in this section of the code.
+  */
+-static ssize_t reiserfs_direct_IO(int rw, struct kiocb *iocb,
+-				  struct iov_iter *iter, loff_t offset)
++static ssize_t reiserfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
++				  loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+ 	struct inode *inode = file->f_mapping->host;
+diff --git a/fs/udf/file.c b/fs/udf/file.c
+index 74050bff64f4..78d42548b260 100644
+--- a/fs/udf/file.c
++++ b/fs/udf/file.c
+@@ -100,8 +100,7 @@ static int udf_adinicb_write_begin(struct file *file,
+ 	return 0;
+ }
+ 
+-static ssize_t udf_adinicb_direct_IO(int rw, struct kiocb *iocb,
+-				     struct iov_iter *iter,
++static ssize_t udf_adinicb_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ 				     loff_t offset)
+ {
+ 	/* Fallback to buffered I/O. */
+diff --git a/fs/udf/inode.c b/fs/udf/inode.c
+index a685aea93068..4f178c83b04f 100644
+--- a/fs/udf/inode.c
++++ b/fs/udf/inode.c
+@@ -215,8 +215,7 @@ static int udf_write_begin(struct file *file, struct address_space *mapping,
+ 	return ret;
+ }
+ 
+-static ssize_t udf_direct_IO(int rw, struct kiocb *iocb,
+-			     struct iov_iter *iter,
++static ssize_t udf_direct_IO(struct kiocb *iocb, struct iov_iter *iter,
+ 			     loff_t offset)
+ {
+ 	struct file *file = iocb->ki_filp;
+diff --git a/fs/xfs/xfs_aops.c b/fs/xfs/xfs_aops.c
+index 532d5279df2f..1d8eef9cf0f5 100644
+--- a/fs/xfs/xfs_aops.c
++++ b/fs/xfs/xfs_aops.c
+@@ -1495,7 +1495,6 @@ xfs_end_io_direct_write(
+ 
+ STATIC ssize_t
+ xfs_vm_direct_IO(
+-	int			rw,
+ 	struct kiocb		*iocb,
+ 	struct iov_iter		*iter,
+ 	loff_t			offset)
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 295bc589fe1b..72e3759de8c3 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -383,7 +383,7 @@ struct address_space_operations {
+ 	void (*invalidatepage) (struct page *, unsigned int, unsigned int);
+ 	int (*releasepage) (struct page *, gfp_t);
+ 	void (*freepage)(struct page *);
+-	ssize_t (*direct_IO)(int, struct kiocb *, struct iov_iter *iter, loff_t offset);
++	ssize_t (*direct_IO)(struct kiocb *, struct iov_iter *iter, loff_t offset);
+ 	/*
+ 	 * migrate the contents of a page to the specified target. If
+ 	 * migrate_mode is MIGRATE_ASYNC, it must not block.
+diff --git a/include/linux/nfs_fs.h b/include/linux/nfs_fs.h
+index b01ccf371fdc..3d1b0d2fe55e 100644
+--- a/include/linux/nfs_fs.h
++++ b/include/linux/nfs_fs.h
+@@ -447,7 +447,7 @@ static inline struct rpc_cred *nfs_file_cred(struct file *file)
+ /*
+  * linux/fs/nfs/direct.c
+  */
+-extern ssize_t nfs_direct_IO(int, struct kiocb *, struct iov_iter *, loff_t);
++extern ssize_t nfs_direct_IO(struct kiocb *, struct iov_iter *, loff_t);
+ extern ssize_t nfs_file_direct_read(struct kiocb *iocb,
+ 			struct iov_iter *iter,
+ 			loff_t pos);
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 876f4e6f3ed6..9920db455f05 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -1707,7 +1707,7 @@ generic_file_read_iter(struct kiocb *iocb, struct iov_iter *iter)
+ 					pos + count - 1);
+ 		if (!retval) {
+ 			struct iov_iter data = *iter;
+-			retval = mapping->a_ops->direct_IO(READ, iocb, &data, pos);
++			retval = mapping->a_ops->direct_IO(iocb, &data, pos);
+ 		}
+ 
+ 		if (retval > 0) {
+@@ -2395,7 +2395,7 @@ generic_file_direct_write(struct kiocb *iocb, struct iov_iter *from, loff_t pos)
+ 	}
+ 
+ 	data = *from;
+-	written = mapping->a_ops->direct_IO(WRITE, iocb, &data, pos);
++	written = mapping->a_ops->direct_IO(iocb, &data, pos);
+ 
+ 	/*
+ 	 * Finally, try again to invalidate clean pages which might have been
+diff --git a/mm/page_io.c b/mm/page_io.c
+index a96c8562d835..6424869e275e 100644
+--- a/mm/page_io.c
++++ b/mm/page_io.c
+@@ -277,9 +277,7 @@ int __swap_writepage(struct page *page, struct writeback_control *wbc,
+ 
+ 		set_page_writeback(page);
+ 		unlock_page(page);
+-		ret = mapping->a_ops->direct_IO(ITER_BVEC | WRITE,
+-						&kiocb, &from,
+-						kiocb.ki_pos);
++		ret = mapping->a_ops->direct_IO(&kiocb, &from, kiocb.ki_pos);
+ 		if (ret == PAGE_SIZE) {
+ 			count_vm_event(PSWPOUT);
+ 			ret = 0;
+-- 
+2.17.0
+

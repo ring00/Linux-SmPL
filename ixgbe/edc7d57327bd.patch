@@ -1,0 +1,121 @@
+From edc7d57327bd08bfd04f41531d49b176369db218 Mon Sep 17 00:00:00 2001
+From: stephen hemminger <shemminger@vyatta.com>
+Date: Mon, 1 Oct 2012 12:32:33 +0000
+Subject: [PATCH] netlink: add attributes to fdb interface
+
+Later changes need to be able to refer to neighbour attributes
+when doing fdb_add.
+
+Signed-off-by: Stephen Hemminger <shemminger@vyatta.com>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/intel/ixgbe/ixgbe_main.c | 2 +-
+ drivers/net/macvlan.c                         | 2 +-
+ include/linux/netdevice.h                     | 4 +++-
+ net/bridge/br_fdb.c                           | 3 ++-
+ net/bridge/br_private.h                       | 2 +-
+ net/core/rtnetlink.c                          | 6 ++++--
+ 6 files changed, 12 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+index 29465be2a14a..0ba6d9561bdb 100644
+--- a/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
++++ b/drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+@@ -6889,7 +6889,7 @@ static int ixgbe_set_features(struct net_device *netdev,
+ 	return 0;
+ }
+ 
+-static int ixgbe_ndo_fdb_add(struct ndmsg *ndm,
++static int ixgbe_ndo_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
+ 			     struct net_device *dev,
+ 			     const unsigned char *addr,
+ 			     u16 flags)
+diff --git a/drivers/net/macvlan.c b/drivers/net/macvlan.c
+index 815dfcfbc7b9..68a43fe602e7 100644
+--- a/drivers/net/macvlan.c
++++ b/drivers/net/macvlan.c
+@@ -546,7 +546,7 @@ static int macvlan_vlan_rx_kill_vid(struct net_device *dev,
+ 	return 0;
+ }
+ 
+-static int macvlan_fdb_add(struct ndmsg *ndm,
++static int macvlan_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
+ 			   struct net_device *dev,
+ 			   const unsigned char *addr,
+ 			   u16 flags)
+diff --git a/include/linux/netdevice.h b/include/linux/netdevice.h
+index dd320bb22a5a..807a610f193c 100644
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -904,7 +904,8 @@ struct netdev_fcoe_hbainfo {
+  *	feature set might be less than what was returned by ndo_fix_features()).
+  *	Must return >0 or -errno if it changed dev->features itself.
+  *
+- * int (*ndo_fdb_add)(struct ndmsg *ndm, struct net_device *dev,
++ * int (*ndo_fdb_add)(struct ndmsg *ndm, struct nlattr *tb[],
++ *		      struct net_device *dev,
+  *		      const unsigned char *addr, u16 flags)
+  *	Adds an FDB entry to dev for addr.
+  * int (*ndo_fdb_del)(struct ndmsg *ndm, struct net_device *dev,
+@@ -1014,6 +1015,7 @@ struct net_device_ops {
+ 	void			(*ndo_neigh_destroy)(struct neighbour *n);
+ 
+ 	int			(*ndo_fdb_add)(struct ndmsg *ndm,
++					       struct nlattr *tb[],
+ 					       struct net_device *dev,
+ 					       const unsigned char *addr,
+ 					       u16 flags);
+diff --git a/net/bridge/br_fdb.c b/net/bridge/br_fdb.c
+index 02861190a3d4..d9576e6de2b8 100644
+--- a/net/bridge/br_fdb.c
++++ b/net/bridge/br_fdb.c
+@@ -608,7 +608,8 @@ static int fdb_add_entry(struct net_bridge_port *source, const __u8 *addr,
+ }
+ 
+ /* Add new permanent fdb entry with RTM_NEWNEIGH */
+-int br_fdb_add(struct ndmsg *ndm, struct net_device *dev,
++int br_fdb_add(struct ndmsg *ndm, struct nlattr *tb[],
++	       struct net_device *dev,
+ 	       const unsigned char *addr, u16 nlh_flags)
+ {
+ 	struct net_bridge_port *p;
+diff --git a/net/bridge/br_private.h b/net/bridge/br_private.h
+index 11a984b87e62..9b278c4ebee1 100644
+--- a/net/bridge/br_private.h
++++ b/net/bridge/br_private.h
+@@ -364,7 +364,7 @@ extern void br_fdb_update(struct net_bridge *br,
+ extern int br_fdb_delete(struct ndmsg *ndm,
+ 			 struct net_device *dev,
+ 			 const unsigned char *addr);
+-extern int br_fdb_add(struct ndmsg *nlh,
++extern int br_fdb_add(struct ndmsg *nlh, struct nlattr *tb[],
+ 		      struct net_device *dev,
+ 		      const unsigned char *addr,
+ 		      u16 nlh_flags);
+diff --git a/net/core/rtnetlink.c b/net/core/rtnetlink.c
+index 92575370d9f0..76d4c2c3c89b 100644
+--- a/net/core/rtnetlink.c
++++ b/net/core/rtnetlink.c
+@@ -2090,7 +2090,8 @@ static int rtnl_fdb_add(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
+ 	if ((!ndm->ndm_flags || ndm->ndm_flags & NTF_MASTER) &&
+ 	    (dev->priv_flags & IFF_BRIDGE_PORT)) {
+ 		master = dev->master;
+-		err = master->netdev_ops->ndo_fdb_add(ndm, dev, addr,
++		err = master->netdev_ops->ndo_fdb_add(ndm, tb,
++						      dev, addr,
+ 						      nlh->nlmsg_flags);
+ 		if (err)
+ 			goto out;
+@@ -2100,7 +2101,8 @@ static int rtnl_fdb_add(struct sk_buff *skb, struct nlmsghdr *nlh, void *arg)
+ 
+ 	/* Embedded bridge, macvlan, and any other device support */
+ 	if ((ndm->ndm_flags & NTF_SELF) && dev->netdev_ops->ndo_fdb_add) {
+-		err = dev->netdev_ops->ndo_fdb_add(ndm, dev, addr,
++		err = dev->netdev_ops->ndo_fdb_add(ndm, tb,
++						   dev, addr,
+ 						   nlh->nlmsg_flags);
+ 
+ 		if (!err) {
+-- 
+2.17.0
+

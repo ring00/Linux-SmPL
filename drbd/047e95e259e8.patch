@@ -1,0 +1,81 @@
+From 047e95e259e81d7b97eca10cda0aa93082531ac1 Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Wed, 16 Mar 2011 14:43:36 +0100
+Subject: [PATCH] drbd: Allow volumes to become primary only on one side
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_state.c   | 21 ++++++++++++++++++---
+ drivers/block/drbd/drbd_strings.c |  1 +
+ include/linux/drbd.h              |  3 ++-
+ 3 files changed, 21 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_state.c b/drivers/block/drbd/drbd_state.c
+index 886b996ec7b3..11685658659e 100644
+--- a/drivers/block/drbd/drbd_state.c
++++ b/drivers/block/drbd/drbd_state.c
+@@ -329,6 +329,18 @@ static void print_state_change(struct drbd_conf *mdev, union drbd_state os, unio
+ 		dev_info(DEV, "%s\n", pb);
+ }
+ 
++static bool vol_has_primary_peer(struct drbd_tconn *tconn)
++{
++	struct drbd_conf *mdev;
++	int minor;
++
++	idr_for_each_entry(&tconn->volumes, mdev, minor) {
++		if (mdev->state.peer == R_PRIMARY)
++			return true;
++	}
++	return false;
++}
++
+ /**
+  * is_valid_state() - Returns an SS_ error code if ns is not valid
+  * @mdev:	DRBD device.
+@@ -349,9 +361,12 @@ is_valid_state(struct drbd_conf *mdev, union drbd_state ns)
+ 	}
+ 
+ 	if (get_net_conf(mdev->tconn)) {
+-		if (!mdev->tconn->net_conf->two_primaries &&
+-		    ns.role == R_PRIMARY && ns.peer == R_PRIMARY)
+-			rv = SS_TWO_PRIMARIES;
++		if (!mdev->tconn->net_conf->two_primaries && ns.role == R_PRIMARY) {
++			if (ns.peer == R_PRIMARY)
++				rv = SS_TWO_PRIMARIES;
++			else if (vol_has_primary_peer(mdev->tconn))
++				rv = SS_O_VOL_PEER_PRI;
++			}
+ 		put_net_conf(mdev->tconn);
+ 	}
+ 
+diff --git a/drivers/block/drbd/drbd_strings.c b/drivers/block/drbd/drbd_strings.c
+index c44a2a602772..9a664bd27404 100644
+--- a/drivers/block/drbd/drbd_strings.c
++++ b/drivers/block/drbd/drbd_strings.c
+@@ -89,6 +89,7 @@ static const char *drbd_state_sw_errors[] = {
+ 	[-SS_LOWER_THAN_OUTDATED] = "Disk state is lower than outdated",
+ 	[-SS_IN_TRANSIENT_STATE] = "In transient state, retry after next state change",
+ 	[-SS_CONCURRENT_ST_CHG] = "Concurrent state changes detected and aborted",
++	[-SS_O_VOL_PEER_PRI] = "Other vol primary on peer not allowed by config",
+ };
+ 
+ const char *drbd_conn_str(enum drbd_conns s)
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index d28fdd8fcd49..9cdb888607ae 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -300,7 +300,8 @@ enum drbd_state_rv {
+ 	SS_NOT_SUPPORTED = -17,      /* drbd-8.2 only */
+ 	SS_IN_TRANSIENT_STATE = -18,  /* Retry after the next state change */
+ 	SS_CONCURRENT_ST_CHG = -19,   /* Concurrent cluster side state change! */
+-	SS_AFTER_LAST_ERROR = -20,    /* Keep this at bottom */
++	SS_O_VOL_PEER_PRI = -20,
++	SS_AFTER_LAST_ERROR = -21,    /* Keep this at bottom */
+ };
+ 
+ /* from drbd_strings.c */
+-- 
+2.17.0
+

@@ -1,0 +1,472 @@
+From a561be7100cd610bd2e082f3211c1dfb45835817 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Wed, 23 Nov 2011 11:57:51 -0500
+Subject: [PATCH] switch a bunch of places to mnt_want_write_file()
+
+it's both faster (in case when file has been opened for write) and cleaner.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/btrfs/ioctl.c        | 10 +++++-----
+ fs/ext2/ioctl.c         |  6 +++---
+ fs/ext3/ioctl.c         | 10 +++++-----
+ fs/ext4/ioctl.c         | 14 +++++++-------
+ fs/fat/file.c           |  2 +-
+ fs/gfs2/file.c          |  2 +-
+ fs/hfsplus/ioctl.c      |  2 +-
+ fs/jfs/ioctl.c          |  2 +-
+ fs/nfsd/nfs4recover.c   |  6 +++---
+ fs/nilfs2/ioctl.c       | 12 ++++++------
+ fs/ocfs2/ioctl.c        |  2 +-
+ fs/ocfs2/move_extents.c |  2 +-
+ fs/reiserfs/ioctl.c     |  4 ++--
+ fs/ubifs/ioctl.c        |  2 +-
+ fs/xfs/xfs_ioctl.c      |  4 ++--
+ fs/xfs/xfs_ioctl32.c    |  4 ++--
+ 16 files changed, 42 insertions(+), 42 deletions(-)
+
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index c04f02c7d5bb..20dd8f3b6c72 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -201,7 +201,7 @@ static int btrfs_ioctl_setflags(struct file *file, void __user *arg)
+ 		}
+ 	}
+ 
+-	ret = mnt_want_write(file->f_path.mnt);
++	ret = mnt_want_write_file(file);
+ 	if (ret)
+ 		goto out_unlock;
+ 
+@@ -1855,7 +1855,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 		goto out;
+ 	}
+ 
+-	err = mnt_want_write(file->f_path.mnt);
++	err = mnt_want_write_file(file);
+ 	if (err)
+ 		goto out;
+ 
+@@ -1987,7 +1987,7 @@ static int btrfs_ioctl_defrag(struct file *file, void __user *argp)
+ 	if (btrfs_root_readonly(root))
+ 		return -EROFS;
+ 
+-	ret = mnt_want_write(file->f_path.mnt);
++	ret = mnt_want_write_file(file);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2195,7 +2195,7 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ 	if (btrfs_root_readonly(root))
+ 		return -EROFS;
+ 
+-	ret = mnt_want_write(file->f_path.mnt);
++	ret = mnt_want_write_file(file);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -2549,7 +2549,7 @@ static long btrfs_ioctl_trans_start(struct file *file)
+ 	if (btrfs_root_readonly(root))
+ 		goto out;
+ 
+-	ret = mnt_want_write(file->f_path.mnt);
++	ret = mnt_want_write_file(file);
+ 	if (ret)
+ 		goto out;
+ 
+diff --git a/fs/ext2/ioctl.c b/fs/ext2/ioctl.c
+index f81e250ac5c4..61a3f9661728 100644
+--- a/fs/ext2/ioctl.c
++++ b/fs/ext2/ioctl.c
+@@ -35,7 +35,7 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	case EXT2_IOC_SETFLAGS: {
+ 		unsigned int oldflags;
+ 
+-		ret = mnt_want_write(filp->f_path.mnt);
++		ret = mnt_want_write_file(filp);
+ 		if (ret)
+ 			return ret;
+ 
+@@ -91,7 +91,7 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 	case EXT2_IOC_SETVERSION:
+ 		if (!inode_owner_or_capable(inode))
+ 			return -EPERM;
+-		ret = mnt_want_write(filp->f_path.mnt);
++		ret = mnt_want_write_file(filp);
+ 		if (ret)
+ 			return ret;
+ 		if (get_user(inode->i_generation, (int __user *) arg)) {
+@@ -121,7 +121,7 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (get_user(rsv_window_size, (int __user *)arg))
+ 			return -EFAULT;
+ 
+-		ret = mnt_want_write(filp->f_path.mnt);
++		ret = mnt_want_write_file(filp);
+ 		if (ret)
+ 			return ret;
+ 
+diff --git a/fs/ext3/ioctl.c b/fs/ext3/ioctl.c
+index ba1b54e23cae..a02863a080d3 100644
+--- a/fs/ext3/ioctl.c
++++ b/fs/ext3/ioctl.c
+@@ -44,7 +44,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (get_user(flags, (int __user *) arg))
+ 			return -EFAULT;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -126,7 +126,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!inode_owner_or_capable(inode))
+ 			return -EPERM;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 		if (get_user(generation, (int __user *) arg)) {
+@@ -164,7 +164,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!test_opt(inode->i_sb, RESERVATION) ||!S_ISREG(inode->i_mode))
+ 			return -ENOTTY;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -206,7 +206,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -232,7 +232,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!capable(CAP_SYS_RESOURCE))
+ 			return -EPERM;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index a56796814d6a..9a49760b554d 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -45,7 +45,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (get_user(flags, (int __user *) arg))
+ 			return -EFAULT;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -150,7 +150,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!inode_owner_or_capable(inode))
+ 			return -EPERM;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 		if (get_user(generation, (int __user *) arg)) {
+@@ -192,7 +192,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			return -EOPNOTSUPP;
+ 		}
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -240,7 +240,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			return -EOPNOTSUPP;
+ 		}
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			goto mext_out;
+ 
+@@ -277,7 +277,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			return -EOPNOTSUPP;
+ 		}
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+@@ -301,7 +301,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!inode_owner_or_capable(inode))
+ 			return -EACCES;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 		/*
+@@ -323,7 +323,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (!inode_owner_or_capable(inode))
+ 			return -EACCES;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 		err = ext4_alloc_da_blocks(inode);
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index c118acf16e43..50746a1a0789 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -44,7 +44,7 @@ static int fat_ioctl_set_attributes(struct file *file, u32 __user *user_attr)
+ 		goto out;
+ 
+ 	mutex_lock(&inode->i_mutex);
+-	err = mnt_want_write(file->f_path.mnt);
++	err = mnt_want_write_file(file);
+ 	if (err)
+ 		goto out_unlock_inode;
+ 
+diff --git a/fs/gfs2/file.c b/fs/gfs2/file.c
+index ce36a56dfeac..28fc6e3855f3 100644
+--- a/fs/gfs2/file.c
++++ b/fs/gfs2/file.c
+@@ -223,7 +223,7 @@ static int do_gfs2_set_flags(struct file *filp, u32 reqflags, u32 mask)
+ 	int error;
+ 	u32 new_flags, flags;
+ 
+-	error = mnt_want_write(filp->f_path.mnt);
++	error = mnt_want_write_file(filp);
+ 	if (error)
+ 		return error;
+ 
+diff --git a/fs/hfsplus/ioctl.c b/fs/hfsplus/ioctl.c
+index fbaa6690c8e0..31d3fe576429 100644
+--- a/fs/hfsplus/ioctl.c
++++ b/fs/hfsplus/ioctl.c
+@@ -43,7 +43,7 @@ static int hfsplus_ioctl_setflags(struct file *file, int __user *user_flags)
+ 	unsigned int flags;
+ 	int err = 0;
+ 
+-	err = mnt_want_write(file->f_path.mnt);
++	err = mnt_want_write_file(file);
+ 	if (err)
+ 		goto out;
+ 
+diff --git a/fs/jfs/ioctl.c b/fs/jfs/ioctl.c
+index 6f98a1866776..73d9eaa91c05 100644
+--- a/fs/jfs/ioctl.c
++++ b/fs/jfs/ioctl.c
+@@ -68,7 +68,7 @@ long jfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		unsigned int oldflags;
+ 		int err;
+ 
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			return err;
+ 
+diff --git a/fs/nfsd/nfs4recover.c b/fs/nfsd/nfs4recover.c
+index ed083b9a731b..a9aa2f161262 100644
+--- a/fs/nfsd/nfs4recover.c
++++ b/fs/nfsd/nfs4recover.c
+@@ -147,7 +147,7 @@ nfsd4_create_clid_dir(struct nfs4_client *clp)
+ 	status = -EEXIST;
+ 	if (dentry->d_inode)
+ 		goto out_put;
+-	status = mnt_want_write(rec_file->f_path.mnt);
++	status = mnt_want_write_file(rec_file);
+ 	if (status)
+ 		goto out_put;
+ 	status = vfs_mkdir(dir->d_inode, dentry, S_IRWXU);
+@@ -268,7 +268,7 @@ nfsd4_remove_clid_dir(struct nfs4_client *clp)
+ 	if (!rec_file || !clp->cl_firststate)
+ 		return;
+ 
+-	status = mnt_want_write(rec_file->f_path.mnt);
++	status = mnt_want_write_file(rec_file);
+ 	if (status)
+ 		goto out;
+ 	clp->cl_firststate = 0;
+@@ -311,7 +311,7 @@ nfsd4_recdir_purge_old(void) {
+ 
+ 	if (!rec_file)
+ 		return;
+-	status = mnt_want_write(rec_file->f_path.mnt);
++	status = mnt_want_write_file(rec_file);
+ 	if (status)
+ 		goto out;
+ 	status = nfsd4_list_rec_dir(purge_old);
+diff --git a/fs/nilfs2/ioctl.c b/fs/nilfs2/ioctl.c
+index ac258beeda3c..b7697d1ccd61 100644
+--- a/fs/nilfs2/ioctl.c
++++ b/fs/nilfs2/ioctl.c
+@@ -27,7 +27,7 @@
+ #include <linux/uaccess.h>	/* copy_from_user(), copy_to_user() */
+ #include <linux/vmalloc.h>
+ #include <linux/compat.h>	/* compat_ptr() */
+-#include <linux/mount.h>	/* mnt_want_write(), mnt_drop_write() */
++#include <linux/mount.h>	/* mnt_want_write_file(), mnt_drop_write() */
+ #include <linux/buffer_head.h>
+ #include <linux/nilfs2_fs.h>
+ #include "nilfs.h"
+@@ -119,7 +119,7 @@ static int nilfs_ioctl_setflags(struct inode *inode, struct file *filp,
+ 	if (get_user(flags, (int __user *)argp))
+ 		return -EFAULT;
+ 
+-	ret = mnt_want_write(filp->f_path.mnt);
++	ret = mnt_want_write_file(filp);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -174,7 +174,7 @@ static int nilfs_ioctl_change_cpmode(struct inode *inode, struct file *filp,
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	ret = mnt_want_write(filp->f_path.mnt);
++	ret = mnt_want_write_file(filp);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -210,7 +210,7 @@ nilfs_ioctl_delete_checkpoint(struct inode *inode, struct file *filp,
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	ret = mnt_want_write(filp->f_path.mnt);
++	ret = mnt_want_write_file(filp);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -591,7 +591,7 @@ static int nilfs_ioctl_clean_segments(struct inode *inode, struct file *filp,
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		return -EPERM;
+ 
+-	ret = mnt_want_write(filp->f_path.mnt);
++	ret = mnt_want_write_file(filp);
+ 	if (ret)
+ 		return ret;
+ 
+@@ -710,7 +710,7 @@ static int nilfs_ioctl_resize(struct inode *inode, struct file *filp,
+ 	if (!capable(CAP_SYS_ADMIN))
+ 		goto out;
+ 
+-	ret = mnt_want_write(filp->f_path.mnt);
++	ret = mnt_want_write_file(filp);
+ 	if (ret)
+ 		goto out;
+ 
+diff --git a/fs/ocfs2/ioctl.c b/fs/ocfs2/ioctl.c
+index 726ff265b296..892ace253f97 100644
+--- a/fs/ocfs2/ioctl.c
++++ b/fs/ocfs2/ioctl.c
+@@ -906,7 +906,7 @@ long ocfs2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		if (get_user(flags, (int __user *) arg))
+ 			return -EFAULT;
+ 
+-		status = mnt_want_write(filp->f_path.mnt);
++		status = mnt_want_write_file(filp);
+ 		if (status)
+ 			return status;
+ 		status = ocfs2_set_inode_attr(inode, flags,
+diff --git a/fs/ocfs2/move_extents.c b/fs/ocfs2/move_extents.c
+index 184c76b8c293..1d3bf83f8b85 100644
+--- a/fs/ocfs2/move_extents.c
++++ b/fs/ocfs2/move_extents.c
+@@ -1059,7 +1059,7 @@ int ocfs2_ioctl_move_extents(struct file *filp, void __user *argp)
+ 	struct ocfs2_move_extents range;
+ 	struct ocfs2_move_extents_context *context = NULL;
+ 
+-	status = mnt_want_write(filp->f_path.mnt);
++	status = mnt_want_write_file(filp);
+ 	if (status)
+ 		return status;
+ 
+diff --git a/fs/reiserfs/ioctl.c b/fs/reiserfs/ioctl.c
+index 4e153051bc75..0b94d7b2b11f 100644
+--- a/fs/reiserfs/ioctl.c
++++ b/fs/reiserfs/ioctl.c
+@@ -55,7 +55,7 @@ long reiserfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 				break;
+ 			}
+ 
+-			err = mnt_want_write(filp->f_path.mnt);
++			err = mnt_want_write_file(filp);
+ 			if (err)
+ 				break;
+ 
+@@ -107,7 +107,7 @@ long reiserfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			err = -EPERM;
+ 			break;
+ 		}
+-		err = mnt_want_write(filp->f_path.mnt);
++		err = mnt_want_write_file(filp);
+ 		if (err)
+ 			break;
+ 		if (get_user(inode->i_generation, (int __user *)arg)) {
+diff --git a/fs/ubifs/ioctl.c b/fs/ubifs/ioctl.c
+index 548acf494afd..e52c84598feb 100644
+--- a/fs/ubifs/ioctl.c
++++ b/fs/ubifs/ioctl.c
+@@ -173,7 +173,7 @@ long ubifs_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		 * Make sure the file-system is read-write and make sure it
+ 		 * will not become read-only while we are changing the flags.
+ 		 */
+-		err = mnt_want_write(file->f_path.mnt);
++		err = mnt_want_write_file(file);
+ 		if (err)
+ 			return err;
+ 		dbg_gen("set flags: %#x, i_flags %#x", flags, inode->i_flags);
+diff --git a/fs/xfs/xfs_ioctl.c b/fs/xfs/xfs_ioctl.c
+index d99a90518909..b436e17c753e 100644
+--- a/fs/xfs/xfs_ioctl.c
++++ b/fs/xfs/xfs_ioctl.c
+@@ -559,7 +559,7 @@ xfs_attrmulti_by_handle(
+ 					ops[i].am_flags);
+ 			break;
+ 		case ATTR_OP_SET:
+-			ops[i].am_error = mnt_want_write(parfilp->f_path.mnt);
++			ops[i].am_error = mnt_want_write_file(parfilp);
+ 			if (ops[i].am_error)
+ 				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_set(
+@@ -569,7 +569,7 @@ xfs_attrmulti_by_handle(
+ 			mnt_drop_write(parfilp->f_path.mnt);
+ 			break;
+ 		case ATTR_OP_REMOVE:
+-			ops[i].am_error = mnt_want_write(parfilp->f_path.mnt);
++			ops[i].am_error = mnt_want_write_file(parfilp);
+ 			if (ops[i].am_error)
+ 				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_remove(
+diff --git a/fs/xfs/xfs_ioctl32.c b/fs/xfs/xfs_ioctl32.c
+index 54e623bfbb85..dd4ba1d4c582 100644
+--- a/fs/xfs/xfs_ioctl32.c
++++ b/fs/xfs/xfs_ioctl32.c
+@@ -454,7 +454,7 @@ xfs_compat_attrmulti_by_handle(
+ 					&ops[i].am_length, ops[i].am_flags);
+ 			break;
+ 		case ATTR_OP_SET:
+-			ops[i].am_error = mnt_want_write(parfilp->f_path.mnt);
++			ops[i].am_error = mnt_want_write_file(parfilp);
+ 			if (ops[i].am_error)
+ 				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_set(
+@@ -464,7 +464,7 @@ xfs_compat_attrmulti_by_handle(
+ 			mnt_drop_write(parfilp->f_path.mnt);
+ 			break;
+ 		case ATTR_OP_REMOVE:
+-			ops[i].am_error = mnt_want_write(parfilp->f_path.mnt);
++			ops[i].am_error = mnt_want_write_file(parfilp);
+ 			if (ops[i].am_error)
+ 				break;
+ 			ops[i].am_error = xfs_attrmulti_attr_remove(
+-- 
+2.17.0
+

@@ -1,0 +1,44 @@
+From b032b6fa3528d6eed972db32257cb316a66e0dac Mon Sep 17 00:00:00 2001
+From: Philipp Reisner <philipp.reisner@linbit.com>
+Date: Wed, 13 Apr 2011 18:16:10 -0700
+Subject: [PATCH] drbd: Allow online change of replication protocol only with
+ agreed_pv >= 100
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_nl.c | 5 +++++
+ include/linux/drbd.h         | 1 +
+ 2 files changed, 6 insertions(+)
+
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 40de384aade6..d4b29fd603f4 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -1671,6 +1671,11 @@ check_net_options(struct drbd_tconn *tconn, struct net_conf *new_conf)
+ 	struct drbd_conf *mdev;
+ 	int i;
+ 
++	if (tconn->net_conf && tconn->agreed_pro_version < 100 &&
++	    tconn->cstate == C_WF_REPORT_PARAMS &&
++	    new_conf->wire_protocol != tconn->net_conf->wire_protocol)
++		return ERR_NEED_APV_100;
++
+ 	if (new_conf->two_primaries &&
+ 	    (new_conf->wire_protocol != DRBD_PROT_C))
+ 		return ERR_NOT_PROTO_C;
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index fe8d6ba31bcb..6c7c85d8fc41 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -160,6 +160,7 @@ enum drbd_ret_code {
+ 	ERR_MINOR_CONFIGURED    = 160,
+ 	ERR_MINOR_EXISTS	= 161,
+ 	ERR_INVALID_REQUEST	= 162,
++	ERR_NEED_APV_100	= 163,
+ 
+ 	/* insert new ones above this line */
+ 	AFTER_LAST_ERR_CODE
+-- 
+2.17.0
+

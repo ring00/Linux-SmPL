@@ -1,0 +1,646 @@
+From 826cae2f2b4d726b925f43bc208a571639da4761 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sat, 23 Jul 2011 03:10:32 -0400
+Subject: [PATCH] kill boilerplates around posix_acl_create_masq()
+
+new helper: posix_acl_create(&acl, gfp, mode_p).  Replaces acl with
+modified clone, on failure releases acl and replaces with NULL.
+Returns 0 or -ve on error.  All callers of posix_acl_create_masq()
+switched.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ fs/9p/acl.c                 | 22 +++++-----------------
+ fs/btrfs/acl.c              | 24 ++++++++----------------
+ fs/ext2/acl.c               | 25 ++++++++-----------------
+ fs/ext3/acl.c               | 26 +++++++++-----------------
+ fs/ext4/acl.c               | 26 +++++++++-----------------
+ fs/generic_acl.c            | 20 ++++++--------------
+ fs/gfs2/acl.c               | 14 ++++----------
+ fs/jffs2/acl.c              | 15 +++++----------
+ fs/jfs/acl.c                | 23 +++++++----------------
+ fs/nfs/nfs3acl.c            | 10 +++-------
+ fs/ocfs2/acl.c              | 36 ++++++++++++++----------------------
+ fs/posix_acl.c              | 18 ++++++++++++++++++
+ fs/reiserfs/xattr_acl.c     | 30 +++++++-----------------------
+ fs/xfs/linux-2.6/xfs_acl.c  | 28 +++++++++++-----------------
+ fs/xfs/linux-2.6/xfs_iops.c |  2 +-
+ include/linux/posix_acl.h   |  1 +
+ 16 files changed, 116 insertions(+), 204 deletions(-)
+
+diff --git a/fs/9p/acl.c b/fs/9p/acl.c
+index d7211e28c0d1..075bc909da17 100644
+--- a/fs/9p/acl.c
++++ b/fs/9p/acl.c
+@@ -206,30 +206,18 @@ int v9fs_acl_mode(struct inode *dir, mode_t *modep,
+ 			mode &= ~current_umask();
+ 	}
+ 	if (acl) {
+-		struct posix_acl *clone;
+-
+ 		if (S_ISDIR(mode))
+ 			*dpacl = posix_acl_dup(acl);
+-		clone = posix_acl_clone(acl, GFP_NOFS);
+-		posix_acl_release(acl);
+-		if (!clone)
+-			return -ENOMEM;
+-
+-		retval = posix_acl_create_masq(clone, &mode);
+-		if (retval < 0) {
+-			posix_acl_release(clone);
+-			goto cleanup;
+-		}
++		retval = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (retval < 0)
++			return retval;
+ 		if (retval > 0)
+-			*pacl = clone;
++			*pacl = acl;
+ 		else
+-			posix_acl_release(clone);
++			posix_acl_release(acl);
+ 	}
+ 	*modep  = mode;
+ 	return 0;
+-cleanup:
+-	return retval;
+-
+ }
+ 
+ static int v9fs_remote_get_acl(struct dentry *dentry, const char *name,
+diff --git a/fs/btrfs/acl.c b/fs/btrfs/acl.c
+index 88bca53b302a..9508ad14c924 100644
+--- a/fs/btrfs/acl.c
++++ b/fs/btrfs/acl.c
+@@ -238,8 +238,7 @@ int btrfs_init_acl(struct btrfs_trans_handle *trans,
+ 	}
+ 
+ 	if (IS_POSIXACL(dir) && acl) {
+-		struct posix_acl *clone;
+-		mode_t mode;
++		mode_t mode = inode->i_mode;
+ 
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			ret = btrfs_set_acl(trans, inode, acl,
+@@ -247,22 +246,15 @@ int btrfs_init_acl(struct btrfs_trans_handle *trans,
+ 			if (ret)
+ 				goto failed;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_NOFS);
+-		ret = -ENOMEM;
+-		if (!clone)
+-			goto failed;
++		ret = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (ret < 0)
++			return ret;
+ 
+-		mode = inode->i_mode;
+-		ret = posix_acl_create_masq(clone, &mode);
+-		if (ret >= 0) {
+-			inode->i_mode = mode;
+-			if (ret > 0) {
+-				/* we need an acl */
+-				ret = btrfs_set_acl(trans, inode, clone,
+-						    ACL_TYPE_ACCESS);
+-			}
++		inode->i_mode = mode;
++		if (ret > 0) {
++			/* we need an acl */
++			ret = btrfs_set_acl(trans, inode, acl, ACL_TYPE_ACCESS);
+ 		}
+-		posix_acl_release(clone);
+ 	}
+ failed:
+ 	posix_acl_release(acl);
+diff --git a/fs/ext2/acl.c b/fs/ext2/acl.c
+index 1226dbcc66f5..ba99fa4b2f35 100644
+--- a/fs/ext2/acl.c
++++ b/fs/ext2/acl.c
+@@ -270,29 +270,20 @@ ext2_init_acl(struct inode *inode, struct inode *dir)
+ 			inode->i_mode &= ~current_umask();
+ 	}
+ 	if (test_opt(inode->i_sb, POSIX_ACL) && acl) {
+-               struct posix_acl *clone;
+-	       mode_t mode;
+-
++		mode_t mode = inode->i_mode;
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			error = ext2_set_acl(inode, ACL_TYPE_DEFAULT, acl);
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
+-		error = -ENOMEM;
+-		if (!clone)
+-			goto cleanup;
+-		mode = inode->i_mode;
+-		error = posix_acl_create_masq(clone, &mode);
+-		if (error >= 0) {
+-			inode->i_mode = mode;
+-			if (error > 0) {
+-				/* This is an extended ACL */
+-				error = ext2_set_acl(inode,
+-						     ACL_TYPE_ACCESS, clone);
+-			}
++		error = posix_acl_create(&acl, GFP_KERNEL, &mode);
++		if (error < 0)
++			return error;
++		inode->i_mode = mode;
++		if (error > 0) {
++			/* This is an extended ACL */
++			error = ext2_set_acl(inode, ACL_TYPE_ACCESS, acl);
+ 		}
+-		posix_acl_release(clone);
+ 	}
+ cleanup:
+        posix_acl_release(acl);
+diff --git a/fs/ext3/acl.c b/fs/ext3/acl.c
+index 7ea638acaecf..a9fdd77d4b58 100644
+--- a/fs/ext3/acl.c
++++ b/fs/ext3/acl.c
+@@ -278,8 +278,7 @@ ext3_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
+ 			inode->i_mode &= ~current_umask();
+ 	}
+ 	if (test_opt(inode->i_sb, POSIX_ACL) && acl) {
+-		struct posix_acl *clone;
+-		mode_t mode;
++		mode_t mode = inode->i_mode;
+ 
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			error = ext3_set_acl(handle, inode,
+@@ -287,22 +286,15 @@ ext3_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_NOFS);
+-		error = -ENOMEM;
+-		if (!clone)
+-			goto cleanup;
+-
+-		mode = inode->i_mode;
+-		error = posix_acl_create_masq(clone, &mode);
+-		if (error >= 0) {
+-			inode->i_mode = mode;
+-			if (error > 0) {
+-				/* This is an extended ACL */
+-				error = ext3_set_acl(handle, inode,
+-						     ACL_TYPE_ACCESS, clone);
+-			}
++		error = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (error < 0)
++			return error;
++
++		inode->i_mode = mode;
++		if (error > 0) {
++			/* This is an extended ACL */
++			error = ext3_set_acl(handle, inode, ACL_TYPE_ACCESS, acl);
+ 		}
+-		posix_acl_release(clone);
+ 	}
+ cleanup:
+ 	posix_acl_release(acl);
+diff --git a/fs/ext4/acl.c b/fs/ext4/acl.c
+index e38a2047d246..7b094d1a8d3e 100644
+--- a/fs/ext4/acl.c
++++ b/fs/ext4/acl.c
+@@ -276,8 +276,7 @@ ext4_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
+ 			inode->i_mode &= ~current_umask();
+ 	}
+ 	if (test_opt(inode->i_sb, POSIX_ACL) && acl) {
+-		struct posix_acl *clone;
+-		mode_t mode;
++		mode_t mode = inode->i_mode;
+ 
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			error = ext4_set_acl(handle, inode,
+@@ -285,22 +284,15 @@ ext4_init_acl(handle_t *handle, struct inode *inode, struct inode *dir)
+ 			if (error)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_NOFS);
+-		error = -ENOMEM;
+-		if (!clone)
+-			goto cleanup;
+-
+-		mode = inode->i_mode;
+-		error = posix_acl_create_masq(clone, &mode);
+-		if (error >= 0) {
+-			inode->i_mode = mode;
+-			if (error > 0) {
+-				/* This is an extended ACL */
+-				error = ext4_set_acl(handle, inode,
+-						     ACL_TYPE_ACCESS, clone);
+-			}
++		error = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (error < 0)
++			return error;
++
++		inode->i_mode = mode;
++		if (error > 0) {
++			/* This is an extended ACL */
++			error = ext4_set_acl(handle, inode, ACL_TYPE_ACCESS, acl);
+ 		}
+-		posix_acl_release(clone);
+ 	}
+ cleanup:
+ 	posix_acl_release(acl);
+diff --git a/fs/generic_acl.c b/fs/generic_acl.c
+index 134782116a62..ea19ca47d452 100644
+--- a/fs/generic_acl.c
++++ b/fs/generic_acl.c
+@@ -132,25 +132,17 @@ generic_acl_init(struct inode *inode, struct inode *dir)
+ 	if (!S_ISLNK(inode->i_mode))
+ 		acl = get_cached_acl(dir, ACL_TYPE_DEFAULT);
+ 	if (acl) {
+-		struct posix_acl *clone;
+-
+ 		if (S_ISDIR(inode->i_mode))
+ 			set_cached_acl(inode, ACL_TYPE_DEFAULT, acl);
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
+-		error = -ENOMEM;
+-		if (!clone)
+-			goto cleanup;
+-		error = posix_acl_create_masq(clone, &mode);
+-		if (error >= 0) {
+-			inode->i_mode = mode;
+-			if (error > 0)
+-				set_cached_acl(inode, ACL_TYPE_ACCESS, clone);
+-		}
+-		posix_acl_release(clone);
++		error = posix_acl_create(&acl, GFP_KERNEL, &mode);
++		if (error < 0)
++			return error;
++		inode->i_mode = mode;
++		if (error > 0)
++			set_cached_acl(inode, ACL_TYPE_ACCESS, acl);
+ 	}
+ 	error = 0;
+ 
+-cleanup:
+ 	posix_acl_release(acl);
+ 	return error;
+ }
+diff --git a/fs/gfs2/acl.c b/fs/gfs2/acl.c
+index 160d4e1575ce..a2dd63c0c11a 100644
+--- a/fs/gfs2/acl.c
++++ b/fs/gfs2/acl.c
+@@ -137,7 +137,7 @@ static int gfs2_acl_set(struct inode *inode, int type, struct posix_acl *acl)
+ int gfs2_acl_create(struct gfs2_inode *dip, struct inode *inode)
+ {
+ 	struct gfs2_sbd *sdp = GFS2_SB(&dip->i_inode);
+-	struct posix_acl *acl, *clone;
++	struct posix_acl *acl;
+ 	mode_t mode = inode->i_mode;
+ 	int error = 0;
+ 
+@@ -162,16 +162,10 @@ int gfs2_acl_create(struct gfs2_inode *dip, struct inode *inode)
+ 			goto out;
+ 	}
+ 
+-	clone = posix_acl_clone(acl, GFP_NOFS);
+-	error = -ENOMEM;
+-	if (!clone)
+-		goto out;
+-	posix_acl_release(acl);
+-	acl = clone;
+-
+-	error = posix_acl_create_masq(acl, &mode);
++	error = posix_acl_create(&acl, GFP_NOFS, &mode);
+ 	if (error < 0)
+-		goto out;
++		return error;
++
+ 	if (error == 0)
+ 		goto munge;
+ 
+diff --git a/fs/jffs2/acl.c b/fs/jffs2/acl.c
+index 71d022d38508..5783ed81171b 100644
+--- a/fs/jffs2/acl.c
++++ b/fs/jffs2/acl.c
+@@ -277,7 +277,7 @@ int jffs2_check_acl(struct inode *inode, int mask)
+ 
+ int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, mode_t *i_mode)
+ {
+-	struct posix_acl *acl, *clone;
++	struct posix_acl *acl;
+ 	int rc;
+ 
+ 	cache_no_acl(inode);
+@@ -295,18 +295,13 @@ int jffs2_init_acl_pre(struct inode *dir_i, struct inode *inode, mode_t *i_mode)
+ 		if (S_ISDIR(*i_mode))
+ 			set_cached_acl(inode, ACL_TYPE_DEFAULT, acl);
+ 
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
+-		if (!clone)
+-			return -ENOMEM;
+-		rc = posix_acl_create_masq(clone, i_mode);
+-		if (rc < 0) {
+-			posix_acl_release(clone);
++		rc = posix_acl_create(&acl, GFP_KERNEL, i_mode);
++		if (rc < 0)
+ 			return rc;
+-		}
+ 		if (rc > 0)
+-			set_cached_acl(inode, ACL_TYPE_ACCESS, clone);
++			set_cached_acl(inode, ACL_TYPE_ACCESS, acl);
+ 
+-		posix_acl_release(clone);
++		posix_acl_release(acl);
+ 	}
+ 	return 0;
+ }
+diff --git a/fs/jfs/acl.c b/fs/jfs/acl.c
+index 89ced71e225a..687a1ae42e3f 100644
+--- a/fs/jfs/acl.c
++++ b/fs/jfs/acl.c
+@@ -133,8 +133,6 @@ int jfs_check_acl(struct inode *inode, int mask)
+ int jfs_init_acl(tid_t tid, struct inode *inode, struct inode *dir)
+ {
+ 	struct posix_acl *acl = NULL;
+-	struct posix_acl *clone;
+-	mode_t mode;
+ 	int rc = 0;
+ 
+ 	if (S_ISLNK(inode->i_mode))
+@@ -145,25 +143,18 @@ int jfs_init_acl(tid_t tid, struct inode *inode, struct inode *dir)
+ 		return PTR_ERR(acl);
+ 
+ 	if (acl) {
++		mode_t mode = inode->i_mode;
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			rc = jfs_set_acl(tid, inode, ACL_TYPE_DEFAULT, acl);
+ 			if (rc)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_KERNEL);
+-		if (!clone) {
+-			rc = -ENOMEM;
+-			goto cleanup;
+-		}
+-		mode = inode->i_mode;
+-		rc = posix_acl_create_masq(clone, &mode);
+-		if (rc >= 0) {
+-			inode->i_mode = mode;
+-			if (rc > 0)
+-				rc = jfs_set_acl(tid, inode, ACL_TYPE_ACCESS,
+-						 clone);
+-		}
+-		posix_acl_release(clone);
++		rc = posix_acl_create(&acl, GFP_KERNEL, &mode);
++		if (rc < 0)
++			goto cleanup; /* posix_acl_release(NULL) is no-op */
++		inode->i_mode = mode;
++		if (rc > 0)
++			rc = jfs_set_acl(tid, inode, ACL_TYPE_ACCESS, acl);
+ cleanup:
+ 		posix_acl_release(acl);
+ 	} else
+diff --git a/fs/nfs/nfs3acl.c b/fs/nfs/nfs3acl.c
+index 274342771655..e49e73107e62 100644
+--- a/fs/nfs/nfs3acl.c
++++ b/fs/nfs/nfs3acl.c
+@@ -427,16 +427,12 @@ int nfs3_proc_set_default_acl(struct inode *dir, struct inode *inode,
+ 	}
+ 	if (!dfacl)
+ 		return 0;
+-	acl = posix_acl_clone(dfacl, GFP_KERNEL);
+-	error = -ENOMEM;
+-	if (!acl)
+-		goto out_release_dfacl;
+-	error = posix_acl_create_masq(acl, &mode);
++	acl = posix_acl_dup(dfacl);
++	error = posix_acl_create(&acl, GFP_KERNEL, &mode);
+ 	if (error < 0)
+-		goto out_release_acl;
++		goto out_release_dfacl;
+ 	error = nfs3_proc_setacls(inode, acl, S_ISDIR(inode->i_mode) ?
+ 						      dfacl : NULL);
+-out_release_acl:
+ 	posix_acl_release(acl);
+ out_release_dfacl:
+ 	posix_acl_release(dfacl);
+diff --git a/fs/ocfs2/acl.c b/fs/ocfs2/acl.c
+index dd0296ade181..480200e94e83 100644
+--- a/fs/ocfs2/acl.c
++++ b/fs/ocfs2/acl.c
+@@ -382,8 +382,6 @@ int ocfs2_init_acl(handle_t *handle,
+ 		}
+ 	}
+ 	if ((osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL) && acl) {
+-		struct posix_acl *clone;
+-
+ 		if (S_ISDIR(inode->i_mode)) {
+ 			ret = ocfs2_set_acl(handle, inode, di_bh,
+ 					    ACL_TYPE_DEFAULT, acl,
+@@ -391,28 +389,22 @@ int ocfs2_init_acl(handle_t *handle,
+ 			if (ret)
+ 				goto cleanup;
+ 		}
+-		clone = posix_acl_clone(acl, GFP_NOFS);
+-		ret = -ENOMEM;
+-		if (!clone)
+-			goto cleanup;
+-
+ 		mode = inode->i_mode;
+-		ret = posix_acl_create_masq(clone, &mode);
+-		if (ret >= 0) {
+-			ret2 = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
+-			if (ret2) {
+-				mlog_errno(ret2);
+-				ret = ret2;
+-				posix_acl_release(clone);
+-				goto cleanup;
+-			}
+-			if (ret > 0) {
+-				ret = ocfs2_set_acl(handle, inode,
+-						    di_bh, ACL_TYPE_ACCESS,
+-						    clone, meta_ac, data_ac);
+-			}
++		ret = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (ret < 0)
++			return ret;
++
++		ret2 = ocfs2_acl_set_mode(inode, di_bh, handle, mode);
++		if (ret2) {
++			mlog_errno(ret2);
++			ret = ret2;
++			goto cleanup;
++		}
++		if (ret > 0) {
++			ret = ocfs2_set_acl(handle, inode,
++					    di_bh, ACL_TYPE_ACCESS,
++					    acl, meta_ac, data_ac);
+ 		}
+-		posix_acl_release(clone);
+ 	}
+ cleanup:
+ 	posix_acl_release(acl);
+diff --git a/fs/posix_acl.c b/fs/posix_acl.c
+index 0aa9f1676726..365a0712da6a 100644
+--- a/fs/posix_acl.c
++++ b/fs/posix_acl.c
+@@ -387,6 +387,24 @@ posix_acl_chmod_masq(struct posix_acl *acl, mode_t mode)
+ 	return 0;
+ }
+ 
++int
++posix_acl_create(struct posix_acl **acl, gfp_t gfp, mode_t *mode_p)
++{
++	struct posix_acl *clone = posix_acl_clone(*acl, gfp);
++	int err = -ENOMEM;
++	if (clone) {
++		err = posix_acl_create_masq(clone, mode_p);
++		if (err < 0) {
++			posix_acl_release(clone);
++			clone = NULL;
++		}
++	}
++	posix_acl_release(*acl);
++	*acl = clone;
++	return err;
++}
++EXPORT_SYMBOL(posix_acl_create);
++
+ int
+ posix_acl_chmod(struct posix_acl **acl, gfp_t gfp, mode_t mode)
+ {
+diff --git a/fs/reiserfs/xattr_acl.c b/fs/reiserfs/xattr_acl.c
+index 26b08acf913f..7362cf4c946a 100644
+--- a/fs/reiserfs/xattr_acl.c
++++ b/fs/reiserfs/xattr_acl.c
+@@ -354,9 +354,7 @@ reiserfs_inherit_default_acl(struct reiserfs_transaction_handle *th,
+ 		return PTR_ERR(acl);
+ 
+ 	if (acl) {
+-		struct posix_acl *acl_copy;
+ 		mode_t mode = inode->i_mode;
+-		int need_acl;
+ 
+ 		/* Copy the default ACL to the default ACL of a new directory */
+ 		if (S_ISDIR(inode->i_mode)) {
+@@ -368,29 +366,15 @@ reiserfs_inherit_default_acl(struct reiserfs_transaction_handle *th,
+ 
+ 		/* Now we reconcile the new ACL and the mode,
+ 		   potentially modifying both */
+-		acl_copy = posix_acl_clone(acl, GFP_NOFS);
+-		if (!acl_copy) {
+-			err = -ENOMEM;
+-			goto cleanup;
+-		}
++		err = posix_acl_create(&acl, GFP_NOFS, &mode);
++		if (err < 0)
++			return err;
+ 
+-		need_acl = posix_acl_create_masq(acl_copy, &mode);
+-		if (need_acl >= 0) {
+-			if (mode != inode->i_mode) {
+-				inode->i_mode = mode;
+-			}
++		inode->i_mode = mode;
+ 
+-			/* If we need an ACL.. */
+-			if (need_acl > 0) {
+-				err = reiserfs_set_acl(th, inode,
+-						       ACL_TYPE_ACCESS,
+-						       acl_copy);
+-				if (err)
+-					goto cleanup_copy;
+-			}
+-		}
+-	      cleanup_copy:
+-		posix_acl_release(acl_copy);
++		/* If we need an ACL.. */
++		if (err > 0)
++			err = reiserfs_set_acl(th, inode, ACL_TYPE_ACCESS, acl);
+ 	      cleanup:
+ 		posix_acl_release(acl);
+ 	} else {
+diff --git a/fs/xfs/linux-2.6/xfs_acl.c b/fs/xfs/linux-2.6/xfs_acl.c
+index 4c554122db02..2827bbd8366e 100644
+--- a/fs/xfs/linux-2.6/xfs_acl.c
++++ b/fs/xfs/linux-2.6/xfs_acl.c
+@@ -282,29 +282,23 @@ posix_acl_default_exists(struct inode *inode)
+  * No need for i_mutex because the inode is not yet exposed to the VFS.
+  */
+ int
+-xfs_inherit_acl(struct inode *inode, struct posix_acl *default_acl)
++xfs_inherit_acl(struct inode *inode, struct posix_acl *acl)
+ {
+-	struct posix_acl *clone;
+-	mode_t mode;
++	mode_t mode = inode->i_mode;
+ 	int error = 0, inherit = 0;
+ 
+ 	if (S_ISDIR(inode->i_mode)) {
+-		error = xfs_set_acl(inode, ACL_TYPE_DEFAULT, default_acl);
++		error = xfs_set_acl(inode, ACL_TYPE_DEFAULT, acl);
+ 		if (error)
+-			return error;
++			goto out;
+ 	}
+ 
+-	clone = posix_acl_clone(default_acl, GFP_KERNEL);
+-	if (!clone)
+-		return -ENOMEM;
+-
+-	mode = inode->i_mode;
+-	error = posix_acl_create_masq(clone, &mode);
++	error = posix_acl_create(&acl, GFP_KERNEL, &mode);
+ 	if (error < 0)
+-		goto out_release_clone;
++		return error;
+ 
+ 	/*
+-	 * If posix_acl_create_masq returns a positive value we need to
++	 * If posix_acl_create returns a positive value we need to
+ 	 * inherit a permission that can't be represented using the Unix
+ 	 * mode bits and we actually need to set an ACL.
+ 	 */
+@@ -313,13 +307,13 @@ xfs_inherit_acl(struct inode *inode, struct posix_acl *default_acl)
+ 
+ 	error = xfs_set_mode(inode, mode);
+ 	if (error)
+-		goto out_release_clone;
++		goto out;
+ 
+ 	if (inherit)
+-		error = xfs_set_acl(inode, ACL_TYPE_ACCESS, clone);
++		error = xfs_set_acl(inode, ACL_TYPE_ACCESS, acl);
+ 
+- out_release_clone:
+-	posix_acl_release(clone);
++out:
++	posix_acl_release(acl);
+ 	return error;
+ }
+ 
+diff --git a/fs/xfs/linux-2.6/xfs_iops.c b/fs/xfs/linux-2.6/xfs_iops.c
+index de666917db06..77463dd55198 100644
+--- a/fs/xfs/linux-2.6/xfs_iops.c
++++ b/fs/xfs/linux-2.6/xfs_iops.c
+@@ -202,9 +202,9 @@ xfs_vn_mknod(
+ 
+ 	if (default_acl) {
+ 		error = -xfs_inherit_acl(inode, default_acl);
++		default_acl = NULL;
+ 		if (unlikely(error))
+ 			goto out_cleanup_inode;
+-		posix_acl_release(default_acl);
+ 	}
+ 
+ 
+diff --git a/include/linux/posix_acl.h b/include/linux/posix_acl.h
+index 7a74d37482e8..0ae0e4a3e20c 100644
+--- a/include/linux/posix_acl.h
++++ b/include/linux/posix_acl.h
+@@ -80,6 +80,7 @@ extern struct posix_acl *posix_acl_from_mode(mode_t, gfp_t);
+ extern int posix_acl_equiv_mode(const struct posix_acl *, mode_t *);
+ extern int posix_acl_create_masq(struct posix_acl *, mode_t *);
+ extern int posix_acl_chmod_masq(struct posix_acl *, mode_t);
++extern int posix_acl_create(struct posix_acl **, gfp_t, mode_t *);
+ extern int posix_acl_chmod(struct posix_acl **, gfp_t, mode_t);
+ 
+ extern struct posix_acl *get_posix_acl(struct inode *, int);
+-- 
+2.17.0
+

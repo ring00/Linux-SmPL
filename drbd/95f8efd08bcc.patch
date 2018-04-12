@@ -1,0 +1,182 @@
+From 95f8efd08bcce65df994049a292b94e56c7ada67 Mon Sep 17 00:00:00 2001
+From: Andreas Gruenbacher <agruen@linbit.com>
+Date: Thu, 12 May 2011 11:15:34 +0200
+Subject: [PATCH] drbd: Fix the upper limit of resync-after
+
+The 32-bit resync_after netlink field takes a device minor number as
+parameter, which is no longer limited to 255.  We cannot statically
+verify which device numbers are valid, so set the ummer limit to the
+highest possible signed 32-bit integer.
+
+Signed-off-by: Philipp Reisner <philipp.reisner@linbit.com>
+Signed-off-by: Lars Ellenberg <lars.ellenberg@linbit.com>
+---
+ drivers/block/drbd/drbd_int.h    |  4 ++--
+ drivers/block/drbd/drbd_nl.c     |  4 ++--
+ drivers/block/drbd/drbd_worker.c | 26 +++++++++++++-------------
+ include/linux/drbd.h             |  4 ++--
+ include/linux/drbd_genl.h        |  2 +-
+ include/linux/drbd_limits.h      |  7 ++++---
+ 6 files changed, 24 insertions(+), 23 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_int.h b/drivers/block/drbd/drbd_int.h
+index 8026adacd3d2..e16722840767 100644
+--- a/drivers/block/drbd/drbd_int.h
++++ b/drivers/block/drbd/drbd_int.h
+@@ -1408,8 +1408,8 @@ extern int drbd_khelper(struct drbd_conf *mdev, char *cmd);
+ 
+ /* drbd_worker.c */
+ extern int drbd_worker(struct drbd_thread *thi);
+-enum drbd_ret_code drbd_sync_after_valid(struct drbd_conf *mdev, int o_minor);
+-void drbd_sync_after_changed(struct drbd_conf *mdev);
++enum drbd_ret_code drbd_resync_after_valid(struct drbd_conf *mdev, int o_minor);
++void drbd_resync_after_changed(struct drbd_conf *mdev);
+ extern void drbd_start_resync(struct drbd_conf *mdev, enum drbd_conns side);
+ extern void resume_next_sg(struct drbd_conf *mdev);
+ extern void suspend_other_sg(struct drbd_conf *mdev);
+diff --git a/drivers/block/drbd/drbd_nl.c b/drivers/block/drbd/drbd_nl.c
+index 9a82306adf92..74c27f1507f3 100644
+--- a/drivers/block/drbd/drbd_nl.c
++++ b/drivers/block/drbd/drbd_nl.c
+@@ -1183,10 +1183,10 @@ int drbd_adm_disk_opts(struct sk_buff *skb, struct genl_info *info)
+ 	}
+ 
+ 	write_lock_irq(&global_state_lock);
+-	retcode = drbd_sync_after_valid(mdev, new_disk_conf->resync_after);
++	retcode = drbd_resync_after_valid(mdev, new_disk_conf->resync_after);
+ 	if (retcode == NO_ERROR) {
+ 		rcu_assign_pointer(mdev->ldev->disk_conf, new_disk_conf);
+-		drbd_sync_after_changed(mdev);
++		drbd_resync_after_changed(mdev);
+ 	}
+ 	write_unlock_irq(&global_state_lock);
+ 
+diff --git a/drivers/block/drbd/drbd_worker.c b/drivers/block/drbd/drbd_worker.c
+index ec8f4245ef9a..6410c55831e0 100644
+--- a/drivers/block/drbd/drbd_worker.c
++++ b/drivers/block/drbd/drbd_worker.c
+@@ -57,7 +57,7 @@ static int w_make_ov_request(struct drbd_work *w, int cancel);
+ 
+ /* About the global_state_lock
+    Each state transition on an device holds a read lock. In case we have
+-   to evaluate the sync after dependencies, we grab a write lock, because
++   to evaluate the resync after dependencies, we grab a write lock, because
+    we need stable states on all devices for that.  */
+ rwlock_t global_state_lock;
+ 
+@@ -1340,17 +1340,17 @@ int w_restart_disk_io(struct drbd_work *w, int cancel)
+ static int _drbd_may_sync_now(struct drbd_conf *mdev)
+ {
+ 	struct drbd_conf *odev = mdev;
+-	int ra;
++	int resync_after;
+ 
+ 	while (1) {
+ 		if (!odev->ldev)
+ 			return 1;
+ 		rcu_read_lock();
+-		ra = rcu_dereference(odev->ldev->disk_conf)->resync_after;
++		resync_after = rcu_dereference(odev->ldev->disk_conf)->resync_after;
+ 		rcu_read_unlock();
+-		if (ra == -1)
++		if (resync_after == -1)
+ 			return 1;
+-		odev = minor_to_mdev(ra);
++		odev = minor_to_mdev(resync_after);
+ 		if (!expect(odev))
+ 			return 1;
+ 		if ((odev->state.conn >= C_SYNC_SOURCE &&
+@@ -1426,36 +1426,36 @@ void suspend_other_sg(struct drbd_conf *mdev)
+ }
+ 
+ /* caller must hold global_state_lock */
+-enum drbd_ret_code drbd_sync_after_valid(struct drbd_conf *mdev, int o_minor)
++enum drbd_ret_code drbd_resync_after_valid(struct drbd_conf *mdev, int o_minor)
+ {
+ 	struct drbd_conf *odev;
+-	int ra;
++	int resync_after;
+ 
+ 	if (o_minor == -1)
+ 		return NO_ERROR;
+ 	if (o_minor < -1 || minor_to_mdev(o_minor) == NULL)
+-		return ERR_SYNC_AFTER;
++		return ERR_RESYNC_AFTER;
+ 
+ 	/* check for loops */
+ 	odev = minor_to_mdev(o_minor);
+ 	while (1) {
+ 		if (odev == mdev)
+-			return ERR_SYNC_AFTER_CYCLE;
++			return ERR_RESYNC_AFTER_CYCLE;
+ 
+ 		rcu_read_lock();
+-		ra = rcu_dereference(odev->ldev->disk_conf)->resync_after;
++		resync_after = rcu_dereference(odev->ldev->disk_conf)->resync_after;
+ 		rcu_read_unlock();
+ 		/* dependency chain ends here, no cycles. */
+-		if (ra == -1)
++		if (resync_after == -1)
+ 			return NO_ERROR;
+ 
+ 		/* follow the dependency chain */
+-		odev = minor_to_mdev(ra);
++		odev = minor_to_mdev(resync_after);
+ 	}
+ }
+ 
+ /* caller must hold global_state_lock */
+-void drbd_sync_after_changed(struct drbd_conf *mdev)
++void drbd_resync_after_changed(struct drbd_conf *mdev)
+ {
+ 	int changes;
+ 
+diff --git a/include/linux/drbd.h b/include/linux/drbd.h
+index 6c7c85d8fc41..05063e6db81f 100644
+--- a/include/linux/drbd.h
++++ b/include/linux/drbd.h
+@@ -130,8 +130,8 @@ enum drbd_ret_code {
+ 	ERR_INTR		= 129, /* EINTR */
+ 	ERR_RESIZE_RESYNC	= 130,
+ 	ERR_NO_PRIMARY		= 131,
+-	ERR_SYNC_AFTER		= 132,
+-	ERR_SYNC_AFTER_CYCLE	= 133,
++	ERR_RESYNC_AFTER	= 132,
++	ERR_RESYNC_AFTER_CYCLE	= 133,
+ 	ERR_PAUSE_IS_SET	= 134,
+ 	ERR_PAUSE_IS_CLEAR	= 135,
+ 	ERR_PACKET_NR		= 137,
+diff --git a/include/linux/drbd_genl.h b/include/linux/drbd_genl.h
+index 67c816c0fc28..a59466f7f661 100644
+--- a/include/linux/drbd_genl.h
++++ b/include/linux/drbd_genl.h
+@@ -114,7 +114,7 @@ GENL_struct(DRBD_NLA_DISK_CONF, 3, disk_conf,
+ 	__u32_field_def(7, GENLA_F_MANDATORY,	fencing, DRBD_FENCING_DEF)
+ 
+ 	__u32_field_def(8,	GENLA_F_MANDATORY,	resync_rate, DRBD_RESYNC_RATE_DEF)
+-	__u32_field_def(9,	GENLA_F_MANDATORY,	resync_after, DRBD_AFTER_DEF)
++	__u32_field_def(9,	GENLA_F_MANDATORY,	resync_after, DRBD_RESYNC_AFTER_DEF)
+ 	__u32_field_def(10,	GENLA_F_MANDATORY,	al_extents, DRBD_AL_EXTENTS_DEF)
+ 	__u32_field_def(11,	GENLA_F_MANDATORY,	c_plan_ahead, DRBD_C_PLAN_AHEAD_DEF)
+ 	__u32_field_def(12,	GENLA_F_MANDATORY,	c_delay_target, DRBD_C_DELAY_TARGET_DEF)
+diff --git a/include/linux/drbd_limits.h b/include/linux/drbd_limits.h
+index 48339ae69d50..c4a8f0fef7b2 100644
+--- a/include/linux/drbd_limits.h
++++ b/include/linux/drbd_limits.h
+@@ -113,9 +113,10 @@
+ #define DRBD_AL_EXTENTS_MAX  6433
+ #define DRBD_AL_EXTENTS_DEF  127
+ 
+-#define DRBD_AFTER_MIN  -1
+-#define DRBD_AFTER_MAX  255
+-#define DRBD_AFTER_DEF  -1
++#define DRBD_RESYNC_AFTER_MIN  -1
++#define DRBD_RESYNC_AFTER_MAX  (1<<30)
++#define DRBD_RESYNC_AFTER_DEF  -1
++#define DRBD_RESYNC_AFTER_SCALE '1'
+ 
+ /* } */
+ 
+-- 
+2.17.0
+

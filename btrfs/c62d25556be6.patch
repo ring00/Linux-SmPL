@@ -1,0 +1,357 @@
+From c62d25556be6c965dc14288e796a576e8e39a7e9 Mon Sep 17 00:00:00 2001
+From: Michal Hocko <mhocko@suse.com>
+Date: Fri, 6 Nov 2015 16:28:49 -0800
+Subject: [PATCH] mm, fs: introduce mapping_gfp_constraint()
+
+There are many places which use mapping_gfp_mask to restrict a more
+generic gfp mask which would be used for allocations which are not
+directly related to the page cache but they are performed in the same
+context.
+
+Let's introduce a helper function which makes the restriction explicit and
+easier to track.  This patch doesn't introduce any functional changes.
+
+[akpm@linux-foundation.org: coding-style fixes]
+Signed-off-by: Michal Hocko <mhocko@suse.com>
+Suggested-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Andrew Morton <akpm@linux-foundation.org>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ drivers/gpu/drm/drm_gem.c       | 2 +-
+ drivers/gpu/drm/i915/i915_gem.c | 3 +--
+ fs/btrfs/compression.c          | 7 +++----
+ fs/btrfs/ctree.h                | 2 +-
+ fs/btrfs/free-space-cache.c     | 4 ++--
+ fs/buffer.c                     | 2 +-
+ fs/ceph/addr.c                  | 7 ++++---
+ fs/cifs/file.c                  | 2 +-
+ fs/ext4/inode.c                 | 2 +-
+ fs/ext4/readpage.c              | 2 +-
+ fs/logfs/segment.c              | 2 +-
+ fs/mpage.c                      | 4 ++--
+ fs/namei.c                      | 2 +-
+ fs/nilfs2/inode.c               | 4 ++--
+ fs/ntfs/file.c                  | 4 ++--
+ fs/splice.c                     | 2 +-
+ include/linux/pagemap.h         | 7 +++++++
+ mm/filemap.c                    | 4 ++--
+ mm/readahead.c                  | 4 ++--
+ 19 files changed, 36 insertions(+), 30 deletions(-)
+
+diff --git a/drivers/gpu/drm/drm_gem.c b/drivers/gpu/drm/drm_gem.c
+index 3c2d4abd71c5..1d47d2e9487c 100644
+--- a/drivers/gpu/drm/drm_gem.c
++++ b/drivers/gpu/drm/drm_gem.c
+@@ -491,7 +491,7 @@ struct page **drm_gem_get_pages(struct drm_gem_object *obj)
+ 		 * __GFP_DMA32 to be set in mapping_gfp_mask(inode->i_mapping)
+ 		 * so shmem can relocate pages during swapin if required.
+ 		 */
+-		BUG_ON((mapping_gfp_mask(mapping) & __GFP_DMA32) &&
++		BUG_ON(mapping_gfp_constraint(mapping, __GFP_DMA32) &&
+ 				(page_to_pfn(p) >= 0x00100000UL));
+ 	}
+ 
+diff --git a/drivers/gpu/drm/i915/i915_gem.c b/drivers/gpu/drm/i915/i915_gem.c
+index 7e505d4be7c0..399aab265db3 100644
+--- a/drivers/gpu/drm/i915/i915_gem.c
++++ b/drivers/gpu/drm/i915/i915_gem.c
+@@ -2214,9 +2214,8 @@ i915_gem_object_get_pages_gtt(struct drm_i915_gem_object *obj)
+ 	 * Fail silently without starting the shrinker
+ 	 */
+ 	mapping = file_inode(obj->base.filp)->i_mapping;
+-	gfp = mapping_gfp_mask(mapping);
++	gfp = mapping_gfp_constraint(mapping, ~(__GFP_IO | __GFP_RECLAIM));
+ 	gfp |= __GFP_NORETRY | __GFP_NOWARN;
+-	gfp &= ~(__GFP_IO | __GFP_RECLAIM);
+ 	sg = st->sgl;
+ 	st->nents = 0;
+ 	for (i = 0; i < page_count; i++) {
+diff --git a/fs/btrfs/compression.c b/fs/btrfs/compression.c
+index 57ee8ca29b06..36dfeff2c1f4 100644
+--- a/fs/btrfs/compression.c
++++ b/fs/btrfs/compression.c
+@@ -482,13 +482,12 @@ static noinline int add_ra_bio_pages(struct inode *inode,
+ 			goto next;
+ 		}
+ 
+-		page = __page_cache_alloc(mapping_gfp_mask(mapping) &
+-								~__GFP_FS);
++		page = __page_cache_alloc(mapping_gfp_constraint(mapping,
++								 ~__GFP_FS));
+ 		if (!page)
+ 			break;
+ 
+-		if (add_to_page_cache_lru(page, mapping, pg_index,
+-								GFP_NOFS)) {
++		if (add_to_page_cache_lru(page, mapping, pg_index, GFP_NOFS)) {
+ 			page_cache_release(page);
+ 			goto next;
+ 		}
+diff --git a/fs/btrfs/ctree.h b/fs/btrfs/ctree.h
+index 938efe33be80..eb90f0f1a124 100644
+--- a/fs/btrfs/ctree.h
++++ b/fs/btrfs/ctree.h
+@@ -3316,7 +3316,7 @@ static inline bool btrfs_mixed_space_info(struct btrfs_space_info *space_info)
+ 
+ static inline gfp_t btrfs_alloc_write_mask(struct address_space *mapping)
+ {
+-	return mapping_gfp_mask(mapping) & ~__GFP_FS;
++	return mapping_gfp_constraint(mapping, ~__GFP_FS);
+ }
+ 
+ /* extent-tree.c */
+diff --git a/fs/btrfs/free-space-cache.c b/fs/btrfs/free-space-cache.c
+index abe3a66bd3ba..ed05da1b977e 100644
+--- a/fs/btrfs/free-space-cache.c
++++ b/fs/btrfs/free-space-cache.c
+@@ -85,8 +85,8 @@ static struct inode *__lookup_free_space_inode(struct btrfs_root *root,
+ 	}
+ 
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			mapping_gfp_mask(inode->i_mapping) &
+-			~(__GFP_FS | __GFP_HIGHMEM));
++			mapping_gfp_constraint(inode->i_mapping,
++			~(__GFP_FS | __GFP_HIGHMEM)));
+ 
+ 	return inode;
+ }
+diff --git a/fs/buffer.c b/fs/buffer.c
+index 82283abb2795..51aff0296ce2 100644
+--- a/fs/buffer.c
++++ b/fs/buffer.c
+@@ -999,7 +999,7 @@ grow_dev_page(struct block_device *bdev, sector_t block,
+ 	int ret = 0;		/* Will call free_more_memory() */
+ 	gfp_t gfp_mask;
+ 
+-	gfp_mask = (mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS) | gfp;
++	gfp_mask = mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS) | gfp;
+ 
+ 	/*
+ 	 * XXX: __getblk_slow() can not really deal with failure and
+diff --git a/fs/ceph/addr.c b/fs/ceph/addr.c
+index 9d23e788d1df..b7d218a168fb 100644
+--- a/fs/ceph/addr.c
++++ b/fs/ceph/addr.c
+@@ -1283,8 +1283,8 @@ static int ceph_filemap_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
+ 		int ret1;
+ 		struct address_space *mapping = inode->i_mapping;
+ 		struct page *page = find_or_create_page(mapping, 0,
+-						mapping_gfp_mask(mapping) &
+-						~__GFP_FS);
++						mapping_gfp_constraint(mapping,
++						~__GFP_FS));
+ 		if (!page) {
+ 			ret = VM_FAULT_OOM;
+ 			goto out;
+@@ -1428,7 +1428,8 @@ void ceph_fill_inline_data(struct inode *inode, struct page *locked_page,
+ 		if (i_size_read(inode) == 0)
+ 			return;
+ 		page = find_or_create_page(mapping, 0,
+-					   mapping_gfp_mask(mapping) & ~__GFP_FS);
++					   mapping_gfp_constraint(mapping,
++					   ~__GFP_FS));
+ 		if (!page)
+ 			return;
+ 		if (PageUptodate(page)) {
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index 47c5c97e2dd3..0068e82217c3 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -3380,7 +3380,7 @@ readpages_get_pages(struct address_space *mapping, struct list_head *page_list,
+ 	struct page *page, *tpage;
+ 	unsigned int expected_index;
+ 	int rc;
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
++	gfp_t gfp = mapping_gfp_constraint(mapping, GFP_KERNEL);
+ 
+ 	INIT_LIST_HEAD(tmplist);
+ 
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 612fbcf76b5c..60aaecd5598b 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3344,7 +3344,7 @@ static int __ext4_block_zero_page_range(handle_t *handle,
+ 	int err = 0;
+ 
+ 	page = find_or_create_page(mapping, from >> PAGE_CACHE_SHIFT,
+-				   mapping_gfp_mask(mapping) & ~__GFP_FS);
++				   mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 	if (!page)
+ 		return -ENOMEM;
+ 
+diff --git a/fs/ext4/readpage.c b/fs/ext4/readpage.c
+index 560af0437704..1061611ae14d 100644
+--- a/fs/ext4/readpage.c
++++ b/fs/ext4/readpage.c
+@@ -166,7 +166,7 @@ int ext4_mpage_readpages(struct address_space *mapping,
+ 			page = list_entry(pages->prev, struct page, lru);
+ 			list_del(&page->lru);
+ 			if (add_to_page_cache_lru(page, mapping, page->index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping)))
++				  mapping_gfp_constraint(mapping, GFP_KERNEL)))
+ 				goto next_page;
+ 		}
+ 
+diff --git a/fs/logfs/segment.c b/fs/logfs/segment.c
+index 7f9b096d8d57..6de0fbfc6c00 100644
+--- a/fs/logfs/segment.c
++++ b/fs/logfs/segment.c
+@@ -57,7 +57,7 @@ static struct page *get_mapping_page(struct super_block *sb, pgoff_t index,
+ 	filler_t *filler = super->s_devops->readpage;
+ 	struct page *page;
+ 
+-	BUG_ON(mapping_gfp_mask(mapping) & __GFP_FS);
++	BUG_ON(mapping_gfp_constraint(mapping, __GFP_FS));
+ 	if (use_filler)
+ 		page = read_cache_page(mapping, index, filler, sb);
+ 	else {
+diff --git a/fs/mpage.c b/fs/mpage.c
+index 09abba7653aa..1480d3a18037 100644
+--- a/fs/mpage.c
++++ b/fs/mpage.c
+@@ -361,7 +361,7 @@ mpage_readpages(struct address_space *mapping, struct list_head *pages,
+ 	sector_t last_block_in_bio = 0;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(mapping);
++	gfp_t gfp = mapping_gfp_constraint(mapping, GFP_KERNEL);
+ 
+ 	map_bh.b_state = 0;
+ 	map_bh.b_size = 0;
+@@ -397,7 +397,7 @@ int mpage_readpage(struct page *page, get_block_t get_block)
+ 	sector_t last_block_in_bio = 0;
+ 	struct buffer_head map_bh;
+ 	unsigned long first_logical_block = 0;
+-	gfp_t gfp = GFP_KERNEL & mapping_gfp_mask(page->mapping);
++	gfp_t gfp = mapping_gfp_constraint(page->mapping, GFP_KERNEL);
+ 
+ 	map_bh.b_state = 0;
+ 	map_bh.b_size = 0;
+diff --git a/fs/namei.c b/fs/namei.c
+index 0d3340b32e14..3c18970a8899 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -4604,7 +4604,7 @@ EXPORT_SYMBOL(__page_symlink);
+ int page_symlink(struct inode *inode, const char *symname, int len)
+ {
+ 	return __page_symlink(inode, symname, len,
+-			!(mapping_gfp_mask(inode->i_mapping) & __GFP_FS));
++			!mapping_gfp_constraint(inode->i_mapping, __GFP_FS));
+ }
+ EXPORT_SYMBOL(page_symlink);
+ 
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index 4a73d6dffabf..ac2f64943ff4 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -356,7 +356,7 @@ struct inode *nilfs_new_inode(struct inode *dir, umode_t mode)
+ 		goto failed;
+ 
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			   mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ 
+ 	root = NILFS_I(dir)->i_root;
+ 	ii = NILFS_I(inode);
+@@ -522,7 +522,7 @@ static int __nilfs_read_inode(struct super_block *sb,
+ 	up_read(&NILFS_MDT(nilfs->ns_dat)->mi_sem);
+ 	nilfs_set_inode_flags(inode);
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			   mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ 	return 0;
+ 
+  failed_unmap:
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index 262561fea923..9d383e5eff0e 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -525,8 +525,8 @@ static inline int __ntfs_grab_cache_pages(struct address_space *mapping,
+ 				}
+ 			}
+ 			err = add_to_page_cache_lru(*cached_page, mapping,
+-					index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++				   index,
++				   mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 			if (unlikely(err)) {
+ 				if (err == -EEXIST)
+ 					continue;
+diff --git a/fs/splice.c b/fs/splice.c
+index 5fc1e50a7f30..801c21cd77fe 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -360,7 +360,7 @@ __generic_file_splice_read(struct file *in, loff_t *ppos,
+ 				break;
+ 
+ 			error = add_to_page_cache_lru(page, mapping, index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++				   mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 			if (unlikely(error)) {
+ 				page_cache_release(page);
+ 				if (error == -EEXIST)
+diff --git a/include/linux/pagemap.h b/include/linux/pagemap.h
+index a6c78e00ea96..26eabf5ec718 100644
+--- a/include/linux/pagemap.h
++++ b/include/linux/pagemap.h
+@@ -69,6 +69,13 @@ static inline gfp_t mapping_gfp_mask(struct address_space * mapping)
+ 	return (__force gfp_t)mapping->flags & __GFP_BITS_MASK;
+ }
+ 
++/* Restricts the given gfp_mask to what the mapping allows. */
++static inline gfp_t mapping_gfp_constraint(struct address_space *mapping,
++		gfp_t gfp_mask)
++{
++	return mapping_gfp_mask(mapping) & gfp_mask;
++}
++
+ /*
+  * This is non-atomic.  Only to be used before the mapping is activated.
+  * Probably needs a barrier...
+diff --git a/mm/filemap.c b/mm/filemap.c
+index 6ef3674c0763..1bb007624b53 100644
+--- a/mm/filemap.c
++++ b/mm/filemap.c
+@@ -1722,7 +1722,7 @@ static ssize_t do_generic_file_read(struct file *filp, loff_t *ppos,
+ 			goto out;
+ 		}
+ 		error = add_to_page_cache_lru(page, mapping, index,
+-					GFP_KERNEL & mapping_gfp_mask(mapping));
++				mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 		if (error) {
+ 			page_cache_release(page);
+ 			if (error == -EEXIST) {
+@@ -1824,7 +1824,7 @@ static int page_cache_read(struct file *file, pgoff_t offset)
+ 			return -ENOMEM;
+ 
+ 		ret = add_to_page_cache_lru(page, mapping, offset,
+-				GFP_KERNEL & mapping_gfp_mask(mapping));
++				mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 		if (ret == 0)
+ 			ret = mapping->a_ops->readpage(file, page);
+ 		else if (ret == -EEXIST)
+diff --git a/mm/readahead.c b/mm/readahead.c
+index 998ad592f408..ba22d7fe0afb 100644
+--- a/mm/readahead.c
++++ b/mm/readahead.c
+@@ -90,7 +90,7 @@ int read_cache_pages(struct address_space *mapping, struct list_head *pages,
+ 		page = list_to_page(pages);
+ 		list_del(&page->lru);
+ 		if (add_to_page_cache_lru(page, mapping, page->index,
+-				GFP_KERNEL & mapping_gfp_mask(mapping))) {
++				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
+ 			read_cache_pages_invalidate_page(mapping, page);
+ 			continue;
+ 		}
+@@ -128,7 +128,7 @@ static int read_pages(struct address_space *mapping, struct file *filp,
+ 		struct page *page = list_to_page(pages);
+ 		list_del(&page->lru);
+ 		if (!add_to_page_cache_lru(page, mapping, page->index,
+-				GFP_KERNEL & mapping_gfp_mask(mapping))) {
++				mapping_gfp_constraint(mapping, GFP_KERNEL))) {
+ 			mapping->a_ops->readpage(filp, page);
+ 		}
+ 		page_cache_release(page);
+-- 
+2.17.0
+

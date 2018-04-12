@@ -1,0 +1,2486 @@
+From a528d35e8bfcc521d7cb70aaf03e1bd296c8493f Mon Sep 17 00:00:00 2001
+From: David Howells <dhowells@redhat.com>
+Date: Tue, 31 Jan 2017 16:46:22 +0000
+Subject: [PATCH] statx: Add a system call to make enhanced file info available
+
+Add a system call to make extended file information available, including
+file creation and some attribute flags where available through the
+underlying filesystem.
+
+The getattr inode operation is altered to take two additional arguments: a
+u32 request_mask and an unsigned int flags that indicate the
+synchronisation mode.  This change is propagated to the vfs_getattr*()
+function.
+
+Functions like vfs_stat() are now inline wrappers around new functions
+vfs_statx() and vfs_statx_fd() to reduce stack usage.
+
+========
+OVERVIEW
+========
+
+The idea was initially proposed as a set of xattrs that could be retrieved
+with getxattr(), but the general preference proved to be for a new syscall
+with an extended stat structure.
+
+A number of requests were gathered for features to be included.  The
+following have been included:
+
+ (1) Make the fields a consistent size on all arches and make them large.
+
+ (2) Spare space, request flags and information flags are provided for
+     future expansion.
+
+ (3) Better support for the y2038 problem [Arnd Bergmann] (tv_sec is an
+     __s64).
+
+ (4) Creation time: The SMB protocol carries the creation time, which could
+     be exported by Samba, which will in turn help CIFS make use of
+     FS-Cache as that can be used for coherency data (stx_btime).
+
+     This is also specified in NFSv4 as a recommended attribute and could
+     be exported by NFSD [Steve French].
+
+ (5) Lightweight stat: Ask for just those details of interest, and allow a
+     netfs (such as NFS) to approximate anything not of interest, possibly
+     without going to the server [Trond Myklebust, Ulrich Drepper, Andreas
+     Dilger] (AT_STATX_DONT_SYNC).
+
+ (6) Heavyweight stat: Force a netfs to go to the server, even if it thinks
+     its cached attributes are up to date [Trond Myklebust]
+     (AT_STATX_FORCE_SYNC).
+
+And the following have been left out for future extension:
+
+ (7) Data version number: Could be used by userspace NFS servers [Aneesh
+     Kumar].
+
+     Can also be used to modify fill_post_wcc() in NFSD which retrieves
+     i_version directly, but has just called vfs_getattr().  It could get
+     it from the kstat struct if it used vfs_xgetattr() instead.
+
+     (There's disagreement on the exact semantics of a single field, since
+     not all filesystems do this the same way).
+
+ (8) BSD stat compatibility: Including more fields from the BSD stat such
+     as creation time (st_btime) and inode generation number (st_gen)
+     [Jeremy Allison, Bernd Schubert].
+
+ (9) Inode generation number: Useful for FUSE and userspace NFS servers
+     [Bernd Schubert].
+
+     (This was asked for but later deemed unnecessary with the
+     open-by-handle capability available and caused disagreement as to
+     whether it's a security hole or not).
+
+(10) Extra coherency data may be useful in making backups [Andreas Dilger].
+
+     (No particular data were offered, but things like last backup
+     timestamp, the data version number and the DOS archive bit would come
+     into this category).
+
+(11) Allow the filesystem to indicate what it can/cannot provide: A
+     filesystem can now say it doesn't support a standard stat feature if
+     that isn't available, so if, for instance, inode numbers or UIDs don't
+     exist or are fabricated locally...
+
+     (This requires a separate system call - I have an fsinfo() call idea
+     for this).
+
+(12) Store a 16-byte volume ID in the superblock that can be returned in
+     struct xstat [Steve French].
+
+     (Deferred to fsinfo).
+
+(13) Include granularity fields in the time data to indicate the
+     granularity of each of the times (NFSv4 time_delta) [Steve French].
+
+     (Deferred to fsinfo).
+
+(14) FS_IOC_GETFLAGS value.  These could be translated to BSD's st_flags.
+     Note that the Linux IOC flags are a mess and filesystems such as Ext4
+     define flags that aren't in linux/fs.h, so translation in the kernel
+     may be a necessity (or, possibly, we provide the filesystem type too).
+
+     (Some attributes are made available in stx_attributes, but the general
+     feeling was that the IOC flags were to ext[234]-specific and shouldn't
+     be exposed through statx this way).
+
+(15) Mask of features available on file (eg: ACLs, seclabel) [Brad Boyer,
+     Michael Kerrisk].
+
+     (Deferred, probably to fsinfo.  Finding out if there's an ACL or
+     seclabal might require extra filesystem operations).
+
+(16) Femtosecond-resolution timestamps [Dave Chinner].
+
+     (A __reserved field has been left in the statx_timestamp struct for
+     this - if there proves to be a need).
+
+(17) A set multiple attributes syscall to go with this.
+
+===============
+NEW SYSTEM CALL
+===============
+
+The new system call is:
+
+	int ret = statx(int dfd,
+			const char *filename,
+			unsigned int flags,
+			unsigned int mask,
+			struct statx *buffer);
+
+The dfd, filename and flags parameters indicate the file to query, in a
+similar way to fstatat().  There is no equivalent of lstat() as that can be
+emulated with statx() by passing AT_SYMLINK_NOFOLLOW in flags.  There is
+also no equivalent of fstat() as that can be emulated by passing a NULL
+filename to statx() with the fd of interest in dfd.
+
+Whether or not statx() synchronises the attributes with the backing store
+can be controlled by OR'ing a value into the flags argument (this typically
+only affects network filesystems):
+
+ (1) AT_STATX_SYNC_AS_STAT tells statx() to behave as stat() does in this
+     respect.
+
+ (2) AT_STATX_FORCE_SYNC will require a network filesystem to synchronise
+     its attributes with the server - which might require data writeback to
+     occur to get the timestamps correct.
+
+ (3) AT_STATX_DONT_SYNC will suppress synchronisation with the server in a
+     network filesystem.  The resulting values should be considered
+     approximate.
+
+mask is a bitmask indicating the fields in struct statx that are of
+interest to the caller.  The user should set this to STATX_BASIC_STATS to
+get the basic set returned by stat().  It should be noted that asking for
+more information may entail extra I/O operations.
+
+buffer points to the destination for the data.  This must be 256 bytes in
+size.
+
+======================
+MAIN ATTRIBUTES RECORD
+======================
+
+The following structures are defined in which to return the main attribute
+set:
+
+	struct statx_timestamp {
+		__s64	tv_sec;
+		__s32	tv_nsec;
+		__s32	__reserved;
+	};
+
+	struct statx {
+		__u32	stx_mask;
+		__u32	stx_blksize;
+		__u64	stx_attributes;
+		__u32	stx_nlink;
+		__u32	stx_uid;
+		__u32	stx_gid;
+		__u16	stx_mode;
+		__u16	__spare0[1];
+		__u64	stx_ino;
+		__u64	stx_size;
+		__u64	stx_blocks;
+		__u64	__spare1[1];
+		struct statx_timestamp	stx_atime;
+		struct statx_timestamp	stx_btime;
+		struct statx_timestamp	stx_ctime;
+		struct statx_timestamp	stx_mtime;
+		__u32	stx_rdev_major;
+		__u32	stx_rdev_minor;
+		__u32	stx_dev_major;
+		__u32	stx_dev_minor;
+		__u64	__spare2[14];
+	};
+
+The defined bits in request_mask and stx_mask are:
+
+	STATX_TYPE		Want/got stx_mode & S_IFMT
+	STATX_MODE		Want/got stx_mode & ~S_IFMT
+	STATX_NLINK		Want/got stx_nlink
+	STATX_UID		Want/got stx_uid
+	STATX_GID		Want/got stx_gid
+	STATX_ATIME		Want/got stx_atime{,_ns}
+	STATX_MTIME		Want/got stx_mtime{,_ns}
+	STATX_CTIME		Want/got stx_ctime{,_ns}
+	STATX_INO		Want/got stx_ino
+	STATX_SIZE		Want/got stx_size
+	STATX_BLOCKS		Want/got stx_blocks
+	STATX_BASIC_STATS	[The stuff in the normal stat struct]
+	STATX_BTIME		Want/got stx_btime{,_ns}
+	STATX_ALL		[All currently available stuff]
+
+stx_btime is the file creation time, stx_mask is a bitmask indicating the
+data provided and __spares*[] are where as-yet undefined fields can be
+placed.
+
+Time fields are structures with separate seconds and nanoseconds fields
+plus a reserved field in case we want to add even finer resolution.  Note
+that times will be negative if before 1970; in such a case, the nanosecond
+fields will also be negative if not zero.
+
+The bits defined in the stx_attributes field convey information about a
+file, how it is accessed, where it is and what it does.  The following
+attributes map to FS_*_FL flags and are the same numerical value:
+
+	STATX_ATTR_COMPRESSED		File is compressed by the fs
+	STATX_ATTR_IMMUTABLE		File is marked immutable
+	STATX_ATTR_APPEND		File is append-only
+	STATX_ATTR_NODUMP		File is not to be dumped
+	STATX_ATTR_ENCRYPTED		File requires key to decrypt in fs
+
+Within the kernel, the supported flags are listed by:
+
+	KSTAT_ATTR_FS_IOC_FLAGS
+
+[Are any other IOC flags of sufficient general interest to be exposed
+through this interface?]
+
+New flags include:
+
+	STATX_ATTR_AUTOMOUNT		Object is an automount trigger
+
+These are for the use of GUI tools that might want to mark files specially,
+depending on what they are.
+
+Fields in struct statx come in a number of classes:
+
+ (0) stx_dev_*, stx_blksize.
+
+     These are local system information and are always available.
+
+ (1) stx_mode, stx_nlinks, stx_uid, stx_gid, stx_[amc]time, stx_ino,
+     stx_size, stx_blocks.
+
+     These will be returned whether the caller asks for them or not.  The
+     corresponding bits in stx_mask will be set to indicate whether they
+     actually have valid values.
+
+     If the caller didn't ask for them, then they may be approximated.  For
+     example, NFS won't waste any time updating them from the server,
+     unless as a byproduct of updating something requested.
+
+     If the values don't actually exist for the underlying object (such as
+     UID or GID on a DOS file), then the bit won't be set in the stx_mask,
+     even if the caller asked for the value.  In such a case, the returned
+     value will be a fabrication.
+
+     Note that there are instances where the type might not be valid, for
+     instance Windows reparse points.
+
+ (2) stx_rdev_*.
+
+     This will be set only if stx_mode indicates we're looking at a
+     blockdev or a chardev, otherwise will be 0.
+
+ (3) stx_btime.
+
+     Similar to (1), except this will be set to 0 if it doesn't exist.
+
+=======
+TESTING
+=======
+
+The following test program can be used to test the statx system call:
+
+	samples/statx/test-statx.c
+
+Just compile and run, passing it paths to the files you want to examine.
+The file is built automatically if CONFIG_SAMPLES is enabled.
+
+Here's some example output.  Firstly, an NFS directory that crosses to
+another FSID.  Note that the AUTOMOUNT attribute is set because transiting
+this directory will cause d_automount to be invoked by the VFS.
+
+	[root@andromeda ~]# /tmp/test-statx -A /warthog/data
+	statx(/warthog/data) = 0
+	results=7ff
+	  Size: 4096            Blocks: 8          IO Block: 1048576  directory
+	Device: 00:26           Inode: 1703937     Links: 125
+	Access: (3777/drwxrwxrwx)  Uid:     0   Gid:  4041
+	Access: 2016-11-24 09:02:12.219699527+0000
+	Modify: 2016-11-17 10:44:36.225653653+0000
+	Change: 2016-11-17 10:44:36.225653653+0000
+	Attributes: 0000000000001000 (-------- -------- -------- -------- -------- -------- ---m---- --------)
+
+Secondly, the result of automounting on that directory.
+
+	[root@andromeda ~]# /tmp/test-statx /warthog/data
+	statx(/warthog/data) = 0
+	results=7ff
+	  Size: 4096            Blocks: 8          IO Block: 1048576  directory
+	Device: 00:27           Inode: 2           Links: 125
+	Access: (3777/drwxrwxrwx)  Uid:     0   Gid:  4041
+	Access: 2016-11-24 09:02:12.219699527+0000
+	Modify: 2016-11-17 10:44:36.225653653+0000
+	Change: 2016-11-17 10:44:36.225653653+0000
+
+Signed-off-by: David Howells <dhowells@redhat.com>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking             |   3 +-
+ Documentation/filesystems/vfs.txt             |   3 +-
+ arch/x86/entry/syscalls/syscall_32.tbl        |   1 +
+ arch/x86/entry/syscalls/syscall_64.tbl        |   1 +
+ drivers/base/devtmpfs.c                       |   3 +-
+ drivers/block/loop.c                          |   3 +-
+ drivers/mtd/ubi/build.c                       |   2 +-
+ drivers/mtd/ubi/kapi.c                        |   2 +-
+ drivers/staging/lustre/lustre/llite/file.c    |   9 +-
+ .../lustre/lustre/llite/llite_internal.h      |   3 +-
+ fs/9p/vfs_inode.c                             |  10 +-
+ fs/9p/vfs_inode_dotl.c                        |   5 +-
+ fs/afs/inode.c                                |   8 +-
+ fs/afs/internal.h                             |   2 +-
+ fs/bad_inode.c                                |   4 +-
+ fs/btrfs/inode.c                              |   6 +-
+ fs/ceph/inode.c                               |   6 +-
+ fs/ceph/super.h                               |   4 +-
+ fs/cifs/cifsfs.h                              |   2 +-
+ fs/cifs/inode.c                               |   5 +-
+ fs/coda/coda_linux.h                          |   2 +-
+ fs/coda/inode.c                               |   7 +-
+ fs/ecryptfs/inode.c                           |  13 +-
+ fs/exportfs/expfs.c                           |   3 +-
+ fs/ext4/ext4.h                                |   3 +-
+ fs/ext4/inode.c                               |   6 +-
+ fs/f2fs/f2fs.h                                |   4 +-
+ fs/f2fs/file.c                                |   6 +-
+ fs/fat/fat.h                                  |   4 +-
+ fs/fat/file.c                                 |   5 +-
+ fs/fuse/dir.c                                 |   6 +-
+ fs/gfs2/inode.c                               |  11 +-
+ fs/kernfs/inode.c                             |   8 +-
+ fs/kernfs/kernfs-internal.h                   |   4 +-
+ fs/libfs.c                                    |  12 +-
+ fs/minix/inode.c                              |  11 +-
+ fs/minix/minix.h                              |   2 +-
+ fs/nfs/inode.c                                |  13 +-
+ fs/nfs/namespace.c                            |   9 +-
+ fs/nfsd/nfs4xdr.c                             |   4 +-
+ fs/nfsd/vfs.h                                 |   3 +-
+ fs/ocfs2/file.c                               |  11 +-
+ fs/ocfs2/file.h                               |   4 +-
+ fs/orangefs/inode.c                           |  13 +-
+ fs/orangefs/orangefs-kernel.h                 |   5 +-
+ fs/overlayfs/copy_up.c                        |   6 +-
+ fs/overlayfs/dir.c                            |  10 +-
+ fs/overlayfs/inode.c                          |   7 +-
+ fs/proc/base.c                                |  12 +-
+ fs/proc/generic.c                             |   6 +-
+ fs/proc/internal.h                            |   2 +-
+ fs/proc/proc_net.c                            |   6 +-
+ fs/proc/proc_sysctl.c                         |   5 +-
+ fs/proc/root.c                                |   6 +-
+ fs/stat.c                                     | 214 ++++++++++++---
+ fs/sysv/itree.c                               |   7 +-
+ fs/sysv/sysv.h                                |   2 +-
+ fs/ubifs/dir.c                                |   6 +-
+ fs/ubifs/ubifs.h                              |   4 +-
+ fs/udf/symlink.c                              |   5 +-
+ fs/xfs/xfs_iops.c                             |   9 +-
+ include/linux/fs.h                            |  35 ++-
+ include/linux/nfs_fs.h                        |   2 +-
+ include/linux/stat.h                          |  24 +-
+ include/linux/syscalls.h                      |   3 +
+ include/uapi/linux/fcntl.h                    |   5 +
+ include/uapi/linux/stat.h                     | 131 +++++++++
+ mm/shmem.c                                    |   6 +-
+ samples/Kconfig                               |   6 +
+ samples/Makefile                              |   2 +-
+ samples/statx/Makefile                        |  10 +
+ samples/statx/test-statx.c                    | 254 ++++++++++++++++++
+ 72 files changed, 822 insertions(+), 214 deletions(-)
+ create mode 100644 samples/statx/Makefile
+ create mode 100644 samples/statx/test-statx.c
+
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index ace63cd7af8c..fdcfdd79682a 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -58,7 +58,8 @@ prototypes:
+ 	int (*permission) (struct inode *, int, unsigned int);
+ 	int (*get_acl)(struct inode *, int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+-	int (*getattr) (struct vfsmount *, struct dentry *, struct kstat *);
++	int (*getattr) (const struct path *, struct dentry *, struct kstat *,
++			u32, unsigned int);
+ 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
+ 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start, u64 len);
+ 	void (*update_time)(struct inode *, struct timespec *, int);
+diff --git a/Documentation/filesystems/vfs.txt b/Documentation/filesystems/vfs.txt
+index b968084eeac1..569211703721 100644
+--- a/Documentation/filesystems/vfs.txt
++++ b/Documentation/filesystems/vfs.txt
+@@ -382,7 +382,8 @@ struct inode_operations {
+ 	int (*permission) (struct inode *, int);
+ 	int (*get_acl)(struct inode *, int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+-	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
++	int (*getattr) (const struct path *, struct dentry *, struct kstat *,
++			u32, unsigned int);
+ 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
+ 	void (*update_time)(struct inode *, struct timespec *, int);
+ 	int (*atomic_open)(struct inode *, struct dentry *, struct file *,
+diff --git a/arch/x86/entry/syscalls/syscall_32.tbl b/arch/x86/entry/syscalls/syscall_32.tbl
+index 2b3618542544..9ba050fe47f3 100644
+--- a/arch/x86/entry/syscalls/syscall_32.tbl
++++ b/arch/x86/entry/syscalls/syscall_32.tbl
+@@ -389,3 +389,4 @@
+ 380	i386	pkey_mprotect		sys_pkey_mprotect
+ 381	i386	pkey_alloc		sys_pkey_alloc
+ 382	i386	pkey_free		sys_pkey_free
++383	i386	statx			sys_statx
+diff --git a/arch/x86/entry/syscalls/syscall_64.tbl b/arch/x86/entry/syscalls/syscall_64.tbl
+index e93ef0b38db8..5aef183e2f85 100644
+--- a/arch/x86/entry/syscalls/syscall_64.tbl
++++ b/arch/x86/entry/syscalls/syscall_64.tbl
+@@ -338,6 +338,7 @@
+ 329	common	pkey_mprotect		sys_pkey_mprotect
+ 330	common	pkey_alloc		sys_pkey_alloc
+ 331	common	pkey_free		sys_pkey_free
++332	common	statx			sys_statx
+ 
+ #
+ # x32-specific system call numbers start at 512 to avoid cache impact
+diff --git a/drivers/base/devtmpfs.c b/drivers/base/devtmpfs.c
+index 44a74cf1372c..d2fb9c8ed205 100644
+--- a/drivers/base/devtmpfs.c
++++ b/drivers/base/devtmpfs.c
+@@ -309,7 +309,8 @@ static int handle_remove(const char *nodename, struct device *dev)
+ 	if (d_really_is_positive(dentry)) {
+ 		struct kstat stat;
+ 		struct path p = {.mnt = parent.mnt, .dentry = dentry};
+-		err = vfs_getattr(&p, &stat);
++		err = vfs_getattr(&p, &stat, STATX_TYPE | STATX_MODE,
++				  AT_STATX_SYNC_AS_STAT);
+ 		if (!err && dev_mynode(dev, d_inode(dentry), &stat)) {
+ 			struct iattr newattrs;
+ 			/*
+diff --git a/drivers/block/loop.c b/drivers/block/loop.c
+index eeb1db73f44e..8f4051999741 100644
+--- a/drivers/block/loop.c
++++ b/drivers/block/loop.c
+@@ -1175,7 +1175,8 @@ loop_get_status(struct loop_device *lo, struct loop_info64 *info)
+ 
+ 	if (lo->lo_state != Lo_bound)
+ 		return -ENXIO;
+-	error = vfs_getattr(&file->f_path, &stat);
++	error = vfs_getattr(&file->f_path, &stat,
++			    STATX_INO, AT_STATX_SYNC_AS_STAT);
+ 	if (error)
+ 		return error;
+ 	memset(info, 0, sizeof(*info));
+diff --git a/drivers/mtd/ubi/build.c b/drivers/mtd/ubi/build.c
+index 85d54f37e28f..77513195f50e 100644
+--- a/drivers/mtd/ubi/build.c
++++ b/drivers/mtd/ubi/build.c
+@@ -1159,7 +1159,7 @@ static struct mtd_info * __init open_mtd_by_chdev(const char *mtd_dev)
+ 	if (err)
+ 		return ERR_PTR(err);
+ 
+-	err = vfs_getattr(&path, &stat);
++	err = vfs_getattr(&path, &stat, STATX_TYPE, AT_STATX_SYNC_AS_STAT);
+ 	path_put(&path);
+ 	if (err)
+ 		return ERR_PTR(err);
+diff --git a/drivers/mtd/ubi/kapi.c b/drivers/mtd/ubi/kapi.c
+index 88b1897aeb40..d4b2e8744498 100644
+--- a/drivers/mtd/ubi/kapi.c
++++ b/drivers/mtd/ubi/kapi.c
+@@ -314,7 +314,7 @@ struct ubi_volume_desc *ubi_open_volume_path(const char *pathname, int mode)
+ 	if (error)
+ 		return ERR_PTR(error);
+ 
+-	error = vfs_getattr(&path, &stat);
++	error = vfs_getattr(&path, &stat, STATX_TYPE, AT_STATX_SYNC_AS_STAT);
+ 	path_put(&path);
+ 	if (error)
+ 		return ERR_PTR(error);
+diff --git a/drivers/staging/lustre/lustre/llite/file.c b/drivers/staging/lustre/lustre/llite/file.c
+index 10adfcdd7035..481c0d01d4c6 100644
+--- a/drivers/staging/lustre/lustre/llite/file.c
++++ b/drivers/staging/lustre/lustre/llite/file.c
+@@ -2952,15 +2952,16 @@ static int ll_inode_revalidate(struct dentry *dentry, __u64 ibits)
+ 	return rc;
+ }
+ 
+-int ll_getattr(struct vfsmount *mnt, struct dentry *de, struct kstat *stat)
++int ll_getattr(const struct path *path, struct kstat *stat,
++	       u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(de);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct ll_sb_info *sbi = ll_i2sbi(inode);
+ 	struct ll_inode_info *lli = ll_i2info(inode);
+ 	int res;
+ 
+-	res = ll_inode_revalidate(de, MDS_INODELOCK_UPDATE |
+-				      MDS_INODELOCK_LOOKUP);
++	res = ll_inode_revalidate(path->dentry,
++				  MDS_INODELOCK_UPDATE | MDS_INODELOCK_LOOKUP);
+ 	ll_stats_ops_tally(sbi, LPROC_LL_GETATTR, 1);
+ 
+ 	if (res)
+diff --git a/drivers/staging/lustre/lustre/llite/llite_internal.h b/drivers/staging/lustre/lustre/llite/llite_internal.h
+index ecdfd0c29b7f..55f68acd85d1 100644
+--- a/drivers/staging/lustre/lustre/llite/llite_internal.h
++++ b/drivers/staging/lustre/lustre/llite/llite_internal.h
+@@ -750,7 +750,8 @@ int ll_file_open(struct inode *inode, struct file *file);
+ int ll_file_release(struct inode *inode, struct file *file);
+ int ll_release_openhandle(struct inode *, struct lookup_intent *);
+ int ll_md_real_close(struct inode *inode, fmode_t fmode);
+-int ll_getattr(struct vfsmount *mnt, struct dentry *de, struct kstat *stat);
++int ll_getattr(const struct path *path, struct kstat *stat,
++	       u32 request_mask, unsigned int flags);
+ struct posix_acl *ll_get_acl(struct inode *inode, int type);
+ int ll_migrate(struct inode *parent, struct file *file, int mdtidx,
+ 	       const char *name, int namelen);
+diff --git a/fs/9p/vfs_inode.c b/fs/9p/vfs_inode.c
+index f4f4450119e4..f1d96233670c 100644
+--- a/fs/9p/vfs_inode.c
++++ b/fs/9p/vfs_inode.c
+@@ -1047,16 +1047,18 @@ v9fs_vfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 
+ /**
+  * v9fs_vfs_getattr - retrieve file metadata
+- * @mnt: mount information
+- * @dentry: file to get attributes on
++ * @path: Object to query
+  * @stat: metadata structure to populate
++ * @request_mask: Mask of STATX_xxx flags indicating the caller's interests
++ * @flags: AT_STATX_xxx setting
+  *
+  */
+ 
+ static int
+-v9fs_vfs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++v9fs_vfs_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct v9fs_session_info *v9ses;
+ 	struct p9_fid *fid;
+ 	struct p9_wstat *st;
+diff --git a/fs/9p/vfs_inode_dotl.c b/fs/9p/vfs_inode_dotl.c
+index 5999bd050678..570e63ee5b71 100644
+--- a/fs/9p/vfs_inode_dotl.c
++++ b/fs/9p/vfs_inode_dotl.c
+@@ -468,9 +468,10 @@ static int v9fs_vfs_mkdir_dotl(struct inode *dir,
+ }
+ 
+ static int
+-v9fs_vfs_getattr_dotl(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++v9fs_vfs_getattr_dotl(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct v9fs_session_info *v9ses;
+ 	struct p9_fid *fid;
+ 	struct p9_stat_dotl *st;
+diff --git a/fs/afs/inode.c b/fs/afs/inode.c
+index 86cc7264c21c..1e4897a048d2 100644
+--- a/fs/afs/inode.c
++++ b/fs/afs/inode.c
+@@ -375,12 +375,10 @@ int afs_validate(struct afs_vnode *vnode, struct key *key)
+ /*
+  * read the attributes of an inode
+  */
+-int afs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		      struct kstat *stat)
++int afs_getattr(const struct path *path, struct kstat *stat,
++		u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode;
+-
+-	inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 
+ 	_enter("{ ino=%lu v=%u }", inode->i_ino, inode->i_generation);
+ 
+diff --git a/fs/afs/internal.h b/fs/afs/internal.h
+index 8acf3670e756..5dfa56903a2d 100644
+--- a/fs/afs/internal.h
++++ b/fs/afs/internal.h
+@@ -533,7 +533,7 @@ extern struct inode *afs_iget(struct super_block *, struct key *,
+ 			      struct afs_callback *);
+ extern void afs_zap_data(struct afs_vnode *);
+ extern int afs_validate(struct afs_vnode *, struct key *);
+-extern int afs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int afs_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int afs_setattr(struct dentry *, struct iattr *);
+ extern void afs_evict_inode(struct inode *);
+ extern int afs_drop_inode(struct inode *);
+diff --git a/fs/bad_inode.c b/fs/bad_inode.c
+index 5f685c819298..bb53728c7a31 100644
+--- a/fs/bad_inode.c
++++ b/fs/bad_inode.c
+@@ -89,8 +89,8 @@ static int bad_inode_permission(struct inode *inode, int mask)
+ 	return -EIO;
+ }
+ 
+-static int bad_inode_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			struct kstat *stat)
++static int bad_inode_getattr(const struct path *path, struct kstat *stat,
++			     u32 request_mask, unsigned int query_flags)
+ {
+ 	return -EIO;
+ }
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index ee6978d80491..c40060cc481f 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -9413,11 +9413,11 @@ int btrfs_init_cachep(void)
+ 	return -ENOMEM;
+ }
+ 
+-static int btrfs_getattr(struct vfsmount *mnt,
+-			 struct dentry *dentry, struct kstat *stat)
++static int btrfs_getattr(const struct path *path, struct kstat *stat,
++			 u32 request_mask, unsigned int flags)
+ {
+ 	u64 delalloc_bytes;
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	u32 blocksize = inode->i_sb->s_blocksize;
+ 
+ 	generic_fillattr(inode, stat);
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index fd8f771f99b7..d449e1c03cbd 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -2187,10 +2187,10 @@ int ceph_permission(struct inode *inode, int mask)
+  * Get all attributes.  Hopefully somedata we'll have a statlite()
+  * and can limit the fields we require to be accurate.
+  */
+-int ceph_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++int ceph_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct ceph_inode_info *ci = ceph_inode(inode);
+ 	int err;
+ 
+diff --git a/fs/ceph/super.h b/fs/ceph/super.h
+index e9410bcf4113..fe6b9cfc4013 100644
+--- a/fs/ceph/super.h
++++ b/fs/ceph/super.h
+@@ -784,8 +784,8 @@ static inline int ceph_do_getattr(struct inode *inode, int mask, bool force)
+ extern int ceph_permission(struct inode *inode, int mask);
+ extern int __ceph_setattr(struct inode *inode, struct iattr *attr);
+ extern int ceph_setattr(struct dentry *dentry, struct iattr *attr);
+-extern int ceph_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			struct kstat *stat);
++extern int ceph_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int flags);
+ 
+ /* xattr.c */
+ int __ceph_setxattr(struct inode *, const char *, const void *, size_t, int);
+diff --git a/fs/cifs/cifsfs.h b/fs/cifs/cifsfs.h
+index c9c00a862036..da717fee3026 100644
+--- a/fs/cifs/cifsfs.h
++++ b/fs/cifs/cifsfs.h
+@@ -83,7 +83,7 @@ extern int cifs_revalidate_dentry(struct dentry *);
+ extern int cifs_invalidate_mapping(struct inode *inode);
+ extern int cifs_revalidate_mapping(struct inode *inode);
+ extern int cifs_zap_mapping(struct inode *inode);
+-extern int cifs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int cifs_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int cifs_setattr(struct dentry *, struct iattr *);
+ 
+ extern const struct inode_operations cifs_file_inode_ops;
+diff --git a/fs/cifs/inode.c b/fs/cifs/inode.c
+index 7ab5be7944aa..1363fff460b9 100644
+--- a/fs/cifs/inode.c
++++ b/fs/cifs/inode.c
+@@ -1990,9 +1990,10 @@ int cifs_revalidate_dentry(struct dentry *dentry)
+ 	return cifs_revalidate_mapping(inode);
+ }
+ 
+-int cifs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++int cifs_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct cifs_sb_info *cifs_sb = CIFS_SB(dentry->d_sb);
+ 	struct cifs_tcon *tcon = cifs_sb_master_tcon(cifs_sb);
+ 	struct inode *inode = d_inode(dentry);
+diff --git a/fs/coda/coda_linux.h b/fs/coda/coda_linux.h
+index 5104d84c4f64..d3c361883c28 100644
+--- a/fs/coda/coda_linux.h
++++ b/fs/coda/coda_linux.h
+@@ -47,7 +47,7 @@ int coda_open(struct inode *i, struct file *f);
+ int coda_release(struct inode *i, struct file *f);
+ int coda_permission(struct inode *inode, int mask);
+ int coda_revalidate_inode(struct inode *);
+-int coda_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++int coda_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ int coda_setattr(struct dentry *, struct iattr *);
+ 
+ /* this file:  heloers */
+diff --git a/fs/coda/inode.c b/fs/coda/inode.c
+index 71dbe7e287ce..2dea594da199 100644
+--- a/fs/coda/inode.c
++++ b/fs/coda/inode.c
+@@ -255,11 +255,12 @@ static void coda_evict_inode(struct inode *inode)
+ 	coda_cache_clear_inode(inode);
+ }
+ 
+-int coda_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int coda_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
+-	int err = coda_revalidate_inode(d_inode(dentry));
++	int err = coda_revalidate_inode(d_inode(path->dentry));
+ 	if (!err)
+-		generic_fillattr(d_inode(dentry), stat);
++		generic_fillattr(d_inode(path->dentry), stat);
+ 	return err;
+ }
+ 
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index e7413f82d27b..efc2db42d175 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -959,9 +959,10 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
+ 	return rc;
+ }
+ 
+-static int ecryptfs_getattr_link(struct vfsmount *mnt, struct dentry *dentry,
+-				 struct kstat *stat)
++static int ecryptfs_getattr_link(const struct path *path, struct kstat *stat,
++				 u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct ecryptfs_mount_crypt_stat *mount_crypt_stat;
+ 	int rc = 0;
+ 
+@@ -983,13 +984,15 @@ static int ecryptfs_getattr_link(struct vfsmount *mnt, struct dentry *dentry,
+ 	return rc;
+ }
+ 
+-static int ecryptfs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			    struct kstat *stat)
++static int ecryptfs_getattr(const struct path *path, struct kstat *stat,
++			    u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct kstat lower_stat;
+ 	int rc;
+ 
+-	rc = vfs_getattr(ecryptfs_dentry_to_lower_path(dentry), &lower_stat);
++	rc = vfs_getattr(ecryptfs_dentry_to_lower_path(dentry), &lower_stat,
++			 request_mask, flags);
+ 	if (!rc) {
+ 		fsstack_copy_attr_all(d_inode(dentry),
+ 				      ecryptfs_inode_to_lower(d_inode(dentry)));
+diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
+index a4b531be9168..f2d24bb8d745 100644
+--- a/fs/exportfs/expfs.c
++++ b/fs/exportfs/expfs.c
+@@ -299,7 +299,8 @@ static int get_name(const struct path *path, char *name, struct dentry *child)
+ 	 * filesystem supports 64-bit inode numbers.  So we need to
+ 	 * actually call ->getattr, not just read i_ino:
+ 	 */
+-	error = vfs_getattr_nosec(&child_path, &stat);
++	error = vfs_getattr_nosec(&child_path, &stat,
++				  STATX_INO, AT_STATX_SYNC_AS_STAT);
+ 	if (error)
+ 		return error;
+ 	buffer.ino = stat.ino;
+diff --git a/fs/ext4/ext4.h b/fs/ext4/ext4.h
+index 2fd17e8e4984..025d2e85f454 100644
+--- a/fs/ext4/ext4.h
++++ b/fs/ext4/ext4.h
+@@ -2462,8 +2462,7 @@ extern struct inode *ext4_iget(struct super_block *, unsigned long);
+ extern struct inode *ext4_iget_normal(struct super_block *, unsigned long);
+ extern int  ext4_write_inode(struct inode *, struct writeback_control *);
+ extern int  ext4_setattr(struct dentry *, struct iattr *);
+-extern int  ext4_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-				struct kstat *stat);
++extern int  ext4_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern void ext4_evict_inode(struct inode *);
+ extern void ext4_clear_inode(struct inode *);
+ extern int  ext4_sync_inode(handle_t *, struct inode *);
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index 971f66342080..7385e6a6b6cb 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -5387,13 +5387,13 @@ int ext4_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return error;
+ }
+ 
+-int ext4_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++int ext4_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int query_flags)
+ {
+ 	struct inode *inode;
+ 	unsigned long long delalloc_blocks;
+ 
+-	inode = d_inode(dentry);
++	inode = d_inode(path->dentry);
+ 	generic_fillattr(inode, stat);
+ 
+ 	/*
+diff --git a/fs/f2fs/f2fs.h b/fs/f2fs/f2fs.h
+index d1483136fed6..e849f83d6114 100644
+--- a/fs/f2fs/f2fs.h
++++ b/fs/f2fs/f2fs.h
+@@ -2040,8 +2040,8 @@ int f2fs_sync_file(struct file *file, loff_t start, loff_t end, int datasync);
+ void truncate_data_blocks(struct dnode_of_data *dn);
+ int truncate_blocks(struct inode *inode, u64 from, bool lock);
+ int f2fs_truncate(struct inode *inode);
+-int f2fs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			struct kstat *stat);
++int f2fs_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int flags);
+ int f2fs_setattr(struct dentry *dentry, struct iattr *attr);
+ int truncate_hole(struct inode *inode, pgoff_t pg_start, pgoff_t pg_end);
+ int truncate_data_blocks_range(struct dnode_of_data *dn, int count);
+diff --git a/fs/f2fs/file.c b/fs/f2fs/file.c
+index 78e65288f2b2..5f7317875a67 100644
+--- a/fs/f2fs/file.c
++++ b/fs/f2fs/file.c
+@@ -633,10 +633,10 @@ int f2fs_truncate(struct inode *inode)
+ 	return 0;
+ }
+ 
+-int f2fs_getattr(struct vfsmount *mnt,
+-			 struct dentry *dentry, struct kstat *stat)
++int f2fs_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	generic_fillattr(inode, stat);
+ 	stat->blocks <<= 3;
+ 	return 0;
+diff --git a/fs/fat/fat.h b/fs/fat/fat.h
+index e6b764a17a9c..051dac1ce3be 100644
+--- a/fs/fat/fat.h
++++ b/fs/fat/fat.h
+@@ -364,8 +364,8 @@ extern const struct file_operations fat_file_operations;
+ extern const struct inode_operations fat_file_inode_operations;
+ extern int fat_setattr(struct dentry *dentry, struct iattr *attr);
+ extern void fat_truncate_blocks(struct inode *inode, loff_t offset);
+-extern int fat_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		       struct kstat *stat);
++extern int fat_getattr(const struct path *path, struct kstat *stat,
++		       u32 request_mask, unsigned int flags);
+ extern int fat_file_fsync(struct file *file, loff_t start, loff_t end,
+ 			  int datasync);
+ 
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index 3d04b124bce0..4724cc9ad650 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -365,9 +365,10 @@ void fat_truncate_blocks(struct inode *inode, loff_t offset)
+ 	fat_flush_inodes(inode->i_sb, inode, NULL);
+ }
+ 
+-int fat_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int fat_getattr(const struct path *path, struct kstat *stat,
++		u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	generic_fillattr(inode, stat);
+ 	stat->blksize = MSDOS_SB(inode->i_sb)->cluster_size;
+ 
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index 811fd8929a18..beb3d64f16e2 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -1777,10 +1777,10 @@ static int fuse_setattr(struct dentry *entry, struct iattr *attr)
+ 	return ret;
+ }
+ 
+-static int fuse_getattr(struct vfsmount *mnt, struct dentry *entry,
+-			struct kstat *stat)
++static int fuse_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(entry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 
+ 	if (!fuse_allow_current_process(fc))
+diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
+index eb7724b8578a..288c15f385bd 100644
+--- a/fs/gfs2/inode.c
++++ b/fs/gfs2/inode.c
+@@ -1959,9 +1959,10 @@ static int gfs2_setattr(struct dentry *dentry, struct iattr *attr)
+ 
+ /**
+  * gfs2_getattr - Read out an inode's attributes
+- * @mnt: The vfsmount the inode is being accessed from
+- * @dentry: The dentry to stat
++ * @path: Object to query
+  * @stat: The inode's stats
++ * @request_mask: Mask of STATX_xxx flags indicating the caller's interests
++ * @flags: AT_STATX_xxx setting
+  *
+  * This may be called from the VFS directly, or from within GFS2 with the
+  * inode locked, so we look to see if the glock is already locked and only
+@@ -1972,10 +1973,10 @@ static int gfs2_setattr(struct dentry *dentry, struct iattr *attr)
+  * Returns: errno
+  */
+ 
+-static int gfs2_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			struct kstat *stat)
++static int gfs2_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct gfs2_inode *ip = GFS2_I(inode);
+ 	struct gfs2_holder gh;
+ 	int error;
+diff --git a/fs/kernfs/inode.c b/fs/kernfs/inode.c
+index ac9e108ce1ea..fb4b4a79a0d6 100644
+--- a/fs/kernfs/inode.c
++++ b/fs/kernfs/inode.c
+@@ -200,11 +200,11 @@ static void kernfs_refresh_inode(struct kernfs_node *kn, struct inode *inode)
+ 		set_nlink(inode, kn->dir.subdirs + 2);
+ }
+ 
+-int kernfs_iop_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		   struct kstat *stat)
++int kernfs_iop_getattr(const struct path *path, struct kstat *stat,
++		       u32 request_mask, unsigned int query_flags)
+ {
+-	struct kernfs_node *kn = dentry->d_fsdata;
+-	struct inode *inode = d_inode(dentry);
++	struct kernfs_node *kn = path->dentry->d_fsdata;
++	struct inode *inode = d_inode(path->dentry);
+ 
+ 	mutex_lock(&kernfs_mutex);
+ 	kernfs_refresh_inode(kn, inode);
+diff --git a/fs/kernfs/kernfs-internal.h b/fs/kernfs/kernfs-internal.h
+index 3100987cf8ba..2d5144ab4251 100644
+--- a/fs/kernfs/kernfs-internal.h
++++ b/fs/kernfs/kernfs-internal.h
+@@ -80,8 +80,8 @@ extern const struct xattr_handler *kernfs_xattr_handlers[];
+ void kernfs_evict_inode(struct inode *inode);
+ int kernfs_iop_permission(struct inode *inode, int mask);
+ int kernfs_iop_setattr(struct dentry *dentry, struct iattr *iattr);
+-int kernfs_iop_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		       struct kstat *stat);
++int kernfs_iop_getattr(const struct path *path, struct kstat *stat,
++		       u32 request_mask, unsigned int query_flags);
+ ssize_t kernfs_iop_listxattr(struct dentry *dentry, char *buf, size_t size);
+ 
+ /*
+diff --git a/fs/libfs.c b/fs/libfs.c
+index 28d6f35feed6..1dfaf8f606c0 100644
+--- a/fs/libfs.c
++++ b/fs/libfs.c
+@@ -20,10 +20,10 @@
+ 
+ #include "internal.h"
+ 
+-int simple_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		   struct kstat *stat)
++int simple_getattr(const struct path *path, struct kstat *stat,
++		   u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	generic_fillattr(inode, stat);
+ 	stat->blocks = inode->i_mapping->nrpages << (PAGE_SHIFT - 9);
+ 	return 0;
+@@ -1143,10 +1143,10 @@ static struct dentry *empty_dir_lookup(struct inode *dir, struct dentry *dentry,
+ 	return ERR_PTR(-ENOENT);
+ }
+ 
+-static int empty_dir_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-				 struct kstat *stat)
++static int empty_dir_getattr(const struct path *path, struct kstat *stat,
++			     u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	generic_fillattr(inode, stat);
+ 	return 0;
+ }
+diff --git a/fs/minix/inode.c b/fs/minix/inode.c
+index e7d9bf86d975..6ac76b0434e9 100644
+--- a/fs/minix/inode.c
++++ b/fs/minix/inode.c
+@@ -622,11 +622,14 @@ static int minix_write_inode(struct inode *inode, struct writeback_control *wbc)
+ 	return err;
+ }
+ 
+-int minix_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int minix_getattr(const struct path *path, struct kstat *stat,
++		  u32 request_mask, unsigned int flags)
+ {
+-	struct super_block *sb = dentry->d_sb;
+-	generic_fillattr(d_inode(dentry), stat);
+-	if (INODE_VERSION(d_inode(dentry)) == MINIX_V1)
++	struct super_block *sb = path->dentry->d_sb;
++	struct inode *inode = d_inode(path->dentry);
++
++	generic_fillattr(inode, stat);
++	if (INODE_VERSION(inode) == MINIX_V1)
+ 		stat->blocks = (BLOCK_SIZE / 512) * V1_minix_blocks(stat->size, sb);
+ 	else
+ 		stat->blocks = (sb->s_blocksize / 512) * V2_minix_blocks(stat->size, sb);
+diff --git a/fs/minix/minix.h b/fs/minix/minix.h
+index 01ad81dcacc5..663d66138d06 100644
+--- a/fs/minix/minix.h
++++ b/fs/minix/minix.h
+@@ -51,7 +51,7 @@ extern unsigned long minix_count_free_inodes(struct super_block *sb);
+ extern int minix_new_block(struct inode * inode);
+ extern void minix_free_block(struct inode *inode, unsigned long block);
+ extern unsigned long minix_count_free_blocks(struct super_block *sb);
+-extern int minix_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int minix_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int minix_prepare_chunk(struct page *page, loff_t pos, unsigned len);
+ 
+ extern void V1_minix_truncate(struct inode *);
+diff --git a/fs/nfs/inode.c b/fs/nfs/inode.c
+index 5ca4d96b1942..b5425315adcc 100644
+--- a/fs/nfs/inode.c
++++ b/fs/nfs/inode.c
+@@ -703,9 +703,10 @@ static bool nfs_need_revalidate_inode(struct inode *inode)
+ 	return false;
+ }
+ 
+-int nfs_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int nfs_getattr(const struct path *path, struct kstat *stat,
++		u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	int need_atime = NFS_I(inode)->cache_validity & NFS_INO_INVALID_ATIME;
+ 	int err = 0;
+ 
+@@ -726,17 +727,17 @@ int nfs_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
+ 	 *  - NFS never sets MS_NOATIME or MS_NODIRATIME so there is
+ 	 *    no point in checking those.
+ 	 */
+- 	if ((mnt->mnt_flags & MNT_NOATIME) ||
+- 	    ((mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode)))
++	if ((path->mnt->mnt_flags & MNT_NOATIME) ||
++	    ((path->mnt->mnt_flags & MNT_NODIRATIME) && S_ISDIR(inode->i_mode)))
+ 		need_atime = 0;
+ 
+ 	if (need_atime || nfs_need_revalidate_inode(inode)) {
+ 		struct nfs_server *server = NFS_SERVER(inode);
+ 
+-		nfs_readdirplus_parent_cache_miss(dentry);
++		nfs_readdirplus_parent_cache_miss(path->dentry);
+ 		err = __nfs_revalidate_inode(server, inode);
+ 	} else
+-		nfs_readdirplus_parent_cache_hit(dentry);
++		nfs_readdirplus_parent_cache_hit(path->dentry);
+ 	if (!err) {
+ 		generic_fillattr(inode, stat);
+ 		stat->ino = nfs_compat_user_ino64(NFS_FILEID(inode));
+diff --git a/fs/nfs/namespace.c b/fs/nfs/namespace.c
+index e49d831c4e85..786f17580582 100644
+--- a/fs/nfs/namespace.c
++++ b/fs/nfs/namespace.c
+@@ -178,11 +178,12 @@ struct vfsmount *nfs_d_automount(struct path *path)
+ }
+ 
+ static int
+-nfs_namespace_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++nfs_namespace_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int query_flags)
+ {
+-	if (NFS_FH(d_inode(dentry))->size != 0)
+-		return nfs_getattr(mnt, dentry, stat);
+-	generic_fillattr(d_inode(dentry), stat);
++	if (NFS_FH(d_inode(path->dentry))->size != 0)
++		return nfs_getattr(path, stat, request_mask, query_flags);
++	generic_fillattr(d_inode(path->dentry), stat);
+ 	return 0;
+ }
+ 
+diff --git a/fs/nfsd/nfs4xdr.c b/fs/nfsd/nfs4xdr.c
+index 382c1fd05b4c..33017d652b1d 100644
+--- a/fs/nfsd/nfs4xdr.c
++++ b/fs/nfsd/nfs4xdr.c
+@@ -2301,7 +2301,7 @@ static int get_parent_attributes(struct svc_export *exp, struct kstat *stat)
+ 		if (path.dentry != path.mnt->mnt_root)
+ 			break;
+ 	}
+-	err = vfs_getattr(&path, stat);
++	err = vfs_getattr(&path, stat, STATX_BASIC_STATS, AT_STATX_SYNC_AS_STAT);
+ 	path_put(&path);
+ 	return err;
+ }
+@@ -2385,7 +2385,7 @@ nfsd4_encode_fattr(struct xdr_stream *xdr, struct svc_fh *fhp,
+ 			goto out;
+ 	}
+ 
+-	err = vfs_getattr(&path, &stat);
++	err = vfs_getattr(&path, &stat, STATX_BASIC_STATS, AT_STATX_SYNC_AS_STAT);
+ 	if (err)
+ 		goto out_nfserr;
+ 	if ((bmval0 & (FATTR4_WORD0_FILES_AVAIL | FATTR4_WORD0_FILES_FREE |
+diff --git a/fs/nfsd/vfs.h b/fs/nfsd/vfs.h
+index db98c48c735a..1bbdccecbf3d 100644
+--- a/fs/nfsd/vfs.h
++++ b/fs/nfsd/vfs.h
+@@ -135,7 +135,8 @@ static inline __be32 fh_getattr(struct svc_fh *fh, struct kstat *stat)
+ {
+ 	struct path p = {.mnt = fh->fh_export->ex_path.mnt,
+ 			 .dentry = fh->fh_dentry};
+-	return nfserrno(vfs_getattr(&p, stat));
++	return nfserrno(vfs_getattr(&p, stat, STATX_BASIC_STATS,
++				    AT_STATX_SYNC_AS_STAT));
+ }
+ 
+ static inline int nfsd_create_is_exclusive(int createmode)
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index 8836305eb378..bfeb647459d9 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -1306,16 +1306,15 @@ int ocfs2_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return status;
+ }
+ 
+-int ocfs2_getattr(struct vfsmount *mnt,
+-		  struct dentry *dentry,
+-		  struct kstat *stat)
++int ocfs2_getattr(const struct path *path, struct kstat *stat,
++		  u32 request_mask, unsigned int flags)
+ {
+-	struct inode *inode = d_inode(dentry);
+-	struct super_block *sb = dentry->d_sb;
++	struct inode *inode = d_inode(path->dentry);
++	struct super_block *sb = path->dentry->d_sb;
+ 	struct ocfs2_super *osb = sb->s_fs_info;
+ 	int err;
+ 
+-	err = ocfs2_inode_revalidate(dentry);
++	err = ocfs2_inode_revalidate(path->dentry);
+ 	if (err) {
+ 		if (err != -ENOENT)
+ 			mlog_errno(err);
+diff --git a/fs/ocfs2/file.h b/fs/ocfs2/file.h
+index 897fd9a2e51d..1fdc9839cd93 100644
+--- a/fs/ocfs2/file.h
++++ b/fs/ocfs2/file.h
+@@ -68,8 +68,8 @@ int ocfs2_zero_extend(struct inode *inode, struct buffer_head *di_bh,
+ int ocfs2_extend_allocation(struct inode *inode, u32 logical_start,
+ 		u32 clusters_to_add, int mark_unwritten);
+ int ocfs2_setattr(struct dentry *dentry, struct iattr *attr);
+-int ocfs2_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		  struct kstat *stat);
++int ocfs2_getattr(const struct path *path, struct kstat *stat,
++		  u32 request_mask, unsigned int flags);
+ int ocfs2_permission(struct inode *inode, int mask);
+ 
+ int ocfs2_should_update_atime(struct inode *inode,
+diff --git a/fs/orangefs/inode.c b/fs/orangefs/inode.c
+index 5cd617980fbf..a304bf34b212 100644
+--- a/fs/orangefs/inode.c
++++ b/fs/orangefs/inode.c
+@@ -245,25 +245,24 @@ int orangefs_setattr(struct dentry *dentry, struct iattr *iattr)
+ /*
+  * Obtain attributes of an object given a dentry
+  */
+-int orangefs_getattr(struct vfsmount *mnt,
+-		  struct dentry *dentry,
+-		  struct kstat *kstat)
++int orangefs_getattr(const struct path *path, struct kstat *stat,
++		     u32 request_mask, unsigned int flags)
+ {
+ 	int ret = -ENOENT;
+-	struct inode *inode = dentry->d_inode;
++	struct inode *inode = path->dentry->d_inode;
+ 	struct orangefs_inode_s *orangefs_inode = NULL;
+ 
+ 	gossip_debug(GOSSIP_INODE_DEBUG,
+ 		     "orangefs_getattr: called on %pd\n",
+-		     dentry);
++		     path->dentry);
+ 
+ 	ret = orangefs_inode_getattr(inode, 0, 0);
+ 	if (ret == 0) {
+-		generic_fillattr(inode, kstat);
++		generic_fillattr(inode, stat);
+ 
+ 		/* override block size reported to stat */
+ 		orangefs_inode = ORANGEFS_I(inode);
+-		kstat->blksize = orangefs_inode->blksize;
++		stat->blksize = orangefs_inode->blksize;
+ 	}
+ 	return ret;
+ }
+diff --git a/fs/orangefs/orangefs-kernel.h b/fs/orangefs/orangefs-kernel.h
+index 70355a9a2596..0c4f03c22ce0 100644
+--- a/fs/orangefs/orangefs-kernel.h
++++ b/fs/orangefs/orangefs-kernel.h
+@@ -439,9 +439,8 @@ struct inode *orangefs_new_inode(struct super_block *sb,
+ 
+ int orangefs_setattr(struct dentry *dentry, struct iattr *iattr);
+ 
+-int orangefs_getattr(struct vfsmount *mnt,
+-		  struct dentry *dentry,
+-		  struct kstat *kstat);
++int orangefs_getattr(const struct path *path, struct kstat *stat,
++		     u32 request_mask, unsigned int flags);
+ 
+ int orangefs_permission(struct inode *inode, int mask);
+ 
+diff --git a/fs/overlayfs/copy_up.c b/fs/overlayfs/copy_up.c
+index f57043dace62..a6f9ca621e0b 100644
+--- a/fs/overlayfs/copy_up.c
++++ b/fs/overlayfs/copy_up.c
+@@ -346,7 +346,8 @@ static int ovl_copy_up_one(struct dentry *parent, struct dentry *dentry,
+ 	ovl_path_upper(parent, &parentpath);
+ 	upperdir = parentpath.dentry;
+ 
+-	err = vfs_getattr(&parentpath, &pstat);
++	err = vfs_getattr(&parentpath, &pstat,
++			  STATX_ATIME | STATX_MTIME, AT_STATX_SYNC_AS_STAT);
+ 	if (err)
+ 		return err;
+ 
+@@ -409,7 +410,8 @@ int ovl_copy_up_flags(struct dentry *dentry, int flags)
+ 		}
+ 
+ 		ovl_path_lower(next, &lowerpath);
+-		err = vfs_getattr(&lowerpath, &stat);
++		err = vfs_getattr(&lowerpath, &stat,
++				  STATX_BASIC_STATS, AT_STATX_SYNC_AS_STAT);
+ 		/* maybe truncate regular file. this has no effect on dirs */
+ 		if (flags & O_TRUNC)
+ 			stat.size = 0;
+diff --git a/fs/overlayfs/dir.c b/fs/overlayfs/dir.c
+index 16e06dd89457..6515796460df 100644
+--- a/fs/overlayfs/dir.c
++++ b/fs/overlayfs/dir.c
+@@ -138,9 +138,10 @@ static int ovl_set_opaque(struct dentry *dentry, struct dentry *upperdentry)
+ 	return err;
+ }
+ 
+-static int ovl_dir_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			 struct kstat *stat)
++static int ovl_dir_getattr(const struct path *path, struct kstat *stat,
++			   u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	int err;
+ 	enum ovl_path_type type;
+ 	struct path realpath;
+@@ -148,7 +149,7 @@ static int ovl_dir_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 
+ 	type = ovl_path_real(dentry, &realpath);
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+-	err = vfs_getattr(&realpath, stat);
++	err = vfs_getattr(&realpath, stat, request_mask, flags);
+ 	revert_creds(old_cred);
+ 	if (err)
+ 		return err;
+@@ -264,7 +265,8 @@ static struct dentry *ovl_clear_empty(struct dentry *dentry,
+ 		goto out;
+ 
+ 	ovl_path_upper(dentry, &upperpath);
+-	err = vfs_getattr(&upperpath, &stat);
++	err = vfs_getattr(&upperpath, &stat,
++			  STATX_BASIC_STATS, AT_STATX_SYNC_AS_STAT);
+ 	if (err)
+ 		goto out_unlock;
+ 
+diff --git a/fs/overlayfs/inode.c b/fs/overlayfs/inode.c
+index 08643ac44a02..d4bb54f7b6b4 100644
+--- a/fs/overlayfs/inode.c
++++ b/fs/overlayfs/inode.c
+@@ -56,16 +56,17 @@ int ovl_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return err;
+ }
+ 
+-static int ovl_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			 struct kstat *stat)
++static int ovl_getattr(const struct path *path, struct kstat *stat,
++		       u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct path realpath;
+ 	const struct cred *old_cred;
+ 	int err;
+ 
+ 	ovl_path_real(dentry, &realpath);
+ 	old_cred = ovl_override_creds(dentry->d_sb);
+-	err = vfs_getattr(&realpath, stat);
++	err = vfs_getattr(&realpath, stat, request_mask, flags);
+ 	revert_creds(old_cred);
+ 	return err;
+ }
+diff --git a/fs/proc/base.c b/fs/proc/base.c
+index 1e1e182d571b..3b5e6aa2a326 100644
+--- a/fs/proc/base.c
++++ b/fs/proc/base.c
+@@ -1724,11 +1724,12 @@ struct inode *proc_pid_make_inode(struct super_block * sb,
+ 	return NULL;
+ }
+ 
+-int pid_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int pid_getattr(const struct path *path, struct kstat *stat,
++		u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct task_struct *task;
+-	struct pid_namespace *pid = dentry->d_sb->s_fs_info;
++	struct pid_namespace *pid = path->dentry->d_sb->s_fs_info;
+ 
+ 	generic_fillattr(inode, stat);
+ 
+@@ -3511,9 +3512,10 @@ static int proc_task_readdir(struct file *file, struct dir_context *ctx)
+ 	return 0;
+ }
+ 
+-static int proc_task_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++static int proc_task_getattr(const struct path *path, struct kstat *stat,
++			     u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct task_struct *p = get_proc_task(inode);
+ 	generic_fillattr(inode, stat);
+ 
+diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+index 06c73904d497..ee27feb34cf4 100644
+--- a/fs/proc/generic.c
++++ b/fs/proc/generic.c
+@@ -118,10 +118,10 @@ static int proc_notify_change(struct dentry *dentry, struct iattr *iattr)
+ 	return 0;
+ }
+ 
+-static int proc_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			struct kstat *stat)
++static int proc_getattr(const struct path *path, struct kstat *stat,
++			u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct proc_dir_entry *de = PDE(inode);
+ 	if (de && de->nlink)
+ 		set_nlink(inode, de->nlink);
+diff --git a/fs/proc/internal.h b/fs/proc/internal.h
+index 5d6960f5f1c0..e93cdc6ddb31 100644
+--- a/fs/proc/internal.h
++++ b/fs/proc/internal.h
+@@ -149,7 +149,7 @@ extern int proc_pid_statm(struct seq_file *, struct pid_namespace *,
+  * base.c
+  */
+ extern const struct dentry_operations pid_dentry_operations;
+-extern int pid_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int pid_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int proc_setattr(struct dentry *, struct iattr *);
+ extern struct inode *proc_pid_make_inode(struct super_block *, struct task_struct *, umode_t);
+ extern int pid_revalidate(struct dentry *, unsigned int);
+diff --git a/fs/proc/proc_net.c b/fs/proc/proc_net.c
+index ffd72a6c6e04..9db1df2537fc 100644
+--- a/fs/proc/proc_net.c
++++ b/fs/proc/proc_net.c
+@@ -140,10 +140,10 @@ static struct dentry *proc_tgid_net_lookup(struct inode *dir,
+ 	return de;
+ }
+ 
+-static int proc_tgid_net_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		struct kstat *stat)
++static int proc_tgid_net_getattr(const struct path *path, struct kstat *stat,
++				 u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct net *net;
+ 
+ 	net = get_proc_task_net(inode);
+diff --git a/fs/proc/proc_sysctl.c b/fs/proc/proc_sysctl.c
+index 3e64c6502dc8..3d8726445ad1 100644
+--- a/fs/proc/proc_sysctl.c
++++ b/fs/proc/proc_sysctl.c
+@@ -801,9 +801,10 @@ static int proc_sys_setattr(struct dentry *dentry, struct iattr *attr)
+ 	return 0;
+ }
+ 
+-static int proc_sys_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++static int proc_sys_getattr(const struct path *path, struct kstat *stat,
++			    u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct ctl_table_header *head = grab_header(inode);
+ 	struct ctl_table *table = PROC_I(inode)->sysctl_entry;
+ 
+diff --git a/fs/proc/root.c b/fs/proc/root.c
+index b90da888b81a..fb1955c82274 100644
+--- a/fs/proc/root.c
++++ b/fs/proc/root.c
+@@ -149,10 +149,10 @@ void __init proc_root_init(void)
+ 	proc_sys_init();
+ }
+ 
+-static int proc_root_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat
+-)
++static int proc_root_getattr(const struct path *path, struct kstat *stat,
++			     u32 request_mask, unsigned int query_flags)
+ {
+-	generic_fillattr(d_inode(dentry), stat);
++	generic_fillattr(d_inode(path->dentry), stat);
+ 	stat->nlink = proc_root.nlink + nr_processes();
+ 	return 0;
+ }
+diff --git a/fs/stat.c b/fs/stat.c
+index 3f14d1ef0868..a3804feadade 100644
+--- a/fs/stat.c
++++ b/fs/stat.c
+@@ -18,6 +18,15 @@
+ #include <linux/uaccess.h>
+ #include <asm/unistd.h>
+ 
++/**
++ * generic_fillattr - Fill in the basic attributes from the inode struct
++ * @inode: Inode to use as the source
++ * @stat: Where to fill in the attributes
++ *
++ * Fill in the basic attributes in the kstat structure from data that's to be
++ * found on the VFS inode structure.  This is the default if no getattr inode
++ * operation is supplied.
++ */
+ void generic_fillattr(struct inode *inode, struct kstat *stat)
+ {
+ 	stat->dev = inode->i_sb->s_dev;
+@@ -33,81 +42,147 @@ void generic_fillattr(struct inode *inode, struct kstat *stat)
+ 	stat->ctime = inode->i_ctime;
+ 	stat->blksize = i_blocksize(inode);
+ 	stat->blocks = inode->i_blocks;
+-}
+ 
++	if (IS_NOATIME(inode))
++		stat->result_mask &= ~STATX_ATIME;
++	if (IS_AUTOMOUNT(inode))
++		stat->attributes |= STATX_ATTR_AUTOMOUNT;
++}
+ EXPORT_SYMBOL(generic_fillattr);
+ 
+ /**
+  * vfs_getattr_nosec - getattr without security checks
+  * @path: file to get attributes from
+  * @stat: structure to return attributes in
++ * @request_mask: STATX_xxx flags indicating what the caller wants
++ * @query_flags: Query mode (KSTAT_QUERY_FLAGS)
+  *
+  * Get attributes without calling security_inode_getattr.
+  *
+  * Currently the only caller other than vfs_getattr is internal to the
+- * filehandle lookup code, which uses only the inode number and returns
+- * no attributes to any user.  Any other code probably wants
+- * vfs_getattr.
++ * filehandle lookup code, which uses only the inode number and returns no
++ * attributes to any user.  Any other code probably wants vfs_getattr.
+  */
+-int vfs_getattr_nosec(struct path *path, struct kstat *stat)
++int vfs_getattr_nosec(const struct path *path, struct kstat *stat,
++		      u32 request_mask, unsigned int query_flags)
+ {
+ 	struct inode *inode = d_backing_inode(path->dentry);
+ 
++	memset(stat, 0, sizeof(*stat));
++	stat->result_mask |= STATX_BASIC_STATS;
++	request_mask &= STATX_ALL;
++	query_flags &= KSTAT_QUERY_FLAGS;
+ 	if (inode->i_op->getattr)
+-		return inode->i_op->getattr(path->mnt, path->dentry, stat);
++		return inode->i_op->getattr(path, stat, request_mask,
++					    query_flags);
+ 
+ 	generic_fillattr(inode, stat);
+ 	return 0;
+ }
+-
+ EXPORT_SYMBOL(vfs_getattr_nosec);
+ 
+-int vfs_getattr(struct path *path, struct kstat *stat)
++/*
++ * vfs_getattr - Get the enhanced basic attributes of a file
++ * @path: The file of interest
++ * @stat: Where to return the statistics
++ * @request_mask: STATX_xxx flags indicating what the caller wants
++ * @query_flags: Query mode (KSTAT_QUERY_FLAGS)
++ *
++ * Ask the filesystem for a file's attributes.  The caller must indicate in
++ * request_mask and query_flags to indicate what they want.
++ *
++ * If the file is remote, the filesystem can be forced to update the attributes
++ * from the backing store by passing AT_STATX_FORCE_SYNC in query_flags or can
++ * suppress the update by passing AT_STATX_DONT_SYNC.
++ *
++ * Bits must have been set in request_mask to indicate which attributes the
++ * caller wants retrieving.  Any such attribute not requested may be returned
++ * anyway, but the value may be approximate, and, if remote, may not have been
++ * synchronised with the server.
++ *
++ * 0 will be returned on success, and a -ve error code if unsuccessful.
++ */
++int vfs_getattr(const struct path *path, struct kstat *stat,
++		u32 request_mask, unsigned int query_flags)
+ {
+ 	int retval;
+ 
+ 	retval = security_inode_getattr(path);
+ 	if (retval)
+ 		return retval;
+-	return vfs_getattr_nosec(path, stat);
++	return vfs_getattr_nosec(path, stat, request_mask, query_flags);
+ }
+-
+ EXPORT_SYMBOL(vfs_getattr);
+ 
+-int vfs_fstat(unsigned int fd, struct kstat *stat)
++/**
++ * vfs_statx_fd - Get the enhanced basic attributes by file descriptor
++ * @fd: The file descriptor referring to the file of interest
++ * @stat: The result structure to fill in.
++ * @request_mask: STATX_xxx flags indicating what the caller wants
++ * @query_flags: Query mode (KSTAT_QUERY_FLAGS)
++ *
++ * This function is a wrapper around vfs_getattr().  The main difference is
++ * that it uses a file descriptor to determine the file location.
++ *
++ * 0 will be returned on success, and a -ve error code if unsuccessful.
++ */
++int vfs_statx_fd(unsigned int fd, struct kstat *stat,
++		 u32 request_mask, unsigned int query_flags)
+ {
+ 	struct fd f = fdget_raw(fd);
+ 	int error = -EBADF;
+ 
+ 	if (f.file) {
+-		error = vfs_getattr(&f.file->f_path, stat);
++		error = vfs_getattr(&f.file->f_path, stat,
++				    request_mask, query_flags);
+ 		fdput(f);
+ 	}
+ 	return error;
+ }
+-EXPORT_SYMBOL(vfs_fstat);
++EXPORT_SYMBOL(vfs_statx_fd);
+ 
+-int vfs_fstatat(int dfd, const char __user *filename, struct kstat *stat,
+-		int flag)
++/**
++ * vfs_statx - Get basic and extra attributes by filename
++ * @dfd: A file descriptor representing the base dir for a relative filename
++ * @filename: The name of the file of interest
++ * @flags: Flags to control the query
++ * @stat: The result structure to fill in.
++ * @request_mask: STATX_xxx flags indicating what the caller wants
++ *
++ * This function is a wrapper around vfs_getattr().  The main difference is
++ * that it uses a filename and base directory to determine the file location.
++ * Additionally, the use of AT_SYMLINK_NOFOLLOW in flags will prevent a symlink
++ * at the given name from being referenced.
++ *
++ * The caller must have preset stat->request_mask as for vfs_getattr().  The
++ * flags are also used to load up stat->query_flags.
++ *
++ * 0 will be returned on success, and a -ve error code if unsuccessful.
++ */
++int vfs_statx(int dfd, const char __user *filename, int flags,
++	      struct kstat *stat, u32 request_mask)
+ {
+ 	struct path path;
+ 	int error = -EINVAL;
+-	unsigned int lookup_flags = 0;
++	unsigned int lookup_flags = LOOKUP_FOLLOW | LOOKUP_AUTOMOUNT;
+ 
+-	if ((flag & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT |
+-		      AT_EMPTY_PATH)) != 0)
+-		goto out;
++	if ((flags & ~(AT_SYMLINK_NOFOLLOW | AT_NO_AUTOMOUNT |
++		       AT_EMPTY_PATH | KSTAT_QUERY_FLAGS)) != 0)
++		return -EINVAL;
+ 
+-	if (!(flag & AT_SYMLINK_NOFOLLOW))
+-		lookup_flags |= LOOKUP_FOLLOW;
+-	if (flag & AT_EMPTY_PATH)
++	if (flags & AT_SYMLINK_NOFOLLOW)
++		lookup_flags &= ~LOOKUP_FOLLOW;
++	if (flags & AT_NO_AUTOMOUNT)
++		lookup_flags &= ~LOOKUP_AUTOMOUNT;
++	if (flags & AT_EMPTY_PATH)
+ 		lookup_flags |= LOOKUP_EMPTY;
++
+ retry:
+ 	error = user_path_at(dfd, filename, lookup_flags, &path);
+ 	if (error)
+ 		goto out;
+ 
+-	error = vfs_getattr(&path, stat);
++	error = vfs_getattr(&path, stat, request_mask, flags);
+ 	path_put(&path);
+ 	if (retry_estale(error, lookup_flags)) {
+ 		lookup_flags |= LOOKUP_REVAL;
+@@ -116,19 +191,7 @@ int vfs_fstatat(int dfd, const char __user *filename, struct kstat *stat,
+ out:
+ 	return error;
+ }
+-EXPORT_SYMBOL(vfs_fstatat);
+-
+-int vfs_stat(const char __user *name, struct kstat *stat)
+-{
+-	return vfs_fstatat(AT_FDCWD, name, stat, 0);
+-}
+-EXPORT_SYMBOL(vfs_stat);
+-
+-int vfs_lstat(const char __user *name, struct kstat *stat)
+-{
+-	return vfs_fstatat(AT_FDCWD, name, stat, AT_SYMLINK_NOFOLLOW);
+-}
+-EXPORT_SYMBOL(vfs_lstat);
++EXPORT_SYMBOL(vfs_statx);
+ 
+ 
+ #ifdef __ARCH_WANT_OLD_STAT
+@@ -141,7 +204,7 @@ static int cp_old_stat(struct kstat *stat, struct __old_kernel_stat __user * sta
+ {
+ 	static int warncount = 5;
+ 	struct __old_kernel_stat tmp;
+-	
++
+ 	if (warncount > 0) {
+ 		warncount--;
+ 		printk(KERN_WARNING "VFS: Warning: %s using old stat() call. Recompile your binary.\n",
+@@ -166,7 +229,7 @@ static int cp_old_stat(struct kstat *stat, struct __old_kernel_stat __user * sta
+ #if BITS_PER_LONG == 32
+ 	if (stat->size > MAX_NON_LFS)
+ 		return -EOVERFLOW;
+-#endif	
++#endif
+ 	tmp.st_size = stat->size;
+ 	tmp.st_atime = stat->atime.tv_sec;
+ 	tmp.st_mtime = stat->mtime.tv_sec;
+@@ -445,6 +508,81 @@ SYSCALL_DEFINE4(fstatat64, int, dfd, const char __user *, filename,
+ }
+ #endif /* __ARCH_WANT_STAT64 || __ARCH_WANT_COMPAT_STAT64 */
+ 
++static inline int __put_timestamp(struct timespec *kts,
++				  struct statx_timestamp __user *uts)
++{
++	return (__put_user(kts->tv_sec,		&uts->tv_sec		) ||
++		__put_user(kts->tv_nsec,	&uts->tv_nsec		) ||
++		__put_user(0,			&uts->__reserved	));
++}
++
++/*
++ * Set the statx results.
++ */
++static long statx_set_result(struct kstat *stat, struct statx __user *buffer)
++{
++	uid_t uid = from_kuid_munged(current_user_ns(), stat->uid);
++	gid_t gid = from_kgid_munged(current_user_ns(), stat->gid);
++
++	if (__put_user(stat->result_mask,	&buffer->stx_mask	) ||
++	    __put_user(stat->mode,		&buffer->stx_mode	) ||
++	    __clear_user(&buffer->__spare0, sizeof(buffer->__spare0))	  ||
++	    __put_user(stat->nlink,		&buffer->stx_nlink	) ||
++	    __put_user(uid,			&buffer->stx_uid	) ||
++	    __put_user(gid,			&buffer->stx_gid	) ||
++	    __put_user(stat->attributes,	&buffer->stx_attributes	) ||
++	    __put_user(stat->blksize,		&buffer->stx_blksize	) ||
++	    __put_user(MAJOR(stat->rdev),	&buffer->stx_rdev_major	) ||
++	    __put_user(MINOR(stat->rdev),	&buffer->stx_rdev_minor	) ||
++	    __put_user(MAJOR(stat->dev),	&buffer->stx_dev_major	) ||
++	    __put_user(MINOR(stat->dev),	&buffer->stx_dev_minor	) ||
++	    __put_timestamp(&stat->atime,	&buffer->stx_atime	) ||
++	    __put_timestamp(&stat->btime,	&buffer->stx_btime	) ||
++	    __put_timestamp(&stat->ctime,	&buffer->stx_ctime	) ||
++	    __put_timestamp(&stat->mtime,	&buffer->stx_mtime	) ||
++	    __put_user(stat->ino,		&buffer->stx_ino	) ||
++	    __put_user(stat->size,		&buffer->stx_size	) ||
++	    __put_user(stat->blocks,		&buffer->stx_blocks	) ||
++	    __clear_user(&buffer->__spare1, sizeof(buffer->__spare1))	  ||
++	    __clear_user(&buffer->__spare2, sizeof(buffer->__spare2)))
++		return -EFAULT;
++
++	return 0;
++}
++
++/**
++ * sys_statx - System call to get enhanced stats
++ * @dfd: Base directory to pathwalk from *or* fd to stat.
++ * @filename: File to stat *or* NULL.
++ * @flags: AT_* flags to control pathwalk.
++ * @mask: Parts of statx struct actually required.
++ * @buffer: Result buffer.
++ *
++ * Note that if filename is NULL, then it does the equivalent of fstat() using
++ * dfd to indicate the file of interest.
++ */
++SYSCALL_DEFINE5(statx,
++		int, dfd, const char __user *, filename, unsigned, flags,
++		unsigned int, mask,
++		struct statx __user *, buffer)
++{
++	struct kstat stat;
++	int error;
++
++	if ((flags & AT_STATX_SYNC_TYPE) == AT_STATX_SYNC_TYPE)
++		return -EINVAL;
++	if (!access_ok(VERIFY_WRITE, buffer, sizeof(*buffer)))
++		return -EFAULT;
++
++	if (filename)
++		error = vfs_statx(dfd, filename, flags, &stat, mask);
++	else
++		error = vfs_statx_fd(dfd, &stat, mask, flags);
++	if (error)
++		return error;
++	return statx_set_result(&stat, buffer);
++}
++
+ /* Caller is here responsible for sufficient locking (ie. inode->i_lock) */
+ void __inode_add_bytes(struct inode *inode, loff_t bytes)
+ {
+diff --git a/fs/sysv/itree.c b/fs/sysv/itree.c
+index 08d3e630b49c..83809f5b5eca 100644
+--- a/fs/sysv/itree.c
++++ b/fs/sysv/itree.c
+@@ -440,10 +440,11 @@ static unsigned sysv_nblocks(struct super_block *s, loff_t size)
+ 	return blocks;
+ }
+ 
+-int sysv_getattr(struct vfsmount *mnt, struct dentry *dentry, struct kstat *stat)
++int sysv_getattr(const struct path *path, struct kstat *stat,
++		 u32 request_mask, unsigned int flags)
+ {
+-	struct super_block *s = dentry->d_sb;
+-	generic_fillattr(d_inode(dentry), stat);
++	struct super_block *s = path->dentry->d_sb;
++	generic_fillattr(d_inode(path->dentry), stat);
+ 	stat->blocks = (s->s_blocksize / 512) * sysv_nblocks(s, stat->size);
+ 	stat->blksize = s->s_blocksize;
+ 	return 0;
+diff --git a/fs/sysv/sysv.h b/fs/sysv/sysv.h
+index 6c212288adcb..1e7e27c729af 100644
+--- a/fs/sysv/sysv.h
++++ b/fs/sysv/sysv.h
+@@ -142,7 +142,7 @@ extern struct inode *sysv_iget(struct super_block *, unsigned int);
+ extern int sysv_write_inode(struct inode *, struct writeback_control *wbc);
+ extern int sysv_sync_inode(struct inode *);
+ extern void sysv_set_inode(struct inode *, dev_t);
+-extern int sysv_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int sysv_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int sysv_init_icache(void);
+ extern void sysv_destroy_icache(void);
+ 
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index 528369f3e472..30825d882aa9 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -1622,11 +1622,11 @@ static int ubifs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	return do_rename(old_dir, old_dentry, new_dir, new_dentry, flags);
+ }
+ 
+-int ubifs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		  struct kstat *stat)
++int ubifs_getattr(const struct path *path, struct kstat *stat,
++		  u32 request_mask, unsigned int flags)
+ {
+ 	loff_t size;
+-	struct inode *inode = d_inode(dentry);
++	struct inode *inode = d_inode(path->dentry);
+ 	struct ubifs_inode *ui = ubifs_inode(inode);
+ 
+ 	mutex_lock(&ui->ui_mutex);
+diff --git a/fs/ubifs/ubifs.h b/fs/ubifs/ubifs.h
+index f0c86f076535..4d57e488038e 100644
+--- a/fs/ubifs/ubifs.h
++++ b/fs/ubifs/ubifs.h
+@@ -1749,8 +1749,8 @@ int ubifs_update_time(struct inode *inode, struct timespec *time, int flags);
+ /* dir.c */
+ struct inode *ubifs_new_inode(struct ubifs_info *c, struct inode *dir,
+ 			      umode_t mode);
+-int ubifs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		  struct kstat *stat);
++int ubifs_getattr(const struct path *path, struct kstat *stat,
++		  u32 request_mask, unsigned int flags);
+ int ubifs_check_dir_empty(struct inode *dir);
+ 
+ /* xattr.c */
+diff --git a/fs/udf/symlink.c b/fs/udf/symlink.c
+index f7dfef53f739..6023c97c6da2 100644
+--- a/fs/udf/symlink.c
++++ b/fs/udf/symlink.c
+@@ -152,9 +152,10 @@ static int udf_symlink_filler(struct file *file, struct page *page)
+ 	return err;
+ }
+ 
+-static int udf_symlink_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			       struct kstat *stat)
++static int udf_symlink_getattr(const struct path *path, struct kstat *stat,
++				u32 request_mask, unsigned int flags)
+ {
++	struct dentry *dentry = path->dentry;
+ 	struct inode *inode = d_backing_inode(dentry);
+ 	struct page *page;
+ 
+diff --git a/fs/xfs/xfs_iops.c b/fs/xfs/xfs_iops.c
+index 22c16155f1b4..229cc6a6d8ef 100644
+--- a/fs/xfs/xfs_iops.c
++++ b/fs/xfs/xfs_iops.c
+@@ -489,11 +489,12 @@ xfs_vn_get_link_inline(
+ 
+ STATIC int
+ xfs_vn_getattr(
+-	struct vfsmount		*mnt,
+-	struct dentry		*dentry,
+-	struct kstat		*stat)
++	const struct path	*path,
++	struct kstat		*stat,
++	u32			request_mask,
++	unsigned int		query_flags)
+ {
+-	struct inode		*inode = d_inode(dentry);
++	struct inode		*inode = d_inode(path->dentry);
+ 	struct xfs_inode	*ip = XFS_I(inode);
+ 	struct xfs_mount	*mp = ip->i_mount;
+ 
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 52350947c670..aad3fd0ff5f8 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1709,7 +1709,7 @@ struct inode_operations {
+ 	int (*rename) (struct inode *, struct dentry *,
+ 			struct inode *, struct dentry *, unsigned int);
+ 	int (*setattr) (struct dentry *, struct iattr *);
+-	int (*getattr) (struct vfsmount *mnt, struct dentry *, struct kstat *);
++	int (*getattr) (const struct path *, struct kstat *, u32, unsigned int);
+ 	ssize_t (*listxattr) (struct dentry *, char *, size_t);
+ 	int (*fiemap)(struct inode *, struct fiemap_extent_info *, u64 start,
+ 		      u64 len);
+@@ -2902,8 +2902,8 @@ extern int page_symlink(struct inode *inode, const char *symname, int len);
+ extern const struct inode_operations page_symlink_inode_operations;
+ extern void kfree_link(void *);
+ extern void generic_fillattr(struct inode *, struct kstat *);
+-int vfs_getattr_nosec(struct path *path, struct kstat *stat);
+-extern int vfs_getattr(struct path *, struct kstat *);
++extern int vfs_getattr_nosec(const struct path *, struct kstat *, u32, unsigned int);
++extern int vfs_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ void __inode_add_bytes(struct inode *inode, loff_t bytes);
+ void inode_add_bytes(struct inode *inode, loff_t bytes);
+ void __inode_sub_bytes(struct inode *inode, loff_t bytes);
+@@ -2916,10 +2916,29 @@ extern const struct inode_operations simple_symlink_inode_operations;
+ 
+ extern int iterate_dir(struct file *, struct dir_context *);
+ 
+-extern int vfs_stat(const char __user *, struct kstat *);
+-extern int vfs_lstat(const char __user *, struct kstat *);
+-extern int vfs_fstat(unsigned int, struct kstat *);
+-extern int vfs_fstatat(int , const char __user *, struct kstat *, int);
++extern int vfs_statx(int, const char __user *, int, struct kstat *, u32);
++extern int vfs_statx_fd(unsigned int, struct kstat *, u32, unsigned int);
++
++static inline int vfs_stat(const char __user *filename, struct kstat *stat)
++{
++	return vfs_statx(AT_FDCWD, filename, 0, stat, STATX_BASIC_STATS);
++}
++static inline int vfs_lstat(const char __user *name, struct kstat *stat)
++{
++	return vfs_statx(AT_FDCWD, name, AT_SYMLINK_NOFOLLOW,
++			 stat, STATX_BASIC_STATS);
++}
++static inline int vfs_fstatat(int dfd, const char __user *filename,
++			      struct kstat *stat, int flags)
++{
++	return vfs_statx(dfd, filename, flags, stat, STATX_BASIC_STATS);
++}
++static inline int vfs_fstat(int fd, struct kstat *stat)
++{
++	return vfs_statx_fd(fd, stat, STATX_BASIC_STATS, 0);
++}
++
++
+ extern const char *vfs_get_link(struct dentry *, struct delayed_call *);
+ extern int vfs_readlink(struct dentry *, char __user *, int);
+ 
+@@ -2949,7 +2968,7 @@ extern int dcache_dir_close(struct inode *, struct file *);
+ extern loff_t dcache_dir_lseek(struct file *, loff_t, int);
+ extern int dcache_readdir(struct file *, struct dir_context *);
+ extern int simple_setattr(struct dentry *, struct iattr *);
+-extern int simple_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int simple_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern int simple_statfs(struct dentry *, struct kstatfs *);
+ extern int simple_open(struct inode *inode, struct file *file);
+ extern int simple_link(struct dentry *, struct inode *, struct dentry *);
+diff --git a/include/linux/nfs_fs.h b/include/linux/nfs_fs.h
+index f1da8c8dd473..287f34161086 100644
+--- a/include/linux/nfs_fs.h
++++ b/include/linux/nfs_fs.h
+@@ -335,7 +335,7 @@ extern int nfs_refresh_inode(struct inode *, struct nfs_fattr *);
+ extern int nfs_post_op_update_inode(struct inode *inode, struct nfs_fattr *fattr);
+ extern int nfs_post_op_update_inode_force_wcc(struct inode *inode, struct nfs_fattr *fattr);
+ extern int nfs_post_op_update_inode_force_wcc_locked(struct inode *inode, struct nfs_fattr *fattr);
+-extern int nfs_getattr(struct vfsmount *, struct dentry *, struct kstat *);
++extern int nfs_getattr(const struct path *, struct kstat *, u32, unsigned int);
+ extern void nfs_access_add_cache(struct inode *, struct nfs_access_entry *);
+ extern void nfs_access_set_mask(struct nfs_access_entry *, u32);
+ extern int nfs_permission(struct inode *, int);
+diff --git a/include/linux/stat.h b/include/linux/stat.h
+index 075cb0c7eb2a..c76e524fb34b 100644
+--- a/include/linux/stat.h
++++ b/include/linux/stat.h
+@@ -18,20 +18,32 @@
+ #include <linux/time.h>
+ #include <linux/uidgid.h>
+ 
++#define KSTAT_QUERY_FLAGS (AT_STATX_SYNC_TYPE)
++
+ struct kstat {
+-	u64		ino;
+-	dev_t		dev;
++	u32		result_mask;	/* What fields the user got */
+ 	umode_t		mode;
+ 	unsigned int	nlink;
++	uint32_t	blksize;	/* Preferred I/O size */
++	u64		attributes;
++#define KSTAT_ATTR_FS_IOC_FLAGS				\
++	(STATX_ATTR_COMPRESSED |			\
++	 STATX_ATTR_IMMUTABLE |				\
++	 STATX_ATTR_APPEND |				\
++	 STATX_ATTR_NODUMP |				\
++	 STATX_ATTR_ENCRYPTED				\
++	 )/* Attrs corresponding to FS_*_FL flags */
++	u64		ino;
++	dev_t		dev;
++	dev_t		rdev;
+ 	kuid_t		uid;
+ 	kgid_t		gid;
+-	dev_t		rdev;
+ 	loff_t		size;
+-	struct timespec  atime;
++	struct timespec	atime;
+ 	struct timespec	mtime;
+ 	struct timespec	ctime;
+-	unsigned long	blksize;
+-	unsigned long long	blocks;
++	struct timespec	btime;			/* File creation time */
++	u64		blocks;
+ };
+ 
+ #endif
+diff --git a/include/linux/syscalls.h b/include/linux/syscalls.h
+index 91a740f6b884..980c3c9b06f8 100644
+--- a/include/linux/syscalls.h
++++ b/include/linux/syscalls.h
+@@ -48,6 +48,7 @@ struct stat;
+ struct stat64;
+ struct statfs;
+ struct statfs64;
++struct statx;
+ struct __sysctl_args;
+ struct sysinfo;
+ struct timespec;
+@@ -902,5 +903,7 @@ asmlinkage long sys_pkey_mprotect(unsigned long start, size_t len,
+ 				  unsigned long prot, int pkey);
+ asmlinkage long sys_pkey_alloc(unsigned long flags, unsigned long init_val);
+ asmlinkage long sys_pkey_free(int pkey);
++asmlinkage long sys_statx(int dfd, const char __user *path, unsigned flags,
++			  unsigned mask, struct statx __user *buffer);
+ 
+ #endif
+diff --git a/include/uapi/linux/fcntl.h b/include/uapi/linux/fcntl.h
+index beed138bd359..813afd6eee71 100644
+--- a/include/uapi/linux/fcntl.h
++++ b/include/uapi/linux/fcntl.h
+@@ -63,5 +63,10 @@
+ #define AT_NO_AUTOMOUNT		0x800	/* Suppress terminal automount traversal */
+ #define AT_EMPTY_PATH		0x1000	/* Allow empty relative pathname */
+ 
++#define AT_STATX_SYNC_TYPE	0x6000	/* Type of synchronisation required from statx() */
++#define AT_STATX_SYNC_AS_STAT	0x0000	/* - Do whatever stat() does */
++#define AT_STATX_FORCE_SYNC	0x2000	/* - Force the attributes to be sync'd with the server */
++#define AT_STATX_DONT_SYNC	0x4000	/* - Don't sync attributes with the server */
++
+ 
+ #endif /* _UAPI_LINUX_FCNTL_H */
+diff --git a/include/uapi/linux/stat.h b/include/uapi/linux/stat.h
+index 7fec7e36d921..51a6b86e3700 100644
+--- a/include/uapi/linux/stat.h
++++ b/include/uapi/linux/stat.h
+@@ -1,6 +1,7 @@
+ #ifndef _UAPI_LINUX_STAT_H
+ #define _UAPI_LINUX_STAT_H
+ 
++#include <linux/types.h>
+ 
+ #if defined(__KERNEL__) || !defined(__GLIBC__) || (__GLIBC__ < 2)
+ 
+@@ -41,5 +42,135 @@
+ 
+ #endif
+ 
++/*
++ * Timestamp structure for the timestamps in struct statx.
++ *
++ * tv_sec holds the number of seconds before (negative) or after (positive)
++ * 00:00:00 1st January 1970 UTC.
++ *
++ * tv_nsec holds a number of nanoseconds before (0..-999,999,999 if tv_sec is
++ * negative) or after (0..999,999,999 if tv_sec is positive) the tv_sec time.
++ *
++ * Note that if both tv_sec and tv_nsec are non-zero, then the two values must
++ * either be both positive or both negative.
++ *
++ * __reserved is held in case we need a yet finer resolution.
++ */
++struct statx_timestamp {
++	__s64	tv_sec;
++	__s32	tv_nsec;
++	__s32	__reserved;
++};
++
++/*
++ * Structures for the extended file attribute retrieval system call
++ * (statx()).
++ *
++ * The caller passes a mask of what they're specifically interested in as a
++ * parameter to statx().  What statx() actually got will be indicated in
++ * st_mask upon return.
++ *
++ * For each bit in the mask argument:
++ *
++ * - if the datum is not supported:
++ *
++ *   - the bit will be cleared, and
++ *
++ *   - the datum will be set to an appropriate fabricated value if one is
++ *     available (eg. CIFS can take a default uid and gid), otherwise
++ *
++ *   - the field will be cleared;
++ *
++ * - otherwise, if explicitly requested:
++ *
++ *   - the datum will be synchronised to the server if AT_STATX_FORCE_SYNC is
++ *     set or if the datum is considered out of date, and
++ *
++ *   - the field will be filled in and the bit will be set;
++ *
++ * - otherwise, if not requested, but available in approximate form without any
++ *   effort, it will be filled in anyway, and the bit will be set upon return
++ *   (it might not be up to date, however, and no attempt will be made to
++ *   synchronise the internal state first);
++ *
++ * - otherwise the field and the bit will be cleared before returning.
++ *
++ * Items in STATX_BASIC_STATS may be marked unavailable on return, but they
++ * will have values installed for compatibility purposes so that stat() and
++ * co. can be emulated in userspace.
++ */
++struct statx {
++	/* 0x00 */
++	__u32	stx_mask;	/* What results were written [uncond] */
++	__u32	stx_blksize;	/* Preferred general I/O size [uncond] */
++	__u64	stx_attributes;	/* Flags conveying information about the file [uncond] */
++	/* 0x10 */
++	__u32	stx_nlink;	/* Number of hard links */
++	__u32	stx_uid;	/* User ID of owner */
++	__u32	stx_gid;	/* Group ID of owner */
++	__u16	stx_mode;	/* File mode */
++	__u16	__spare0[1];
++	/* 0x20 */
++	__u64	stx_ino;	/* Inode number */
++	__u64	stx_size;	/* File size */
++	__u64	stx_blocks;	/* Number of 512-byte blocks allocated */
++	__u64	__spare1[1];
++	/* 0x40 */
++	struct statx_timestamp	stx_atime;	/* Last access time */
++	struct statx_timestamp	stx_btime;	/* File creation time */
++	struct statx_timestamp	stx_ctime;	/* Last attribute change time */
++	struct statx_timestamp	stx_mtime;	/* Last data modification time */
++	/* 0x80 */
++	__u32	stx_rdev_major;	/* Device ID of special file [if bdev/cdev] */
++	__u32	stx_rdev_minor;
++	__u32	stx_dev_major;	/* ID of device containing file [uncond] */
++	__u32	stx_dev_minor;
++	/* 0x90 */
++	__u64	__spare2[14];	/* Spare space for future expansion */
++	/* 0x100 */
++};
++
++/*
++ * Flags to be stx_mask
++ *
++ * Query request/result mask for statx() and struct statx::stx_mask.
++ *
++ * These bits should be set in the mask argument of statx() to request
++ * particular items when calling statx().
++ */
++#define STATX_TYPE		0x00000001U	/* Want/got stx_mode & S_IFMT */
++#define STATX_MODE		0x00000002U	/* Want/got stx_mode & ~S_IFMT */
++#define STATX_NLINK		0x00000004U	/* Want/got stx_nlink */
++#define STATX_UID		0x00000008U	/* Want/got stx_uid */
++#define STATX_GID		0x00000010U	/* Want/got stx_gid */
++#define STATX_ATIME		0x00000020U	/* Want/got stx_atime */
++#define STATX_MTIME		0x00000040U	/* Want/got stx_mtime */
++#define STATX_CTIME		0x00000080U	/* Want/got stx_ctime */
++#define STATX_INO		0x00000100U	/* Want/got stx_ino */
++#define STATX_SIZE		0x00000200U	/* Want/got stx_size */
++#define STATX_BLOCKS		0x00000400U	/* Want/got stx_blocks */
++#define STATX_BASIC_STATS	0x000007ffU	/* The stuff in the normal stat struct */
++#define STATX_BTIME		0x00000800U	/* Want/got stx_btime */
++#define STATX_ALL		0x00000fffU	/* All currently supported flags */
++
++/*
++ * Attributes to be found in stx_attributes
++ *
++ * These give information about the features or the state of a file that might
++ * be of use to ordinary userspace programs such as GUIs or ls rather than
++ * specialised tools.
++ *
++ * Note that the flags marked [I] correspond to generic FS_IOC_FLAGS
++ * semantically.  Where possible, the numerical value is picked to correspond
++ * also.
++ */
++#define STATX_ATTR_COMPRESSED		0x00000004 /* [I] File is compressed by the fs */
++#define STATX_ATTR_IMMUTABLE		0x00000010 /* [I] File is marked immutable */
++#define STATX_ATTR_APPEND		0x00000020 /* [I] File is append-only */
++#define STATX_ATTR_NODUMP		0x00000040 /* [I] File is not to be dumped */
++#define STATX_ATTR_ENCRYPTED		0x00000800 /* [I] File requires key to decrypt in fs */
++
++#define STATX_ATTR_AUTOMOUNT		0x00001000 /* Dir: Automount trigger */
++
+ 
+ #endif /* _UAPI_LINUX_STAT_H */
+diff --git a/mm/shmem.c b/mm/shmem.c
+index a26649a6633f..e07728f716b2 100644
+--- a/mm/shmem.c
++++ b/mm/shmem.c
+@@ -958,10 +958,10 @@ void shmem_truncate_range(struct inode *inode, loff_t lstart, loff_t lend)
+ }
+ EXPORT_SYMBOL_GPL(shmem_truncate_range);
+ 
+-static int shmem_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-			 struct kstat *stat)
++static int shmem_getattr(const struct path *path, struct kstat *stat,
++			 u32 request_mask, unsigned int query_flags)
+ {
+-	struct inode *inode = dentry->d_inode;
++	struct inode *inode = path->dentry->d_inode;
+ 	struct shmem_inode_info *info = SHMEM_I(inode);
+ 
+ 	if (info->alloced - info->swapped != inode->i_mapping->nrpages) {
+diff --git a/samples/Kconfig b/samples/Kconfig
+index b124f62ed6cb..9cb63188d3ef 100644
+--- a/samples/Kconfig
++++ b/samples/Kconfig
+@@ -112,4 +112,10 @@ config SAMPLE_VFIO_MDEV_MTTY
+ 	  Build a virtual tty sample driver for use as a VFIO
+ 	  mediated device
+ 
++config SAMPLE_STATX
++	bool "Build example extended-stat using code"
++	depends on BROKEN
++	help
++	  Build example userspace program to use the new extended-stat syscall.
++
+ endif # SAMPLES
+diff --git a/samples/Makefile b/samples/Makefile
+index 86a137e451d9..db54e766ddb1 100644
+--- a/samples/Makefile
++++ b/samples/Makefile
+@@ -3,4 +3,4 @@
+ obj-$(CONFIG_SAMPLES)	+= kobject/ kprobes/ trace_events/ livepatch/ \
+ 			   hw_breakpoint/ kfifo/ kdb/ hidraw/ rpmsg/ seccomp/ \
+ 			   configfs/ connector/ v4l/ trace_printk/ blackfin/ \
+-			   vfio-mdev/
++			   vfio-mdev/ statx/
+diff --git a/samples/statx/Makefile b/samples/statx/Makefile
+new file mode 100644
+index 000000000000..1f80a3d8cf45
+--- /dev/null
++++ b/samples/statx/Makefile
+@@ -0,0 +1,10 @@
++# kbuild trick to avoid linker error. Can be omitted if a module is built.
++obj- := dummy.o
++
++# List of programs to build
++hostprogs-$(CONFIG_SAMPLE_STATX) := test-statx
++
++# Tell kbuild to always build the programs
++always := $(hostprogs-y)
++
++HOSTCFLAGS_test-statx.o += -I$(objtree)/usr/include
+diff --git a/samples/statx/test-statx.c b/samples/statx/test-statx.c
+new file mode 100644
+index 000000000000..8571d766331d
+--- /dev/null
++++ b/samples/statx/test-statx.c
+@@ -0,0 +1,254 @@
++/* Test the statx() system call.
++ *
++ * Note that the output of this program is intended to look like the output of
++ * /bin/stat where possible.
++ *
++ * Copyright (C) 2015 Red Hat, Inc. All Rights Reserved.
++ * Written by David Howells (dhowells@redhat.com)
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public Licence
++ * as published by the Free Software Foundation; either version
++ * 2 of the Licence, or (at your option) any later version.
++ */
++
++#define _GNU_SOURCE
++#define _ATFILE_SOURCE
++#include <stdio.h>
++#include <stdlib.h>
++#include <string.h>
++#include <unistd.h>
++#include <ctype.h>
++#include <errno.h>
++#include <time.h>
++#include <sys/syscall.h>
++#include <sys/types.h>
++#include <linux/stat.h>
++#include <linux/fcntl.h>
++#include <sys/stat.h>
++
++#define AT_STATX_SYNC_TYPE	0x6000
++#define AT_STATX_SYNC_AS_STAT	0x0000
++#define AT_STATX_FORCE_SYNC	0x2000
++#define AT_STATX_DONT_SYNC	0x4000
++
++static __attribute__((unused))
++ssize_t statx(int dfd, const char *filename, unsigned flags,
++	      unsigned int mask, struct statx *buffer)
++{
++	return syscall(__NR_statx, dfd, filename, flags, mask, buffer);
++}
++
++static void print_time(const char *field, struct statx_timestamp *ts)
++{
++	struct tm tm;
++	time_t tim;
++	char buffer[100];
++	int len;
++
++	tim = ts->tv_sec;
++	if (!localtime_r(&tim, &tm)) {
++		perror("localtime_r");
++		exit(1);
++	}
++	len = strftime(buffer, 100, "%F %T", &tm);
++	if (len == 0) {
++		perror("strftime");
++		exit(1);
++	}
++	printf("%s", field);
++	fwrite(buffer, 1, len, stdout);
++	printf(".%09u", ts->tv_nsec);
++	len = strftime(buffer, 100, "%z", &tm);
++	if (len == 0) {
++		perror("strftime2");
++		exit(1);
++	}
++	fwrite(buffer, 1, len, stdout);
++	printf("\n");
++}
++
++static void dump_statx(struct statx *stx)
++{
++	char buffer[256], ft = '?';
++
++	printf("results=%x\n", stx->stx_mask);
++
++	printf(" ");
++	if (stx->stx_mask & STATX_SIZE)
++		printf(" Size: %-15llu", (unsigned long long)stx->stx_size);
++	if (stx->stx_mask & STATX_BLOCKS)
++		printf(" Blocks: %-10llu", (unsigned long long)stx->stx_blocks);
++	printf(" IO Block: %-6llu", (unsigned long long)stx->stx_blksize);
++	if (stx->stx_mask & STATX_TYPE) {
++		switch (stx->stx_mode & S_IFMT) {
++		case S_IFIFO:	printf("  FIFO\n");			ft = 'p'; break;
++		case S_IFCHR:	printf("  character special file\n");	ft = 'c'; break;
++		case S_IFDIR:	printf("  directory\n");		ft = 'd'; break;
++		case S_IFBLK:	printf("  block special file\n");	ft = 'b'; break;
++		case S_IFREG:	printf("  regular file\n");		ft = '-'; break;
++		case S_IFLNK:	printf("  symbolic link\n");		ft = 'l'; break;
++		case S_IFSOCK:	printf("  socket\n");			ft = 's'; break;
++		default:
++			printf(" unknown type (%o)\n", stx->stx_mode & S_IFMT);
++			break;
++		}
++	} else {
++		printf(" no type\n");
++	}
++
++	sprintf(buffer, "%02x:%02x", stx->stx_dev_major, stx->stx_dev_minor);
++	printf("Device: %-15s", buffer);
++	if (stx->stx_mask & STATX_INO)
++		printf(" Inode: %-11llu", (unsigned long long) stx->stx_ino);
++	if (stx->stx_mask & STATX_NLINK)
++		printf(" Links: %-5u", stx->stx_nlink);
++	if (stx->stx_mask & STATX_TYPE) {
++		switch (stx->stx_mode & S_IFMT) {
++		case S_IFBLK:
++		case S_IFCHR:
++			printf(" Device type: %u,%u",
++			       stx->stx_rdev_major, stx->stx_rdev_minor);
++			break;
++		}
++	}
++	printf("\n");
++
++	if (stx->stx_mask & STATX_MODE)
++		printf("Access: (%04o/%c%c%c%c%c%c%c%c%c%c)  ",
++		       stx->stx_mode & 07777,
++		       ft,
++		       stx->stx_mode & S_IRUSR ? 'r' : '-',
++		       stx->stx_mode & S_IWUSR ? 'w' : '-',
++		       stx->stx_mode & S_IXUSR ? 'x' : '-',
++		       stx->stx_mode & S_IRGRP ? 'r' : '-',
++		       stx->stx_mode & S_IWGRP ? 'w' : '-',
++		       stx->stx_mode & S_IXGRP ? 'x' : '-',
++		       stx->stx_mode & S_IROTH ? 'r' : '-',
++		       stx->stx_mode & S_IWOTH ? 'w' : '-',
++		       stx->stx_mode & S_IXOTH ? 'x' : '-');
++	if (stx->stx_mask & STATX_UID)
++		printf("Uid: %5d   ", stx->stx_uid);
++	if (stx->stx_mask & STATX_GID)
++		printf("Gid: %5d\n", stx->stx_gid);
++
++	if (stx->stx_mask & STATX_ATIME)
++		print_time("Access: ", &stx->stx_atime);
++	if (stx->stx_mask & STATX_MTIME)
++		print_time("Modify: ", &stx->stx_mtime);
++	if (stx->stx_mask & STATX_CTIME)
++		print_time("Change: ", &stx->stx_ctime);
++	if (stx->stx_mask & STATX_BTIME)
++		print_time(" Birth: ", &stx->stx_btime);
++
++	if (stx->stx_attributes) {
++		unsigned char bits;
++		int loop, byte;
++
++		static char attr_representation[64 + 1] =
++			/* STATX_ATTR_ flags: */
++			"????????"	/* 63-56 */
++			"????????"	/* 55-48 */
++			"????????"	/* 47-40 */
++			"????????"	/* 39-32 */
++			"????????"	/* 31-24	0x00000000-ff000000 */
++			"????????"	/* 23-16	0x00000000-00ff0000 */
++			"???me???"	/* 15- 8	0x00000000-0000ff00 */
++			"?dai?c??"	/*  7- 0	0x00000000-000000ff */
++			;
++
++		printf("Attributes: %016llx (", stx->stx_attributes);
++		for (byte = 64 - 8; byte >= 0; byte -= 8) {
++			bits = stx->stx_attributes >> byte;
++			for (loop = 7; loop >= 0; loop--) {
++				int bit = byte + loop;
++
++				if (bits & 0x80)
++					putchar(attr_representation[63 - bit]);
++				else
++					putchar('-');
++				bits <<= 1;
++			}
++			if (byte)
++				putchar(' ');
++		}
++		printf(")\n");
++	}
++}
++
++static void dump_hex(unsigned long long *data, int from, int to)
++{
++	unsigned offset, print_offset = 1, col = 0;
++
++	from /= 8;
++	to = (to + 7) / 8;
++
++	for (offset = from; offset < to; offset++) {
++		if (print_offset) {
++			printf("%04x: ", offset * 8);
++			print_offset = 0;
++		}
++		printf("%016llx", data[offset]);
++		col++;
++		if ((col & 3) == 0) {
++			printf("\n");
++			print_offset = 1;
++		} else {
++			printf(" ");
++		}
++	}
++
++	if (!print_offset)
++		printf("\n");
++}
++
++int main(int argc, char **argv)
++{
++	struct statx stx;
++	int ret, raw = 0, atflag = AT_SYMLINK_NOFOLLOW;
++
++	unsigned int mask = STATX_ALL;
++
++	for (argv++; *argv; argv++) {
++		if (strcmp(*argv, "-F") == 0) {
++			atflag &= ~AT_STATX_SYNC_TYPE;
++			atflag |= AT_STATX_FORCE_SYNC;
++			continue;
++		}
++		if (strcmp(*argv, "-D") == 0) {
++			atflag &= ~AT_STATX_SYNC_TYPE;
++			atflag |= AT_STATX_DONT_SYNC;
++			continue;
++		}
++		if (strcmp(*argv, "-L") == 0) {
++			atflag &= ~AT_SYMLINK_NOFOLLOW;
++			continue;
++		}
++		if (strcmp(*argv, "-O") == 0) {
++			mask &= ~STATX_BASIC_STATS;
++			continue;
++		}
++		if (strcmp(*argv, "-A") == 0) {
++			atflag |= AT_NO_AUTOMOUNT;
++			continue;
++		}
++		if (strcmp(*argv, "-R") == 0) {
++			raw = 1;
++			continue;
++		}
++
++		memset(&stx, 0xbf, sizeof(stx));
++		ret = statx(AT_FDCWD, *argv, atflag, mask, &stx);
++		printf("statx(%s) = %d\n", *argv, ret);
++		if (ret < 0) {
++			perror(*argv);
++			exit(1);
++		}
++
++		if (raw)
++			dump_hex((unsigned long long *)&stx, 0, sizeof(stx));
++
++		dump_statx(&stx);
++	}
++	return 0;
++}
+-- 
+2.17.0
+

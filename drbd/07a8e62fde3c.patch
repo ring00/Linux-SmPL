@@ -1,0 +1,51 @@
+From 07a8e62fde3c17e3d25e397cb5028176756fa316 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 29 May 2016 14:52:22 -0400
+Subject: [PATCH] drbd: ->d_parent is never NULL or negative
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ drivers/block/drbd/drbd_debugfs.c | 4 ----
+ security/inode.c                  | 4 ----
+ 2 files changed, 8 deletions(-)
+
+diff --git a/drivers/block/drbd/drbd_debugfs.c b/drivers/block/drbd/drbd_debugfs.c
+index 4de95bbff486..71cdce707ff2 100644
+--- a/drivers/block/drbd/drbd_debugfs.c
++++ b/drivers/block/drbd/drbd_debugfs.c
+@@ -430,9 +430,6 @@ static int drbd_single_open(struct file *file, int (*show)(struct seq_file *, vo
+ 	/* Are we still linked,
+ 	 * or has debugfs_remove() already been called? */
+ 	parent = file->f_path.dentry->d_parent;
+-	/* not sure if this can happen: */
+-	if (!parent || d_really_is_negative(parent))
+-		goto out;
+ 	/* serialize with d_delete() */
+ 	inode_lock(d_inode(parent));
+ 	/* Make sure the object is still alive */
+@@ -445,7 +442,6 @@ static int drbd_single_open(struct file *file, int (*show)(struct seq_file *, vo
+ 		if (ret)
+ 			kref_put(kref, release);
+ 	}
+-out:
+ 	return ret;
+ }
+ 
+diff --git a/security/inode.c b/security/inode.c
+index 28414b0207ce..526f82269cb0 100644
+--- a/security/inode.c
++++ b/security/inode.c
+@@ -191,10 +191,6 @@ void securityfs_remove(struct dentry *dentry)
+ 	if (!dentry || IS_ERR(dentry))
+ 		return;
+ 
+-	parent = dentry->d_parent;
+-	if (!parent || d_really_is_negative(parent))
+-		return;
+-
+ 	inode_lock(d_inode(parent));
+ 	if (simple_positive(dentry)) {
+ 		if (d_is_dir(dentry))
+-- 
+2.17.0
+
