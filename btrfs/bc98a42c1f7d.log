@@ -1,0 +1,188 @@
+BUILD:
+[33mbase commit: bc98a42c1f7d^1
+[0m[33mtarget commit: bc98a42c1f7d
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m74 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/llite/llite_lib.c
+`-- drivers/staging/lustre/lustre/llite/namei.c
+`-- fs/affs/amigaffs.c
+`-- fs/affs/bitmap.c
+`-- fs/affs/super.c
+`-- fs/befs/linuxvfs.c
+`-- fs/btrfs/dev-replace.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/root-tree.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/sysfs.c
+`-- fs/btrfs/volumes.c
+`-- fs/cachefiles/bind.c
+`-- fs/ecryptfs/main.c
+`-- fs/efs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext4/ext4_jbd2.c
+`-- fs/ext4/file.c
+`-- fs/ext4/fsync.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/mmp.c
+`-- fs/ext4/super.c
+`-- fs/fat/fatent.c
+`-- fs/fat/inode.c
+`-- fs/fat/misc.c
+`-- fs/gfs2/glops.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/gfs2/quota.c
+`-- fs/gfs2/recovery.c
+`-- fs/gfs2/super.c
+`-- fs/gfs2/sys.c
+`-- fs/hfs/mdb.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/super.c
+`-- fs/hpfs/alloc.c
+`-- fs/hpfs/dir.c
+`-- fs/hpfs/super.c
+`-- fs/isofs/inode.c
+`-- fs/jffs2/fs.c
+`-- fs/jffs2/super.c
+`-- fs/jffs2/wbuf.c
+`-- fs/jfs/jfs_mount.c
+`-- fs/jfs/super.c
+`-- fs/minix/inode.c
+`-- fs/namei.c
+`-- fs/namespace.c
+`-- fs/nfs/super.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/super.c
+`-- fs/overlayfs/super.c
+`-- fs/proc_namespace.c
+`-- fs/quota/quota.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/journal.c
+`-- fs/reiserfs/prints.c
+`-- fs/reiserfs/super.c
+`-- fs/super.c
+`-- fs/sync.c
+`-- fs/sysv/balloc.c
+`-- fs/sysv/ialloc.c
+`-- fs/sysv/inode.c
+`-- fs/sysv/super.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/xfs_quotaops.c
+`-- fs/xfs/xfs_super.c
+`-- init/do_mounts.c
+74 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/llite/llite_lib.c
+`-- drivers/staging/lustre/lustre/llite/namei.c
+`-- fs/affs/amigaffs.c
+`-- fs/affs/bitmap.c
+`-- fs/affs/super.c
+`-- fs/befs/linuxvfs.c
+`-- fs/btrfs/dev-replace.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/root-tree.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/sysfs.c
+`-- fs/btrfs/volumes.c
+`-- fs/cachefiles/bind.c
+`-- fs/ecryptfs/main.c
+`-- fs/efs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext4/ext4_jbd2.c
+`-- fs/ext4/file.c
+`-- fs/ext4/fsync.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/mmp.c
+`-- fs/ext4/super.c
+`-- fs/fat/fatent.c
+`-- fs/fat/inode.c
+`-- fs/fat/misc.c
+`-- fs/gfs2/glops.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/gfs2/quota.c
+`-- fs/gfs2/recovery.c
+`-- fs/gfs2/super.c
+`-- fs/gfs2/sys.c
+`-- fs/hfs/mdb.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/super.c
+`-- fs/hpfs/alloc.c
+`-- fs/hpfs/dir.c
+`-- fs/hpfs/super.c
+`-- fs/isofs/inode.c
+`-- fs/jffs2/fs.c
+`-- fs/jffs2/super.c
+`-- fs/jffs2/wbuf.c
+`-- fs/jfs/jfs_mount.c
+`-- fs/jfs/super.c
+`-- fs/minix/inode.c
+`-- fs/namei.c
+`-- fs/namespace.c
+`-- fs/nfs/super.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/super.c
+`-- fs/overlayfs/super.c
+`-- fs/proc_namespace.c
+`-- fs/quota/quota.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/journal.c
+`-- fs/reiserfs/prints.c
+`-- fs/reiserfs/super.c
+`-- fs/super.c
+`-- fs/sync.c
+`-- fs/sysv/balloc.c
+`-- fs/sysv/ialloc.c
+`-- fs/sysv/inode.c
+`-- fs/sysv/super.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/xfs_quotaops.c
+`-- fs/xfs/xfs_super.c
+`-- init/do_mounts.c
+[33mcompile base commit... [0m[33mok (80s)
+[0m[33mapply [0m[33mbc98a42c1f7d... [0m[33mok (80s)
+[0m[33mcompile target commit... [0m[33mok (151s)
+[0mPREPARE:
+[33mcollect AST for functions: affs_error@fs_affs_amigaffs.c,ext4_unfreeze@fs_ext4_super.c,qd_fish@fs_gfs2_quota.c,btrfs_cancel_balance@fs_btrfs_volumes.c,affs_mark_sb_dirty@fs_affs_super.c,close_ctree@fs_btrfs_disk-io.c,kmmpd@fs_ext4_mmp.c,hfsplus_mark_mdb_dirty@fs_hfsplus_super.c,ext4_freeze@fs_ext4_super.c,gfs2_evict_inode@fs_gfs2_super.c,fat_remount@fs_fat_inode.c,ext2_write_super@fs_ext2_super.c,ext2_remount@fs_ext2_super.c,btrfs_feature_attr_store@fs_btrfs_sysfs.c,ext4_remount@fs_ext4_super.c,hpfs_trim_fs@fs_hpfs_alloc.c,ecryptfs_mount@fs_ecryptfs_main.c,ext3_feature_set_ok@fs_ext4_super.c,gfs2_sys_fs_add@fs_gfs2_sys.c,gfs2_put_super@fs_gfs2_super.c,ext4_put_super@fs_ext4_super.c,ll_remount_fs@drivers_staging_lustre_lustre_llite_llite_lib.c,gfs2_recover_func@fs_gfs2_recovery.c,affs_remount@fs_affs_super.c,unmark_dirty@fs_hpfs_super.c,hfs_mdb_close@fs_hfs_mdb.c,ext2_fill_super@fs_ext2_super.c,hfs_remount@fs_hfs_super.c,clean_io_failure@fs_btrfs_extent_io.c,open_ctree@fs_btrfs_disk-io.c,client_common_fill_super@drivers_staging_lustre_lustre_llite_llite_lib.c,hfsplus_remount@fs_hfsplus_super.c,ext4_register_li_request@fs_ext4_super.c,ext4_load_journal@fs_ext4_super.c,cachefiles_daemon_add_cache@fs_cachefiles_bind.c,ext4_seq_options_show@fs_ext4_super.c,btrfs_find_orphan_roots@fs_btrfs_root-tree.c,repair_eb_io_failure@fs_btrfs_extent_io.c,hpfs_error@fs_hpfs_super.c,hfsplus_fill_super@fs_hfsplus_super.c,ext4_force_commit@fs_ext4_super.c,iopen_go_callback@fs_gfs2_glops.c,btrfs_remount@fs_btrfs_super.c,ext2_put_super@fs_ext2_super.c,hpfs_fill_super@fs_hpfs_super.c,efs_fill_super@fs_efs_super.c,__ext4_std_error@fs_ext4_super.c,__btrfs_dev_replace_cancel@fs_btrfs_dev-replace.c,ext4_mark_recovery_complete@fs_ext4_super.c,ext4_journal_check_start@fs_ext4_ext4_jbd2.c,ext4_init_inode_table@fs_ext4_ialloc.c,hpfs_lookup@fs_hpfs_dir.c,mark_fsinfo_dirty@fs_fat_fatent.c,btrfs_init_new_device@fs_btrfs_volumes.c,ext4_check_descriptors@fs_ext4_super.c,hfs_mdb_get@fs_hfs_mdb.c,fill_super@fs_gfs2_ops_fstype.c,mark_dirty@fs_hpfs_super.c,ext4_file_open@fs_ext4_file.c,btrfs_remount_cleanup@fs_btrfs_super.c,hfs_mark_mdb_dirty@fs_hfs_super.c,fat_set_state@fs_fat_inode.c,ll_lookup_it@drivers_staging_lustre_lustre_llite_namei.c,btrfs_replay_log@fs_btrfs_disk-io.c,gfs2_online_uevent@fs_gfs2_ops_fstype.c,btrfs_ioctl_dev_replace@fs_btrfs_ioctl.c,ext4_fill_super@fs_ext4_super.c,affs_count_free_blocks@fs_affs_bitmap.c,hfsplus_put_super@fs_hfsplus_super.c,hfs_mdb_commit@fs_hfs_mdb.c,btrfs_lookup_dentry@fs_btrfs_inode.c,ext4_handle_error@fs_ext4_super.c,befs_fill_super@fs_befs_linuxvfs.c,btrfs_handle_error@fs_btrfs_super.c,__fat_fs_error@fs_fat_misc.c,ext4_sync_file@fs_ext4_fsync.c,__ext4_abort@fs_ext4_super.c,affs_fill_super@fs_affs_super.c,__btrfs_handle_fs_error@fs_btrfs_super.c,ext2_error@fs_ext2_super.c,btrfs_label_store@fs_btrfs_sysfs.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m16s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: ConditionalOperator
+//# pattern-1, witnesses: 93
+@@
+expression E0;
+@@
+- E0->s_flags & MS_RDONLY
++ sb_rdonly(E0)
+//# pattern-2, witnesses: 2
+@@
+identifier fn;
+identifier sb;
+@@
+- int fn(struct super_block * sb)
++ int fn(struct super_block * sb)
+ {
+     <...
+- sb->s_flags & MS_RDONLY
++ sb_rdonly(sb)
+     ...>
+ }
+//# pattern-4, witnesses: 2
+@@
+@@
++ sb_rdonly(sb)

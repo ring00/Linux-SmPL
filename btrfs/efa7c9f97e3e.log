@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: efa7c9f97e3e^1
+[0m[33mtarget commit: efa7c9f97e3e
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- block/blk-core.c
+`-- block/compat_ioctl.c
+`-- block/ioctl.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/volumes.c
+`-- fs/xfs/xfs_buf.c
+`-- fs/xfs/xfs_buf.h
+`-- include/linux/backing-dev.h
+`-- include/linux/blkdev.h
+9 source file(s) touched in the new version
+`-- block/blk-core.c
+`-- block/compat_ioctl.c
+`-- block/ioctl.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/volumes.c
+`-- fs/xfs/xfs_buf.c
+`-- fs/xfs/xfs_buf.h
+`-- include/linux/backing-dev.h
+`-- include/linux/blkdev.h
+[33mcompile base commit... [0m[33mok (29s)
+[0m[33mapply [0m[33mefa7c9f97e3e... [0m[33mok (29s)
+[0m[33mcompile target commit... [0m[33mok (54s)
+[0mPREPARE:
+[33mcollect AST for functions: xfs_buf_readahead_map@fs_xfs_xfs_buf.c,inode_to_bdi@include_linux_backing-dev.h,xfs_alloc_buftarg@fs_xfs_xfs_buf.c,run_scheduled_bios@fs_btrfs_volumes.c,btrfs_congested_fn@fs_btrfs_disk-io.c,compat_blkdev_ioctl@block_compat_ioctl.c,blkdev_ioctl@block_ioctl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-5, witnesses: 2
+@@
+expression E0;
+@@
+- E0 = blk_get_backing_dev_info(device->bdev)
++ E0 = device->bdev->bd_bdi

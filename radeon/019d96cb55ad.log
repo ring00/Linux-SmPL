@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: 019d96cb55ad^1
+[0m[33mtarget commit: 019d96cb55ad
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_ioctl.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- include/drm/drm.h
+`-- include/drm/drm_crtc.h
+5 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_ioctl.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- include/drm/drm.h
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m019d96cb55ad... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

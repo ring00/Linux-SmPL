@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: a55bbd375d18^1
+[0m[33mtarget commit: a55bbd375d18
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/idr.h
+3 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/idr.h
+[33mcompile base commit... [0m[33mok (20s)
+[0m[33mapply [0m[33ma55bbd375d18... [0m[33mok (20s)
+[0m[33mcompile target commit... [0m[33mok (36s)
+[0mPREPARE:
+[33mcollect AST for functions: resource_to_info@drivers_block_drbd_drbd_nl.c,device_to_info@drivers_block_drbd_drbd_nl.c,drbd_adm_dump_devices_done@drivers_block_drbd_drbd_nl.c,peer_device_to_statistics@drivers_block_drbd_drbd_nl.c,device_to_statistics@drivers_block_drbd_drbd_nl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:

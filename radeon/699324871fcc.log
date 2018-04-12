@@ -1,0 +1,34 @@
+BUILD:
+[33mbase commit: 699324871fcc^1
+[0m[33mtarget commit: 699324871fcc
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m10 source file(s) touched in the old version
+`-- arch/arm/mach-nuc93x/time.c
+`-- arch/arm/mach-w90x900/cpu.c
+`-- drivers/block/rbd.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/i2c/busses/i2c-designware.c
+`-- drivers/media/radio/wl128x/fmdrv_v4l2.c
+`-- drivers/scsi/isci/phy.c
+`-- drivers/staging/iio/addac/adt7316-i2c.c
+`-- drivers/staging/iio/dds/ad9832.c
+`-- drivers/usb/gadget/mv_udc_core.c
+10 source file(s) touched in the new version
+`-- arch/arm/mach-nuc93x/time.c
+`-- arch/arm/mach-w90x900/cpu.c
+`-- drivers/block/rbd.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/i2c/busses/i2c-designware.c
+`-- drivers/media/radio/wl128x/fmdrv_v4l2.c
+`-- drivers/scsi/isci/phy.c
+`-- drivers/staging/iio/addac/adt7316-i2c.c
+`-- drivers/staging/iio/dds/ad9832.c
+`-- drivers/usb/gadget/mv_udc_core.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m699324871fcc... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

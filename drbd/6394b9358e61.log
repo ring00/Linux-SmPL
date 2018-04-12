@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: 6394b9358e61^1
+[0m[33mtarget commit: 6394b9358e61
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/drbd_limits.h
+5 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/drbd_limits.h
+[33mcompile base commit... [0m[33mok (4s)
+[0m[33mapply [0m[33m6394b9358e61... [0m[33mok (4s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

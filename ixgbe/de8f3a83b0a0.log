@@ -1,0 +1,98 @@
+BUILD:
+[33mbase commit: de8f3a83b0a0^1
+[0m[33mtarget commit: de8f3a83b0a0
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m19 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c
+`-- drivers/net/ethernet/cavium/thunder/nicvf_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_rx.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+`-- drivers/net/ethernet/qlogic/qede/qede_fp.c
+`-- drivers/net/tun.c
+`-- drivers/net/virtio_net.c
+`-- include/linux/bpf.h
+`-- include/linux/filter.h
+`-- include/linux/skbuff.h
+`-- include/uapi/linux/bpf.h
+`-- kernel/bpf/verifier.c
+`-- net/bpf/test_run.c
+`-- net/core/dev.c
+`-- net/core/filter.c
+`-- net/core/skbuff.c
+19 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_xdp.c
+`-- drivers/net/ethernet/cavium/thunder/nicvf_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_rx.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rx.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+`-- drivers/net/ethernet/qlogic/qede/qede_fp.c
+`-- drivers/net/tun.c
+`-- drivers/net/virtio_net.c
+`-- include/linux/bpf.h
+`-- include/linux/filter.h
+`-- include/linux/skbuff.h
+`-- include/uapi/linux/bpf.h
+`-- kernel/bpf/verifier.c
+`-- net/bpf/test_run.c
+`-- net/core/dev.c
+`-- net/core/filter.c
+`-- net/core/skbuff.c
+[33mcompile base commit... [0m[33mok (50s)
+[0m[33mapply [0m[33mde8f3a83b0a0... [0m[33mok (50s)
+[0m[33mcompile target commit... [0m[33mok (96s)
+[0mPREPARE:
+[33mcollect AST for functions: check_helper_mem_access@kernel_bpf_verifier.c,bpf_prog_test_run_xdp@net_bpf_test_run.c,xdp_convert_ctx_access@net_core_filter.c,check_func_arg@kernel_bpf_verifier.c,bpf_skb_is_valid_access@net_core_filter.c,receive_small@drivers_net_virtio_net.c,reg_type_str@kernel_bpf_verifier.c,gro_list_prepare@net_core_dev.c,i40e_clean_rx_irq@drivers_net_ethernet_intel_i40e_i40e_txrx.c,clear_all_pkt_pointers@kernel_bpf_verifier.c,bpf_compute_data_pointers@include_linux_filter.h,mlx5e_xdp_handle@drivers_net_ethernet_mellanox_mlx5_core_en_rx.c,sk_filter_is_valid_access@net_core_filter.c,tun_build_skb@drivers_net_tun.c,xdp_is_valid_access@net_core_filter.c,qede_rx_xdp@drivers_net_ethernet_qlogic_qede_qede_fp.c,nicvf_xdp_rx@drivers_net_ethernet_cavium_thunder_nicvf_main.c,bpf_helper_changes_pkt_data@net_core_filter.c,check_cond_jmp_op@kernel_bpf_verifier.c,xdp_func_proto@net_core_filter.c,bpf_convert_ctx_access@net_core_filter.c,receive_mergeable@drivers_net_virtio_net.c,regsafe@kernel_bpf_verifier.c,adjust_ptr_min_max_vals@kernel_bpf_verifier.c,is_spillable_regtype@kernel_bpf_verifier.c,netif_receive_generic_xdp@net_core_dev.c,nfp_net_run_xdp@drivers_net_ethernet_netronome_nfp_nfp_net_common.c,tc_cls_act_is_valid_access@net_core_filter.c,bnxt_rx_xdp@drivers_net_ethernet_broadcom_bnxt_bnxt_xdp.c,ixgbe_clean_rx_irq@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,check_mem_access@kernel_bpf_verifier.c,print_verifier_state@kernel_bpf_verifier.c,find_good_pkt_pointers@kernel_bpf_verifier.c,bpf_xdp_adjust_meta_proto@net_core_filter.c,check_ptr_alignment@kernel_bpf_verifier.c,sk_skb_is_valid_access@net_core_filter.c,lwt_is_valid_access@net_core_filter.c,mlx4_en_process_rx_cq@drivers_net_ethernet_mellanox_mlx4_en_rx.c,pskb_expand_head@net_core_skbuff.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m10s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 3
+@@
+@@
+- type == PTR_TO_PACKET
++ type_is_pkt_pointer(type)
+//# pattern-9, witnesses: 2
+@@
+expression V0;
+@@
+- find_good_pkt_pointers(V0, dst_reg)
++ find_good_pkt_pointers(V0, dst_reg, PTR_TO_PACKET)
+//# pattern-21, witnesses: 2
+@@
+statement S0;
+identifier env;
+identifier insn;
+identifier off_reg;
+identifier ptr_reg;
+@@
+ int adjust_ptr_min_max_vals(struct bpf_verifier_env * env, struct bpf_insn * insn, const struct bpf_reg_state * ptr_reg, const struct bpf_reg_state * off_reg)
+ {
+     <...
+- if (ptr_reg->type == PTR_TO_PACKET) { S0 }
++ if (reg_is_pkt_pointer(ptr_reg)) { S0 }
+     ...>
+ }
+//# pattern-22, witnesses: 2
+@r0@
+identifier i, fn;
+@@
+struct bpf_verifier_ops i = {
+    .is_valid_access = fn,
+};
+@@
+typedef bool;
+identifier info;
+identifier off;
+identifier r0.fn;
+identifier size;
+identifier type;
+@@
+- bool fn(int off, int size, enum bpf_access_type type, struct bpf_insn_access_aux * info)
++ bool fn(int off, int size, enum bpf_access_type type, struct bpf_insn_access_aux * info)
+ { ... }

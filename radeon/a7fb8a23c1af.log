@@ -1,0 +1,46 @@
+BUILD:
+[33mbase commit: a7fb8a23c1af^1
+[0m[33mtarget commit: a7fb8a23c1af
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_agpsupport.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_ioc32.c
+`-- drivers/gpu/drm/drm_ioctl.c
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/r128/r128_cce.c
+`-- drivers/gpu/drm/radeon/r600_cp.c
+`-- drivers/gpu/drm/radeon/radeon_agp.c
+`-- drivers/gpu/drm/radeon/radeon_cp.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_agpsupport.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_agpsupport.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_ioc32.c
+`-- drivers/gpu/drm/drm_ioctl.c
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/r128/r128_cce.c
+`-- drivers/gpu/drm/radeon/r600_cp.c
+`-- drivers/gpu/drm/radeon/radeon_agp.c
+`-- drivers/gpu/drm/radeon/radeon_cp.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_agpsupport.h
+[33mcompile base commit... [0m[33mok (1917s)
+[0m[33mapply [0m[33ma7fb8a23c1af... [0m[33mok (1917s)
+[0m[33mcompile target commit... [0m[33mok (3874s)
+[0mPREPARE:
+[33mcollect AST for functions: r128_do_init_cce@drivers_gpu_drm_r128_r128_cce.c,drm_mmap_locked@drivers_gpu_drm_drm_vm.c,nouveau_ttm_tt_populate@drivers_gpu_drm_nouveau_nouveau_bo.c,drm_legacy_addbufs@drivers_gpu_drm_drm_bufs.c,r128_do_cleanup_cce@drivers_gpu_drm_r128_r128_cce.c,drm_ioctls@drivers_gpu_drm_drm_ioctl.c,r128_cce_init_ring_buffer@drivers_gpu_drm_r128_r128_cce.c,radeon_ttm_io_mem_reserve@drivers_gpu_drm_radeon_radeon_ttm.c,radeon_do_init_cp@drivers_gpu_drm_radeon_radeon_cp.c,radeon_ttm_tt_populate@drivers_gpu_drm_radeon_radeon_ttm.c,radeon_ttm_tt_create@drivers_gpu_drm_radeon_radeon_ttm.c,radeon_init_mem_type@drivers_gpu_drm_radeon_radeon_ttm.c,nouveau_ttm_io_mem_reserve@drivers_gpu_drm_nouveau_nouveau_bo.c,nouveau_ttm_tt_create@drivers_gpu_drm_nouveau_nouveau_bo.c,r600_cp_init_ring_buffer@drivers_gpu_drm_radeon_r600_cp.c,radeon_ttm_tt_unpopulate@drivers_gpu_drm_radeon_radeon_ttm.c,drm_compat_ioctls@drivers_gpu_drm_drm_ioc32.c,mga_do_cleanup_dma@drivers_gpu_drm_mga_mga_dma.c,r600_do_cleanup_cp@drivers_gpu_drm_radeon_r600_cp.c,nouveau_ttm_tt_unpopulate@drivers_gpu_drm_nouveau_nouveau_bo.c,radeon_do_resume_cp@drivers_gpu_drm_radeon_radeon_cp.c,radeon_agp_resume@drivers_gpu_drm_radeon_radeon_agp.c,radeon_do_cleanup_cp@drivers_gpu_drm_radeon_radeon_cp.c,radeon_agp_fini@drivers_gpu_drm_radeon_radeon_agp.c,radeon_cp_init_ring_buffer@drivers_gpu_drm_radeon_radeon_cp.c,radeon_agp_init@drivers_gpu_drm_radeon_radeon_agp.c,r600_do_init_cp@drivers_gpu_drm_radeon_r600_cp.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m36s
+[0mANALYZE:
+[31mExit with status: 124
+[0m
+COCCIGEN:

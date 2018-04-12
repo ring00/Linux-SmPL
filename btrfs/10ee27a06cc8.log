@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 10ee27a06cc8^1
+[0m[33mtarget commit: 10ee27a06cc8
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m4 source file(s) touched in the old version
+`-- fs/btrfs/extent-tree.c
+`-- fs/ext4/inode.c
+`-- fs/fs-writeback.c
+`-- include/linux/writeback.h
+4 source file(s) touched in the new version
+`-- fs/btrfs/extent-tree.c
+`-- fs/ext4/inode.c
+`-- fs/fs-writeback.c
+`-- include/linux/writeback.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33m10ee27a06cc8... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

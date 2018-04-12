@@ -1,0 +1,39 @@
+BUILD:
+[33mbase commit: 148deab223b2^1
+[0m[33mtarget commit: 148deab223b2
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m9 source file(s) touched in the old version
+`-- fs/btrfs/tests/btrfs-tests.c
+`-- include/linux/radix-tree.h
+`-- lib/radix-tree.c
+`-- mm/khugepaged.c
+`-- mm/shmem.c
+`-- tools/testing/radix-tree/iteration_check.c
+`-- tools/testing/radix-tree/multiorder.c
+`-- tools/testing/radix-tree/regression3.c
+`-- tools/testing/radix-tree/test.h
+9 source file(s) touched in the new version
+`-- fs/btrfs/tests/btrfs-tests.c
+`-- include/linux/radix-tree.h
+`-- lib/radix-tree.c
+`-- mm/khugepaged.c
+`-- mm/shmem.c
+`-- tools/testing/radix-tree/iteration_check.c
+`-- tools/testing/radix-tree/multiorder.c
+`-- tools/testing/radix-tree/regression3.c
+`-- tools/testing/radix-tree/test.h
+[33mcompile base commit... [0m[33mok (29s)
+[0m[33mapply [0m[33m148deab223b2... [0m[33mok (29s)
+[0m[33mcompile target commit... [0m[33mok (54s)
+[0mPREPARE:
+[33mcollect AST for functions: shmem_wait_for_pins@mm_shmem.c,radix_tree_next_slot@include_linux_radix-tree.h,collapse_shmem@mm_khugepaged.c,shmem_tag_pins@mm_shmem.c,btrfs_free_dummy_fs_info@fs_btrfs_tests_btrfs-tests.c,shmem_partial_swap_usage@mm_shmem.c,khugepaged_scan_shmem@mm_khugepaged.c,radix_tree_next_chunk@lib_radix-tree.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 7
+@@
+@@
+- radix_tree_iter_next(&iter)
++ radix_tree_iter_resume(slot, &iter)

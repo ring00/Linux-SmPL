@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: 341cb9e426fa^1
+[0m[33mtarget commit: 341cb9e426fa
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- include/uapi/drm/radeon_drm.h
+6 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_mn.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- include/uapi/drm/radeon_drm.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (9s)
+[0m[33mapply [0m[33m341cb9e426fa... [0m[33mok (9s)
+[0m[33mcompile target commit... [0m[33mok (12s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

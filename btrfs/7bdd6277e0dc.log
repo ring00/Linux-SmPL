@@ -1,0 +1,25 @@
+BUILD:
+[33mbase commit: 7bdd6277e0dc^1
+[0m[33mtarget commit: 7bdd6277e0dc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/extent-tree.c
+`-- include/trace/events/btrfs.h
+2 source file(s) touched in the new version
+`-- fs/btrfs/extent-tree.c
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (18s)
+[0m[33mapply [0m[33m7bdd6277e0dc... [0m[33mok (18s)
+[0m[33mcompile target commit... [0m[33mok (31s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_async_reclaim_metadata_space@fs_btrfs_extent-tree.c,flush_space@fs_btrfs_extent-tree.c,priority_reclaim_metadata_space@fs_btrfs_extent-tree.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 2
+@@
+@@
+- flush_space(fs_info, space_info, to_reclaim, to_reclaim, flush_state)
++ flush_space(fs_info, space_info, to_reclaim, flush_state)

@@ -1,0 +1,50 @@
+BUILD:
+[33mbase commit: fcee59065e58^1
+[0m[33mtarget commit: fcee59065e58
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_irq.c
+`-- drivers/gpu/drm/arm/hdlcd_drv.c
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/radeon/radeon_irq_kms.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/vc4/vc4_kms.c
+`-- include/drm/drmP.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_irq.c
+`-- drivers/gpu/drm/arm/hdlcd_drv.c
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/radeon/radeon_irq_kms.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/vc4/vc4_kms.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (27s)
+[0m[33mapply [0m[33mfcee59065e58... [0m[33mok (27s)
+[0m[33mcompile target commit... [0m[33mok (49s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_vblank_post_modeset@drivers_gpu_drm_drm_irq.c,i915_load_modeset_init@drivers_gpu_drm_i915_i915_dma.c,exynos_drm_load@drivers_gpu_drm_exynos_exynos_drm_drv.c,fsl_dcu_load@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_drv.c,psb_driver_load@drivers_gpu_drm_gma500_psb_drv.c,drm_vblank_init@drivers_gpu_drm_drm_irq.c,vc4_kms_load@drivers_gpu_drm_vc4_vc4_kms.c,amdgpu_irq_init@drivers_gpu_drm_amd_amdgpu_amdgpu_irq.c,radeon_irq_kms_init@drivers_gpu_drm_radeon_radeon_irq_kms.c,vblank_disable_fn@drivers_gpu_drm_drm_irq.c,rockchip_drm_load@drivers_gpu_drm_rockchip_rockchip_drm_drv.c,tegra_drm_load@drivers_gpu_drm_tegra_drm.c,hdlcd_drm_bind@drivers_gpu_drm_arm_hdlcd_drv.c,imx_drm_driver_load@drivers_gpu_drm_imx_imx-drm-core.c,armada_drm_load@drivers_gpu_drm_armada_armada_drv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 13
+@@
+expression E0;
+expression E1;
+@@
+- E0->vblank_disable_allowed = E1;

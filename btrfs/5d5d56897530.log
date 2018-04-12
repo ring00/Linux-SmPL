@@ -1,0 +1,146 @@
+BUILD:
+[33mbase commit: 5d5d56897530^1
+[0m[33mtarget commit: 5d5d56897530
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m58 source file(s) touched in the old version
+`-- arch/s390/hypfs/inode.c
+`-- drivers/char/mem.c
+`-- drivers/char/raw.c
+`-- drivers/net/macvtap.c
+`-- drivers/net/tun.c
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/usb/gadget/function/f_fs.c
+`-- drivers/usb/gadget/legacy/inode.c
+`-- fs/9p/vfs_file.c
+`-- fs/adfs/file.c
+`-- fs/affs/file.c
+`-- fs/afs/file.c
+`-- fs/bfs/file.c
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/ceph/file.c
+`-- fs/cifs/cifsfs.c
+`-- fs/coda/file.c
+`-- fs/ecryptfs/file.c
+`-- fs/exofs/file.c
+`-- fs/ext2/file.c
+`-- fs/ext3/file.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/fuse/cuse.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/file.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/file.c
+`-- fs/jfs/file.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/ncpfs/file.c
+`-- fs/nfs/file.c
+`-- fs/nfs/nfs4file.c
+`-- fs/nilfs2/file.c
+`-- fs/ntfs/file.c
+`-- fs/ocfs2/file.c
+`-- fs/omfs/file.c
+`-- fs/pipe.c
+`-- fs/ramfs/file-mmu.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/read_write.c
+`-- fs/reiserfs/file.c
+`-- fs/romfs/mmap-nommu.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+`-- net/socket.c
+58 source file(s) touched in the new version
+`-- arch/s390/hypfs/inode.c
+`-- drivers/char/mem.c
+`-- drivers/char/raw.c
+`-- drivers/net/macvtap.c
+`-- drivers/net/tun.c
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/usb/gadget/function/f_fs.c
+`-- drivers/usb/gadget/legacy/inode.c
+`-- fs/9p/vfs_file.c
+`-- fs/adfs/file.c
+`-- fs/affs/file.c
+`-- fs/afs/file.c
+`-- fs/bfs/file.c
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/ceph/file.c
+`-- fs/cifs/cifsfs.c
+`-- fs/coda/file.c
+`-- fs/ecryptfs/file.c
+`-- fs/exofs/file.c
+`-- fs/ext2/file.c
+`-- fs/ext3/file.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/fuse/cuse.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/file.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/file.c
+`-- fs/jfs/file.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/ncpfs/file.c
+`-- fs/nfs/file.c
+`-- fs/nfs/nfs4file.c
+`-- fs/nilfs2/file.c
+`-- fs/ntfs/file.c
+`-- fs/ocfs2/file.c
+`-- fs/omfs/file.c
+`-- fs/pipe.c
+`-- fs/ramfs/file-mmu.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/read_write.c
+`-- fs/reiserfs/file.c
+`-- fs/romfs/mmap-nommu.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+`-- net/socket.c
+[33mcompile base commit... [0m[33mok (76s)
+[0m[33mapply [0m[33m5d5d56897530... [0m[33mok (76s)
+[0m[33mcompile target commit... [0m[33mok (130s)
+[0mPREPARE:
+[33mcollect AST for functions: cifs_file_direct_nobrl_ops@fs_cifs_cifsfs.c,raw_fops@drivers_char_raw.c,ll_file_operations_noflock@drivers_staging_lustre_lustre_llite_file.c,full_fops@drivers_char_mem.c,v9fs_file_operations@fs_9p_vfs_file.c,ext4_dax_file_operations@fs_ext4_file.c,ll_file_operations_flock@drivers_staging_lustre_lustre_llite_file.c,gfs2_file_fops_nolock@fs_gfs2_file.c,f2fs_file_operations@fs_f2fs_file.c,minix_file_operations@fs_minix_file.c,affs_file_operations@fs_affs_file.c,zero_fops@drivers_char_mem.c,hfsplus_file_operations@fs_hfsplus_inode.c,v9fs_cached_file_operations@fs_9p_vfs_file.c,v9fs_file_operations_dotl@fs_9p_vfs_file.c,v9fs_mmap_file_operations_dotl@fs_9p_vfs_file.c,nfs4_file_operations@fs_nfs_nfs4file.c,jffs2_file_operations@fs_jffs2_file.c,v9fs_cached_file_operations_dotl@fs_9p_vfs_file.c,macvtap_fops@drivers_net_macvtap.c,cifs_file_strict_nobrl_ops@fs_cifs_cifsfs.c,jfs_file_operations@fs_jfs_file.c,hugetlbfs_file_operations@fs_hugetlbfs_inode.c,ffs_epfile_operations@drivers_usb_gadget_function_f_fs.c,cifs_file_strict_ops@fs_cifs_cifsfs.c,logfs_reg_fops@fs_logfs_file.c,fuse_direct_io_file_operations@fs_fuse_file.c,ext2_dax_file_operations@fs_ext2_file.c,nfs_file_operations@fs_nfs_file.c,ecryptfs_main_fops@fs_ecryptfs_file.c,fuse_file_operations@fs_fuse_file.c,adfs_file_operations@fs_adfs_file.c,cifs_file_ops@fs_cifs_cifsfs.c,ep_io_operations@drivers_usb_gadget_legacy_inode.c,ext4_file_operations@fs_ext4_file.c,cifs_file_nobrl_ops@fs_cifs_cifsfs.c,def_blk_fops@fs_block_dev.c,hpfs_file_ops@fs_hpfs_file.c,tun_fops@drivers_net_tun.c,btrfs_file_operations@fs_btrfs_file.c,cuse_frontend_fops@fs_fuse_cuse.c,gfs2_file_fops@fs_gfs2_file.c,v9fs_mmap_file_operations@fs_9p_vfs_file.c,ext2_file_operations@fs_ext2_file.c,cifs_file_direct_ops@fs_cifs_cifsfs.c,afs_file_operations@fs_afs_file.c,ncp_file_operations@fs_ncpfs_file.c,bfs_file_operations@fs_bfs_file.c,coda_file_operations@fs_coda_file.c,exofs_file_operations@fs_exofs_file.c,nilfs_file_operations@fs_nilfs2_file.c,ceph_file_fops@fs_ceph_file.c,ll_file_operations@drivers_staging_lustre_lustre_llite_file.c,ext3_file_operations@fs_ext3_file.c,hfs_file_operations@fs_hfs_inode.c,hostfs_file_fops@fs_hostfs_hostfs_kern.c,fat_file_operations@fs_fat_file.c
+[0m[33m0s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 53
+@@
+identifier s;
+@@
+ struct file_operations s = {
+-    .read = new_sync_read,
+-    .write = new_sync_write,
+ };
+//# pattern-2, witnesses: 3
+@@
+identifier s;
+@@
+ const struct file_operations s = {
+-    .read = new_sync_read,
+ };

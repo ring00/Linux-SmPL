@@ -1,0 +1,102 @@
+BUILD:
+[33mbase commit: d9a1f0b4eb60^1
+[0m[33mtarget commit: d9a1f0b4eb60
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/ast/ast_ttm.c
+`-- drivers/gpu/drm/bochs/bochs_mm.c
+`-- drivers/gpu/drm/cirrus/cirrus_ttm.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/drm_vma_manager.c
+`-- drivers/gpu/drm/mgag200/mgag200_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_vma_manager.h
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/ast/ast_ttm.c
+`-- drivers/gpu/drm/bochs/bochs_mm.c
+`-- drivers/gpu/drm/cirrus/cirrus_ttm.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/drm_vma_manager.c
+`-- drivers/gpu/drm/mgag200/mgag200_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_vma_manager.h
+[33mcompile base commit... [0m[33mok (41s)
+[0m[33mapply [0m[33md9a1f0b4eb60... [0m[33mok (41s)
+[0m[33mcompile target commit... [0m[33mok (63s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_gem_object_release_handle@drivers_gpu_drm_drm_gem.c,drm_vma_node_verify_access@include_drm_drm_vma_manager.h,nouveau_bo_verify_access@drivers_gpu_drm_nouveau_nouveau_bo.c,drm_vma_node_is_allowed@drivers_gpu_drm_drm_vma_manager.c,drm_gem_handle_create_tail@drivers_gpu_drm_drm_gem.c,amdgpu_verify_access@drivers_gpu_drm_amd_amdgpu_amdgpu_ttm.c,mgag200_bo_verify_access@drivers_gpu_drm_mgag200_mgag200_ttm.c,drm_gem_mmap@drivers_gpu_drm_drm_gem.c,qxl_verify_access@drivers_gpu_drm_qxl_qxl_ttm.c,drm_vma_node_revoke@drivers_gpu_drm_drm_vma_manager.c,radeon_verify_access@drivers_gpu_drm_radeon_radeon_ttm.c,bochs_bo_verify_access@drivers_gpu_drm_bochs_bochs_mm.c,cirrus_bo_verify_access@drivers_gpu_drm_cirrus_cirrus_ttm.c,ast_bo_verify_access@drivers_gpu_drm_ast_ast_ttm.c,drm_vma_node_allow@drivers_gpu_drm_drm_vma_manager.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 8
+@r0@
+identifier i, fn;
+@@
+struct ttm_bo_driver i = {
+    .verify_access = fn,
+};
+@@
+expression ME0;
+identifier bo;
+identifier filp;
+identifier r0.fn;
+@@
+ int fn(struct ttm_buffer_object * bo, struct file * filp)
+ {
+     <...
+- drm_vma_node_verify_access(&ME0.vma_node, filp)
++ drm_vma_node_verify_access(&ME0.vma_node, filp->private_data)
+     ...>
+ }
+//# pattern-1, witnesses: 3
+@@
+@@
+- file_priv->filp
++ file_priv
+//# pattern-4, witnesses: 3
+@r1@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier filp;
+identifier node;
+identifier r1.fn;
+@@
+- int fn(struct drm_vma_offset_node * node, struct file * filp)
++ int fn(struct drm_vma_offset_node * node, struct drm_file * tag)
+ {
+     <...
+- filp > entry->vm_filp
++ tag > entry->vm_tag
+     ...>
+ }
+//# pattern-5, witnesses: 3
+@r2@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier node;
+identifier r2.fn;
+identifier tag;
+@@
+ int fn(struct drm_vma_offset_node * node, struct drm_file * tag)
+ {
+     <...
+- filp == entry->vm_filp
++ tag == entry->vm_tag
+     ...>
+ }

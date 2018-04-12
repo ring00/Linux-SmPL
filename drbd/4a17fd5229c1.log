@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: 4a17fd5229c1^1
+[0m[33mtarget commit: 4a17fd5229c1
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/scsi/iscsi_tcp.c
+`-- drivers/staging/ramster/cluster/tcp.c
+`-- fs/ocfs2/cluster/tcp.c
+`-- include/net/sock.h
+`-- net/core/sock.c
+`-- net/econet/af_econet.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/inet_connection_sock.c
+`-- net/ipv6/af_inet6.c
+`-- net/netfilter/ipvs/ip_vs_sync.c
+`-- net/rds/tcp_listen.c
+`-- net/sunrpc/svcsock.c
+13 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/scsi/iscsi_tcp.c
+`-- drivers/staging/ramster/cluster/tcp.c
+`-- fs/ocfs2/cluster/tcp.c
+`-- include/net/sock.h
+`-- net/core/sock.c
+`-- net/econet/af_econet.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/inet_connection_sock.c
+`-- net/ipv6/af_inet6.c
+`-- net/netfilter/ipvs/ip_vs_sync.c
+`-- net/rds/tcp_listen.c
+`-- net/sunrpc/svcsock.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m4a17fd5229c1... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,237 @@
+BUILD:
+[33mbase commit: bc1f44709cf2^1
+[0m[33mtarget commit: bc1f44709cf2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m82 source file(s) touched in the old version
+`-- drivers/net/bonding/bond_main.c
+`-- drivers/net/dummy.c
+`-- drivers/net/ethernet/alacritech/slicoss.c
+`-- drivers/net/ethernet/amazon/ena/ena_netdev.c
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/apm/xgene/xgene_enet_main.c
+`-- drivers/net/ethernet/atheros/alx/main.c
+`-- drivers/net/ethernet/broadcom/b44.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/brocade/bna/bnad.c
+`-- drivers/net/ethernet/calxeda/xgmac.c
+`-- drivers/net/ethernet/cavium/thunder/nicvf_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/cisco/enic/enic_main.c
+`-- drivers/net/ethernet/ec_bhf.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+`-- drivers/net/ethernet/hisilicon/hns/hns_enet.c
+`-- drivers/net/ethernet/ibm/ehea/ehea_main.c
+`-- drivers/net/ethernet/intel/e1000e/e1000.h
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e.h
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/marvell/mvneta.c
+`-- drivers/net/ethernet/marvell/mvpp2.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/mediatek/mtk_eth_soc.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+`-- drivers/net/ethernet/qlogic/qede/qede_main.c
+`-- drivers/net/ethernet/qualcomm/emac/emac.c
+`-- drivers/net/ethernet/realtek/8139too.c
+`-- drivers/net/ethernet/realtek/r8169.c
+`-- drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/ethernet/sfc/falcon/efx.c
+`-- drivers/net/ethernet/sun/niu.c
+`-- drivers/net/ethernet/synopsys/dwc_eth_qos.c
+`-- drivers/net/ethernet/tile/tilepro.c
+`-- drivers/net/ethernet/via/via-rhine.c
+`-- drivers/net/fjes/fjes_main.c
+`-- drivers/net/hyperv/netvsc_drv.c
+`-- drivers/net/ifb.c
+`-- drivers/net/ipvlan/ipvlan_main.c
+`-- drivers/net/loopback.c
+`-- drivers/net/macsec.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/nlmon.c
+`-- drivers/net/ppp/ppp_generic.c
+`-- drivers/net/slip/slip.c
+`-- drivers/net/team/team.c
+`-- drivers/net/tun.c
+`-- drivers/net/veth.c
+`-- drivers/net/virtio_net.c
+`-- drivers/net/vmxnet3/vmxnet3_ethtool.c
+`-- drivers/net/vmxnet3/vmxnet3_int.h
+`-- drivers/net/vrf.c
+`-- drivers/net/xen-netfront.c
+`-- drivers/staging/netlogic/xlr_net.c
+`-- include/linux/netdevice.h
+`-- include/net/ip_tunnels.h
+`-- net/8021q/vlan_dev.c
+`-- net/bridge/br_device.c
+`-- net/ipv4/ip_tunnel_core.c
+`-- net/l2tp/l2tp_eth.c
+`-- net/mac80211/iface.c
+`-- net/openvswitch/vport-internal_dev.c
+`-- net/sched/sch_teql.c
+82 source file(s) touched in the new version
+`-- drivers/net/bonding/bond_main.c
+`-- drivers/net/dummy.c
+`-- drivers/net/ethernet/alacritech/slicoss.c
+`-- drivers/net/ethernet/amazon/ena/ena_netdev.c
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/apm/xgene/xgene_enet_main.c
+`-- drivers/net/ethernet/atheros/alx/main.c
+`-- drivers/net/ethernet/broadcom/b44.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/brocade/bna/bnad.c
+`-- drivers/net/ethernet/calxeda/xgmac.c
+`-- drivers/net/ethernet/cavium/thunder/nicvf_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/cisco/enic/enic_main.c
+`-- drivers/net/ethernet/ec_bhf.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+`-- drivers/net/ethernet/hisilicon/hns/hns_enet.c
+`-- drivers/net/ethernet/ibm/ehea/ehea_main.c
+`-- drivers/net/ethernet/intel/e1000e/e1000.h
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e.h
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/marvell/mvneta.c
+`-- drivers/net/ethernet/marvell/mvpp2.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/mediatek/mtk_eth_soc.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/switchx2.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_net_common.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+`-- drivers/net/ethernet/qlogic/qede/qede_main.c
+`-- drivers/net/ethernet/qualcomm/emac/emac.c
+`-- drivers/net/ethernet/realtek/8139too.c
+`-- drivers/net/ethernet/realtek/r8169.c
+`-- drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/ethernet/sfc/falcon/efx.c
+`-- drivers/net/ethernet/sun/niu.c
+`-- drivers/net/ethernet/synopsys/dwc_eth_qos.c
+`-- drivers/net/ethernet/tile/tilepro.c
+`-- drivers/net/ethernet/via/via-rhine.c
+`-- drivers/net/fjes/fjes_main.c
+`-- drivers/net/hyperv/netvsc_drv.c
+`-- drivers/net/ifb.c
+`-- drivers/net/ipvlan/ipvlan_main.c
+`-- drivers/net/loopback.c
+`-- drivers/net/macsec.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/nlmon.c
+`-- drivers/net/ppp/ppp_generic.c
+`-- drivers/net/slip/slip.c
+`-- drivers/net/team/team.c
+`-- drivers/net/tun.c
+`-- drivers/net/veth.c
+`-- drivers/net/virtio_net.c
+`-- drivers/net/vmxnet3/vmxnet3_ethtool.c
+`-- drivers/net/vmxnet3/vmxnet3_int.h
+`-- drivers/net/vrf.c
+`-- drivers/net/xen-netfront.c
+`-- drivers/staging/netlogic/xlr_net.c
+`-- include/linux/netdevice.h
+`-- include/net/ip_tunnels.h
+`-- net/8021q/vlan_dev.c
+`-- net/bridge/br_device.c
+`-- net/ipv4/ip_tunnel_core.c
+`-- net/l2tp/l2tp_eth.c
+`-- net/mac80211/iface.c
+`-- net/openvswitch/vport-internal_dev.c
+`-- net/sched/sch_teql.c
+[33mcompile base commit... [0m[33mok (113s)
+[0m[33mapply [0m[33mbc1f44709cf2... [0m[33mok (113s)
+[0m[33mcompile target commit... [0m[33mok (221s)
+[0mPREPARE:
+[33mcollect AST for functions: mlxsw_sp_port_get_stats64@drivers_net_ethernet_mellanox_mlxsw_spectrum.c,slic_get_stats@drivers_net_ethernet_alacritech_slicoss.c,b44_get_stats64@drivers_net_ethernet_broadcom_b44.c,ixgbe_get_stats64@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ec_bhf_get_stats@drivers_net_ethernet_ec_bhf.c,fm10k_get_stats64@drivers_net_ethernet_intel_fm10k_fm10k_netdev.c,bond_get_stats@drivers_net_bonding_bond_main.c,sky2_get_stats@drivers_net_ethernet_marvell_sky2.c,vxge_get_stats64@drivers_net_ethernet_neterion_vxge_vxge-main.c,e1000e_get_stats64@drivers_net_ethernet_intel_e1000e_netdev.c,mlx5e_get_stats@drivers_net_ethernet_mellanox_mlx5_core_en_main.c,tg3_get_stats64@drivers_net_ethernet_broadcom_tg3.c,mlx4_en_get_stats64@drivers_net_ethernet_mellanox_mlx4_en_netdev.c,ixgbevf_get_stats@drivers_net_ethernet_intel_ixgbevf_ixgbevf_main.c,bnad_get_stats64@drivers_net_ethernet_brocade_bna_bnad.c,hns_nic_get_stats64@drivers_net_ethernet_hisilicon_hns_hns_enet.c,bnx2_get_stats64@drivers_net_ethernet_broadcom_bnx2.c,dummy_get_stats64@drivers_net_dummy.c,myri10ge_get_stats@drivers_net_ethernet_myricom_myri10ge_myri10ge.c,mvneta_get_stats64@drivers_net_ethernet_marvell_mvneta.c,mlx5e_rep_get_stats@drivers_net_ethernet_mellanox_mlx5_core_en_rep.c,bnxt_get_stats64@drivers_net_ethernet_broadcom_bnxt_bnxt.c,mlxsw_sx_port_get_stats64@drivers_net_ethernet_mellanox_mlxsw_switchx2.c,xgmac_get_stats64@drivers_net_ethernet_calxeda_xgmac.c,mtk_get_stats64@drivers_net_ethernet_mediatek_mtk_eth_soc.c,alx_get_stats64@drivers_net_ethernet_atheros_alx_main.c,dpaa_get_stats64@drivers_net_ethernet_freescale_dpaa_dpaa_eth.c,i40e_get_netdev_stats_struct@drivers_net_ethernet_intel_i40e_i40e_main.c,be_get_stats64@drivers_net_ethernet_emulex_benet_be_main.c,nfp_net_stat64@drivers_net_ethernet_netronome_nfp_nfp_net_common.c,igb_get_stats64@drivers_net_ethernet_intel_igb_igb_main.c,nicvf_get_stats64@drivers_net_ethernet_cavium_thunder_nicvf_main.c,ena_get_stats64@drivers_net_ethernet_amazon_ena_ena_netdev.c,cxgb_get_stats@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,xgene_enet_get_stats64@drivers_net_ethernet_apm_xgene_xgene_enet_main.c,enic_get_stats@drivers_net_ethernet_cisco_enic_enic_main.c,ehea_get_stats64@drivers_net_ethernet_ibm_ehea_ehea_main.c,mvpp2_get_stats64@drivers_net_ethernet_marvell_mvpp2.c,nv_get_stats64@drivers_net_ethernet_nvidia_forcedeth.c,xgbe_get_stats64@drivers_net_ethernet_amd_xgbe_xgbe-drv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m22s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 37
+@r0@
+identifier i, fn;
+@@
+struct net_device_ops i = {
+    .ndo_get_stats64 = fn,
+};
+@@
+identifier dev;
+identifier r0.fn;
+identifier stats;
+@@
+- struct rtnl_link_stats64 * fn(struct net_device * dev, struct rtnl_link_stats64 * stats)
++ void fn(struct net_device * dev, struct rtnl_link_stats64 * stats)
+ {
+     <...
+- return stats;
+     ...>
+ }
+//# pattern-2, witnesses: 9
+@r1@
+identifier i, fn;
+@@
+struct net_device_ops i = {
+    .ndo_get_stats64 = fn,
+};
+@@
+expression E0;
+identifier dev;
+identifier r1.fn;
+identifier stats;
+@@
+ void fn(struct net_device * dev, struct rtnl_link_stats64 * stats)
+ {
+     <...
+- return E0;
++ return;
+     ...>
+ }
+//# pattern-3, witnesses: 2
+@r2@
+identifier i, fn;
+@@
+struct net_device_ops i = {
+    .ndo_get_stats64 = fn,
+};
+@@
+identifier net_dev;
+identifier r2.fn;
+identifier s;
+@@
+ void fn(struct net_device * net_dev, struct rtnl_link_stats64 * s)
+ {
+     <...
+- return s;
+     ...>
+ }

@@ -1,0 +1,48 @@
+BUILD:
+[33mbase commit: 3a4938799dec^1
+[0m[33mtarget commit: 3a4938799dec
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m17 source file(s) touched in the old version
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs_fbdev.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/msm/msm_fbdev.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/omap_fbdev.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- include/drm/drm_fb_helper.h
+17 source file(s) touched in the new version
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs_fbdev.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/msm/msm_fbdev.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/omap_fbdev.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- include/drm/drm_fb_helper.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m3a4938799dec... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

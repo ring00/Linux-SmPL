@@ -1,0 +1,37 @@
+BUILD:
+[33mbase commit: 55e301fd57a6^1
+[0m[33mtarget commit: 55e301fd57a6
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- fs/btrfs/backref.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/ioctl.h
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/volumes.h
+10 source file(s) touched in the new version
+`-- fs/btrfs/backref.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/volumes.h
+`-- include/linux/btrfs.h
+`-- include/uapi/linux/btrfs.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m55e301fd57a6... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/btrfs.h'])
+deleted: set([u'fs/btrfs/ioctl.h'])

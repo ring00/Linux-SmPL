@@ -1,0 +1,175 @@
+BUILD:
+[33mbase commit: 7ca85295d8cc^1
+[0m[33mtarget commit: 7ca85295d8cc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m39 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_afmt.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_test.c
+`-- drivers/gpu/drm/amd/amdgpu/atom.c
+`-- drivers/gpu/drm/amd/amdgpu/ci_dpm.c
+`-- drivers/gpu/drm/amd/amdgpu/cik_sdma.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gmc_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gmc_v8_0.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v2_4.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+`-- drivers/gpu/drm/amd/include/amd_pcie_helpers.h
+`-- drivers/gpu/drm/radeon/atom.c
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/evergreen_cs.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/r100.c
+`-- drivers/gpu/drm/radeon/r200.c
+`-- drivers/gpu/drm/radeon/r300.c
+`-- drivers/gpu/drm/radeon/r420.c
+`-- drivers/gpu/drm/radeon/r520.c
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/r600_cs.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- drivers/gpu/drm/radeon/radeon_audio.c
+`-- drivers/gpu/drm/radeon/radeon_clocks.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/rs400.c
+`-- drivers/gpu/drm/radeon/rs690.c
+`-- drivers/gpu/drm/radeon/rv515.c
+`-- drivers/gpu/drm/radeon/si.c
+39 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_afmt.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_atpx_handler.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_test.c
+`-- drivers/gpu/drm/amd/amdgpu/atom.c
+`-- drivers/gpu/drm/amd/amdgpu/ci_dpm.c
+`-- drivers/gpu/drm/amd/amdgpu/cik_sdma.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gmc_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gmc_v8_0.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v2_4.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+`-- drivers/gpu/drm/amd/include/amd_pcie_helpers.h
+`-- drivers/gpu/drm/radeon/atom.c
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/evergreen_cs.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/r100.c
+`-- drivers/gpu/drm/radeon/r200.c
+`-- drivers/gpu/drm/radeon/r300.c
+`-- drivers/gpu/drm/radeon/r420.c
+`-- drivers/gpu/drm/radeon/r520.c
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/r600_cs.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- drivers/gpu/drm/radeon/radeon_audio.c
+`-- drivers/gpu/drm/radeon/radeon_clocks.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/rs400.c
+`-- drivers/gpu/drm/radeon/rs690.c
+`-- drivers/gpu/drm/radeon/rv515.c
+`-- drivers/gpu/drm/radeon/si.c
+[33mcompile base commit... [0m[33mok (118s)
+[0m[33mapply [0m[33m7ca85295d8cc... [0m[33mok (118s)
+[0m[33mcompile target commit... [0m[33mok (215s)
+[0mPREPARE:
+[33mcollect AST for functions: amdgpufb_create_pinned_object@drivers_gpu_drm_amd_amdgpu_amdgpu_fb.c,amdgpu_atom_parse@drivers_gpu_drm_amd_amdgpu_atom.c,r100_cp_init_microcode@drivers_gpu_drm_radeon_r100.c,r600_dma_cs_parse@drivers_gpu_drm_radeon_r600_cs.c,sdma_v3_0_init_microcode@drivers_gpu_drm_amd_amdgpu_sdma_v3_0.c,radeonfb_create_pinned_object@drivers_gpu_drm_radeon_radeon_fb.c,atom_op_repeat@drivers_gpu_drm_amd_amdgpu_atom.c,r200_packet0_check@drivers_gpu_drm_radeon_r200.c,evergreen_packet0_check@drivers_gpu_drm_radeon_evergreen_cs.c,r600_packet0_check@drivers_gpu_drm_radeon_r600_cs.c,radeon_audio_calc_cts@drivers_gpu_drm_radeon_radeon_audio.c,radeon_do_test_moves@drivers_gpu_drm_radeon_radeon_test.c,atom_op_switch@drivers_gpu_drm_radeon_atom.c,amdgpu_switcheroo_set_state@drivers_gpu_drm_amd_amdgpu_amdgpu_device.c,atom_op_savereg@drivers_gpu_drm_amd_amdgpu_atom.c,gmc_v7_0_sw_init@drivers_gpu_drm_amd_amdgpu_gmc_v7_0.c,r600_cs_parse@drivers_gpu_drm_radeon_r600_cs.c,ni_init_microcode@drivers_gpu_drm_radeon_ni.c,r100_gui_wait_for_idle@drivers_gpu_drm_radeon_r100.c,atom_iio_execute@drivers_gpu_drm_radeon_atom.c,radeon_gem_set_domain@drivers_gpu_drm_radeon_radeon_gem.c,gfx_v6_0_init_microcode@drivers_gpu_drm_amd_amdgpu_gfx_v6_0.c,radeon_device_init@drivers_gpu_drm_radeon_radeon_device.c,r420_pipes_init@drivers_gpu_drm_radeon_r420.c,gmc_v8_0_init_microcode@drivers_gpu_drm_amd_amdgpu_gmc_v8_0.c,r600_init_microcode@drivers_gpu_drm_radeon_r600.c,rs400_gpu_init@drivers_gpu_drm_radeon_rs400.c,evergreen_cs_parse@drivers_gpu_drm_radeon_evergreen_cs.c,r300_packet0_check@drivers_gpu_drm_radeon_r300.c,r100_cp_disable@drivers_gpu_drm_radeon_r100.c,atom_iio_execute@drivers_gpu_drm_amd_amdgpu_atom.c,rv515_gpu_init@drivers_gpu_drm_radeon_rv515.c,atom_get_src_int@drivers_gpu_drm_radeon_atom.c,atom_put_dst@drivers_gpu_drm_amd_amdgpu_atom.c,r300_gpu_init@drivers_gpu_drm_radeon_r300.c,evergreen_dma_cs_parse@drivers_gpu_drm_radeon_evergreen_cs.c,rs690_gpu_init@drivers_gpu_drm_radeon_rs690.c,atom_op_switch@drivers_gpu_drm_amd_amdgpu_atom.c,atom_op_repeat@drivers_gpu_drm_radeon_atom.c,atom_parse@drivers_gpu_drm_radeon_atom.c,r600_pcie_gart_tlb_flush@drivers_gpu_drm_radeon_r600.c,atom_op_savereg@drivers_gpu_drm_radeon_atom.c,si_init_microcode@drivers_gpu_drm_radeon_si.c,r100_cp_load_microcode@drivers_gpu_drm_radeon_r100.c,cik_sdma_init_microcode@drivers_gpu_drm_amd_amdgpu_cik_sdma.c,radeon_atpx_detect@drivers_gpu_drm_radeon_radeon_atpx_handler.c,cik_init_microcode@drivers_gpu_drm_radeon_cik.c,gmc_v7_0_init_microcode@drivers_gpu_drm_amd_amdgpu_gmc_v7_0.c,amdgpu_atpx_detect@drivers_gpu_drm_amd_amdgpu_amdgpu_atpx_handler.c,evergreen_pcie_gart_tlb_flush@drivers_gpu_drm_radeon_evergreen.c,gmc_v8_0_sw_init@drivers_gpu_drm_amd_amdgpu_gmc_v8_0.c,amdgpu_afmt_calc_cts@drivers_gpu_drm_amd_amdgpu_amdgpu_afmt.c,atom_op_debug@drivers_gpu_drm_radeon_atom.c,atom_op_restorereg@drivers_gpu_drm_amd_amdgpu_atom.c,atom_get_src_int@drivers_gpu_drm_amd_amdgpu_atom.c,radeon_test_ring_sync2@drivers_gpu_drm_radeon_radeon_test.c,atom_op_restorereg@drivers_gpu_drm_radeon_atom.c,ci_dpm_init_microcode@drivers_gpu_drm_amd_amdgpu_ci_dpm.c,radeon_test_ring_sync@drivers_gpu_drm_radeon_radeon_test.c,amdgpu_do_test_moves@drivers_gpu_drm_amd_amdgpu_amdgpu_test.c,r520_gpu_init@drivers_gpu_drm_radeon_r520.c,gfx_v7_0_init_microcode@drivers_gpu_drm_amd_amdgpu_gfx_v7_0.c,sdma_v2_4_init_microcode@drivers_gpu_drm_amd_amdgpu_sdma_v2_4.c,atom_put_dst@drivers_gpu_drm_radeon_atom.c,radeon_switcheroo_set_state@drivers_gpu_drm_radeon_radeon_device.c,r100_packet0_check@drivers_gpu_drm_radeon_r100.c,radeon_read_clocks_OF@drivers_gpu_drm_radeon_radeon_clocks.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m21s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 34
+@@
+expression S0;
+expression V1;
+@@
+- printk(S0, V1)
++ pr_err
+//# pattern-1, witnesses: 26
+@@
+expression E1;
+expression E2;
+expression S0;
+@@
+- printk(S0, E1, E2)
++ pr_err
+//# pattern-13, witnesses: 16
+@@
+expression S0;
+@@
+- printk(S0)
++ pr_info
+//# pattern-3, witnesses: 11
+@@
+expression S0;
+@@
+- printk(S0)
++ pr_info
+//# pattern-11, witnesses: 4
+@@
+expression S0;
+@@
+- printk(S0, gctx->io_mode & 127)
++ pr_info
+//# pattern-17, witnesses: 4
+@@
+expression S0;
+expression V1;
+@@
+- printk(S0, V1)
++ pr_info
+//# pattern-9, witnesses: 2
+@@
+@@
+- printk("4Error while testing ring sync (%d).\n", r)
++ printk("4Error while testing ring sync (%d)\n", r)
+//# pattern-10, witnesses: 2
+@@
+@@
+- if (CU16(0) != ATOM_BIOS_MAGIC) {
+- "6Invalid BIOS magic.\n";
+- }
+- if (strncmp(CSTR(ATOM_ATI_MAGIC_PTR), ATOM_ATI_MAGIC, strlen(ATOM_ATI_MAGIC))) {
+- "6Invalid ATI magic.\n";
+- }
+- if (strncmp(CSTR(base + ATOM_ROM_MAGIC_PTR), ATOM_ROM_MAGIC, strlen(ATOM_ROM_MAGIC))) {
+- "6Invalid ATOM magic.\n";
+- }
++ if (CU16(0) != ATOM_BIOS_MAGIC) {
++ pr_info;
++ }
++ if (strncmp(CSTR(ATOM_ATI_MAGIC_PTR), ATOM_ATI_MAGIC, strlen(ATOM_ATI_MAGIC))) {
++ pr_info;
++ }
++ if (strncmp(CSTR(base + ATOM_ROM_MAGIC_PTR), ATOM_ROM_MAGIC, strlen(ATOM_ROM_MAGIC))) {
++ pr_info;
++ }
+//# pattern-15, witnesses: 2
+@@
+@@
+- printk("4amdgpu: No coherent DMA available.\n")
++ printk("4amdgpu: No coherent DMA available\n")
+//# pattern-18, witnesses: 2
+@@
+@@
+- printk("4Error while testing BO move.\n")
++ printk("4Error while testing BO move\n")
+//# pattern-19, witnesses: 2
+@@
+@@
+- printk("4amdgpu: No suitable DMA available.\n")
++ printk("4amdgpu: No suitable DMA available\n")

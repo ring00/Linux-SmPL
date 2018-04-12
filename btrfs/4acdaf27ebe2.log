@@ -1,0 +1,118 @@
+BUILD:
+[33mbase commit: 4acdaf27ebe2^1
+[0m[33mtarget commit: 4acdaf27ebe2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m52 source file(s) touched in the old version
+`-- drivers/staging/pohmelfs/dir.c
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/affs/affs.h
+`-- fs/affs/namei.c
+`-- fs/afs/dir.c
+`-- fs/bad_inode.c
+`-- fs/bfs/dir.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/dir.c
+`-- fs/cifs/cifsfs.h
+`-- fs/cifs/dir.c
+`-- fs/coda/dir.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exofs/namei.c
+`-- fs/ext2/namei.c
+`-- fs/ext3/namei.c
+`-- fs/ext4/namei.c
+`-- fs/fat/namei_msdos.c
+`-- fs/fat/namei_vfat.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/dir.c
+`-- fs/hfsplus/dir.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/namei.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/dir.c
+`-- fs/jfs/namei.c
+`-- fs/logfs/dir.c
+`-- fs/minix/namei.c
+`-- fs/namei.c
+`-- fs/ncpfs/dir.c
+`-- fs/nfs/dir.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/namei.c
+`-- fs/omfs/dir.c
+`-- fs/ramfs/inode.c
+`-- fs/reiserfs/namei.c
+`-- fs/sysv/namei.c
+`-- fs/ubifs/dir.c
+`-- fs/udf/namei.c
+`-- fs/ufs/namei.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/security.h
+`-- ipc/mqueue.c
+`-- mm/shmem.c
+`-- security/capability.c
+`-- security/security.c
+`-- security/selinux/hooks.c
+52 source file(s) touched in the new version
+`-- drivers/staging/pohmelfs/dir.c
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/affs/affs.h
+`-- fs/affs/namei.c
+`-- fs/afs/dir.c
+`-- fs/bad_inode.c
+`-- fs/bfs/dir.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/dir.c
+`-- fs/cifs/cifsfs.h
+`-- fs/cifs/dir.c
+`-- fs/coda/dir.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exofs/namei.c
+`-- fs/ext2/namei.c
+`-- fs/ext3/namei.c
+`-- fs/ext4/namei.c
+`-- fs/fat/namei_msdos.c
+`-- fs/fat/namei_vfat.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/dir.c
+`-- fs/hfsplus/dir.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/namei.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/dir.c
+`-- fs/jfs/namei.c
+`-- fs/logfs/dir.c
+`-- fs/minix/namei.c
+`-- fs/namei.c
+`-- fs/ncpfs/dir.c
+`-- fs/nfs/dir.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/namei.c
+`-- fs/omfs/dir.c
+`-- fs/ramfs/inode.c
+`-- fs/reiserfs/namei.c
+`-- fs/sysv/namei.c
+`-- fs/ubifs/dir.c
+`-- fs/udf/namei.c
+`-- fs/ufs/namei.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/security.h
+`-- ipc/mqueue.c
+`-- mm/shmem.c
+`-- security/capability.c
+`-- security/security.c
+`-- security/selinux/hooks.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m4acdaf27ebe2... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

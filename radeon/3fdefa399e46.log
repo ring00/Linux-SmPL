@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: 3fdefa399e46^1
+[0m[33mtarget commit: 3fdefa399e46
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_drv.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+6 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_drv.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33m3fdefa399e46... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33mcollect AST for functions: radeon_dp_add_mst_connector@drivers_gpu_drm_radeon_radeon_dp_mst.c,drm_dev_register@drivers_gpu_drm_drm_drv.c,intel_dp_add_mst_connector@drivers_gpu_drm_i915_intel_dp_mst.c,drm_minor_free@drivers_gpu_drm_drm_drv.c,intel_dp_destroy_mst_connector@drivers_gpu_drm_i915_intel_dp_mst.c,radeon_dp_destroy_mst_connector@drivers_gpu_drm_radeon_radeon_dp_mst.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 4
+@@
+@@
+- drm_reinit_primary_mode_group(dev);

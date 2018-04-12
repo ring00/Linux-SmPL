@@ -1,0 +1,46 @@
+BUILD:
+[33mbase commit: 44adece57e26^1
+[0m[33mtarget commit: 44adece57e26
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/bochs/bochs_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/sun4i/sun4i_drv.c
+`-- drivers/gpu/drm/vc4/vc4_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_drm_bus.c
+`-- include/drm/drm_fb_helper.h
+12 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/bochs/bochs_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/sun4i/sun4i_drv.c
+`-- drivers/gpu/drm/vc4/vc4_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_drm_bus.c
+`-- include/drm/drm_fb_helper.h
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33m44adece57e26... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (48s)
+[0mPREPARE:
+[33mcollect AST for functions: virtio_pci_kick_out_firmware_fb@drivers_gpu_drm_virtio_virtgpu_drm_bus.c,mga_vram_init@drivers_gpu_drm_mgag200_mgag200_main.c,bochs_kick_out_firmware_fb@drivers_gpu_drm_bochs_bochs_drv.c,mgag200_kick_out_firmware_fb@drivers_gpu_drm_mgag200_mgag200_drv.c,i915_kick_out_firmware_fb@drivers_gpu_drm_i915_i915_drv.c,radeon_kick_out_firmware_fb@drivers_gpu_drm_radeon_radeon_drv.c,vc4_kick_out_firmware_fb@drivers_gpu_drm_vc4_vc4_drv.c,sun4i_remove_framebuffers@drivers_gpu_drm_sun4i_sun4i_drv.c,amdgpu_kick_out_firmware_fb@drivers_gpu_drm_amd_amdgpu_amdgpu_drv.c,nouveau_drm_probe@drivers_gpu_drm_nouveau_nouveau_drm.c,cirrus_kick_out_firmware_fb@drivers_gpu_drm_cirrus_cirrus_drv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 11
+@@
+expression list listE0;
+@@
+- remove_conflicting_framebuffers(listE0)
++ drm_fb_helper_remove_conflicting_framebuffers(listE0)

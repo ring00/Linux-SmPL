@@ -1,0 +1,46 @@
+BUILD:
+[33mbase commit: 281856477cda^1
+[0m[33mtarget commit: 281856477cda
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m16 source file(s) touched in the old version
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/i810/i810_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mga/mga_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/r128/r128_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/savage/savage_drv.c
+`-- drivers/gpu/drm/sis/sis_drv.c
+`-- drivers/gpu/drm/tdfx/tdfx_drv.c
+`-- drivers/gpu/drm/via/via_drv.c
+`-- include/drm/drmP.h
+16 source file(s) touched in the new version
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/i810/i810_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mga/mga_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/r128/r128_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/savage/savage_drv.c
+`-- drivers/gpu/drm/sis/sis_drv.c
+`-- drivers/gpu/drm/tdfx/tdfx_drv.c
+`-- drivers/gpu/drm/via/via_drv.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m281856477cda... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

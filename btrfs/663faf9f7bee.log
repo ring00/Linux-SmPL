@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 663faf9f7bee^1
+[0m[33mtarget commit: 663faf9f7bee
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/free-space-cache.c
+`-- include/asm-generic/error-injection.h
+`-- include/asm-generic/vmlinux.lds.h
+`-- include/linux/error-injection.h
+`-- include/linux/module.h
+`-- lib/error-inject.c
+7 source file(s) touched in the new version
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/free-space-cache.c
+`-- include/asm-generic/error-injection.h
+`-- include/asm-generic/vmlinux.lds.h
+`-- include/linux/error-injection.h
+`-- include/linux/module.h
+`-- lib/error-inject.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m663faf9f7bee... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (5s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

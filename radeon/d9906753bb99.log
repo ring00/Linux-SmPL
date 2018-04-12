@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: d9906753bb99^1
+[0m[33mtarget commit: d9906753bb99
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_agpsupport.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_agpsupport.h
+7 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_agpsupport.c
+`-- drivers/gpu/drm/drm_bufs.c
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- include/drm/drm_agpsupport.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33md9906753bb99... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

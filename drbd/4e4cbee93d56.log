@@ -1,0 +1,302 @@
+BUILD:
+[33mbase commit: 4e4cbee93d56^1
+[0m[33mtarget commit: 4e4cbee93d56
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m106 source file(s) touched in the old version
+`-- block/bio-integrity.c
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-integrity.c
+`-- block/bounce.c
+`-- block/t10-pi.c
+`-- drivers/block/aoe/aoecmd.c
+`-- drivers/block/aoe/aoedev.c
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- drivers/block/floppy.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/rsxx/dma.c
+`-- drivers/block/rsxx/rsxx_priv.h
+`-- drivers/block/umem.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/block/xen-blkfront.c
+`-- drivers/lightnvm/pblk-core.c
+`-- drivers/lightnvm/pblk-read.c
+`-- drivers/lightnvm/pblk-write.c
+`-- drivers/lightnvm/rrpc.c
+`-- drivers/md/bcache/bcache.h
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/bcache/journal.c
+`-- drivers/md/bcache/movinggc.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/request.h
+`-- drivers/md/bcache/super.c
+`-- drivers/md/bcache/writeback.c
+`-- drivers/md/dm-bio-prison-v1.c
+`-- drivers/md/dm-bio-prison-v1.h
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-flakey.c
+`-- drivers/md/dm-integrity.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-mpath.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-rq.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-stripe.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity-target.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/multipath.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5-ppl.c
+`-- drivers/md/raid5.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+`-- drivers/nvme/target/io-cmd.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/block_dev.c
+`-- fs/btrfs/btrfs_inode.h
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/compression.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/disk-io.h
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/extent_io.h
+`-- fs/btrfs/file-item.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/raid56.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/buffer.c
+`-- fs/crypto/bio.c
+`-- fs/direct-io.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/segment.c
+`-- fs/gfs2/lops.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/iomap.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/mpage.c
+`-- fs/nfs/blocklayout/blocklayout.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/bio.h
+`-- include/linux/blk_types.h
+`-- include/linux/blkdev.h
+`-- include/linux/device-mapper.h
+`-- kernel/power/swap.c
+`-- kernel/trace/blktrace.c
+`-- mm/page_io.c
+106 source file(s) touched in the new version
+`-- block/bio-integrity.c
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-integrity.c
+`-- block/bounce.c
+`-- block/t10-pi.c
+`-- drivers/block/aoe/aoecmd.c
+`-- drivers/block/aoe/aoedev.c
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- drivers/block/floppy.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/rsxx/dma.c
+`-- drivers/block/rsxx/rsxx_priv.h
+`-- drivers/block/umem.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/block/xen-blkfront.c
+`-- drivers/lightnvm/pblk-core.c
+`-- drivers/lightnvm/pblk-read.c
+`-- drivers/lightnvm/pblk-write.c
+`-- drivers/lightnvm/rrpc.c
+`-- drivers/md/bcache/bcache.h
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/bcache/journal.c
+`-- drivers/md/bcache/movinggc.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/request.h
+`-- drivers/md/bcache/super.c
+`-- drivers/md/bcache/writeback.c
+`-- drivers/md/dm-bio-prison-v1.c
+`-- drivers/md/dm-bio-prison-v1.h
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-flakey.c
+`-- drivers/md/dm-integrity.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-mpath.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-rq.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-stripe.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity-target.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/multipath.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5-ppl.c
+`-- drivers/md/raid5.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+`-- drivers/nvme/target/io-cmd.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/block_dev.c
+`-- fs/btrfs/btrfs_inode.h
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/compression.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/disk-io.h
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/extent_io.h
+`-- fs/btrfs/file-item.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/raid56.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/buffer.c
+`-- fs/crypto/bio.c
+`-- fs/direct-io.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/segment.c
+`-- fs/gfs2/lops.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/iomap.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/mpage.c
+`-- fs/nfs/blocklayout/blocklayout.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/bio.h
+`-- include/linux/blk_types.h
+`-- include/linux/blkdev.h
+`-- include/linux/device-mapper.h
+`-- kernel/power/swap.c
+`-- kernel/trace/blktrace.c
+`-- mm/page_io.c
+[33mcompile base commit... [0m[33mok (85s)
+[0m[33mapply [0m[33m4e4cbee93d56... [0m[33mok (85s)
+[0m[33mcompile target commit... [0m[33mok (153s)
+[0mPREPARE:
+[33mcollect AST for functions: bch_bbio_endio@drivers_md_bcache_io.c,copy_complete@drivers_md_dm-cache-target.c,writethrough_endio@drivers_md_dm-cache-target.c,ps3vram_write@drivers_block_ps3vram.c,__commit@drivers_md_dm-cache-target.c,kcryptd_async_done@drivers_md_dm-crypt.c,t10_pi_verify@block_t10-pi.c,do_endio@drivers_md_dm-integrity.c,complete_master_bio@drivers_block_drbd_drbd_req.c,crypt_dec_pending@drivers_md_dm-crypt.c,one_flush_endio@drivers_block_drbd_drbd_receiver.c,__bio_chain_endio@block_bio.c,drbd_request_prepare@drivers_block_drbd_drbd_req.c,crypt_endio@drivers_md_dm-crypt.c,drbd_generic_make_request@drivers_block_drbd_drbd_int.h,bch_count_io_errors@drivers_md_bcache_io.c,dec_in_flight@drivers_md_dm-integrity.c,write_endio@drivers_md_dm-bufio.c,dec_count@drivers_md_dm-io.c,rsxx_queue_dma@drivers_block_rsxx_dma.c,process_page@drivers_block_umem.c,integrity_metadata@drivers_md_dm-integrity.c,ktiocomplete@drivers_block_aoe_aoecmd.c,request_endio@drivers_md_bcache_request.c,batcher_init@drivers_md_dm-cache-target.c,requeue_deferred_bios@drivers_md_dm-cache-target.c,__split_and_process_bio@drivers_md_dm.c,btree_node_write_endio@drivers_md_bcache_btree.c,kcryptd_crypt_write_convert@drivers_md_dm-crypt.c,bio_integrity_verify_fn@block_bio-integrity.c,mg_copy@drivers_md_dm-cache-target.c,read_dirty_endio@drivers_md_bcache_writeback.c,dmio_complete@drivers_md_dm-bufio.c,pblk_end_io_read@drivers_lightnvm_pblk-read.c,t10_pi_generate@block_t10-pi.c,rrpc_end_sync_bio@drivers_lightnvm_rrpc.c,search_alloc@drivers_md_bcache_request.c,rrpc_move_valid_pages@drivers_lightnvm_rrpc.c,submit_bio_wait_endio@block_bio.c,cache_end_io@drivers_md_dm-cache-target.c,dm_cell_error@drivers_md_dm-bio-prison-v1.c,aoe_failip@drivers_block_aoe_aoedev.c,pkt_end_io_read@drivers_block_pktcdvd.c,t10_pi_type3_verify_ip@block_t10-pi.c,do_endio_flush@drivers_md_dm-integrity.c,bch_bbio_count_io_errors@drivers_md_bcache_io.c,aoe_end_request@drivers_block_aoe_aoecmd.c,dec_pending@drivers_md_dm.c,floppy_rb0_cb@drivers_block_floppy.c,do_region@drivers_md_dm-io.c,t10_pi_type1_generate_crc@block_t10-pi.c,aoe_failbuf@drivers_block_aoe_aoecmd.c,inline_endio@drivers_md_dm-bufio.c,clone_endio@drivers_md_dm.c,dm_integrity_map@drivers_md_dm-integrity.c,read_endio@drivers_md_dm-bufio.c,_drbd_md_sync_page_io@drivers_block_drbd_drbd_actlog.c,dm_bufio_write_dirty_buffers@drivers_md_dm-bufio.c,bio_endio@block_bio.c,bio_integrity_endio@block_bio-integrity.c,pblk_end_io_write@drivers_lightnvm_pblk-write.c,prio_endio@drivers_md_bcache_super.c,rsxx_queue_discard@drivers_block_rsxx_dma.c,__map_bio@drivers_md_dm.c,pkt_end_io_read_cloned@drivers_block_pktcdvd.c,bio_integrity_process@block_bio-integrity.c,blk_integrity_nop_fn@block_blk-integrity.c,generic_make_request_checks@block_blk-core.c,kcryptd_crypt_write_io_submit@drivers_md_dm-crypt.c,pkt_run_state_machine@drivers_block_pktcdvd.c,drbd_request_endio@drivers_block_drbd_drbd_worker.c,drbd_bm_endio@drivers_block_drbd_drbd_bitmap.c,bio_io_error@include_linux_bio.h,drbd_md_endio@drivers_block_drbd_drbd_worker.c,bch_data_insert_keys@drivers_md_bcache_request.c,crypt_convert@drivers_md_dm-crypt.c,commit_op@drivers_md_dm-cache-target.c,flakey_end_io@drivers_md_dm-flakey.c,dirty_endio@drivers_md_bcache_writeback.c,journal_write_endio@drivers_md_bcache_journal.c,new_read@drivers_md_dm-bufio.c,bch_data_insert_endio@drivers_md_bcache_request.c,write_moving@drivers_md_bcache_movinggc.c,ps3vram_do_bio@drivers_block_ps3vram.c,cached_dev_read_done_bh@drivers_md_bcache_request.c,kcryptd_io_read_work@drivers_md_dm-crypt.c,ps3vram_read@drivers_block_ps3vram.c,split_bio_end@drivers_block_xen-blkfront.c,bounce_end_io@block_bounce.c,__end_block_io_op@drivers_block_xen-blkback_blkback.c,blk_queue_bio@block_blk-core.c,cached_dev_read_error@drivers_md_bcache_request.c,mg_complete@drivers_md_dm-cache-target.c,drbd_process_discard_req@drivers_block_drbd_drbd_req.c,uuid_endio@drivers_md_bcache_super.c,t10_pi_type1_verify_ip@block_t10-pi.c,endio@drivers_md_dm-io.c,bch_btree_node_read@drivers_md_bcache_btree.c,t10_pi_type3_generate_ip@block_t10-pi.c,dispatch_rw_block_io@drivers_block_xen-blkback_blkback.c,t10_pi_type1_verify_crc@block_t10-pi.c,end_block_io_op@drivers_block_xen-blkback_blkback.c,t10_pi_type1_generate_ip@block_t10-pi.c,pkt_end_io_packet_write@drivers_block_pktcdvd.c,pkt_finish_packet@drivers_block_pktcdvd.c,overwrite_endio@drivers_md_dm-cache-target.c,write_super_endio@drivers_md_bcache_super.c,use_dmio@drivers_md_dm-bufio.c,__bounce_end_io_read@block_bounce.c,req_bio_endio@block_blk-core.c,pblk_flush_writer@drivers_lightnvm_pblk-core.c,t10_pi_type3_generate_crc@block_t10-pi.c,t10_pi_type3_verify_crc@block_t10-pi.c,kcryptd_crypt_read_convert@drivers_md_dm-crypt.c,blk_errors@block_blk-core.c,bio_complete@drivers_md_bcache_request.c,rsxx_make_request@drivers_block_rsxx_dev.c,read_moving_endio@drivers_md_bcache_movinggc.c,drbd_peer_request_endio@drivers_block_drbd_drbd_worker.c,rsxx_dma_queue_bio@drivers_block_rsxx_dma.c,bch_cache_read_endio@drivers_md_bcache_request.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m14s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-12, witnesses: 82
+@@
+expression E0;
+@@
+- E0->bi_error
++ E0->bi_status
+//# pattern-19, witnesses: 12
+@@
+expression E0;
+@@
+- E0->error
++ E0->status
+//# pattern-25, witnesses: 8
+@@
+expression E0;
+@@
+- E0->bi_error = -EIO
++ E0->bi_status = BLK_STS_IOERR
+//# pattern-21, witnesses: 6
+@@
+@@
+- -EIO
++ BLK_STS_IOERR
+//# pattern-5, witnesses: 5
+@@
+identifier bio;
+identifier fn;
+@@
+ void fn(struct bio * bio)
+ {
+     <...
+- bio->bi_error
++ blk_status_to_errno(bio->bi_status)
+     ...>
+ }
+//# pattern-24, witnesses: 3
+@@
+expression E0;
+expression E1;
+@@
+- E0->bi_error = E1
++ E0->bi_status = errno_to_blk_status(E1)
+//# pattern-9, witnesses: 2
+@@
+expression ME0;
+@@
+- ME0.error = -EINTR
++ ME0.status = BLK_STS_IOERR
+//# pattern-10, witnesses: 2
+@r0@
+identifier i, fn;
+@@
+struct target_type i = {
+    .end_io = fn,
+};
+@@
+identifier bio;
+identifier error;
+identifier r0.fn;
+identifier ti;
+@@
+- int fn(struct dm_target * ti, struct bio * bio, int * error)
++ int fn(struct dm_target * ti, struct bio * bio, blk_status_t * error)
+ { ... }
+//# pattern-17, witnesses: 2
+@@
+expression E0;
+@@
+- E0 = -ENOMEM
++ E0 = BLK_STS_RESOURCE
+//# pattern-23, witnesses: 2
+@@
+@@
+- st = -EFAULT;

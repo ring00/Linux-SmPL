@@ -1,0 +1,50 @@
+BUILD:
+[33mbase commit: 5eb4dce3b347^1
+[0m[33mtarget commit: 5eb4dce3b347
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m8 source file(s) touched in the old version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+8 source file(s) touched in the new version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+[33mcompile base commit... [0m[33mok (34s)
+[0m[33mapply [0m[33m5eb4dce3b347... [0m[33mok (34s)
+[0m[33mcompile target commit... [0m[33mok (62s)
+[0mPREPARE:
+[33mcollect AST for functions: __fm10k_setup_tc@drivers_net_ethernet_intel_fm10k_fm10k_netdev.c,__mlx4_en_setup_tc@drivers_net_ethernet_mellanox_mlx4_en_netdev.c,netcp_setup_tc@drivers_net_ethernet_ti_netcp_core.c,bnxt_setup_tc@drivers_net_ethernet_broadcom_bnxt_bnxt.c,xgbe_setup_tc@drivers_net_ethernet_amd_xgbe_xgbe-drv.c,__bnx2x_setup_tc@drivers_net_ethernet_broadcom_bnx2x_bnx2x_cmn.c,__ixgbe_setup_tc@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,efx_setup_tc@drivers_net_ethernet_sfc_tx.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 8
+@@
+statement S0;
+typedef __be16;
+identifier arg_tc_to_netdev;
+identifier fn;
+identifier handle;
+identifier netdev;
+identifier proto;
+typedef u32;
+@@
+ int fn(struct net_device * netdev, u32 handle, __be16 proto, struct tc_to_netdev * arg_tc_to_netdev)
+ {
+     <...
+- if (handle != TC_H_ROOT || arg_tc_to_netdev->type != TC_SETUP_MQPRIO) { S0 }
++ if (arg_tc_to_netdev->type != TC_SETUP_MQPRIO) { S0 }
+     ...>
+ }

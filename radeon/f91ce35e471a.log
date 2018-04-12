@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: f91ce35e471a^1
+[0m[33mtarget commit: f91ce35e471a
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m4 source file(s) touched in the old version
+`-- drivers/acpi/bus.c
+`-- drivers/gpu/drm/nouveau/nouveau_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- include/acpi/acpi_bus.h
+4 source file(s) touched in the new version
+`-- drivers/acpi/bus.c
+`-- drivers/gpu/drm/nouveau/nouveau_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- include/acpi/acpi_bus.h
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33mf91ce35e471a... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

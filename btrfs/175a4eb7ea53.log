@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: 175a4eb7ea53^1
+[0m[33mtarget commit: 175a4eb7ea53
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- fs/btrfs/inode.c
+`-- fs/cramfs/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/freevxfs/vxfs_inode.c
+`-- fs/gfs2/inode.c
+`-- fs/nfsd/nfsfh.c
+`-- fs/nfsd/nfsfh.h
+`-- fs/nfsd/vfs.c
+`-- fs/nfsd/vfs.h
+9 source file(s) touched in the new version
+`-- fs/btrfs/inode.c
+`-- fs/cramfs/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/freevxfs/vxfs_inode.c
+`-- fs/gfs2/inode.c
+`-- fs/nfsd/nfsfh.c
+`-- fs/nfsd/nfsfh.h
+`-- fs/nfsd/vfs.c
+`-- fs/nfsd/vfs.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m175a4eb7ea53... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

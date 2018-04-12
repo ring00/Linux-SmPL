@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: d93f79376f21^1
+[0m[33mtarget commit: d93f79376f21
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/cikd.h
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/sid.h
+`-- include/uapi/drm/radeon_drm.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/cikd.h
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/radeon_vce.c
+`-- drivers/gpu/drm/radeon/sid.h
+`-- drivers/gpu/drm/radeon/vce_v1_0.c
+`-- drivers/gpu/drm/radeon/vce_v2_0.c
+`-- include/uapi/drm/radeon_drm.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33md93f79376f21... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

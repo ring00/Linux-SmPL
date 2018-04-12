@@ -1,0 +1,119 @@
+BUILD:
+[33mbase commit: 11b3c20bdd15^1
+[0m[33mtarget commit: 11b3c20bdd15
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m33 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/bochs/bochs_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_kms.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/savage/savage_bci.c
+`-- drivers/gpu/drm/savage/savage_drv.h
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/sis/sis_drv.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_main.c
+`-- drivers/gpu/drm/via/via_drv.h
+`-- drivers/gpu/drm/via/via_map.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/drm/drm_drv.h
+33 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/bochs/bochs_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_kms.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/savage/savage_bci.c
+`-- drivers/gpu/drm/savage/savage_drv.h
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/sis/sis_drv.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_main.c
+`-- drivers/gpu/drm/via/via_drv.h
+`-- drivers/gpu/drm/via/via_map.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/drm/drm_drv.h
+[33mcompile base commit... [0m[33mok (45s)
+[0m[33mapply [0m[33m11b3c20bdd15... [0m[33mok (45s)
+[0m[33mcompile target commit... [0m[33mok (80s)
+[0mPREPARE:
+[33mcollect AST for functions: nouveau_drm_unload@drivers_gpu_drm_nouveau_nouveau_drm.c,savage_driver_unload@drivers_gpu_drm_savage_savage_bci.c,shmob_drm_unload@drivers_gpu_drm_shmobile_shmob_drm_drv.c,cirrus_driver_unload@drivers_gpu_drm_cirrus_cirrus_main.c,udl_driver_unload@drivers_gpu_drm_udl_udl_main.c,fsl_dcu_unload@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_drv.c,amdgpu_driver_unload_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c,exynos_drm_unload@drivers_gpu_drm_exynos_exynos_drm_drv.c,mgag200_driver_unload@drivers_gpu_drm_mgag200_mgag200_main.c,vmw_driver_unload@drivers_gpu_drm_vmwgfx_vmwgfx_drv.c,dev_unload@drivers_gpu_drm_omapdrm_omap_drv.c,virtio_gpu_driver_unload@drivers_gpu_drm_virtio_virtgpu_kms.c,via_driver_unload@drivers_gpu_drm_via_via_map.c,tegra_drm_unload@drivers_gpu_drm_tegra_drm.c,bochs_unload@drivers_gpu_drm_bochs_bochs_drv.c,qxl_driver_unload@drivers_gpu_drm_qxl_qxl_kms.c,sis_driver_unload@drivers_gpu_drm_sis_sis_drv.c,psb_driver_unload@drivers_gpu_drm_gma500_psb_drv.c,ast_driver_unload@drivers_gpu_drm_ast_ast_main.c,radeon_driver_unload_kms@drivers_gpu_drm_radeon_radeon_kms.c,mga_driver_unload@drivers_gpu_drm_mga_mga_dma.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 20
+@r0@
+identifier i, fn;
+@@
+struct drm_driver i = {
+    .unload = fn,
+};
+@@
+identifier drm;
+identifier r0.fn;
+@@
+- int fn(struct drm_device * drm)
++ void fn(struct drm_device * drm)
+ {
+     <...
+- return 0;
+     ...>
+ }
+//# pattern-2, witnesses: 6
+@r1@
+identifier i, fn;
+@@
+struct drm_driver i = {
+    .unload = fn,
+};
+@@
+expression E0;
+identifier drm;
+identifier r1.fn;
+@@
+ void fn(struct drm_device * drm)
+ {
+     <...
+- return E0;
++ return;
+     ...>
+ }

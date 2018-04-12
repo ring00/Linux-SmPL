@@ -1,0 +1,96 @@
+BUILD:
+[33mbase commit: c2050a454c7f^1
+[0m[33mtarget commit: c2050a454c7f
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m34 source file(s) touched in the old version
+`-- drivers/char/sonypi.c
+`-- drivers/platform/x86/sony-laptop.c
+`-- fs/attr.c
+`-- fs/bad_inode.c
+`-- fs/binfmt_misc.c
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/transaction.c
+`-- fs/btrfs/xattr.c
+`-- fs/ceph/file.c
+`-- fs/ceph/inode.c
+`-- fs/ceph/xattr.c
+`-- fs/cifs/file.c
+`-- fs/configfs/inode.c
+`-- fs/debugfs/inode.c
+`-- fs/f2fs/xattr.c
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/inode.c
+`-- fs/jfs/namei.c
+`-- fs/kernfs/inode.c
+`-- fs/locks.c
+`-- fs/nfsd/blocklayout.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/mft.c
+`-- fs/orangefs/namei.c
+`-- fs/udf/ialloc.c
+`-- fs/udf/inode.c
+`-- fs/udf/namei.c
+`-- fs/xfs/xfs_acl.c
+`-- fs/xfs/xfs_inode.c
+`-- fs/xfs/xfs_iops.c
+`-- fs/xfs/xfs_trans_inode.c
+34 source file(s) touched in the new version
+`-- drivers/char/sonypi.c
+`-- drivers/platform/x86/sony-laptop.c
+`-- fs/attr.c
+`-- fs/bad_inode.c
+`-- fs/binfmt_misc.c
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/transaction.c
+`-- fs/btrfs/xattr.c
+`-- fs/ceph/file.c
+`-- fs/ceph/inode.c
+`-- fs/ceph/xattr.c
+`-- fs/cifs/file.c
+`-- fs/configfs/inode.c
+`-- fs/debugfs/inode.c
+`-- fs/f2fs/xattr.c
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/inode.c
+`-- fs/jfs/namei.c
+`-- fs/kernfs/inode.c
+`-- fs/locks.c
+`-- fs/nfsd/blocklayout.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/mft.c
+`-- fs/orangefs/namei.c
+`-- fs/udf/ialloc.c
+`-- fs/udf/inode.c
+`-- fs/udf/namei.c
+`-- fs/xfs/xfs_acl.c
+`-- fs/xfs/xfs_inode.c
+`-- fs/xfs/xfs_iops.c
+`-- fs/xfs/xfs_trans_inode.c
+[33mcompile base commit... [0m[33mok (113s)
+[0m[33mapply [0m[33mc2050a454c7f... [0m[33mok (113s)
+[0m[33mcompile target commit... [0m[33mok (172s)
+[0mPREPARE:
+[33mcollect AST for functions: ceph_direct_read_write@fs_ceph_file.c,jfs_rename@fs_jfs_namei.c,orangefs_create@fs_orangefs_namei.c,udf_add_nondir@fs_udf_namei.c,btrfs_punch_hole@fs_btrfs_file.c,xfs_ialloc@fs_xfs_xfs_inode.c,btrfs_rename_exchange@fs_btrfs_inode.c,orangefs_rename@fs_orangefs_namei.c,btrfs_ioctl_setflags@fs_btrfs_ioctl.c,__f2fs_setxattr@fs_f2fs_xattr.c,clone_finish_inode_update@fs_btrfs_ioctl.c,set_default_inode_attr@fs_configfs_inode.c,lease_get_mtime@fs_locks.c,make_bad_inode@fs_bad_inode.c,udf_new_inode@fs_udf_ialloc.c,cifs_partialpagewrite@fs_cifs_file.c,_btrfs_ioctl_set_received_subvol@fs_btrfs_ioctl.c,udf_unlink@fs_udf_namei.c,btrfs_fallocate@fs_btrfs_file.c,debugfs_get_inode@fs_debugfs_inode.c,xfs_trans_ichgtime@fs_xfs_xfs_trans_inode.c,ntfs_read_inode_mount@fs_inode.c,create_subvol@fs_btrfs_ioctl.c,udf_rmdir@fs_udf_namei.c,sonypi_misc_read@drivers_platform_x86_sony-laptop.c,bm_get_inode@fs_binfmt_misc.c,xfs_set_mode@fs_xfs_xfs_acl.c,ntfs_read_locked_index_inode@fs_inode.c,__btrfs_prealloc_file_range@fs_btrfs_inode.c,inode_getblk@fs_udf_inode.c,notify_change@fs_attr.c,udf_link@fs_udf_namei.c,orangefs_unlink@fs_orangefs_namei.c,udf_setsize@fs_udf_inode.c,udf_mkdir@fs_udf_namei.c,create_pending_snapshot@fs_btrfs_transaction.c,udf_rename@fs_udf_namei.c,btrfs_add_link@fs_btrfs_inode.c,__btrfs_setxattr@fs_btrfs_xattr.c,cifs_readpage_worker@fs_cifs_file.c,update_time_for_write@fs_btrfs_file.c,ceph_sync_write@fs_ceph_file.c,orangefs_symlink@fs_orangefs_namei.c,fuse_update_ctime@fs_fuse_dir.c,btrfs_rename@fs_btrfs_inode.c,configfs_create@fs_configfs_inode.c,orangefs_mkdir@fs_orangefs_namei.c,new_simple_dir@fs_btrfs_inode.c,sonypi_misc_read@drivers_char_sonypi.c,xfs_setattr_size@fs_xfs_xfs_iops.c,__btrfs_unlink_inode@fs_btrfs_inode.c,__ceph_setattr@fs_ceph_inode.c,btrfs_new_inode@fs_btrfs_inode.c,btrfs_link@fs_btrfs_inode.c,configfs_setattr@fs_configfs_inode.c,btrfs_unlink_subvol@fs_btrfs_inode.c,nfsd4_block_commit_blocks@fs_nfsd_blocklayout.c,ntfs_mft_record_alloc@fs_ntfs_mft.c,fat_ioctl_set_attributes@fs_fat_file.c,__ceph_setxattr@fs_ceph_xattr.c,btrfs_setsize@fs_btrfs_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m15s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 59
+@@
+expression E0;
+@@
+- current_fs_time(E0->i_sb)
++ current_time(E0)
+//# pattern-3, witnesses: 3
+@@
+expression E0;
+@@
+- current_fs_time(E0)
++ current_time(inode)

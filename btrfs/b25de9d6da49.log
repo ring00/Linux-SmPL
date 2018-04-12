@@ -1,0 +1,52 @@
+BUILD:
+[33mbase commit: b25de9d6da49^1
+[0m[33mtarget commit: b25de9d6da49
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- block/bounce.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/buffer.c
+`-- fs/ext4/page-io.c
+`-- fs/nilfs2/segbuf.c
+`-- include/linux/blk_types.h
+7 source file(s) touched in the new version
+`-- block/bounce.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/buffer.c
+`-- fs/ext4/page-io.c
+`-- fs/nilfs2/segbuf.c
+`-- include/linux/blk_types.h
+[33mcompile base commit... [0m[33mok (19s)
+[0m[33mapply [0m[33mb25de9d6da49... [0m[33mok (19s)
+[0m[33mcompile target commit... [0m[33mok (33s)
+[0mPREPARE:
+[33mcollect AST for functions: write_dev_flush@fs_btrfs_disk-io.c,ext4_io_submit@fs_ext4_page-io.c,bounce_end_io@block_bounce.c,nilfs_end_bio_write@fs_nilfs2_segbuf.c,nilfs_segbuf_submit_bio@fs_nilfs2_segbuf.c,_submit_bh@fs_buffer.c,submit_one_bio@fs_btrfs_extent_io.c,btrfs_end_empty_barrier@fs_btrfs_disk-io.c,end_bio_bh_io_sync@fs_buffer.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 4
+@@
+expression E0;
+expression E1;
+expression E2;
+@@
+- if (E0E1) {
+- set_bit(BIO_EOPNOTSUPP, &E2->bi_flags);
+- }
+//# pattern-4, witnesses: 3
+@@
+@@
+- if (bio_flagged(bio, BIO_EOPNOTSUPP)) {
+- }
+//# pattern-5, witnesses: 2
+@@
+@@
+- bio_put(bio);
+//# pattern-6, witnesses: 2
+@@
+@@
+- bio_get(bio);

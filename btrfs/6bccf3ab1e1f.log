@@ -1,0 +1,61 @@
+BUILD:
+[33mbase commit: 6bccf3ab1e1f^1
+[0m[33mtarget commit: 6bccf3ab1e1f
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/disk-io.h
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/relocation.c
+`-- fs/btrfs/root-tree.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/transaction.c
+`-- fs/btrfs/uuid-tree.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/trace/events/btrfs.h
+14 source file(s) touched in the new version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/disk-io.h
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/relocation.c
+`-- fs/btrfs/root-tree.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/transaction.c
+`-- fs/btrfs/uuid-tree.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (34s)
+[0m[33mapply [0m[33m6bccf3ab1e1f... [0m[33mok (34s)
+[0m[33mcompile target commit... [0m[33mok (62s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_read_block_groups@fs_btrfs_extent-tree.c,btrfs_create_pending_block_groups@fs_btrfs_extent-tree.c,close_ctree@fs_btrfs_disk-io.c,btrfs_relocate_chunk@fs_btrfs_volumes.c,btrfs_fill_super@fs_btrfs_super.c,btrfs_put_super@fs_btrfs_super.c,btrfs_init_btree_inode@fs_btrfs_disk-io.c,btrfs_uuid_iter_rem@fs_btrfs_uuid-tree.c,btrfs_del_sys_chunk@fs_btrfs_volumes.c,btrfs_uuid_scan_kthread@fs_btrfs_volumes.c,btrfs_calc_avail_data_space@fs_btrfs_super.c,btrfs_read_roots@fs_btrfs_disk-io.c,btrfs_can_relocate@fs_btrfs_extent-tree.c,btrfs_balance@fs_btrfs_volumes.c,btrfs_add_root_ref@fs_btrfs_root-tree.c,btrfs_finish_chunk_alloc@fs_btrfs_volumes.c,_btrfs_ioctl_set_received_subvol@fs_btrfs_ioctl.c,btrfs_uuid_tree_add@fs_btrfs_uuid-tree.c,btrfs_uuid_tree_rem@fs_btrfs_uuid-tree.c,find_first_block_group@fs_btrfs_extent-tree.c,btrfs_remove_chunk@fs_btrfs_volumes.c,open_ctree@fs_btrfs_disk-io.c,create_subvol@fs_btrfs_ioctl.c,update_dev_stat_item@fs_btrfs_volumes.c,btrfs_read_sys_array@fs_btrfs_volumes.c,__btrfs_alloc_chunk@fs_btrfs_volumes.c,btrfs_find_orphan_roots@fs_btrfs_root-tree.c,create_pending_snapshot@fs_btrfs_transaction.c,btrfs_remount@fs_btrfs_super.c,btrfs_add_link@fs_btrfs_inode.c,btrfs_ioctl_snap_destroy@fs_btrfs_ioctl.c,btrfs_del_root_ref@fs_btrfs_root-tree.c,btrfs_run_dev_stats@fs_btrfs_volumes.c,btrfs_replay_log@fs_btrfs_disk-io.c,btrfs_relocate_block_group@fs_btrfs_relocation.c,btrfs_commit_super@fs_btrfs_disk-io.c,btrfs_unlink_subvol@fs_btrfs_inode.c,__cancel_balance@fs_btrfs_volumes.c,insert_balance_item@fs_btrfs_volumes.c,btrfs_remove_block_group@fs_btrfs_extent-tree.c,del_balance_item@fs_btrfs_volumes.c,btrfs_statfs@fs_btrfs_super.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 9
+@@
+expression E0;
+@@
+- E0->tree_root
++ E0
+//# pattern-3, witnesses: 9
+@@
+expression E0;
+@@
+- E0->uuid_root
++ E0
+//# pattern-24, witnesses: 7
+@@
+@@
+- close_ctree(tree_root)
++ close_ctree(fs_info)

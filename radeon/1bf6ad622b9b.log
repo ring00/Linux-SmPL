@@ -1,0 +1,63 @@
+BUILD:
+[33mbase commit: 1bf6ad622b9b^1
+[0m[33mtarget commit: 1bf6ad622b9b
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m19 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_kms.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.h
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/vc4/vc4_crtc.c
+`-- drivers/gpu/drm/vc4/vc4_drv.c
+`-- drivers/gpu/drm/vc4/vc4_drv.h
+`-- include/drm/drmP.h
+`-- include/drm/drm_drv.h
+`-- include/drm/drm_irq.h
+19 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_kms.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.h
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/vc4/vc4_crtc.c
+`-- drivers/gpu/drm/vc4/vc4_drv.c
+`-- drivers/gpu/drm/vc4/vc4_drv.h
+`-- include/drm/drmP.h
+`-- include/drm/drm_drv.h
+`-- include/drm/drm_irq.h
+[33mcompile base commit... [0m[33mok (32s)
+[0m[33mapply [0m[33m1bf6ad622b9b... [0m[33mok (32s)
+[0m[33mcompile target commit... [0m[33mok (52s)
+[0mPREPARE:
+[33mcollect AST for functions: intel_irq_init@drivers_gpu_drm_i915_i915_irq.c,drm_calc_vbltimestamp_from_scanoutpos@drivers_gpu_drm_drm_irq.c,vc4_drm_driver@drivers_gpu_drm_vc4_vc4_drv.c,drm_calc_timestamping_constants@drivers_gpu_drm_drm_irq.c,nouveau_display_scanoutpos@drivers_gpu_drm_nouveau_nouveau_display.c,kms_driver@drivers_gpu_drm_amd_amdgpu_amdgpu_drv.c,vc4_crtc_get_scanoutpos@drivers_gpu_drm_vc4_vc4_crtc.c,i915_get_crtc_scanoutpos@drivers_gpu_drm_i915_i915_irq.c,nouveau_display_scanoutpos_head@drivers_gpu_drm_nouveau_nouveau_display.c,kms_driver@drivers_gpu_drm_radeon_radeon_drv.c,driver_stub@drivers_gpu_drm_nouveau_nouveau_drm.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-5, witnesses: 2
+@@
+expression F1;
+identifier s;
+@@
+ struct drm_driver s = {
+-    .get_vblank_timestamp = F1,
++    .get_vblank_timestamp = drm_calc_vbltimestamp_from_scanoutpos,
+ };

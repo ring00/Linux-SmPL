@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 2823f4f019d8^1
+[0m[33mtarget commit: 2823f4f019d8
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- include/drm/ttm/ttm_bo_driver.h
+7 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- include/drm/ttm/ttm_bo_driver.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m2823f4f019d8... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

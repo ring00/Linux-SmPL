@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: be8a42ae60ad^1
+[0m[33mtarget commit: be8a42ae60ad
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+`-- drivers/gpu/drm/i915/i915_gem_dmabuf.c
+`-- drivers/gpu/drm/nouveau/nouveau_prime.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- drivers/staging/omapdrm/omap_gem_dmabuf.c
+5 source file(s) touched in the new version
+`-- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+`-- drivers/gpu/drm/i915/i915_gem_dmabuf.c
+`-- drivers/gpu/drm/nouveau/nouveau_prime.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- drivers/staging/omapdrm/omap_gem_dmabuf.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33mbe8a42ae60ad... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

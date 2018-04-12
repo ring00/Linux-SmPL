@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: e5de25dce924^1
+[0m[33mtarget commit: e5de25dce924
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m4 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/geneve.c
+`-- drivers/net/vxlan.c
+4 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/geneve.c
+`-- drivers/net/vxlan.c
+[33mcompile base commit... [0m[33mok (12s)
+[0m[33mapply [0m[33me5de25dce924... [0m[33mok (12s)
+[0m[33mcompile target commit... [0m[33mok (19s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

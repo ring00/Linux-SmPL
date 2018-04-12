@@ -1,0 +1,61 @@
+BUILD:
+[33mbase commit: f2ba57b5eab8^1
+[0m[33mtarget commit: f2ba57b5eab8
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m21 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/evergreend.h
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/nid.h
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/r600d.h
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/rv770.c
+`-- drivers/gpu/drm/radeon/rv770d.h
+`-- drivers/gpu/drm/radeon/si.c
+`-- drivers/gpu/drm/radeon/sid.h
+`-- include/uapi/drm/radeon_drm.h
+22 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/evergreend.h
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/nid.h
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/r600d.h
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- drivers/gpu/drm/radeon/radeon_test.c
+`-- drivers/gpu/drm/radeon/radeon_uvd.c
+`-- drivers/gpu/drm/radeon/rv770.c
+`-- drivers/gpu/drm/radeon/rv770d.h
+`-- drivers/gpu/drm/radeon/si.c
+`-- drivers/gpu/drm/radeon/sid.h
+`-- include/uapi/drm/radeon_drm.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33mf2ba57b5eab8... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/firmware.h'])
+deleted: set(['linux/list.h'])

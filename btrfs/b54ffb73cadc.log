@@ -1,0 +1,54 @@
+BUILD:
+[33mbase commit: b54ffb73cadc^1
+[0m[33mtarget commit: b54ffb73cadc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m16 source file(s) touched in the old version
+`-- block/bio.c
+`-- drivers/md/dm-io.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/scrub.c
+`-- fs/direct-io.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/gfs2/lops.c
+`-- fs/logfs/dev_bdev.c
+`-- fs/mpage.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/bio.h
+16 source file(s) touched in the new version
+`-- block/bio.c
+`-- drivers/md/dm-io.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/scrub.c
+`-- fs/direct-io.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/gfs2/lops.c
+`-- fs/logfs/dev_bdev.c
+`-- fs/mpage.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/bio.h
+[33mcompile base commit... [0m[33mok (36s)
+[0m[33mapply [0m[33mb54ffb73cadc... [0m[33mok (36s)
+[0m[33mcompile target commit... [0m[33mok (63s)
+[0mPREPARE:
+[33mcollect AST for functions: ext4_mpage_readpages@fs_ext4_readpage.c,nilfs_segbuf_prepare_write@fs_nilfs2_segbuf.c,xfs_alloc_ioend_bio@fs_xfs_xfs_aops.c,btrfs_dio_bio_alloc@fs_btrfs_inode.c,__bdev_writeseg@fs_logfs_dev_bdev.c,__mpage_writepage@fs_mpage.c,dio_new_bio@fs_direct-io.c,do_erase@fs_logfs_dev_bdev.c,submit_extent_page@fs_btrfs_extent_io.c,gfs2_log_alloc_bio@fs_gfs2_lops.c,do_mpage_readpage@fs_mpage.c,do_region@drivers_md_dm-io.c,compressed_bio_alloc@fs_btrfs_compression.c,scrub_setup_ctx@fs_btrfs_scrub.c,f2fs_mpage_readpages@fs_f2fs_data.c,io_submit_init_bio@fs_ext4_page-io.c,scrub_setup_wr_ctx@fs_btrfs_scrub.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 9
+@@
+expression E0;
+@@
+- bio_get_nr_vecs(E0)
++ BIO_MAX_PAGES

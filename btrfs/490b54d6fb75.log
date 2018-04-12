@@ -1,0 +1,34 @@
+BUILD:
+[33mbase commit: 490b54d6fb75^1
+[0m[33mtarget commit: 490b54d6fb75
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/extent_map.c
+`-- fs/btrfs/extent_map.h
+`-- fs/btrfs/tree-log.c
+`-- fs/btrfs/volumes.c
+`-- include/trace/events/btrfs.h
+6 source file(s) touched in the new version
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/extent_map.c
+`-- fs/btrfs/extent_map.h
+`-- fs/btrfs/tree-log.c
+`-- fs/btrfs/volumes.c
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (17s)
+[0m[33mapply [0m[33m490b54d6fb75... [0m[33mok (17s)
+[0m[33mcompile target commit... [0m[33mok (28s)
+[0mPREPARE:
+[33mcollect AST for functions: __get_extent_map@fs_btrfs_extent_io.c,btrfs_log_changed_extents@fs_btrfs_tree-log.c,alloc_extent_map@fs_btrfs_extent_map.c,setup_extent_mapping@fs_btrfs_extent_map.c,__lookup_extent_mapping@fs_btrfs_extent_map.c,free_extent_map@fs_btrfs_extent_map.c,__btrfs_alloc_chunk@fs_btrfs_volumes.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 6
+@@
+expression list listE0;
+@@
+- atomic_inc(listE0)
++ refcount_inc(listE0)

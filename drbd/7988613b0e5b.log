@@ -1,0 +1,92 @@
+BUILD:
+[33mbase commit: 7988613b0e5b^1
+[0m[33mtarget commit: 7988613b0e5b
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m39 source file(s) touched in the old version
+`-- arch/m68k/emu/nfblock.c
+`-- arch/powerpc/sysdev/axonram.c
+`-- block/blk-core.c
+`-- block/blk-merge.c
+`-- drivers/block/aoe/aoecmd.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- drivers/block/floppy.c
+`-- drivers/block/loop.c
+`-- drivers/block/mtip32xx/mtip32xx.c
+`-- drivers/block/nbd.c
+`-- drivers/block/nvme-core.c
+`-- drivers/block/ps3disk.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rbd.c
+`-- drivers/block/rsxx/dma.c
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/raid5.c
+`-- drivers/s390/block/dasd_diag.c
+`-- drivers/s390/block/dasd_eckd.c
+`-- drivers/s390/block/dasd_fba.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/scm_blk.c
+`-- drivers/s390/block/scm_blk_cluster.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/scsi/mpt2sas/mpt2sas_transport.c
+`-- drivers/scsi/mpt3sas/mpt3sas_transport.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- drivers/staging/zram/zram_drv.c
+`-- fs/bio-integrity.c
+`-- fs/bio.c
+`-- include/linux/bio.h
+`-- include/linux/blkdev.h
+`-- mm/bounce.c
+39 source file(s) touched in the new version
+`-- arch/m68k/emu/nfblock.c
+`-- arch/powerpc/sysdev/axonram.c
+`-- block/blk-core.c
+`-- block/blk-merge.c
+`-- drivers/block/aoe/aoecmd.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- drivers/block/floppy.c
+`-- drivers/block/loop.c
+`-- drivers/block/mtip32xx/mtip32xx.c
+`-- drivers/block/nbd.c
+`-- drivers/block/nvme-core.c
+`-- drivers/block/ps3disk.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rbd.c
+`-- drivers/block/rsxx/dma.c
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/raid5.c
+`-- drivers/s390/block/dasd_diag.c
+`-- drivers/s390/block/dasd_eckd.c
+`-- drivers/s390/block/dasd_fba.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/scm_blk.c
+`-- drivers/s390/block/scm_blk_cluster.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/scsi/mpt2sas/mpt2sas_transport.c
+`-- drivers/scsi/mpt3sas/mpt3sas_transport.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- drivers/staging/zram/zram_drv.c
+`-- fs/bio-integrity.c
+`-- fs/bio.c
+`-- include/linux/bio.h
+`-- include/linux/blkdev.h
+`-- mm/bounce.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m7988613b0e5b... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

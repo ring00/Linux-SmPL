@@ -1,0 +1,65 @@
+BUILD:
+[33mbase commit: 011067b05668^1
+[0m[33mtarget commit: 011067b05668
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m18 source file(s) touched in the old version
+`-- block/bio.c
+`-- block/blk-core.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5-ppl.c
+`-- drivers/md/raid5.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/block_dev.c
+`-- fs/btrfs/extent_io.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/bio.h
+18 source file(s) touched in the new version
+`-- block/bio.c
+`-- block/blk-core.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5-ppl.c
+`-- drivers/md/raid5.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/block_dev.c
+`-- fs/btrfs/extent_io.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/bio.h
+[33mcompile base commit... [0m[33mok (50s)
+[0m[33mapply [0m[33m011067b05668... [0m[33mok (50s)
+[0m[33mcompile target commit... [0m[33mok (94s)
+[0mPREPARE:
+[33mcollect AST for functions: crypt_ctr@drivers_md_dm-crypt.c,r5l_init_log@drivers_md_raid5-cache.c,md_run@drivers_md_md.c,iblock_configure_device@drivers_target_target_core_iblock.c,bcache_device_init@drivers_md_bcache_super.c,xfs_init_zones@fs_xfs_xfs_super.c,drbd_create_mempools@drivers_block_drbd_drbd_main.c,extent_io_init@fs_btrfs_extent_io.c,blk_alloc_queue_node@block_blk-core.c,setup_conf@drivers_md_raid1.c,ppl_init_log@drivers_md_raid5-ppl.c,bioset_create@block_bio.c,dm_io_client_create@drivers_md_dm-io.c,blkdev_init@fs_block_dev.c,setup_conf@drivers_md_raid10.c,init_bio@block_bio.c,setup_conf@drivers_md_raid5.c,bch_cache_set_alloc@drivers_md_bcache_super.c,dm_alloc_md_mempools@drivers_md_dm.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 13
+@@
+expression E0;
+expression E1;
+@@
+- bioset_create(E0, E1)
++ bioset_create(E0, E1, BIOSET_NEED_BVECS)
+//# pattern-2, witnesses: 3
+@@
+expression E0;
+@@
+- bioset_create(E0, 0)
++ bioset_create(E0, 0, 0)

@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: b440bde74f04^1
+[0m[33mtarget commit: b440bde74f04
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/pci/hotplug/acpiphp_glue.c
+`-- drivers/pci/hotplug/pciehp_hpc.c
+`-- include/linux/pci.h
+5 source file(s) touched in the new version
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/pci/hotplug/acpiphp_glue.c
+`-- drivers/pci/hotplug/pciehp_hpc.c
+`-- include/linux/pci.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33mb440bde74f04... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (11s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

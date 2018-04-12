@@ -1,0 +1,90 @@
+BUILD:
+[33mbase commit: 57a7744e0986^1
+[0m[33mtarget commit: 57a7744e0986
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m38 source file(s) touched in the old version
+`-- block/blk-cgroup.h
+`-- drivers/net/dummy.c
+`-- drivers/net/ethernet/broadcom/b44.c
+`-- drivers/net/ethernet/emulex/benet/be_ethtool.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_ethtool.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_ethtool.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/marvell/mvneta.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/realtek/8139too.c
+`-- drivers/net/ethernet/realtek/r8169.c
+`-- drivers/net/ethernet/tile/tilepro.c
+`-- drivers/net/ethernet/via/via-rhine.c
+`-- drivers/net/ifb.c
+`-- drivers/net/loopback.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/nlmon.c
+`-- drivers/net/team/team.c
+`-- drivers/net/team/team_mode_loadbalance.c
+`-- drivers/net/veth.c
+`-- drivers/net/virtio_net.c
+`-- drivers/net/xen-netfront.c
+`-- include/linux/u64_stats_sync.h
+`-- net/8021q/vlan_dev.c
+`-- net/bridge/br_device.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/ip_tunnel_core.c
+`-- net/ipv6/ip6_tunnel.c
+`-- net/netfilter/ipvs/ip_vs_ctl.c
+`-- net/openvswitch/datapath.c
+`-- net/openvswitch/vport.c
+38 source file(s) touched in the new version
+`-- block/blk-cgroup.h
+`-- drivers/net/dummy.c
+`-- drivers/net/ethernet/broadcom/b44.c
+`-- drivers/net/ethernet/emulex/benet/be_ethtool.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_ethtool.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_ethtool.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/marvell/mvneta.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/realtek/8139too.c
+`-- drivers/net/ethernet/realtek/r8169.c
+`-- drivers/net/ethernet/tile/tilepro.c
+`-- drivers/net/ethernet/via/via-rhine.c
+`-- drivers/net/ifb.c
+`-- drivers/net/loopback.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/nlmon.c
+`-- drivers/net/team/team.c
+`-- drivers/net/team/team_mode_loadbalance.c
+`-- drivers/net/veth.c
+`-- drivers/net/virtio_net.c
+`-- drivers/net/xen-netfront.c
+`-- include/linux/u64_stats_sync.h
+`-- net/8021q/vlan_dev.c
+`-- net/bridge/br_device.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/ip_tunnel_core.c
+`-- net/ipv6/ip6_tunnel.c
+`-- net/netfilter/ipvs/ip_vs_ctl.c
+`-- net/openvswitch/datapath.c
+`-- net/openvswitch/vport.c
+[33mcompile base commit... [0m[33mok (9s)
+[0m[33mapply [0m[33m57a7744e0986... [0m[33mok (9s)
+[0m[33mcompile target commit... [0m[33mok (11s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

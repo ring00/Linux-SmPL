@@ -1,0 +1,59 @@
+BUILD:
+[33mbase commit: 66257db7a527^1
+[0m[33mtarget commit: 66257db7a527
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m10 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c
+`-- include/drm/ttm/ttm_bo_driver.h
+10 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_buffer.c
+`-- include/drm/ttm/ttm_bo_driver.h
+[33mcompile base commit... [0m[33mok (23s)
+[0m[33mapply [0m[33m66257db7a527... [0m[33mok (23s)
+[0m[33mcompile target commit... [0m[33mok (40s)
+[0mPREPARE:
+[33mcollect AST for functions: ttm_bo_handle_move_mem@drivers_gpu_drm_ttm_ttm_bo.c,nouveau_bo_move_ntfy@drivers_gpu_drm_nouveau_nouveau_bo.c,ttm_bo_cleanup_memtype_use@drivers_gpu_drm_ttm_ttm_bo.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 2
+@@
+identifier bo;
+typedef bool;
+identifier evict;
+identifier interruptible;
+identifier mem;
+identifier no_wait_gpu;
+@@
+ int ttm_bo_handle_move_mem(struct ttm_buffer_object * bo, struct ttm_mem_reg * mem, bool evict, bool interruptible, bool no_wait_gpu)
+ {
+     <...
+- bdev->driver->move_notify(bo, mem)
++ bdev->driver->move_notify(bo, evict, mem)
+     ...>
+ }
+//# pattern-3, witnesses: 2
+@@
+expression E0;
+expression E1;
+@@
+- E0->driver->move_notify(bo, E1)
++ E0->driver->move_notify(bo, false, E1)

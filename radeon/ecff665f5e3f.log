@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: ecff665f5e3f^1
+[0m[33mtarget commit: ecff665f5e3f
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m13 source file(s) touched in the old version
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_uvd.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+`-- include/drm/ttm/ttm_execbuf_util.h
+13 source file(s) touched in the new version
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_uvd.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+`-- include/drm/ttm/ttm_execbuf_util.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33mecff665f5e3f... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

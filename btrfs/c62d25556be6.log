@@ -1,0 +1,67 @@
+BUILD:
+[33mbase commit: c62d25556be6^1
+[0m[33mtarget commit: c62d25556be6
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m19 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/free-space-cache.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/readpage.c
+`-- fs/logfs/segment.c
+`-- fs/mpage.c
+`-- fs/namei.c
+`-- fs/nilfs2/inode.c
+`-- fs/ntfs/file.c
+`-- fs/splice.c
+`-- include/linux/pagemap.h
+`-- mm/filemap.c
+`-- mm/readahead.c
+19 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- fs/btrfs/compression.c
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/free-space-cache.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/readpage.c
+`-- fs/logfs/segment.c
+`-- fs/mpage.c
+`-- fs/namei.c
+`-- fs/nilfs2/inode.c
+`-- fs/ntfs/file.c
+`-- fs/splice.c
+`-- include/linux/pagemap.h
+`-- mm/filemap.c
+`-- mm/readahead.c
+[33mcompile base commit... [0m[33mok (53s)
+[0m[33mapply [0m[33mc62d25556be6... [0m[33mok (53s)
+[0m[33mcompile target commit... [0m[33mok (84s)
+[0mPREPARE:
+[33mcollect AST for functions: ext4_mpage_readpages@fs_ext4_readpage.c,ceph_filemap_fault@fs_ceph_addr.c,page_symlink@fs_namei.c,__ext4_block_zero_page_range@fs_ext4_inode.c,readpages_get_pages@fs_cifs_file.c,page_cache_read@mm_filemap.c,__nilfs_read_inode@fs_nilfs2_inode.c,do_generic_file_read@mm_filemap.c,mpage_readpages@fs_mpage.c,get_mapping_page@fs_logfs_segment.c,grow_dev_page@fs_buffer.c,ceph_fill_inline_data@fs_ceph_addr.c,nilfs_new_inode@fs_nilfs2_inode.c,add_ra_bio_pages@fs_btrfs_compression.c,__ntfs_grab_cache_pages@fs_ntfs_file.c,btrfs_alloc_write_mask@fs_btrfs_ctree.h,__lookup_free_space_inode@fs_btrfs_free-space-cache.c,read_pages@mm_readahead.c,mpage_readpage@fs_mpage.c,read_cache_pages@mm_readahead.c,i915_gem_object_get_pages_gtt@drivers_gpu_drm_i915_i915_gem.c,drm_gem_get_pages@drivers_gpu_drm_drm_gem.c,__generic_file_splice_read@fs_splice.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m10s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 11
+@@
+expression E0;
+expression E1;
+@@
+- mapping_gfp_mask(E0) & E1
++ mapping_gfp_constraint(E0, E1)
+//# pattern-1, witnesses: 10
+@@
+expression E0;
+@@
+- GFP_KERNEL & mapping_gfp_mask(E0)
++ mapping_gfp_constraint(E0, GFP_KERNEL)

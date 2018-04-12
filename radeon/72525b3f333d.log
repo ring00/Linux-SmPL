@@ -1,0 +1,46 @@
+BUILD:
+[33mbase commit: 72525b3f333d^1
+[0m[33mtarget commit: 72525b3f333d
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m14 source file(s) touched in the old version
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/qxl/qxl_object.h
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_bo_util.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/qxl/qxl_object.h
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_bo_util.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m72525b3f333d... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <drm/ttm/ttm_bo_driver.h>
++#include <drm/drm_vma_manager.h>

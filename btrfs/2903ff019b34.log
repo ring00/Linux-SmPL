@@ -1,0 +1,102 @@
+BUILD:
+[33mbase commit: 2903ff019b34^1
+[0m[33mtarget commit: 2903ff019b34
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m44 source file(s) touched in the old version
+`-- arch/alpha/kernel/osf_sys.c
+`-- arch/ia64/kernel/perfmon.c
+`-- arch/parisc/hpux/fs.c
+`-- arch/powerpc/platforms/cell/spu_syscalls.c
+`-- drivers/infiniband/core/ucma.c
+`-- drivers/infiniband/core/uverbs_cmd.c
+`-- drivers/infiniband/core/uverbs_main.c
+`-- drivers/vfio/vfio.c
+`-- drivers/video/msm/mdp.c
+`-- fs/btrfs/ioctl.c
+`-- fs/coda/inode.c
+`-- fs/compat.c
+`-- fs/compat_ioctl.c
+`-- fs/eventpoll.c
+`-- fs/ext4/ioctl.c
+`-- fs/fcntl.c
+`-- fs/fhandle.c
+`-- fs/ioctl.c
+`-- fs/locks.c
+`-- fs/namei.c
+`-- fs/notify/fanotify/fanotify_user.c
+`-- fs/notify/inotify/inotify_user.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/open.c
+`-- fs/read_write.c
+`-- fs/readdir.c
+`-- fs/select.c
+`-- fs/signalfd.c
+`-- fs/splice.c
+`-- fs/stat.c
+`-- fs/statfs.c
+`-- fs/sync.c
+`-- fs/timerfd.c
+`-- fs/utimes.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_dfrag.c
+`-- fs/xfs/xfs_ioctl.c
+`-- include/linux/file.h
+`-- ipc/mqueue.c
+`-- kernel/events/core.c
+`-- kernel/sys.c
+`-- kernel/taskstats.c
+`-- mm/fadvise.c
+`-- mm/readahead.c
+44 source file(s) touched in the new version
+`-- arch/alpha/kernel/osf_sys.c
+`-- arch/ia64/kernel/perfmon.c
+`-- arch/parisc/hpux/fs.c
+`-- arch/powerpc/platforms/cell/spu_syscalls.c
+`-- drivers/infiniband/core/ucma.c
+`-- drivers/infiniband/core/uverbs_cmd.c
+`-- drivers/infiniband/core/uverbs_main.c
+`-- drivers/vfio/vfio.c
+`-- drivers/video/msm/mdp.c
+`-- fs/btrfs/ioctl.c
+`-- fs/coda/inode.c
+`-- fs/compat.c
+`-- fs/compat_ioctl.c
+`-- fs/eventpoll.c
+`-- fs/ext4/ioctl.c
+`-- fs/fcntl.c
+`-- fs/fhandle.c
+`-- fs/ioctl.c
+`-- fs/locks.c
+`-- fs/namei.c
+`-- fs/notify/fanotify/fanotify_user.c
+`-- fs/notify/inotify/inotify_user.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/open.c
+`-- fs/read_write.c
+`-- fs/readdir.c
+`-- fs/select.c
+`-- fs/signalfd.c
+`-- fs/splice.c
+`-- fs/stat.c
+`-- fs/statfs.c
+`-- fs/sync.c
+`-- fs/timerfd.c
+`-- fs/utimes.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_dfrag.c
+`-- fs/xfs/xfs_ioctl.c
+`-- include/linux/file.h
+`-- ipc/mqueue.c
+`-- kernel/events/core.c
+`-- kernel/sys.c
+`-- kernel/taskstats.c
+`-- mm/fadvise.c
+`-- mm/readahead.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m2903ff019b34... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

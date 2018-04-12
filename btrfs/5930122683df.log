@@ -1,0 +1,259 @@
+BUILD:
+[33mbase commit: 5930122683df^1
+[0m[33mtarget commit: 5930122683df
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m34 source file(s) touched in the old version
+`-- fs/9p/acl.c
+`-- fs/9p/xattr.c
+`-- fs/btrfs/xattr.c
+`-- fs/ceph/xattr.c
+`-- fs/cifs/xattr.c
+`-- fs/ext2/xattr_security.c
+`-- fs/ext2/xattr_trusted.c
+`-- fs/ext2/xattr_user.c
+`-- fs/ext4/xattr_security.c
+`-- fs/ext4/xattr_trusted.c
+`-- fs/ext4/xattr_user.c
+`-- fs/f2fs/xattr.c
+`-- fs/gfs2/xattr.c
+`-- fs/hfsplus/xattr.c
+`-- fs/hfsplus/xattr.h
+`-- fs/hfsplus/xattr_security.c
+`-- fs/hfsplus/xattr_trusted.c
+`-- fs/hfsplus/xattr_user.c
+`-- fs/jffs2/security.c
+`-- fs/jffs2/xattr_trusted.c
+`-- fs/jffs2/xattr_user.c
+`-- fs/jfs/xattr.c
+`-- fs/nfs/nfs4proc.c
+`-- fs/ocfs2/xattr.c
+`-- fs/orangefs/xattr.c
+`-- fs/posix_acl.c
+`-- fs/reiserfs/xattr_security.c
+`-- fs/reiserfs/xattr_trusted.c
+`-- fs/reiserfs/xattr_user.c
+`-- fs/ubifs/xattr.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_xattr.c
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+34 source file(s) touched in the new version
+`-- fs/9p/acl.c
+`-- fs/9p/xattr.c
+`-- fs/btrfs/xattr.c
+`-- fs/ceph/xattr.c
+`-- fs/cifs/xattr.c
+`-- fs/ext2/xattr_security.c
+`-- fs/ext2/xattr_trusted.c
+`-- fs/ext2/xattr_user.c
+`-- fs/ext4/xattr_security.c
+`-- fs/ext4/xattr_trusted.c
+`-- fs/ext4/xattr_user.c
+`-- fs/f2fs/xattr.c
+`-- fs/gfs2/xattr.c
+`-- fs/hfsplus/xattr.c
+`-- fs/hfsplus/xattr.h
+`-- fs/hfsplus/xattr_security.c
+`-- fs/hfsplus/xattr_trusted.c
+`-- fs/hfsplus/xattr_user.c
+`-- fs/jffs2/security.c
+`-- fs/jffs2/xattr_trusted.c
+`-- fs/jffs2/xattr_user.c
+`-- fs/jfs/xattr.c
+`-- fs/nfs/nfs4proc.c
+`-- fs/ocfs2/xattr.c
+`-- fs/orangefs/xattr.c
+`-- fs/posix_acl.c
+`-- fs/reiserfs/xattr_security.c
+`-- fs/reiserfs/xattr_trusted.c
+`-- fs/reiserfs/xattr_user.c
+`-- fs/ubifs/xattr.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_xattr.c
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+[33mcompile base commit... [0m[33mok (130s)
+[0m[33mapply [0m[33m5930122683df... [0m[33mok (130s)
+[0m[33mcompile target commit... [0m[33mok (202s)
+[0mPREPARE:
+[33mcollect AST for functions: hfsplus_setxattr@fs_hfsplus_xattr.c,generic_setxattr@fs_xattr.c,btrfs_xattr_handler_set@fs_btrfs_xattr.c,shmem_xattr_handler_set@mm_shmem.c,posix_acl_xattr_set@fs_posix_acl.c,cifs_xattr_set@fs_cifs_xattr.c,jffs2_user_setxattr@fs_jffs2_xattr_user.c,ubifs_xattr_set@fs_ubifs_xattr.c,ext2_xattr_security_set@fs_ext2_xattr_security.c,nfs4_xattr_set_nfs4_label@fs_nfs_nfs4proc.c,hfsplus_user_setxattr@fs_hfsplus_xattr_user.c,ceph_set_xattr_handler@fs_ceph_xattr.c,jffs2_trusted_setxattr@fs_jffs2_xattr_trusted.c,xfs_xattr_set@fs_xfs_xfs_xattr.c,f2fs_xattr_generic_set@fs_f2fs_xattr.c,gfs2_xattr_set@fs_gfs2_xattr.c,jfs_xattr_set@fs_jfs_xattr.c,ext4_xattr_security_set@fs_ext4_xattr_security.c,security_set@fs_reiserfs_xattr_security.c,ext4_xattr_user_set@fs_ext4_xattr_user.c,ext2_xattr_trusted_set@fs_ext2_xattr_trusted.c,v9fs_xattr_set_acl@fs_9p_acl.c,hfsplus_trusted_setxattr@fs_hfsplus_xattr_trusted.c,user_set@fs_reiserfs_xattr_user.c,ocfs2_xattr_security_set@fs_ocfs2_xattr.c,btrfs_xattr_handler_set_prop@fs_btrfs_xattr.c,hfsplus_security_setxattr@fs_hfsplus_xattr_security.c,v9fs_xattr_handler_set@fs_9p_xattr.c,ext4_xattr_trusted_set@fs_ext4_xattr_trusted.c,orangefs_xattr_set_trusted@fs_orangefs_xattr.c,trusted_set@fs_reiserfs_xattr_trusted.c,nfs4_xattr_set_nfs4_acl@fs_nfs_nfs4proc.c,ocfs2_xattr_trusted_set@fs_ocfs2_xattr.c,f2fs_xattr_advise_set@fs_f2fs_xattr.c,generic_removexattr@fs_xattr.c,orangefs_xattr_set_default@fs_orangefs_xattr.c,jffs2_security_setxattr@fs_jffs2_security.c,ext2_xattr_user_set@fs_ext2_xattr_user.c,ocfs2_xattr_user_set@fs_ocfs2_xattr.c,nfs4_set_security_label@fs_nfs_nfs4proc.c,jfs_xattr_set_os2@fs_jfs_xattr.c,hfsplus_osx_setxattr@fs_hfsplus_xattr.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m14s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 25
+@r0@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier buffer;
+identifier dentry;
+identifier flags;
+identifier handler;
+identifier name;
+identifier r0.fn;
+identifier size;
+@@
+- int fn(const struct xattr_handler * handler, struct dentry * dentry, const char * name, const void * buffer, size_t size, int flags)
++ int fn(const struct xattr_handler * handler, struct dentry * unused, struct inode * inode, const char * name, const void * buffer, size_t size, int flags)
+ {
+     <...
+- d_inode(dentry)
++ inode
+     ...>
+ }
+//# pattern-10, witnesses: 5
+@r1@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier flags;
+identifier handler;
+identifier inode;
+identifier name;
+identifier r1.fn;
+identifier size;
+identifier unused;
+identifier value;
+@@
+ int fn(const struct xattr_handler * handler, struct dentry * unused, struct inode * inode, const char * name, const void * value, size_t size, int flags)
+ {
+     <...
+- dentry->d_sb
++ inode->i_sb
+     ...>
+ }
+//# pattern-11, witnesses: 5
+@r2@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier flags;
+identifier handler;
+identifier inode;
+identifier name;
+identifier r2.fn;
+identifier size;
+identifier unused;
+identifier value;
+@@
+ int fn(const struct xattr_handler * handler, struct dentry * unused, struct inode * inode, const char * name, const void * value, size_t size, int flags)
+ {
+     <...
+- struct inode * inode = d_inode(dentry);
+     ...>
+ }
+//# pattern-8, witnesses: 3
+@r3@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+expression E1;
+expression S0;
+identifier buffer;
+identifier flags;
+identifier handler;
+identifier inode;
+identifier name;
+identifier r3.fn;
+identifier size;
+identifier unused;
+@@
+ int fn(const struct xattr_handler * handler, struct dentry * unused, struct inode * inode, const char * name, const void * buffer, size_t size, int flags)
+ {
+     <...
+- hfsplus_setxattr(dentry, name, buffer, size, flags, S0, E1)
++ hfsplus_setxattr(inode, name, buffer, size, flags, S0, E1)
+     ...>
+ }
+//# pattern-2, witnesses: 2
+@r4@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier buffer;
+identifier flags;
+identifier handler;
+identifier inode;
+identifier name;
+identifier r4.fn;
+identifier size;
+identifier unused;
+@@
+ int fn(const struct xattr_handler * handler, struct dentry * unused, struct inode * inode, const char * name, const void * buffer, size_t size, int flags)
+ {
+     <...
+- dentry->d_inode
++ inode
+     ...>
+ }
+//# pattern-4, witnesses: 2
+@r5@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier dentry;
+identifier flags;
+identifier handler;
+identifier name;
+identifier r5.fn;
+identifier size;
+identifier value;
+@@
+- int fn(const struct xattr_handler * handler, struct dentry * dentry, const char * name, const void * value, size_t size, int flags)
++ int fn(const struct xattr_handler * handler, struct dentry * dentry, struct inode * inode, const char * name, const void * value, size_t size, int flags)
+ {
+     <...
+- struct inode * inode = d_inode(dentry);
+     ...>
+ }
+//# pattern-6, witnesses: 2
+@r6@
+identifier i, fn;
+@@
+struct xattr_handler i = {
+    .set = fn,
+};
+@@
+identifier dentry;
+identifier flags;
+identifier handler;
+identifier inode;
+identifier name;
+identifier size;
+identifier value;
+@@
+ int cifs_xattr_set(const struct xattr_handler * handler, struct dentry * dentry, struct inode * inode, const char * name, const void * value, size_t size, int flags)
+ {
+     <...
+- d_inode(dentry)
++ inode
+     ...>
+ }
+//# pattern-12, witnesses: 2
+@@
+expression E0;
+expression E1;
+expression E2;
+@@
+- handler->set(handler, dentry, name, E0, E1, E2)
++ handler->set(handler, dentry, d_inode(dentry), name, E0, E1, E2)

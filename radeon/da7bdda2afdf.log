@@ -1,0 +1,71 @@
+BUILD:
+[33mbase commit: da7bdda2afdf^1
+[0m[33mtarget commit: da7bdda2afdf
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m22 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs_fbdev.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_fb_helper.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/msm/msm_fbdev.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/omap_fbdev.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/virtio/virtgpu_fb.c
+`-- include/drm/drm_fb_helper.h
+22 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs_fbdev.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_fb_helper.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fbdev.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/hisilicon/hibmc/hibmc_drm_fbdev.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/msm/msm_fbdev.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/omap_fbdev.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_fbdev.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/virtio/virtgpu_fb.c
+`-- include/drm/drm_fb_helper.h
+[33mcompile base commit... [0m[33mok (41s)
+[0m[33mapply [0m[33mda7bdda2afdf... [0m[33mok (41s)
+[0m[33mcompile target commit... [0m[33mok (76s)
+[0mPREPARE:
+[33mcollect AST for functions: psbfb_create@drivers_gpu_drm_gma500_framebuffer.c,nouveau_fbcon_destroy@drivers_gpu_drm_nouveau_nouveau_fbcon.c,radeonfb_create@drivers_gpu_drm_radeon_radeon_fb.c,intel_fbdev_destroy@drivers_gpu_drm_i915_intel_fbdev.c,cirrus_fbdev_destroy@drivers_gpu_drm_cirrus_cirrus_fbdev.c,hibmc_drm_fb_create@drivers_gpu_drm_hisilicon_hibmc_hibmc_drm_fbdev.c,radeon_fbdev_destroy@drivers_gpu_drm_radeon_radeon_fb.c,armada_fbdev_fini@drivers_gpu_drm_armada_armada_fbdev.c,drm_fbdev_cma_create@drivers_gpu_drm_drm_fb_cma_helper.c,virtio_gpu_fbdev_destroy@drivers_gpu_drm_virtio_virtgpu_fb.c,intelfb_create@drivers_gpu_drm_i915_intel_fbdev.c,amdgpufb_create@drivers_gpu_drm_amd_amdgpu_amdgpu_fb.c,ast_fbdev_destroy@drivers_gpu_drm_ast_ast_fb.c,exynos_drm_fbdev_update@drivers_gpu_drm_exynos_exynos_drm_fbdev.c,tegra_fbdev_exit@drivers_gpu_drm_tegra_fb.c,drm_fbdev_cma_fini@drivers_gpu_drm_drm_fb_cma_helper.c,amdgpu_fbdev_destroy@drivers_gpu_drm_amd_amdgpu_amdgpu_fb.c,udl_fbdev_destroy@drivers_gpu_drm_udl_udl_fb.c,exynos_drm_fbdev_destroy@drivers_gpu_drm_exynos_exynos_drm_fbdev.c,armada_fbdev_init@drivers_gpu_drm_armada_armada_fbdev.c,astfb_create@drivers_gpu_drm_ast_ast_fb.c,bochsfb_create@drivers_gpu_drm_bochs_bochs_fbdev.c,virtio_gpufb_create@drivers_gpu_drm_virtio_virtgpu_fb.c,drm_fb_helper_fini@drivers_gpu_drm_drm_fb_helper.c,rockchip_drm_fbdev_fini@drivers_gpu_drm_rockchip_rockchip_drm_fbdev.c,mgag200fb_create@drivers_gpu_drm_mgag200_mgag200_fb.c,hibmc_fbdev_destroy@drivers_gpu_drm_hisilicon_hibmc_hibmc_drm_fbdev.c,mga_fbdev_destroy@drivers_gpu_drm_mgag200_mgag200_fb.c,omap_fbdev_free@drivers_gpu_drm_omapdrm_omap_fbdev.c,psb_fbdev_destroy@drivers_gpu_drm_gma500_framebuffer.c,qxlfb_create@drivers_gpu_drm_qxl_qxl_fb.c,tegra_fbdev_probe@drivers_gpu_drm_tegra_fb.c,omap_fbdev_create@drivers_gpu_drm_omapdrm_omap_fbdev.c,msm_fbdev_free@drivers_gpu_drm_msm_msm_fbdev.c,bochs_fbdev_destroy@drivers_gpu_drm_bochs_bochs_fbdev.c,qxl_fbdev_destroy@drivers_gpu_drm_qxl_qxl_fb.c,rockchip_drm_fbdev_create@drivers_gpu_drm_rockchip_rockchip_drm_fbdev.c,udlfb_create@drivers_gpu_drm_udl_udl_fb.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: LabelStmt
+unknown kind: LabelStmt
+unknown kind: LabelStmt
+unknown kind: LabelStmt
+unknown kind: LabelStmt
+unknown kind: LabelStmt
+//# pattern-1, witnesses: 22
+@@
+expression E0;
+@@
+- drm_fb_helper_release_fbi(E0);

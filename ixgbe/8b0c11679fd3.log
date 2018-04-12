@@ -1,0 +1,66 @@
+BUILD:
+[33mbase commit: 8b0c11679fd3^1
+[0m[33mtarget commit: 8b0c11679fd3
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m26 source file(s) touched in the old version
+`-- drivers/net/ethernet/3com/typhoon.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/broadcom/bcm63xx_enet.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_ethtool.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/brocade/bna/bnad_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb/cxgb2.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_ethtool.c
+`-- drivers/net/ethernet/intel/e1000e/ethtool.c
+`-- drivers/net/ethernet/intel/igb/igb_ethtool.c
+`-- drivers/net/ethernet/intel/igbvf/ethtool.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbevf/ethtool.c
+`-- drivers/net/ethernet/marvell/mv643xx_eth.c
+`-- drivers/net/ethernet/marvell/skge.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_ethtool.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_ethtool.c
+`-- drivers/net/ethernet/sfc/ethtool.c
+26 source file(s) touched in the new version
+`-- drivers/net/ethernet/3com/typhoon.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/broadcom/bcm63xx_enet.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_ethtool.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/brocade/bna/bnad_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb/cxgb2.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_ethtool.c
+`-- drivers/net/ethernet/intel/e1000e/ethtool.c
+`-- drivers/net/ethernet/intel/igb/igb_ethtool.c
+`-- drivers/net/ethernet/intel/igbvf/ethtool.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbevf/ethtool.c
+`-- drivers/net/ethernet/marvell/mv643xx_eth.c
+`-- drivers/net/ethernet/marvell/skge.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_ethtool.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_ethtool.c
+`-- drivers/net/ethernet/sfc/ethtool.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m8b0c11679fd3... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

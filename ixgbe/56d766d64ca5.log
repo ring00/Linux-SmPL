@@ -1,0 +1,51 @@
+BUILD:
+[33mbase commit: 56d766d64ca5^1
+[0m[33mtarget commit: 56d766d64ca5
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_pci.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+5 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_pci.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+[33mcompile base commit... [0m[33mok (35s)
+[0m[33mapply [0m[33m56d766d64ca5... [0m[33mok (35s)
+[0m[33mcompile target commit... [0m[33mok (56s)
+[0mPREPARE:
+[33mcollect AST for functions: ixgbe_remove@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,i40e_probe@drivers_net_ethernet_intel_i40e_i40e_main.c,e1000_probe@drivers_net_ethernet_intel_e1000e_netdev.c,e1000_remove@drivers_net_ethernet_intel_e1000e_netdev.c,i40e_remove@drivers_net_ethernet_intel_i40e_i40e_main.c,fm10k_probe@drivers_net_ethernet_intel_fm10k_fm10k_pci.c,igb_remove@drivers_net_ethernet_intel_igb_igb_main.c,ixgbe_probe@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,igb_probe@drivers_net_ethernet_intel_igb_igb_main.c,fm10k_remove@drivers_net_ethernet_intel_fm10k_fm10k_pci.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 10
+@@
+@@
+- pci_release_selected_regions(pdev, pci_select_bars(pdev, IORESOURCE_MEM))
++ pci_release_mem_regions(pdev)
+//# pattern-1, witnesses: 4
+@r0@
+identifier i, fn;
+@@
+struct pci_driver i = {
+    .probe = fn,
+};
+@@
+expression V0;
+identifier ent;
+identifier pdev;
+identifier r0.fn;
+@@
+ int fn(struct pci_dev * pdev, const struct pci_device_id * ent)
+ {
+     <...
+- pci_request_selected_regions(pdev, pci_select_bars(pdev, IORESOURCE_MEM), V0)
++ pci_request_mem_regions(pdev, V0)
+     ...>
+ }

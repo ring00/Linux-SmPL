@@ -1,0 +1,72 @@
+BUILD:
+[33mbase commit: 9338203c4f03^1
+[0m[33mtarget commit: 9338203c4f03
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m27 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/bochs/bochs.h
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/drm_connector.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_edid.c
+`-- drivers/gpu/drm/drm_mode_config.c
+`-- drivers/gpu/drm/drm_of.c
+`-- drivers/gpu/drm/drm_plane_helper.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.h
+`-- drivers/gpu/drm/gma500/psb_intel_drv.h
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/nouveau/nouveau_connector.h
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/rcar-du/rcar_du_encoder.h
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.h
+`-- drivers/gpu/drm/tegra/drm.h
+`-- drivers/gpu/drm/vc4/vc4_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_encoder.h
+`-- include/drm/drm_encoder_slave.h
+`-- include/drm/drm_modeset_helper_vtables.h
+27 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/bochs/bochs.h
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/drm_connector.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_edid.c
+`-- drivers/gpu/drm/drm_mode_config.c
+`-- drivers/gpu/drm/drm_of.c
+`-- drivers/gpu/drm/drm_plane_helper.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.h
+`-- drivers/gpu/drm/gma500/psb_intel_drv.h
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/nouveau/nouveau_connector.h
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/rcar-du/rcar_du_encoder.h
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.h
+`-- drivers/gpu/drm/tegra/drm.h
+`-- drivers/gpu/drm/vc4/vc4_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_encoder.h
+`-- include/drm/drm_encoder_slave.h
+`-- include/drm/drm_modeset_helper_vtables.h
+[33mcompile base commit... [0m[33mok (11s)
+[0m[33mapply [0m[33m9338203c4f03... [0m[33mok (11s)
+[0m[33mcompile target commit... [0m[33mok (18s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <drm/drm_crtc.h>
++#include <drm/drm_encoder.h>

@@ -1,0 +1,51 @@
+BUILD:
+[33mbase commit: da6b51d007da^1
+[0m[33mtarget commit: da6b51d007da
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/i915/i915_gem_execbuffer.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- include/drm/drm_gem.h
+9 source file(s) touched in the new version
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/i915/i915_gem_execbuffer.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- include/drm/drm_gem.h
+[33mcompile base commit... [0m[33mok (38s)
+[0m[33mapply [0m[33mda6b51d007da... [0m[33mok (38s)
+[0m[33mcompile target commit... [0m[33mok (55s)
+[0mPREPARE:
+[33mcollect AST for functions: radeon_bo_list_validate@drivers_gpu_drm_radeon_radeon_object.c,eb_lookup_vmas@drivers_gpu_drm_i915_i915_gem_execbuffer.c,i915_gem_mmap_gtt_ioctl@drivers_gpu_drm_i915_i915_gem.c,nouveau_display_dumb_map_offset@drivers_gpu_drm_nouveau_nouveau_display.c,driver@drivers_gpu_drm_i915_i915_drv.c,i915_gem_create_ioctl@drivers_gpu_drm_i915_i915_gem.c,nouveau_display_dumb_create@drivers_gpu_drm_nouveau_nouveau_display.c,radeon_mode_dumb_mmap@drivers_gpu_drm_radeon_radeon_gem.c,radeon_gem_mmap_ioctl@drivers_gpu_drm_radeon_radeon_gem.c,radeon_mode_dumb_create@drivers_gpu_drm_radeon_radeon_gem.c,validate_list@drivers_gpu_drm_nouveau_nouveau_gem.c,i915_gem_dumb_create@drivers_gpu_drm_i915_i915_gem.c,i915_gem_mmap_gtt@drivers_gpu_drm_i915_i915_gem.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m10s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-8, witnesses: 4
+@@
+expression E0;
+expression S1;
+@@
+- WARN_ONCE(E0, S1);
+//# pattern-2, witnesses: 2
+@@
+expression EC0;
+@@
+- i915_gem_create(file, dev, args->size, EC0, &args->handle)
++ i915_gem_create(file, dev, args->size, &args->handle)
+//# pattern-7, witnesses: 2
+@@
+expression E0;
+@@
+- E0->dumb = true;

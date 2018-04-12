@@ -1,0 +1,42 @@
+BUILD:
+[33mbase commit: bfd8303af0c4^1
+[0m[33mtarget commit: bfd8303af0c4
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_mixer.c
+`-- drivers/gpu/drm/gma500/accel_2d.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/gma500/psb_irq.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/mga/mga_irq.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.c
+`-- drivers/gpu/drm/radeon/radeon_irq.c
+`-- drivers/gpu/drm/sis/sis_mm.c
+`-- drivers/gpu/drm/via/via_dmablit.c
+`-- drivers/gpu/drm/via/via_irq.c
+`-- drivers/gpu/drm/via/via_video.c
+`-- include/drm/drm_os_linux.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_mixer.c
+`-- drivers/gpu/drm/gma500/accel_2d.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/gma500/psb_irq.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/mga/mga_irq.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.c
+`-- drivers/gpu/drm/radeon/radeon_irq.c
+`-- drivers/gpu/drm/sis/sis_mm.c
+`-- drivers/gpu/drm/via/via_dmablit.c
+`-- drivers/gpu/drm/via/via_irq.c
+`-- drivers/gpu/drm/via/via_video.c
+`-- include/drm/drm_os_linux.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33mbfd8303af0c4... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

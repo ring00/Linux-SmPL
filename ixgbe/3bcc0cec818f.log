@@ -1,0 +1,47 @@
+BUILD:
+[33mbase commit: 3bcc0cec818f^1
+[0m[33mtarget commit: 3bcc0cec818f
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/offload.c
+`-- include/net/pkt_cls.h
+`-- net/dsa/slave.c
+`-- net/sched/cls_api.c
+9 source file(s) touched in the new version
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/offload.c
+`-- include/net/pkt_cls.h
+`-- net/dsa/slave.c
+`-- net/sched/cls_api.c
+[33mcompile base commit... [0m[33mok (34s)
+[0m[33mapply [0m[33m3bcc0cec818f... [0m[33mok (34s)
+[0m[33mcompile target commit... [0m[33mok (58s)
+[0mPREPARE:
+[33mcollect AST for functions: fill_action_fields@drivers_net_ethernet_chelsio_cxgb4_cxgb4_tc_u32.c,tcf_exts_get_dev@net_sched_cls_api.c,mlxsw_sp_flower_parse_actions@drivers_net_ethernet_mellanox_mlxsw_spectrum_flower.c,parse_tc_fdb_actions@drivers_net_ethernet_mellanox_mlx5_core_en_tc.c,nfp_net_bpf_get_act@drivers_net_ethernet_netronome_nfp_bpf_offload.c,mlxsw_sp_port_add_cls_matchall@drivers_net_ethernet_mellanox_mlxsw_spectrum.c,parse_tc_actions@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,parse_tc_nic_actions@drivers_net_ethernet_mellanox_mlx5_core_en_tc.c,dsa_slave_add_cls_matchall@net_dsa_slave.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 7
+@@
+expression E0;
+statement S1;
+@@
+- if (tc_no_actions(E0)) { S1 }
++ if (!tcf_exts_has_actions(E0)) { S1 }
+//# pattern-1, witnesses: 3
+@@
+identifier PV0;
+@@
+- !tc_single_action(PV0->exts)
++ !tcf_exts_has_one_action(PV0->exts)

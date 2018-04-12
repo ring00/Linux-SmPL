@@ -1,0 +1,36 @@
+BUILD:
+[33mbase commit: 2ce0264d6154^1
+[0m[33mtarget commit: 2ce0264d6154
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_internal.h
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/nouveau/nouveau_abi16.c
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_drv.h
+7 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_internal.h
+`-- drivers/gpu/drm/drm_pci.c
+`-- drivers/gpu/drm/nouveau/nouveau_abi16.c
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_drv.h
+[33mcompile base commit... [0m[33mok (20s)
+[0m[33mapply [0m[33m2ce0264d6154... [0m[33mok (20s)
+[0m[33mcompile target commit... [0m[33mok (32s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_pci_agp_init@drivers_gpu_drm_drm_pci.c,radeon_cs_parser_relocs@drivers_gpu_drm_radeon_radeon_cs.c,radeon_driver_load_kms@drivers_gpu_drm_radeon_radeon_kms.c,nouveau_abi16_ioctl_getparam@drivers_gpu_drm_nouveau_nouveau_abi16.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 4
+@@
+expression E0;
+@@
+- drm_pci_device_is_agp(E0)
++ pci_find_capability(E0->pdev, PCI_CAP_ID_AGP)

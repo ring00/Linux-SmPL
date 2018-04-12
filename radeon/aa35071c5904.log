@@ -1,0 +1,38 @@
+BUILD:
+[33mbase commit: aa35071c5904^1
+[0m[33mtarget commit: aa35071c5904
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_execbuf_util.h
+7 source file(s) touched in the new version
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_execbuf_util.h
+[33mcompile base commit... [0m[33mok (17s)
+[0m[33mapply [0m[33maa35071c5904... [0m[33mok (17s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0mPREPARE:
+[33mcollect AST for functions: radeon_bo_list_validate@drivers_gpu_drm_radeon_radeon_object.c,vmw_resource_check_buffer@drivers_gpu_drm_vmwgfx_vmwgfx_resource.c,radeon_gem_va_update_vm@drivers_gpu_drm_radeon_radeon_gem.c,vmw_execbuf_process@drivers_gpu_drm_vmwgfx_vmwgfx_execbuf.c,ttm_eu_reserve_buffers@drivers_gpu_drm_ttm_ttm_execbuf_util.c,qxl_release_reserve_list@drivers_gpu_drm_qxl_qxl_release.c,__vmw_execbuf_release_pinned_bo@drivers_gpu_drm_vmwgfx_vmwgfx_execbuf.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 6
+@@
+expression E0;
+expression E1;
+expression E2;
+@@
+- ttm_eu_reserve_buffers(E0, E1, E2)
++ ttm_eu_reserve_buffers(E0, E1, E2, NULL)

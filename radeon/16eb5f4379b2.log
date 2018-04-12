@@ -1,0 +1,82 @@
+BUILD:
+[33mbase commit: 16eb5f4379b2^1
+[0m[33mtarget commit: 16eb5f4379b2
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m34 source file(s) touched in the old version
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.h
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.h
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_gem.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/udl/udl_drv.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- include/drm/drmP.h
+34 source file(s) touched in the new version
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_drv.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.h
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.h
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.h
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_gem.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/udl/udl_drv.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m16eb5f4379b2... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

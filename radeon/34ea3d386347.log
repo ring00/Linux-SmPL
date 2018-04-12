@@ -1,0 +1,110 @@
+BUILD:
+[33mbase commit: 34ea3d386347^1
+[0m[33mtarget commit: 34ea3d386347
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m48 source file(s) touched in the old version
+`-- drivers/gpu/drm/armada/armada_output.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/bridge/ptn3460.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_sysfs.c
+`-- drivers/gpu/drm/exynos/exynos_dp_core.c
+`-- drivers/gpu/drm/exynos/exynos_drm_connector.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dpi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dsi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_vidi.c
+`-- drivers/gpu/drm/exynos/exynos_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_crt.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_lvds.c
+`-- drivers/gpu/drm/gma500/mdfld_dsi_output.c
+`-- drivers/gpu/drm/gma500/oaktrail_hdmi.c
+`-- drivers/gpu/drm/gma500/oaktrail_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_dsi.c
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_hdmi.c
+`-- drivers/gpu/drm/i915/intel_lvds.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_tv.c
+`-- drivers/gpu/drm/mgag200/mgag200_mode.c
+`-- drivers/gpu/drm/msm/hdmi/hdmi_connector.c
+`-- drivers/gpu/drm/nouveau/nouveau_connector.c
+`-- drivers/gpu/drm/omapdrm/omap_connector.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/radeon/radeon_connectors.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_lvdscon.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_vgacon.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/tegra/output.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_panel.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_slave.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+`-- drivers/gpu/drm/udl/udl_connector.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+`-- drivers/staging/imx-drm/imx-drm-core.c
+`-- include/drm/drm_crtc.h
+48 source file(s) touched in the new version
+`-- drivers/gpu/drm/armada/armada_output.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/bridge/ptn3460.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_sysfs.c
+`-- drivers/gpu/drm/exynos/exynos_dp_core.c
+`-- drivers/gpu/drm/exynos/exynos_drm_connector.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dpi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dsi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_vidi.c
+`-- drivers/gpu/drm/exynos/exynos_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_crt.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_lvds.c
+`-- drivers/gpu/drm/gma500/mdfld_dsi_output.c
+`-- drivers/gpu/drm/gma500/oaktrail_hdmi.c
+`-- drivers/gpu/drm/gma500/oaktrail_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_dsi.c
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_hdmi.c
+`-- drivers/gpu/drm/i915/intel_lvds.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_tv.c
+`-- drivers/gpu/drm/mgag200/mgag200_mode.c
+`-- drivers/gpu/drm/msm/hdmi/hdmi_connector.c
+`-- drivers/gpu/drm/nouveau/nouveau_connector.c
+`-- drivers/gpu/drm/omapdrm/omap_connector.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/radeon/radeon_connectors.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_lvdscon.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_vgacon.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/tegra/output.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_panel.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_slave.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+`-- drivers/gpu/drm/udl/udl_connector.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+`-- drivers/staging/imx-drm/imx-drm-core.c
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (12s)
+[0m[33mapply [0m[33m34ea3d386347... [0m[33mok (12s)
+[0m[33mcompile target commit... [0m[33mok (15s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

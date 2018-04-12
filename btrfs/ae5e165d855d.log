@@ -1,0 +1,36 @@
+BUILD:
+[33mbase commit: ae5e165d855d^1
+[0m[33mtarget commit: ae5e165d855d
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m8 source file(s) touched in the old version
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/xattr.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/namei.c
+`-- fs/inode.c
+`-- include/linux/fs.h
+9 source file(s) touched in the new version
+`-- fs/btrfs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/xattr.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/namei.c
+`-- fs/inode.c
+`-- include/linux/fs.h
+`-- include/linux/iversion.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33mae5e165d855d... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <linux/fs.h>
++#include <linux/iversion.h>

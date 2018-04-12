@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 7cf321d118a8^1
+[0m[33mtarget commit: 7cf321d118a8
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/ast/ast_ttm.c
+`-- drivers/gpu/drm/cirrus/cirrus_ttm.c
+`-- drivers/gpu/drm/mgag200/mgag200_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+6 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/ast/ast_ttm.c
+`-- drivers/gpu/drm/cirrus/cirrus_ttm.c
+`-- drivers/gpu/drm/mgag200/mgag200_ttm.c
+`-- drivers/gpu/drm/nouveau/nouveau_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+[33mcompile base commit... [0m[33mok (22s)
+[0m[33mapply [0m[33m7cf321d118a8... [0m[33mok (22s)
+[0m[33mcompile target commit... [0m[33mok (39s)
+[0mPREPARE:
+[33mcollect AST for functions: ast_mm_fini@drivers_gpu_drm_ast_ast_ttm.c,mgag200_mm_init@drivers_gpu_drm_mgag200_mgag200_ttm.c,cirrus_mm_init@drivers_gpu_drm_cirrus_cirrus_ttm.c,mgag200_mm_fini@drivers_gpu_drm_mgag200_mgag200_ttm.c,amdgpu_bo_init@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,nouveau_ttm_init@drivers_gpu_drm_nouveau_nouveau_ttm.c,nouveau_ttm_fini@drivers_gpu_drm_nouveau_nouveau_ttm.c,radeon_bo_fini@drivers_gpu_drm_radeon_radeon_object.c,radeon_bo_init@drivers_gpu_drm_radeon_radeon_object.c,cirrus_mm_fini@drivers_gpu_drm_cirrus_cirrus_ttm.c,amdgpu_bo_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,ast_mm_init@drivers_gpu_drm_ast_ast_ttm.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

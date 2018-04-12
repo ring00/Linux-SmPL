@@ -1,0 +1,44 @@
+BUILD:
+[33mbase commit: bf2d1df39502^1
+[0m[33mtarget commit: bf2d1df39502
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m8 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+8 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+[33mcompile base commit... [0m[33mok (32s)
+[0m[33mapply [0m[33mbf2d1df39502... [0m[33mok (32s)
+[0m[33mcompile target commit... [0m[33mok (59s)
+[0mPREPARE:
+[33mcollect AST for functions: igbvf_probe@drivers_net_ethernet_intel_igbvf_netdev.c,i40e_tso@drivers_net_ethernet_intel_i40evf_i40e_txrx.c,i40e_tso@drivers_net_ethernet_intel_i40e_i40e_txrx.c,i40evf_process_config@drivers_net_ethernet_intel_i40evf_i40evf_main.c,ixgbevf_probe@drivers_net_ethernet_intel_ixgbevf_ixgbevf_main.c,ixgbe_probe@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,igb_probe@drivers_net_ethernet_intel_igb_igb_main.c,i40e_config_netdev@drivers_net_ethernet_intel_i40e_i40e_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+expression E0;
+@@
+- SKB_GSO_GRE | SKB_GSO_GRE_CSUM | SKB_GSO_IPXIP4 | E0
++ SKB_GSO_GRE | SKB_GSO_GRE_CSUM | SKB_GSO_IPXIP4 | SKB_GSO_IPXIP6 | E0
+//# pattern-2, witnesses: 2
+@@
+expression E0;
+@@
+- NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM | NETIF_F_HIGHDMA | NETIF_F_SOFT_FEATURES | NETIF_F_TSO | NETIF_F_TSO_ECN | NETIF_F_TSO6 | NETIF_F_GSO_GRE | NETIF_F_GSO_GRE_CSUM | NETIF_F_GSO_IPXIP4 | E0
++ NETIF_F_SG | NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM | NETIF_F_HIGHDMA | NETIF_F_SOFT_FEATURES | NETIF_F_TSO | NETIF_F_TSO_ECN | NETIF_F_TSO6 | NETIF_F_GSO_GRE | NETIF_F_GSO_GRE_CSUM | NETIF_F_GSO_IPXIP4 | NETIF_F_GSO_IPXIP6 | E0

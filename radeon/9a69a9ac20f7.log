@@ -1,0 +1,127 @@
+BUILD:
+[33mbase commit: 9a69a9ac20f7^1
+[0m[33mtarget commit: 9a69a9ac20f7
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m19 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_atomic_helper.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/nouveau/nouveau_connector.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- drivers/gpu/drm/tegra/dsi.c
+`-- drivers/gpu/drm/tegra/hdmi.c
+`-- drivers/gpu/drm/tegra/rgb.c
+`-- drivers/gpu/drm/tegra/sor.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+`-- include/drm/drm_atomic_helper.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_crtc_helper.h
+19 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_atomic_helper.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/nouveau/nouveau_connector.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- drivers/gpu/drm/tegra/dsi.c
+`-- drivers/gpu/drm/tegra/hdmi.c
+`-- drivers/gpu/drm/tegra/rgb.c
+`-- drivers/gpu/drm/tegra/sor.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.h
+`-- include/drm/drm_atomic_helper.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_crtc_helper.h
+[33mcompile base commit... [0m[33mok (74s)
+[0m[33mapply [0m[33m9a69a9ac20f7... [0m[33mok (74s)
+[0m[33mcompile target commit... [0m[33mok (113s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_atomic_helper_connector_dpms@drivers_gpu_drm_drm_atomic_helper.c,intel_connector_dpms@drivers_gpu_drm_i915_intel_display.c,intel_crt_dpms@drivers_gpu_drm_i915_intel_crt.c,drm_mode_connector_set_obj_prop@drivers_gpu_drm_drm_crtc.c,vmw_du_connector_dpms@drivers_gpu_drm_vmwgfx_vmwgfx_kms.c,nouveau_connector_dp_dpms@drivers_gpu_drm_nouveau_nouveau_connector.c,tegra_hdmi_connector_dpms@drivers_gpu_drm_tegra_hdmi.c,intel_sdvo_dpms@drivers_gpu_drm_i915_intel_sdvo.c,intel_dvo_dpms@drivers_gpu_drm_i915_intel_dvo.c,tegra_dsi_connector_dpms@drivers_gpu_drm_tegra_dsi.c,radeon_connector_dpms@drivers_gpu_drm_radeon_radeon_dp_mst.c,tegra_rgb_connector_dpms@drivers_gpu_drm_tegra_rgb.c,tegra_sor_connector_dpms@drivers_gpu_drm_tegra_sor.c,drm_helper_connector_dpms@drivers_gpu_drm_drm_crtc_helper.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m14s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 8
+@r0@
+identifier i, fn;
+@@
+struct drm_connector_funcs i = {
+    .dpms = fn,
+};
+@@
+identifier connector;
+identifier mode;
+identifier r0.fn;
+@@
+- void fn(struct drm_connector * connector, int mode)
++ int fn(struct drm_connector * connector, int mode)
+ {
+     ...
++ return 0;
+ }
+//# pattern-2, witnesses: 6
+@r1@
+identifier i, fn;
+@@
+struct drm_connector_funcs i = {
+    .dpms = fn,
+};
+@@
+identifier connector;
+identifier mode;
+identifier r1.fn;
+@@
+ int fn(struct drm_connector * connector, int mode)
+ {
+     <...
+- return;
++ return 0;
+     ...>
+ }
+//# pattern-6, witnesses: 4
+@r2@
+identifier i, fn;
+@@
+struct drm_connector_funcs i = {
+    .dpms = fn,
+};
+@@
+identifier connector;
+identifier mode;
+identifier r2.fn;
+@@
+ int fn(struct drm_connector * connector, int mode)
+ {
+     <...
+- return;
++ return 0;
+     ...>
+ }
+//# pattern-4, witnesses: 2
+@r3@
+identifier i, fn;
+@@
+struct drm_connector_funcs i = {
+    .dpms = fn,
+};
+@@
+identifier connector;
+identifier mode;
+identifier r3.fn;
+@@
+ int fn(struct drm_connector * connector, int mode)
+ {
+     ...
++ return 0;
+ }

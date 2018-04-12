@@ -1,0 +1,134 @@
+BUILD:
+[33mbase commit: fd50ecaddf83^1
+[0m[33mtarget commit: fd50ecaddf83
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m55 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/staging/lustre/lustre/llite/namei.c
+`-- drivers/staging/lustre/lustre/llite/symlink.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/dir.c
+`-- fs/ceph/inode.c
+`-- fs/cifs/cifsfs.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ext2/file.c
+`-- fs/ext2/namei.c
+`-- fs/ext2/symlink.c
+`-- fs/ext4/file.c
+`-- fs/ext4/namei.c
+`-- fs/ext4/symlink.c
+`-- fs/f2fs/file.c
+`-- fs/f2fs/namei.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/dir.c
+`-- fs/hfsplus/inode.c
+`-- fs/jffs2/dir.c
+`-- fs/jffs2/file.c
+`-- fs/jffs2/symlink.c
+`-- fs/jfs/file.c
+`-- fs/jfs/namei.c
+`-- fs/jfs/symlink.c
+`-- fs/kernfs/dir.c
+`-- fs/kernfs/inode.c
+`-- fs/kernfs/symlink.c
+`-- fs/nfs/nfs3proc.c
+`-- fs/nfs/nfs4proc.c
+`-- fs/ocfs2/file.c
+`-- fs/ocfs2/namei.c
+`-- fs/ocfs2/symlink.c
+`-- fs/orangefs/inode.c
+`-- fs/orangefs/namei.c
+`-- fs/orangefs/symlink.c
+`-- fs/overlayfs/dir.c
+`-- fs/overlayfs/inode.c
+`-- fs/reiserfs/file.c
+`-- fs/reiserfs/namei.c
+`-- fs/squashfs/inode.c
+`-- fs/squashfs/namei.c
+`-- fs/squashfs/symlink.c
+`-- fs/squashfs/xattr.h
+`-- fs/ubifs/dir.c
+`-- fs/ubifs/file.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+`-- net/socket.c
+55 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/staging/lustre/lustre/llite/namei.c
+`-- drivers/staging/lustre/lustre/llite/symlink.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/dir.c
+`-- fs/ceph/inode.c
+`-- fs/cifs/cifsfs.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ext2/file.c
+`-- fs/ext2/namei.c
+`-- fs/ext2/symlink.c
+`-- fs/ext4/file.c
+`-- fs/ext4/namei.c
+`-- fs/ext4/symlink.c
+`-- fs/f2fs/file.c
+`-- fs/f2fs/namei.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/dir.c
+`-- fs/hfsplus/inode.c
+`-- fs/jffs2/dir.c
+`-- fs/jffs2/file.c
+`-- fs/jffs2/symlink.c
+`-- fs/jfs/file.c
+`-- fs/jfs/namei.c
+`-- fs/jfs/symlink.c
+`-- fs/kernfs/dir.c
+`-- fs/kernfs/inode.c
+`-- fs/kernfs/symlink.c
+`-- fs/nfs/nfs3proc.c
+`-- fs/nfs/nfs4proc.c
+`-- fs/ocfs2/file.c
+`-- fs/ocfs2/namei.c
+`-- fs/ocfs2/symlink.c
+`-- fs/orangefs/inode.c
+`-- fs/orangefs/namei.c
+`-- fs/orangefs/symlink.c
+`-- fs/overlayfs/dir.c
+`-- fs/overlayfs/inode.c
+`-- fs/reiserfs/file.c
+`-- fs/reiserfs/namei.c
+`-- fs/squashfs/inode.c
+`-- fs/squashfs/namei.c
+`-- fs/squashfs/symlink.c
+`-- fs/squashfs/xattr.h
+`-- fs/ubifs/dir.c
+`-- fs/ubifs/file.c
+`-- fs/xattr.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+`-- net/socket.c
+[33mcompile base commit... [0m[33mok (88s)
+[0m[33mapply [0m[33mfd50ecaddf83... [0m[33mok (88s)
+[0m[33mcompile target commit... [0m[33mok (156s)
+[0mPREPARE:
+[33mcollect AST for functions: fuse_dir_inode_operations@fs_fuse_dir.c,hfsplus_file_inode_operations@fs_hfsplus_inode.c,v9fs_symlink_inode_operations_dotl@fs_9p_vfs_inode_dotl.c,jfs_symlink_inode_operations@fs_jfs_symlink.c,ceph_symlink_iops@fs_ceph_inode.c,ext2_symlink_inode_operations@fs_ext2_symlink.c,jffs2_symlink_inode_operations@fs_jffs2_symlink.c,v9fs_file_inode_operations_dotl@fs_9p_vfs_inode_dotl.c,btrfs_symlink_inode_operations@fs_btrfs_inode.c,f2fs_file_inode_operations@fs_f2fs_file.c,jfs_file_inode_operations@fs_jfs_file.c,btrfs_file_inode_operations@fs_btrfs_inode.c,ll_special_inode_operations@drivers_staging_lustre_lustre_llite_namei.c,hfsplus_dir_inode_operations@fs_hfsplus_dir.c,fuse_common_inode_operations@fs_fuse_dir.c,ext4_encrypted_symlink_inode_operations@fs_ext4_symlink.c,ovl_dir_inode_operations@fs_overlayfs_dir.c,ceph_file_iops@fs_ceph_inode.c,ecryptfs_main_iops@fs_ecryptfs_inode.c,kernfs_symlink_iops@fs_kernfs_symlink.c,jfs_fast_symlink_inode_operations@fs_jfs_symlink.c,gfs2_symlink_iops@fs_gfs2_inode.c,ecryptfs_symlink_iops@fs_ecryptfs_inode.c,f2fs_symlink_inode_operations@fs_f2fs_namei.c,cifs_symlink_inode_ops@fs_cifs_cifsfs.c,ext4_fast_symlink_inode_operations@fs_ext4_symlink.c,ext2_dir_inode_operations@fs_ext2_namei.c,jffs2_dir_inode_operations@fs_jffs2_dir.c,gfs2_file_iops@fs_gfs2_inode.c,gfs2_dir_iops@fs_gfs2_inode.c,ext4_special_inode_operations@fs_ext4_namei.c,nfs3_dir_inode_operations@fs_nfs_nfs3proc.c,btrfs_dir_inode_operations@fs_btrfs_inode.c,ceph_dir_iops@fs_ceph_dir.c,ll_file_inode_operations@drivers_staging_lustre_lustre_llite_file.c,orangefs_dir_inode_operations@fs_orangefs_namei.c,fuse_symlink_inode_operations@fs_fuse_dir.c,ocfs2_symlink_inode_operations@fs_ocfs2_symlink.c,ext4_dir_inode_operations@fs_ext4_namei.c,ocfs2_dir_iops@fs_ocfs2_namei.c,f2fs_special_inode_operations@fs_f2fs_namei.c,kernfs_iops@fs_kernfs_inode.c,jffs2_file_inode_operations@fs_jffs2_file.c,ll_dir_inode_operations@drivers_staging_lustre_lustre_llite_namei.c,nfs3_file_inode_operations@fs_nfs_nfs3proc.c,btrfs_special_inode_operations@fs_btrfs_inode.c,ext4_file_inode_operations@fs_ext4_file.c,ext2_special_inode_operations@fs_ext2_namei.c,orangefs_symlink_inode_operations@fs_orangefs_symlink.c,f2fs_dir_inode_operations@fs_f2fs_namei.c,ext4_symlink_inode_operations@fs_ext4_symlink.c,ll_fast_symlink_inode_operations@drivers_staging_lustre_lustre_llite_symlink.c,f2fs_encrypted_symlink_inode_operations@fs_f2fs_namei.c,ext2_fast_symlink_inode_operations@fs_ext2_symlink.c,v9fs_dir_inode_operations_dotl@fs_9p_vfs_inode_dotl.c,orangefs_file_inode_operations@fs_orangefs_inode.c,cifs_dir_inode_ops@fs_cifs_cifsfs.c,ext2_file_inode_operations@fs_ext2_file.c,ecryptfs_dir_iops@fs_ecryptfs_inode.c,hfs_file_inode_operations@fs_hfs_inode.c,cifs_file_inode_ops@fs_cifs_cifsfs.c,ocfs2_file_iops@fs_ocfs2_file.c,nfs4_dir_inode_operations@fs_nfs_nfs4proc.c,kernfs_dir_iops@fs_kernfs_dir.c,nfs4_file_inode_operations@fs_nfs_nfs4proc.c,jfs_dir_inode_operations@fs_jfs_namei.c
+[0m[33m0s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 64
+@@
+identifier s;
+@@
+ const struct inode_operations s = {
+-    .setxattr = generic_setxattr,
+-    .getxattr = generic_getxattr,
+-    .removexattr = generic_removexattr,
+ };

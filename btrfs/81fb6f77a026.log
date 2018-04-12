@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 81fb6f77a026^1
+[0m[33mtarget commit: 81fb6f77a026
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/qgroup.h
+`-- include/trace/events/btrfs.h
+3 source file(s) touched in the new version
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/qgroup.h
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (13s)
+[0m[33mapply [0m[33m81fb6f77a026... [0m[33mok (13s)
+[0m[33mcompile target commit... [0m[33mok (22s)
+[0mPREPARE:
+[33mcollect AST for functions: __btrfs_qgroup_release_data@fs_btrfs_qgroup.c,btrfs_qgroup_free_delayed_ref@fs_btrfs_qgroup.h,btrfs_qgroup_reserve_data@fs_btrfs_qgroup.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m1s
+[0mANALYZE:
+COCCIGEN:

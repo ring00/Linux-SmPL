@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: 8a4c1e42e0eb^1
+[0m[33mtarget commit: 8a4c1e42e0eb
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/inode.c
+`-- fs/direct-io.c
+`-- include/linux/fs.h
+3 source file(s) touched in the new version
+`-- fs/btrfs/inode.c
+`-- fs/direct-io.c
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (180s)
+[0m[33mapply [0m[33m8a4c1e42e0eb... [0m[33mok (180s)
+[0m[33mcompile target commit... [0m[33mok (263s)
+[0mPREPARE:
+[33mcollect AST for functions: dio_bio_submit@fs_direct-io.c,dio_complete@fs_direct-io.c,do_direct_IO@fs_direct-io.c,btrfs_submit_direct@fs_btrfs_inode.c,dio_bio_complete@fs_direct-io.c,dio_refill_pages@fs_direct-io.c,submit_page_section@fs_direct-io.c,do_blockdev_direct_IO@fs_direct-io.c,get_more_blocks@fs_direct-io.c,dio_bio_alloc@fs_direct-io.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m14s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 5
+@@
+@@
+- dio->rw & WRITE
++ dio->op == REQ_OP_WRITE
+//# pattern-5, witnesses: 4
+@@
+@@
+- dio->rw == READ
++ dio->op == REQ_OP_READ

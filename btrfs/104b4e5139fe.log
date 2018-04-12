@@ -1,0 +1,44 @@
+BUILD:
+[33mbase commit: 104b4e5139fe^1
+[0m[33mtarget commit: 104b4e5139fe
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m11 source file(s) touched in the old version
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/xfs/xfs_mount.c
+`-- include/linux/backing-dev.h
+`-- include/linux/blk-cgroup.h
+`-- include/linux/mman.h
+`-- include/linux/percpu_counter.h
+`-- include/net/inet_frag.h
+`-- lib/flex_proportions.c
+`-- lib/percpu_counter.c
+11 source file(s) touched in the new version
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/xfs/xfs_mount.c
+`-- include/linux/backing-dev.h
+`-- include/linux/blk-cgroup.h
+`-- include/linux/mman.h
+`-- include/linux/percpu_counter.h
+`-- include/net/inet_frag.h
+`-- lib/flex_proportions.c
+`-- lib/percpu_counter.c
+[33mcompile base commit... [0m[33mok (25s)
+[0m[33mapply [0m[33m104b4e5139fe... [0m[33mok (25s)
+[0m[33mcompile target commit... [0m[33mok (44s)
+[0mPREPARE:
+[33mcollect AST for functions: xfs_mod_fdblocks@fs_xfs_xfs_mount.c,__fprop_inc_percpu_max@lib_flex_proportions.c,percpu_counter_add@include_linux_percpu_counter.h,blkg_rwstat_add@include_linux_blk-cgroup.h,lock_extent_buffer_for_io@fs_btrfs_extent_io.c,blkg_stat_add@include_linux_blk-cgroup.h,clean_tree_block@fs_btrfs_disk-io.c,btrfs_clear_bit_hook@fs_btrfs_inode.c,__fprop_inc_percpu@lib_flex_proportions.c,btrfs_mark_buffer_dirty@fs_btrfs_disk-io.c,xfs_mod_icount@fs_xfs_xfs_mount.c,btrfs_set_bit_hook@fs_btrfs_inode.c,__add_wb_stat@include_linux_backing-dev.h,fprop_reflect_period_percpu@lib_flex_proportions.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 10
+@@
+expression list listE0;
+@@
+- __percpu_counter_add(listE0)
++ percpu_counter_add_batch(listE0)

@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: c2659479f786^1
+[0m[33mtarget commit: c2659479f786
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m6 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_dcb.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_dcb.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_dcb_nl.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_dcb.c
+`-- include/net/dcbnl.h
+`-- net/dcb/dcbnl.c
+6 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_dcb.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_dcb.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_dcb_nl.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_dcb.c
+`-- include/net/dcbnl.h
+`-- net/dcb/dcbnl.c
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33mc2659479f786... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

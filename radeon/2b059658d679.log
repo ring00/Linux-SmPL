@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: 2b059658d679^1
+[0m[33mtarget commit: 2b059658d679
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m4 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+4 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33m2b059658d679... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (28s)
+[0mPREPARE:
+[33mcollect AST for functions: amdgpu_cik_support@drivers_gpu_drm_amd_amdgpu_amdgpu_drv.c,radeon_driver_load_kms@drivers_gpu_drm_radeon_radeon_kms.c,radeon_cik_support@drivers_gpu_drm_radeon_radeon_drv.c,amdgpu_driver_load_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

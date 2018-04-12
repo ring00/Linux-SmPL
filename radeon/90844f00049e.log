@@ -1,0 +1,56 @@
+BUILD:
+[33mbase commit: 90844f00049e^1
+[0m[33mtarget commit: 90844f00049e
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_fourcc.c
+`-- drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/intel_atomic_plane.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/radeon/atombios_crtc.c
+`-- include/drm/drm_fourcc.h
+12 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_fourcc.c
+`-- drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/intel_atomic_plane.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/radeon/atombios_crtc.c
+`-- include/drm/drm_fourcc.h
+[33mcompile base commit... [0m[33mok (39s)
+[0m[33mapply [0m[33m90844f00049e... [0m[33mok (39s)
+[0m[33mcompile target commit... [0m[33mok (73s)
+[0mPREPARE:
+[33mcollect AST for functions: intel_dump_pipe_config@drivers_gpu_drm_i915_intel_display.c,dce_v11_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v11_0.c,intel_framebuffer_init@drivers_gpu_drm_i915_intel_display.c,drm_mode_setcrtc@drivers_gpu_drm_drm_crtc.c,__setplane_internal@drivers_gpu_drm_drm_crtc.c,format_check@drivers_gpu_drm_drm_crtc.c,framebuffer_check@drivers_gpu_drm_drm_crtc.c,drm_atomic_plane_check@drivers_gpu_drm_drm_atomic.c,drm_fb_get_bpp_depth@drivers_gpu_drm_drm_fourcc.c,avivo_crtc_do_set_base@drivers_gpu_drm_radeon_atombios_crtc.c,drm_get_format_name@drivers_gpu_drm_drm_fourcc.c,dce4_crtc_do_set_base@drivers_gpu_drm_radeon_atombios_crtc.c,dce_v10_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v10_0.c,ade_rdma_set@drivers_gpu_drm_hisilicon_kirin_kirin_drm_ade.c,dce_v8_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v8_0.c,intel_plane_info@drivers_gpu_drm_i915_i915_debugfs.c,intel_plane_atomic_check@drivers_gpu_drm_i915_intel_atomic_plane.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m8s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: DoStmt
+unknown kind: DoStmt
+unknown kind: DoStmt
+unknown kind: DoStmt
+//# pattern-1, witnesses: 4
+@@
+expression E0;
+@@
++ const char * format_name = drm_get_format_name(E0->pixel_format);
++ kfree(format_name);
+//# pattern-4, witnesses: 2
+@@
+@@
++ const char * format_name = format_name;
++ format_name = drm_get_format_name(fb->pixel_format);
++ kfree(format_name);

@@ -1,0 +1,59 @@
+BUILD:
+[33mbase commit: 326e1dbb5736^1
+[0m[33mtarget commit: 326e1dbb5736
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- block/bio-integrity.c
+`-- block/bio.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/linux/bio.h
+12 source file(s) touched in the new version
+`-- block/bio-integrity.c
+`-- block/bio.c
+`-- drivers/md/bcache/io.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/linux/bio.h
+[33mcompile base commit... [0m[33mok (24s)
+[0m[33mapply [0m[33m326e1dbb5736... [0m[33mok (24s)
+[0m[33mcompile target commit... [0m[33mok (45s)
+[0mPREPARE:
+[33mcollect AST for functions: pending_complete@drivers_md_dm-snap.c,bio_integrity_endio@block_bio-integrity.c,bio_integrity_verify_fn@block_bio-integrity.c,bbio_error@fs_btrfs_volumes.c,bch_bio_submit_split_done@drivers_md_bcache_io.c,btrfs_end_bbio@fs_btrfs_volumes.c,mirror_end_io@drivers_md_dm-raid1.c,end_workqueue_fn@fs_btrfs_disk-io.c,btrfs_end_bio@fs_btrfs_volumes.c,process_prepared_mapping_fail@drivers_md_dm-thin.c,dm_unhook_bio@drivers_md_dm-cache-target.c,verity_finish_io@drivers_md_dm-verity.c,btrfs_map_bio@fs_btrfs_volumes.c,process_prepared_mapping@drivers_md_dm-thin.c,bio_remaining_done@block_bio.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 5
+@@
+expression E0;
+@@
+- bio_inc_remaining(E0);
+//# pattern-6, witnesses: 5
+@@
+expression list listE0;
+@@
+- bio_endio_nodec(listE0)
++ bio_endio(listE0)
+//# pattern-3, witnesses: 2
+@@
+@@
+- bio->bi_end_io = bbio->end_io;
+//# pattern-4, witnesses: 2
+@@
+@@
+- bio->bi_private = bbio->private;

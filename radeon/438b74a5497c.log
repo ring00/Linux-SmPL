@@ -1,0 +1,136 @@
+BUILD:
+[33mbase commit: 438b74a5497c^1
+[0m[33mtarget commit: 438b74a5497c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m54 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/arc/arcpgu_crtc.c
+`-- drivers/gpu/drm/arm/hdlcd_crtc.c
+`-- drivers/gpu/drm/arm/malidp_planes.c
+`-- drivers/gpu/drm/armada/armada_crtc.c
+`-- drivers/gpu/drm/armada/armada_overlay.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_modeset_helper.c
+`-- drivers/gpu/drm/drm_plane.c
+`-- drivers/gpu/drm/exynos/exynos5433_drm_decon.c
+`-- drivers/gpu/drm/exynos/exynos7_drm_decon.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fimd.c
+`-- drivers/gpu/drm/exynos/exynos_mixer.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_plane.c
+`-- drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/intel_atomic_plane.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/i915/intel_pm.c
+`-- drivers/gpu/drm/i915/intel_sprite.c
+`-- drivers/gpu/drm/imx/ipuv3-plane.c
+`-- drivers/gpu/drm/mediatek/mtk_drm_plane.c
+`-- drivers/gpu/drm/meson/meson_plane.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
+`-- drivers/gpu/drm/msm/msm_fb.c
+`-- drivers/gpu/drm/mxsfb/mxsfb_crtc.c
+`-- drivers/gpu/drm/nouveau/dispnv04/overlay.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/radeon/atombios_crtc.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_plane.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_plane.c
+`-- drivers/gpu/drm/sti/sti_gdp.c
+`-- drivers/gpu/drm/sti/sti_hqvdp.c
+`-- drivers/gpu/drm/sun4i/sun4i_backend.c
+`-- drivers/gpu/drm/tegra/dc.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_plane.c
+`-- drivers/gpu/drm/vc4/vc4_plane.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+`-- drivers/gpu/drm/zte/zx_plane.c
+`-- include/drm/drm_framebuffer.h
+54 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/arc/arcpgu_crtc.c
+`-- drivers/gpu/drm/arm/hdlcd_crtc.c
+`-- drivers/gpu/drm/arm/malidp_planes.c
+`-- drivers/gpu/drm/armada/armada_crtc.c
+`-- drivers/gpu/drm/armada/armada_overlay.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_plane.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_modeset_helper.c
+`-- drivers/gpu/drm/drm_plane.c
+`-- drivers/gpu/drm/exynos/exynos5433_drm_decon.c
+`-- drivers/gpu/drm/exynos/exynos7_drm_decon.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fimd.c
+`-- drivers/gpu/drm/exynos/exynos_mixer.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_plane.c
+`-- drivers/gpu/drm/hisilicon/kirin/kirin_drm_ade.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/intel_atomic_plane.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/i915/intel_pm.c
+`-- drivers/gpu/drm/i915/intel_sprite.c
+`-- drivers/gpu/drm/imx/ipuv3-plane.c
+`-- drivers/gpu/drm/mediatek/mtk_drm_plane.c
+`-- drivers/gpu/drm/meson/meson_plane.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_plane.c
+`-- drivers/gpu/drm/msm/msm_fb.c
+`-- drivers/gpu/drm/mxsfb/mxsfb_crtc.c
+`-- drivers/gpu/drm/nouveau/dispnv04/overlay.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/radeon/atombios_crtc.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_plane.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_vsp.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_vop.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_plane.c
+`-- drivers/gpu/drm/sti/sti_gdp.c
+`-- drivers/gpu/drm/sti/sti_hqvdp.c
+`-- drivers/gpu/drm/sun4i/sun4i_backend.c
+`-- drivers/gpu/drm/tegra/dc.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_crtc.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_plane.c
+`-- drivers/gpu/drm/vc4/vc4_plane.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fb.c
+`-- drivers/gpu/drm/zte/zx_plane.c
+`-- include/drm/drm_framebuffer.h
+[33mcompile base commit... [0m[33mok (83s)
+[0m[33mapply [0m[33m438b74a5497c... [0m[33mok (83s)
+[0m[33mcompile target commit... [0m[33mok (159s)
+[0mPREPARE:
+[33mcollect AST for functions: dce_v11_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v11_0.c,mixer_graph_buffer@drivers_gpu_drm_exynos_exynos_mixer.c,mtk_plane_atomic_update@drivers_gpu_drm_mediatek_mtk_drm_plane.c,nv50_curs_acquire@drivers_gpu_drm_nouveau_nv50_display.c,drm_crtc_helper_set_config@drivers_gpu_drm_drm_crtc_helper.c,ade_update_channel@drivers_gpu_drm_hisilicon_kirin_kirin_drm_ade.c,decon_win_set_pixfmt@drivers_gpu_drm_exynos_exynos7_drm_decon.c,update_colorkey@drivers_gpu_drm_i915_intel_overlay.c,malidp_de_plane_check@drivers_gpu_drm_arm_malidp_planes.c,armada_ovl_plane_update@drivers_gpu_drm_armada_armada_overlay.c,skylake_update_primary_plane@drivers_gpu_drm_i915_intel_display.c,skl_check_plane_surface@drivers_gpu_drm_i915_intel_display.c,hdlcd_set_pxl_fmt@drivers_gpu_drm_arm_hdlcd_crtc.c,vp_video_buffer@drivers_gpu_drm_exynos_exynos_mixer.c,drm_plane_state_to_ubo@drivers_gpu_drm_imx_ipuv3-plane.c,skl_compute_plane_wm@drivers_gpu_drm_i915_intel_pm.c,i9xx_update_primary_plane@drivers_gpu_drm_i915_intel_display.c,ironlake_update_primary_plane@drivers_gpu_drm_i915_intel_display.c,omap_framebuffer_describe@drivers_gpu_drm_omapdrm_omap_fb.c,i9xx_get_initial_plane_config@drivers_gpu_drm_i915_intel_display.c,atmel_hlcdc_plane_update_format@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_plane.c,msm_framebuffer_describe@drivers_gpu_drm_msm_msm_fb.c,dce_v6_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v6_0.c,skl_plane_stride@drivers_gpu_drm_i915_intel_display.c,atmel_hlcdc_plane_atomic_check@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_plane.c,ade_plane_atomic_check@drivers_gpu_drm_hisilicon_kirin_kirin_drm_ade.c,dce4_crtc_do_set_base@drivers_gpu_drm_radeon_atombios_crtc.c,vlv_update_plane@drivers_gpu_drm_i915_intel_sprite.c,drm_mode_page_flip_ioctl@drivers_gpu_drm_drm_plane.c,atmel_hlcdc_plane_prepare_disc_area@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_plane.c,__setplane_internal@drivers_gpu_drm_drm_plane.c,skl_plane_relative_data_rate@drivers_gpu_drm_i915_intel_pm.c,mxsfb_set_pixel_fmt@drivers_gpu_drm_mxsfb_mxsfb_crtc.c,intel_alloc_initial_plane_obj@drivers_gpu_drm_i915_intel_display.c,intel_compute_tile_offset@drivers_gpu_drm_i915_intel_display.c,skl_update_scaler_plane@drivers_gpu_drm_i915_intel_display.c,atmel_hlcdc_plane_update_general_settings@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_plane.c,rcar_du_plane_atomic_check@drivers_gpu_drm_rcar-du_rcar_du_plane.c,drm_atomic_plane_print_state@drivers_gpu_drm_drm_atomic.c,intel_fbdev_init_bios@drivers_gpu_drm_i915_intel_fbdev.c,arc_pgu_set_pxl_fmt@drivers_gpu_drm_arc_arcpgu_crtc.c,armada_drm_crtc_page_flip@drivers_gpu_drm_armada_armada_crtc.c,nv50_base_acquire@drivers_gpu_drm_nouveau_nv50_display.c,fimd_update_plane@drivers_gpu_drm_exynos_exynos_drm_fimd.c,nv10_update_plane@drivers_gpu_drm_nouveau_dispnv04_overlay.c,fsl_dcu_drm_plane_atomic_check@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_plane.c,drm_atomic_plane_check@drivers_gpu_drm_drm_atomic.c,drm_plane_state_to_vbo@drivers_gpu_drm_imx_ipuv3-plane.c,intel_check_sprite_plane@drivers_gpu_drm_i915_intel_sprite.c,decon_win_set_pixfmt@drivers_gpu_drm_exynos_exynos5433_drm_decon.c,drm_helper_mode_fill_fb_struct@drivers_gpu_drm_drm_modeset_helper.c,drm_fb_cma_describe@drivers_gpu_drm_drm_fb_cma_helper.c,ade_rdma_set@drivers_gpu_drm_hisilicon_kirin_kirin_drm_ade.c,skylake_get_initial_plane_config@drivers_gpu_drm_i915_intel_display.c,intel_plane_info@drivers_gpu_drm_i915_i915_debugfs.c,ipu_plane_atomic_update@drivers_gpu_drm_imx_ipuv3-plane.c,intel_plane_atomic_check@drivers_gpu_drm_i915_intel_atomic_plane.c,meson_plane_atomic_update@drivers_gpu_drm_meson_meson_plane.c,skl_update_plane@drivers_gpu_drm_i915_intel_sprite.c,intel_crtc_page_flip@drivers_gpu_drm_i915_intel_display.c,avivo_crtc_do_set_base@drivers_gpu_drm_radeon_atombios_crtc.c,drm_mode_setcrtc@drivers_gpu_drm_drm_crtc.c,nv04_update_plane@drivers_gpu_drm_nouveau_dispnv04_overlay.c,ironlake_get_initial_plane_config@drivers_gpu_drm_i915_intel_display.c,ilk_update_plane@drivers_gpu_drm_i915_intel_sprite.c,ivb_update_plane@drivers_gpu_drm_i915_intel_sprite.c,ipu_plane_atomic_check@drivers_gpu_drm_imx_ipuv3-plane.c,skl_ddb_min_alloc@drivers_gpu_drm_i915_intel_pm.c,dce_v10_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v10_0.c,intel_dump_pipe_config@drivers_gpu_drm_i915_intel_display.c,dce_v8_0_crtc_do_set_base@drivers_gpu_drm_amd_amdgpu_dce_v8_0.c,fsl_dcu_drm_plane_atomic_update@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_plane.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m15s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 96
+@@
+expression E0;
+@@
+- E0->pixel_format
++ E0->format->format
+//# pattern-4, witnesses: 2
+@@
+@@
+- fb->pixel_format = fourcc;
+- aligned_height = intel_fb_align_height(dev, fb->height, fb->pixel_format, fb->modifier);
++ aligned_height = intel_fb_align_height(dev, fb->height, fb->format->format, fb->modifier);

@@ -1,0 +1,76 @@
+BUILD:
+[33mbase commit: 7e13318daa4a^1
+[0m[33mtarget commit: 7e13318daa4a
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m19 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/netdev_features.h
+`-- include/linux/netdevice.h
+`-- include/linux/skbuff.h
+`-- net/core/ethtool.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/ipip.c
+`-- net/ipv6/ip6_offload.c
+`-- net/ipv6/sit.c
+`-- net/netfilter/ipvs/ip_vs_xmit.c
+19 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/i40e/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40e_txrx.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/netdev_features.h
+`-- include/linux/netdevice.h
+`-- include/linux/skbuff.h
+`-- net/core/ethtool.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/ipip.c
+`-- net/ipv6/ip6_offload.c
+`-- net/ipv6/sit.c
+`-- net/netfilter/ipvs/ip_vs_xmit.c
+[33mcompile base commit... [0m[33mok (52s)
+[0m[33mapply [0m[33m7e13318daa4a... [0m[33mok (52s)
+[0m[33mcompile target commit... [0m[33mok (100s)
+[0mPREPARE:
+[33mcollect AST for functions: igbvf_probe@drivers_net_ethernet_intel_igbvf_netdev.c,__tun_gso_type_mask@net_netfilter_ipvs_ip_vs_xmit.c,ipip_tunnel_xmit@net_ipv6_sit.c,i40e_tso@drivers_net_ethernet_intel_i40evf_i40e_txrx.c,net_gso_ok@include_linux_netdevice.h,ixgbevf_probe@drivers_net_ethernet_intel_ixgbevf_ixgbevf_main.c,ixgbe_probe@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,i40e_tso@drivers_net_ethernet_intel_i40e_i40e_txrx.c,bnxt_init_one@drivers_net_ethernet_broadcom_bnxt_bnxt.c,ipip6_tunnel_xmit@net_ipv6_sit.c,netdev_features_strings@net_core_ethtool.c,bnx2x_init_dev@drivers_net_ethernet_broadcom_bnx2x_bnx2x_main.c,i40evf_process_config@drivers_net_ethernet_intel_i40evf_i40evf_main.c,sit_gro_complete@net_ipv6_ip6_offload.c,ipv6_gso_segment@net_ipv6_ip6_offload.c,ipip_tunnel_xmit@net_ipv4_ipip.c,ipip_gro_complete@net_ipv4_af_inet.c,i40e_config_netdev@drivers_net_ethernet_intel_i40e_i40e_main.c,igb_probe@drivers_net_ethernet_intel_igb_igb_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 6
+@@
+expression E0;
+expression E1;
+@@
+- E0 | E1 | NETIF_F_GSO_IPIP | NETIF_F_GSO_SIT
++ E0 | E1 | NETIF_F_GSO_IPXIP4
+//# pattern-6, witnesses: 4
+@@
+@@
+- SKB_GSO_IPIP
++ SKB_GSO_IPXIP4
+//# pattern-5, witnesses: 3
+@@
+@@
+- SKB_GSO_SIT
++ SKB_GSO_IPXIP4
+//# pattern-1, witnesses: 2
+@@
+@@
+- SKB_GSO_GRE | SKB_GSO_GRE_CSUM | SKB_GSO_IPIP | SKB_GSO_SIT
++ SKB_GSO_GRE | SKB_GSO_GRE_CSUM | SKB_GSO_IPXIP4

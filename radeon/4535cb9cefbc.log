@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 4535cb9cefbc^1
+[0m[33mtarget commit: 4535cb9cefbc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m2 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- include/uapi/drm/radeon_drm.h
+2 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- include/uapi/drm/radeon_drm.h
+[33mcompile base commit... [0m[33mok (15s)
+[0m[33mapply [0m[33m4535cb9cefbc... [0m[33mok (15s)
+[0m[33mcompile target commit... [0m[33mok (26s)
+[0mPREPARE:
+[33mcollect AST for functions: radeon_info_ioctl@drivers_gpu_drm_radeon_radeon_kms.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

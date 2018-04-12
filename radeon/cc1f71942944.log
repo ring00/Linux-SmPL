@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: cc1f71942944^1
+[0m[33mtarget commit: cc1f71942944
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m3 source file(s) touched in the old version
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/radeon/atom.c
+`-- include/drm/drmP.h
+3 source file(s) touched in the new version
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/radeon/atom.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33mcc1f71942944... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

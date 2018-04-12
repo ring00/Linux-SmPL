@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: e55b9422e186^1
+[0m[33mtarget commit: e55b9422e186
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m8 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/rv770.c
+`-- include/drm/radeon_drm.h
+8 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/r600.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/rv770.c
+`-- include/drm/radeon_drm.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33me55b9422e186... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: 0b0bcacc3b43^1
+[0m[33mtarget commit: 0b0bcacc3b43
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m9 source file(s) touched in the old version
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- block/blk-settings.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+9 source file(s) touched in the new version
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- block/blk-settings.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33m0b0bcacc3b43... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (45s)
+[0mPREPARE:
+[33mcollect AST for functions: blk_init_allocated_queue@block_blk-core.c,blk_mq_init_allocated_queue@block_blk-mq.c,btt_blk_init@drivers_nvdimm_btt.c,brd_alloc@drivers_block_brd.c,rsxx_setup_dev@drivers_block_rsxx_dev.c,drbd_create_device@drivers_block_drbd_drbd_main.c,pmem_attach_disk@drivers_nvdimm_pmem.c,blk_queue_make_request@block_blk-settings.c,nsblk_attach_disk@drivers_nvdimm_blk.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 7
+@@
+expression E0;
+expression E1;
+@@
+- blk_queue_bounce_limit(E0, E1);

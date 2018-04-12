@@ -1,0 +1,46 @@
+BUILD:
+[33mbase commit: a561be7100cd^1
+[0m[33mtarget commit: a561be7100cd
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m16 source file(s) touched in the old version
+`-- fs/btrfs/ioctl.c
+`-- fs/ext2/ioctl.c
+`-- fs/ext3/ioctl.c
+`-- fs/ext4/ioctl.c
+`-- fs/fat/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfsplus/ioctl.c
+`-- fs/jfs/ioctl.c
+`-- fs/nfsd/nfs4recover.c
+`-- fs/nilfs2/ioctl.c
+`-- fs/ocfs2/ioctl.c
+`-- fs/ocfs2/move_extents.c
+`-- fs/reiserfs/ioctl.c
+`-- fs/ubifs/ioctl.c
+`-- fs/xfs/xfs_ioctl.c
+`-- fs/xfs/xfs_ioctl32.c
+16 source file(s) touched in the new version
+`-- fs/btrfs/ioctl.c
+`-- fs/ext2/ioctl.c
+`-- fs/ext3/ioctl.c
+`-- fs/ext4/ioctl.c
+`-- fs/fat/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfsplus/ioctl.c
+`-- fs/jfs/ioctl.c
+`-- fs/nfsd/nfs4recover.c
+`-- fs/nilfs2/ioctl.c
+`-- fs/ocfs2/ioctl.c
+`-- fs/ocfs2/move_extents.c
+`-- fs/reiserfs/ioctl.c
+`-- fs/ubifs/ioctl.c
+`-- fs/xfs/xfs_ioctl.c
+`-- fs/xfs/xfs_ioctl32.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33ma561be7100cd... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

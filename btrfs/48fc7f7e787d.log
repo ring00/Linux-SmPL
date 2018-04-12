@@ -1,0 +1,104 @@
+BUILD:
+[33mbase commit: 48fc7f7e787d^1
+[0m[33mtarget commit: 48fc7f7e787d
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m45 source file(s) touched in the old version
+`-- arch/arm/mach-s3c24xx/include/mach/bast-map.h
+`-- arch/arm/mach-s3c24xx/include/mach/dma.h
+`-- arch/arm/mach-s3c24xx/include/mach/vr1000-map.h
+`-- arch/arm/mach-s3c24xx/pm.c
+`-- arch/arm/plat-s3c24xx/dma.c
+`-- arch/m68k/math-emu/fp_log.c
+`-- arch/powerpc/include/asm/pte-hash64-64k.h
+`-- arch/powerpc/include/asm/smu.h
+`-- arch/powerpc/kernel/legacy_serial.c
+`-- arch/powerpc/kernel/of_platform.c
+`-- arch/powerpc/kernel/signal_64.c
+`-- arch/powerpc/mm/slice.c
+`-- arch/powerpc/platforms/52xx/mpc52xx_gpt.c
+`-- arch/powerpc/platforms/cell/iommu.c
+`-- arch/powerpc/platforms/cell/spider-pic.c
+`-- arch/powerpc/platforms/powermac/pic.c
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/si.c
+`-- drivers/i2c/busses/i2c-nuc900.c
+`-- drivers/i2c/busses/i2c-s3c2410.c
+`-- drivers/mtd/maps/plat-ram.c
+`-- drivers/mtd/nand/s3c2410.c
+`-- drivers/net/ethernet/8390/ax88796.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge_mcp_gen_header.h
+`-- drivers/net/sungem_phy.c
+`-- drivers/rtc/rtc-isl1208.c
+`-- drivers/rtc/rtc-s3c.c
+`-- drivers/s390/block/dasd_devmap.c
+`-- drivers/usb/storage/realtek_cr.c
+`-- drivers/watchdog/booke_wdt.c
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/ordered-data.h
+`-- fs/ext4/ext4.h
+`-- fs/fhandle.c
+`-- fs/jbd/transaction.c
+`-- fs/jbd2/transaction.c
+`-- fs/logfs/inode.c
+`-- include/linux/lru_cache.h
+`-- include/linux/vgaarb.h
+`-- include/linux/watchdog.h
+`-- include/net/sock.h
+`-- net/can/proc.c
+`-- sound/pci/es1968.c
+`-- sound/usb/quirks.c
+45 source file(s) touched in the new version
+`-- arch/arm/mach-s3c24xx/include/mach/bast-map.h
+`-- arch/arm/mach-s3c24xx/include/mach/dma.h
+`-- arch/arm/mach-s3c24xx/include/mach/vr1000-map.h
+`-- arch/arm/mach-s3c24xx/pm.c
+`-- arch/arm/plat-s3c24xx/dma.c
+`-- arch/m68k/math-emu/fp_log.c
+`-- arch/powerpc/include/asm/pte-hash64-64k.h
+`-- arch/powerpc/include/asm/smu.h
+`-- arch/powerpc/kernel/legacy_serial.c
+`-- arch/powerpc/kernel/of_platform.c
+`-- arch/powerpc/kernel/signal_64.c
+`-- arch/powerpc/mm/slice.c
+`-- arch/powerpc/platforms/52xx/mpc52xx_gpt.c
+`-- arch/powerpc/platforms/cell/iommu.c
+`-- arch/powerpc/platforms/cell/spider-pic.c
+`-- arch/powerpc/platforms/powermac/pic.c
+`-- drivers/gpu/drm/radeon/evergreen.c
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/si.c
+`-- drivers/i2c/busses/i2c-nuc900.c
+`-- drivers/i2c/busses/i2c-s3c2410.c
+`-- drivers/mtd/maps/plat-ram.c
+`-- drivers/mtd/nand/s3c2410.c
+`-- drivers/net/ethernet/8390/ax88796.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge_mcp_gen_header.h
+`-- drivers/net/sungem_phy.c
+`-- drivers/rtc/rtc-isl1208.c
+`-- drivers/rtc/rtc-s3c.c
+`-- drivers/s390/block/dasd_devmap.c
+`-- drivers/usb/storage/realtek_cr.c
+`-- drivers/watchdog/booke_wdt.c
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/ordered-data.h
+`-- fs/ext4/ext4.h
+`-- fs/fhandle.c
+`-- fs/jbd/transaction.c
+`-- fs/jbd2/transaction.c
+`-- fs/logfs/inode.c
+`-- include/linux/lru_cache.h
+`-- include/linux/vgaarb.h
+`-- include/linux/watchdog.h
+`-- include/net/sock.h
+`-- net/can/proc.c
+`-- sound/pci/es1968.c
+`-- sound/usb/quirks.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m48fc7f7e787d... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

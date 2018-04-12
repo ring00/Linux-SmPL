@@ -1,0 +1,70 @@
+BUILD:
+[33mbase commit: d47992f86b30^1
+[0m[33mtarget commit: d47992f86b30
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m28 source file(s) touched in the old version
+`-- fs/9p/vfs_addr.c
+`-- fs/afs/file.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/exofs/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/node.c
+`-- fs/gfs2/aops.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/logfs/file.c
+`-- fs/logfs/segment.c
+`-- fs/nfs/file.c
+`-- fs/ntfs/aops.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/ubifs/file.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/buffer_head.h
+`-- include/linux/fs.h
+`-- include/linux/mm.h
+`-- mm/readahead.c
+`-- mm/truncate.c
+28 source file(s) touched in the new version
+`-- fs/9p/vfs_addr.c
+`-- fs/afs/file.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/exofs/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/node.c
+`-- fs/gfs2/aops.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/logfs/file.c
+`-- fs/logfs/segment.c
+`-- fs/nfs/file.c
+`-- fs/ntfs/aops.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/ubifs/file.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/buffer_head.h
+`-- include/linux/fs.h
+`-- include/linux/mm.h
+`-- mm/readahead.c
+`-- mm/truncate.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33md47992f86b30... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

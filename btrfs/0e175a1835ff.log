@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: 0e175a1835ff^1
+[0m[33mtarget commit: 0e175a1835ff
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m13 source file(s) touched in the old version
+`-- fs/btrfs/extent-tree.c
+`-- fs/buffer.c
+`-- fs/ext4/inode.c
+`-- fs/fs-writeback.c
+`-- fs/quota/quota.c
+`-- fs/sync.c
+`-- fs/ubifs/budget.c
+`-- include/linux/backing-dev.h
+`-- include/linux/writeback.h
+`-- include/trace/events/writeback.h
+`-- mm/backing-dev.c
+`-- mm/page-writeback.c
+`-- mm/vmscan.c
+13 source file(s) touched in the new version
+`-- fs/btrfs/extent-tree.c
+`-- fs/buffer.c
+`-- fs/ext4/inode.c
+`-- fs/fs-writeback.c
+`-- fs/quota/quota.c
+`-- fs/sync.c
+`-- fs/ubifs/budget.c
+`-- include/linux/backing-dev.h
+`-- include/linux/writeback.h
+`-- include/trace/events/writeback.h
+`-- mm/backing-dev.c
+`-- mm/page-writeback.c
+`-- mm/vmscan.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m0e175a1835ff... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

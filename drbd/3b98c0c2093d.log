@@ -1,0 +1,31 @@
+BUILD:
+[33mbase commit: 3b98c0c2093d^1
+[0m[33mtarget commit: 3b98c0c2093d
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m7 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_state.c
+`-- include/linux/drbd.h
+`-- include/linux/genl_magic_func.h
+7 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_state.c
+`-- include/linux/drbd.h
+`-- include/linux/genl_magic_func.h
+[33mcompile base commit... [0m[33mok (4s)
+[0m[33mapply [0m[33m3b98c0c2093d... [0m[33mok (4s)
+[0m[33mcompile target commit... [0m[33mok (5s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/drbd_genl_api.h', 'net/genetlink.h', 'linux/genl_magic_func.h'])
+deleted: set(['linux/compiler.h', 'linux/connector.h', 'linux/drbd_tag_magic.h', u'drivers/block/drbd/linux/drbd_nl.h'])

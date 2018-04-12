@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 0f5dcf8de974^1
+[0m[33mtarget commit: 0f5dcf8de974
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/qgroup.c
+`-- include/trace/events/btrfs.h
+2 source file(s) touched in the new version
+`-- fs/btrfs/qgroup.c
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (18s)
+[0m[33mapply [0m[33m0f5dcf8de974... [0m[33mok (18s)
+[0m[33mcompile target commit... [0m[33mok (28s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_qgroup_insert_dirty_extent@fs_btrfs_qgroup.c,btrfs_qgroup_account_extents@fs_btrfs_qgroup.c,btrfs_qgroup_account_extent@fs_btrfs_qgroup.c,qgroup_update_counters@fs_btrfs_qgroup.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m1s
+[0mANALYZE:
+COCCIGEN:

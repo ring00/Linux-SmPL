@@ -1,0 +1,160 @@
+BUILD:
+[33mbase commit: 13a3d91f17a5^1
+[0m[33mtarget commit: 13a3d91f17a5
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m71 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_output.c
+`-- drivers/gpu/drm/bochs/bochs_kms.c
+`-- drivers/gpu/drm/cirrus/cirrus_mode.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/exynos/exynos_dp_core.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dpi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dsi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_vidi.c
+`-- drivers/gpu/drm/exynos/exynos_hdmi.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_rgb.c
+`-- drivers/gpu/drm/gma500/cdv_intel_crt.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_lvds.c
+`-- drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
+`-- drivers/gpu/drm/gma500/oaktrail_hdmi.c
+`-- drivers/gpu/drm/gma500/oaktrail_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_sdvo.c
+`-- drivers/gpu/drm/i2c/tda998x_drv.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_ddi.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/i915/intel_dsi.c
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_hdmi.c
+`-- drivers/gpu/drm/i915/intel_lvds.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_tv.c
+`-- drivers/gpu/drm/imx/dw_hdmi-imx.c
+`-- drivers/gpu/drm/imx/imx-ldb.c
+`-- drivers/gpu/drm/imx/imx-tve.c
+`-- drivers/gpu/drm/imx/parallel-display.c
+`-- drivers/gpu/drm/mgag200/mgag200_mode.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_dtv_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_lcdc_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_cmd_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_encoder.c
+`-- drivers/gpu/drm/nouveau/dispnv04/dac.c
+`-- drivers/gpu/drm/nouveau/dispnv04/dfp.c
+`-- drivers/gpu/drm/nouveau/dispnv04/tvnv04.c
+`-- drivers/gpu/drm/nouveau/dispnv04/tvnv17.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_encoder.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/radeon/atombios_encoders.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_encoder.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_hdmienc.c
+`-- drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/sti/sti_tvout.c
+`-- drivers/gpu/drm/tegra/dsi.c
+`-- drivers/gpu/drm/tegra/hdmi.c
+`-- drivers/gpu/drm/tegra/rgb.c
+`-- drivers/gpu/drm/tegra/sor.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_panel.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+`-- drivers/gpu/drm/udl/udl_encoder.c
+`-- drivers/gpu/drm/vc4/vc4_hdmi.c
+`-- drivers/gpu/drm/virtio/virtgpu_display.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_stdu.c
+`-- include/drm/drm_crtc.h
+71 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_output.c
+`-- drivers/gpu/drm/bochs/bochs_kms.c
+`-- drivers/gpu/drm/cirrus/cirrus_mode.c
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/exynos/exynos_dp_core.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dpi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_dsi.c
+`-- drivers/gpu/drm/exynos/exynos_drm_vidi.c
+`-- drivers/gpu/drm/exynos/exynos_hdmi.c
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_rgb.c
+`-- drivers/gpu/drm/gma500/cdv_intel_crt.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/gma500/cdv_intel_hdmi.c
+`-- drivers/gpu/drm/gma500/cdv_intel_lvds.c
+`-- drivers/gpu/drm/gma500/mdfld_dsi_dpi.c
+`-- drivers/gpu/drm/gma500/oaktrail_hdmi.c
+`-- drivers/gpu/drm/gma500/oaktrail_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_lvds.c
+`-- drivers/gpu/drm/gma500/psb_intel_sdvo.c
+`-- drivers/gpu/drm/i2c/tda998x_drv.c
+`-- drivers/gpu/drm/i915/intel_crt.c
+`-- drivers/gpu/drm/i915/intel_ddi.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/i915/intel_dsi.c
+`-- drivers/gpu/drm/i915/intel_dvo.c
+`-- drivers/gpu/drm/i915/intel_hdmi.c
+`-- drivers/gpu/drm/i915/intel_lvds.c
+`-- drivers/gpu/drm/i915/intel_sdvo.c
+`-- drivers/gpu/drm/i915/intel_tv.c
+`-- drivers/gpu/drm/imx/dw_hdmi-imx.c
+`-- drivers/gpu/drm/imx/imx-ldb.c
+`-- drivers/gpu/drm/imx/imx-tve.c
+`-- drivers/gpu/drm/imx/parallel-display.c
+`-- drivers/gpu/drm/mgag200/mgag200_mode.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_dtv_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_lcdc_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_cmd_encoder.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_encoder.c
+`-- drivers/gpu/drm/nouveau/dispnv04/dac.c
+`-- drivers/gpu/drm/nouveau/dispnv04/dfp.c
+`-- drivers/gpu/drm/nouveau/dispnv04/tvnv04.c
+`-- drivers/gpu/drm/nouveau/dispnv04/tvnv17.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_encoder.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/radeon/atombios_encoders.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_encoder.c
+`-- drivers/gpu/drm/rcar-du/rcar_du_hdmienc.c
+`-- drivers/gpu/drm/rockchip/dw_hdmi-rockchip.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_crtc.c
+`-- drivers/gpu/drm/sti/sti_tvout.c
+`-- drivers/gpu/drm/tegra/dsi.c
+`-- drivers/gpu/drm/tegra/hdmi.c
+`-- drivers/gpu/drm/tegra/rgb.c
+`-- drivers/gpu/drm/tegra/sor.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_panel.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_tfp410.c
+`-- drivers/gpu/drm/udl/udl_encoder.c
+`-- drivers/gpu/drm/vc4/vc4_hdmi.c
+`-- drivers/gpu/drm/virtio/virtgpu_display.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_ldu.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_scrn.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_stdu.c
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (78s)
+[0m[33mapply [0m[33m13a3d91f17a5... [0m[33mok (78s)
+[0m[33mcompile target commit... [0m[33mok (146s)
+[0mPREPARE:
+[33mcollect AST for functions: atmel_hlcdc_create_panel_output@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_output.c,tda998x_bind@drivers_gpu_drm_i2c_tda998x_drv.c,imx_pd_register@drivers_gpu_drm_imx_parallel-display.c,mga_encoder_init@drivers_gpu_drm_mgag200_mgag200_mode.c,bochs_encoder_init@drivers_gpu_drm_bochs_bochs_kms.c,mdfld_dsi_dpi_init@drivers_gpu_drm_gma500_mdfld_dsi_dpi.c,intel_dp_init@drivers_gpu_drm_i915_intel_dp.c,intel_lvds_init@drivers_gpu_drm_i915_intel_lvds.c,intel_crt_init@drivers_gpu_drm_i915_intel_crt.c,intel_dvo_init@drivers_gpu_drm_i915_intel_dvo.c,ast_encoder_init@drivers_gpu_drm_ast_ast_mode.c,intel_ddi_init@drivers_gpu_drm_i915_intel_ddi.c,cdv_hdmi_init@drivers_gpu_drm_gma500_cdv_intel_hdmi.c,cdv_intel_crt_init@drivers_gpu_drm_gma500_cdv_intel_crt.c,psb_intel_sdvo_init@drivers_gpu_drm_gma500_psb_intel_sdvo.c,dw_hdmi_imx_bind@drivers_gpu_drm_imx_dw_hdmi-imx.c,cdv_intel_lvds_init@drivers_gpu_drm_gma500_cdv_intel_lvds.c,hdmi_bind@drivers_gpu_drm_exynos_exynos_hdmi.c,dce_v8_0_encoder_add@drivers_gpu_drm_amd_amdgpu_dce_v8_0.c,exynos_dp_bind@drivers_gpu_drm_exynos_exynos_dp_core.c,dce_v11_0_encoder_add@drivers_gpu_drm_amd_amdgpu_dce_v11_0.c,fsl_dcu_drm_encoder_create@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_rgb.c,intel_dsi_init@drivers_gpu_drm_i915_intel_dsi.c,exynos_dsi_bind@drivers_gpu_drm_exynos_exynos_drm_dsi.c,dce_v10_0_encoder_add@drivers_gpu_drm_amd_amdgpu_dce_v10_0.c,intel_sdvo_init@drivers_gpu_drm_i915_intel_sdvo.c,drm_encoder_init@drivers_gpu_drm_drm_crtc.c,cdv_intel_dp_init@drivers_gpu_drm_gma500_cdv_intel_dp.c,oaktrail_lvds_init@drivers_gpu_drm_gma500_oaktrail_lvds.c,vidi_bind@drivers_gpu_drm_exynos_exynos_drm_vidi.c,oaktrail_hdmi_init@drivers_gpu_drm_gma500_oaktrail_hdmi.c,cirrus_encoder_init@drivers_gpu_drm_cirrus_cirrus_mode.c,exynos_dpi_bind@drivers_gpu_drm_exynos_exynos_drm_dpi.c,intel_dp_create_fake_mst_encoder@drivers_gpu_drm_i915_intel_dp_mst.c,psb_intel_lvds_init@drivers_gpu_drm_gma500_psb_intel_lvds.c,intel_hdmi_init@drivers_gpu_drm_i915_intel_hdmi.c,imx_ldb_register@drivers_gpu_drm_imx_imx-ldb.c,imx_tve_register@drivers_gpu_drm_imx_imx-tve.c,intel_tv_init@drivers_gpu_drm_i915_intel_tv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m10s
+[0mANALYZE:
+[31mExit with status: 139
+[0m
+COCCIGEN:

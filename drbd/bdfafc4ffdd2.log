@@ -1,0 +1,58 @@
+BUILD:
+[33mbase commit: bdfafc4ffdd2^1
+[0m[33mtarget commit: bdfafc4ffdd2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/linux/kref.h
+6 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/linux/kref.h
+[33mcompile base commit... [0m[33mok (19s)
+[0m[33mapply [0m[33mbdfafc4ffdd2... [0m[33mok (19s)
+[0m[33mcompile target commit... [0m[33mok (32s)
+[0mPREPARE:
+[33mcollect AST for functions: mod_rq_state@drivers_block_drbd_drbd_req.c,drbd_delete_device@drivers_block_drbd_drbd_main.c,ttm_bo_cleanup_refs_or_queue@drivers_gpu_drm_ttm_ttm_bo.c,ttm_eu_del_from_lru_locked@drivers_gpu_drm_ttm_ttm_execbuf_util.c,ttm_mem_evict_first@drivers_gpu_drm_ttm_ttm_bo.c,kref_put@include_linux_kref.h,ttm_bo_ref_bug@drivers_gpu_drm_ttm_ttm_bo.c,ttm_bo_swapout@drivers_gpu_drm_ttm_ttm_bo.c,ttm_bo_del_from_lru@drivers_gpu_drm_ttm_ttm_bo.c,ttm_bo_move_to_lru_tail@drivers_gpu_drm_ttm_ttm_bo.c,ttm_bo_cleanup_refs_and_unlock@drivers_gpu_drm_ttm_ttm_bo.c,ttm_bo_del_sub_from_lru@drivers_gpu_drm_ttm_ttm_bo.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-5, witnesses: 3
+@@
+@@
+- int put_count = put_count;
+- put_count = ttm_bo_del_from_lru(bo);
+- ttm_bo_list_ref_sub(bo, put_count, true);
++ ttm_bo_del_from_lru(bo);
+//# pattern-7, witnesses: 2
+@r0@
+identifier fn;
+expression P0, P2;
+@@
+ttm_bo_list_ref_sub(P0, fn, P2)
+@@
+expression ME0;
+identifier bo;
+@@
+- int ttm_bo_del_from_lru(struct ttm_buffer_object * bo)
++ void ttm_bo_del_from_lru(struct ttm_buffer_object * bo)
+ {
+     <...
+- int put_count = 0;
+- if (!list_empty(&ME0)) {
+- ++ _put_count;
+- }
++ if (!list_empty(&ME0)) {
++ kref_put(&bo->list_kref, ttm_bo_ref_bug);
++ }
+     ...>
+ }

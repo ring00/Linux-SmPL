@@ -1,0 +1,35 @@
+BUILD:
+[33mbase commit: 7f3b39dafc62^1
+[0m[33mtarget commit: 7f3b39dafc62
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m6 source file(s) touched in the old version
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+6 source file(s) touched in the new version
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+[33mcompile base commit... [0m[33mok (36s)
+[0m[33mapply [0m[33m7f3b39dafc62... [0m[33mok (36s)
+[0m[33mcompile target commit... [0m[33mok (59s)
+[0mPREPARE:
+[33mcollect AST for functions: mlx5e_rep_setup_tc_cls_flower@drivers_net_ethernet_mellanox_mlx5_core_en_rep.c,mlx5e_setup_tc_cls_flower@drivers_net_ethernet_mellanox_mlx5_core_en_main.c,nfp_bpf_setup_tc@drivers_net_ethernet_netronome_nfp_bpf_main.c,ixgbe_setup_tc_cls_u32@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,cxgb_setup_tc_cls_u32@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,nfp_flower_setup_tc@drivers_net_ethernet_netronome_nfp_flower_offload.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 6
+@@
+expression E0;
+expression E1;
+@@
+- is_classid_clsact_ingress(E0->common.classid) || E1
++ !is_classid_clsact_ingress(E0->common.classid) || E1

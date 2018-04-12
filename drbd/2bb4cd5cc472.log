@@ -1,0 +1,47 @@
+BUILD:
+[33mbase commit: 2bb4cd5cc472^1
+[0m[33mtarget commit: 2bb4cd5cc472
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/loop.c
+`-- drivers/block/nbd.c
+`-- drivers/block/nvme-core.c
+`-- drivers/block/rbd.c
+`-- drivers/block/skd_main.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/md/bcache/super.c
+`-- drivers/mmc/card/queue.c
+`-- drivers/mtd/mtd_blkdevs.c
+`-- drivers/scsi/sd.c
+12 source file(s) touched in the new version
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/loop.c
+`-- drivers/block/nbd.c
+`-- drivers/block/nvme-core.c
+`-- drivers/block/rbd.c
+`-- drivers/block/skd_main.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/md/bcache/super.c
+`-- drivers/mmc/card/queue.c
+`-- drivers/mtd/mtd_blkdevs.c
+`-- drivers/scsi/sd.c
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33m2bb4cd5cc472... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (49s)
+[0mPREPARE:
+[33mcollect AST for functions: drbd_setup_queue_param@drivers_block_drbd_drbd_nl.c,nbd_init@drivers_block_nbd.c,sd_config_discard@drivers_scsi_sd.c,brd_alloc@drivers_block_brd.c,rbd_init_disk@drivers_block_rbd.c,nvme_config_discard@drivers_block_nvme-core.c,bcache_device_init@drivers_md_bcache_super.c,mmc_queue_setup_discard@drivers_mmc_card_queue.c,loop_config_discard@drivers_block_loop.c,skd_cons_disk@drivers_block_skd_main.c,add_mtd_blktrans_dev@drivers_mtd_mtd_blkdevs.c,zram_add@drivers_block_zram_zram_drv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 15
+@@
+expression E0;
+expression E1;
+@@
+- E0->limits.max_discard_sectors = E1
++ blk_queue_max_discard_sectors(E0, E1)

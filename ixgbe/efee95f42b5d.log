@@ -1,0 +1,34 @@
+BUILD:
+[33mbase commit: efee95f42b5d^1
+[0m[33mtarget commit: efee95f42b5d
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/e1000e/ptp.c
+`-- drivers/net/ethernet/intel/i40e/i40e_ptp.c
+`-- drivers/net/ethernet/intel/igb/igb_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_clock.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_clock.c
+`-- drivers/net/ethernet/sfc/ptp.c
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_ptp.c
+`-- include/linux/ptp_clock_kernel.h
+9 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/e1000e/ptp.c
+`-- drivers/net/ethernet/intel/i40e/i40e_ptp.c
+`-- drivers/net/ethernet/intel/igb/igb_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_clock.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_clock.c
+`-- drivers/net/ethernet/sfc/ptp.c
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_ptp.c
+`-- include/linux/ptp_clock_kernel.h
+[33mcompile base commit... [0m[33mok (25s)
+[0m[33mapply [0m[33mefee95f42b5d... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (47s)
+[0mPREPARE:
+[33mcollect AST for functions: stmmac_ptp_register@drivers_net_ethernet_stmicro_stmmac_stmmac_ptp.c,ixgbe_ptp_create_clock@drivers_net_ethernet_intel_ixgbe_ixgbe_ptp.c,mlx4_en_init_timestamp@drivers_net_ethernet_mellanox_mlx4_en_clock.c,mlx5e_timestamp_init@drivers_net_ethernet_mellanox_mlx5_core_en_clock.c,igb_ptp_init@drivers_net_ethernet_intel_igb_igb_ptp.c,e1000e_ptp_init@drivers_net_ethernet_intel_e1000e_ptp.c,efx_ptp_probe@drivers_net_ethernet_sfc_ptp.c,i40e_ptp_init@drivers_net_ethernet_intel_i40e_i40e_ptp.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:

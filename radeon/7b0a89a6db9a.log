@@ -1,0 +1,31 @@
+BUILD:
+[33mbase commit: 7b0a89a6db9a^1
+[0m[33mtarget commit: 7b0a89a6db9a
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_dp_mst_topology.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drm_dp_mst_helper.h
+5 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_dp_mst_topology.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drm_dp_mst_helper.h
+[33mcompile base commit... [0m[33mok (18s)
+[0m[33mapply [0m[33m7b0a89a6db9a... [0m[33mok (18s)
+[0m[33mcompile target commit... [0m[33mok (32s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_dp_mst_topology_mgr_init@drivers_gpu_drm_drm_dp_mst_topology.c,intel_dp_mst_encoder_init@drivers_gpu_drm_i915_intel_dp_mst.c,radeon_dp_mst_init@drivers_gpu_drm_radeon_radeon_dp_mst.c,drm_dp_add_port@drivers_gpu_drm_drm_dp_mst_topology.c,nv50_mstm_new@drivers_gpu_drm_nouveau_nv50_display.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 3
+@@
+@@
+- dev->dev
++ dev

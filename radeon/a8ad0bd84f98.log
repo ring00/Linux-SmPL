@@ -1,0 +1,161 @@
+BUILD:
+[33mbase commit: a8ad0bd84f98^1
+[0m[33mtarget commit: a8ad0bd84f98
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m65 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_bo_list.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/armada/armada_crtc.c
+`-- drivers/gpu/drm/armada/armada_fb.c
+`-- drivers/gpu/drm/armada/armada_gem.c
+`-- drivers/gpu/drm/armada/armada_gem.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/bochs/bochs_mm.c
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/drm_gem_cma_helper.c
+`-- drivers/gpu/drm/drm_prime.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_drv.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fb.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/gma_display.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/i915/i915_gem_tiling.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/mgag200/mgag200_cursor.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_crtc.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_crtc.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/msm/msm_fb.c
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/nouveau/dispnv04/crtc.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/qxl/qxl_dumb.c
+`-- drivers/gpu/drm/qxl/qxl_ioctl.c
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_cursor.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_fb.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_gem.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/tegra/gem.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- drivers/gpu/drm/vc4/vc4_bo.c
+`-- drivers/gpu/drm/vc4/vc4_gem.c
+`-- drivers/gpu/drm/vgem/vgem_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_display.c
+`-- drivers/gpu/drm/virtio/virtgpu_gem.c
+`-- drivers/gpu/drm/virtio/virtgpu_ioctl.c
+`-- include/drm/drm_gem.h
+65 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_bo_list.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_gem.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v10_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v11_0.c
+`-- drivers/gpu/drm/amd/amdgpu/dce_v8_0.c
+`-- drivers/gpu/drm/armada/armada_crtc.c
+`-- drivers/gpu/drm/armada/armada_fb.c
+`-- drivers/gpu/drm/armada/armada_gem.c
+`-- drivers/gpu/drm/armada/armada_gem.h
+`-- drivers/gpu/drm/ast/ast_main.c
+`-- drivers/gpu/drm/ast/ast_mode.c
+`-- drivers/gpu/drm/bochs/bochs_mm.c
+`-- drivers/gpu/drm/cirrus/cirrus_main.c
+`-- drivers/gpu/drm/drm_fb_cma_helper.c
+`-- drivers/gpu/drm/drm_gem.c
+`-- drivers/gpu/drm/drm_gem_cma_helper.c
+`-- drivers/gpu/drm/drm_prime.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_drv.c
+`-- drivers/gpu/drm/exynos/exynos_drm_fb.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/gma_display.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/i915/i915_gem_tiling.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/mgag200/mgag200_cursor.c
+`-- drivers/gpu/drm/mgag200/mgag200_main.c
+`-- drivers/gpu/drm/msm/mdp/mdp4/mdp4_crtc.c
+`-- drivers/gpu/drm/msm/mdp/mdp5/mdp5_crtc.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/msm/msm_fb.c
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/nouveau/dispnv04/crtc.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nv50_display.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_display.c
+`-- drivers/gpu/drm/qxl/qxl_dumb.c
+`-- drivers/gpu/drm/qxl/qxl_ioctl.c
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_cursor.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_fb.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_gem.c
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/tegra/fb.c
+`-- drivers/gpu/drm/tegra/gem.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- drivers/gpu/drm/vc4/vc4_bo.c
+`-- drivers/gpu/drm/vc4/vc4_gem.c
+`-- drivers/gpu/drm/vgem/vgem_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_display.c
+`-- drivers/gpu/drm/virtio/virtgpu_gem.c
+`-- drivers/gpu/drm/virtio/virtgpu_ioctl.c
+`-- include/drm/drm_gem.h
+[33mcompile base commit... [0m[33mok (87s)
+[0m[33mapply [0m[33ma8ad0bd84f98... [0m[33mok (87s)
+[0m[33mcompile target commit... [0m[33mok (156s)
+[0mPREPARE:
+[33mcollect AST for functions: amdgpu_mode_dumb_mmap@drivers_gpu_drm_amd_amdgpu_amdgpu_gem.c,drm_fb_cma_create@drivers_gpu_drm_drm_fb_cma_helper.c,nv50_crtc_cursor_set@drivers_gpu_drm_nouveau_nv50_display.c,etnaviv_ioctl_gem_cpu_fini@drivers_gpu_drm_etnaviv_etnaviv_drv.c,amdgpu_user_framebuffer_create@drivers_gpu_drm_amd_amdgpu_amdgpu_display.c,i915_gem_get_caching_ioctl@drivers_gpu_drm_i915_i915_gem.c,ioctl_gem_cpu_fini@drivers_gpu_drm_omapdrm_omap_drv.c,i915_gem_mmap_ioctl@drivers_gpu_drm_i915_i915_gem.c,i915_gem_busy_ioctl@drivers_gpu_drm_i915_i915_gem.c,exynos_drm_gem_dumb_map_offset@drivers_gpu_drm_exynos_exynos_drm_gem.c,i915_gem_set_caching_ioctl@drivers_gpu_drm_i915_i915_gem.c,i915_gem_pread_ioctl@drivers_gpu_drm_i915_i915_gem.c,armada_fb_create@drivers_gpu_drm_armada_armada_fb.c,dce_v11_0_crtc_cursor_set2@drivers_gpu_drm_amd_amdgpu_dce_v11_0.c,intel_user_framebuffer_create@drivers_gpu_drm_i915_intel_display.c,msm_gem_dumb_map_offset@drivers_gpu_drm_msm_msm_gem.c,amdgpu_gem_op_ioctl@drivers_gpu_drm_amd_amdgpu_amdgpu_gem.c,ast_user_framebuffer_create@drivers_gpu_drm_ast_ast_main.c,exynos_drm_gem_get_size@drivers_gpu_drm_exynos_exynos_drm_gem.c,exynos_drm_gem_put_dma_addr@drivers_gpu_drm_exynos_exynos_drm_gem.c,ast_cursor_set@drivers_gpu_drm_ast_ast_mode.c,exynos_drm_gem_get_dma_addr@drivers_gpu_drm_exynos_exynos_drm_gem.c,msm_ioctl_gem_cpu_prep@drivers_gpu_drm_msm_msm_drv.c,gma_crtc_cursor_set@drivers_gpu_drm_gma500_gma_display.c,nv04_crtc_cursor_set@drivers_gpu_drm_nouveau_dispnv04_crtc.c,armada_gem_object_lookup@drivers_gpu_drm_armada_armada_gem.h,nouveau_gem_ioctl_cpu_fini@drivers_gpu_drm_nouveau_nouveau_gem.c,ioctl_gem_info@drivers_gpu_drm_omapdrm_omap_drv.c,exynos_user_fb_create@drivers_gpu_drm_exynos_exynos_drm_fb.c,etnaviv_ioctl_gem_cpu_prep@drivers_gpu_drm_etnaviv_etnaviv_drv.c,drm_gem_object_lookup@drivers_gpu_drm_drm_gem.c,bochs_dumb_mmap_offset@drivers_gpu_drm_bochs_bochs_mm.c,armada_gem_pwrite_ioctl@drivers_gpu_drm_armada_armada_gem.c,drm_gem_cma_dumb_map_offset@drivers_gpu_drm_drm_gem_cma_helper.c,i915_gem_mmap_gtt@drivers_gpu_drm_i915_i915_gem.c,i915_gem_sw_finish_ioctl@drivers_gpu_drm_i915_i915_gem.c,nouveau_user_framebuffer_create@drivers_gpu_drm_nouveau_nouveau_display.c,etnaviv_ioctl_gem_wait@drivers_gpu_drm_etnaviv_etnaviv_drv.c,exynos_drm_gem_get_ioctl@drivers_gpu_drm_exynos_exynos_drm_gem.c,armada_gem_dumb_map_offset@drivers_gpu_drm_armada_armada_gem.c,i915_gem_set_tiling@drivers_gpu_drm_i915_i915_gem_tiling.c,i915_gem_wait_ioctl@drivers_gpu_drm_i915_i915_gem.c,dce_v8_0_crtc_cursor_set2@drivers_gpu_drm_amd_amdgpu_dce_v8_0.c,validate_init@drivers_gpu_drm_nouveau_nouveau_gem.c,msm_ioctl_gem_cpu_fini@drivers_gpu_drm_msm_msm_drv.c,bochs_user_framebuffer_create@drivers_gpu_drm_bochs_bochs_mm.c,intel_overlay_put_image@drivers_gpu_drm_i915_intel_overlay.c,i915_gem_pwrite_ioctl@drivers_gpu_drm_i915_i915_gem.c,ast_dumb_mmap_offset@drivers_gpu_drm_ast_ast_main.c,i915_gem_set_domain_ioctl@drivers_gpu_drm_i915_i915_gem.c,cirrus_user_framebuffer_create@drivers_gpu_drm_cirrus_cirrus_main.c,objects_lookup@drivers_gpu_drm_omapdrm_omap_drv.h,nouveau_gem_ioctl_cpu_prep@drivers_gpu_drm_nouveau_nouveau_gem.c,armada_gem_mmap_ioctl@drivers_gpu_drm_armada_armada_gem.c,amdgpu_gem_wait_idle_ioctl@drivers_gpu_drm_amd_amdgpu_amdgpu_gem.c,drm_gem_flink_ioctl@drivers_gpu_drm_drm_gem.c,mga_crtc_cursor_set@drivers_gpu_drm_mgag200_mgag200_cursor.c,mgag200_dumb_mmap_offset@drivers_gpu_drm_mgag200_mgag200_main.c,msm_framebuffer_create@drivers_gpu_drm_msm_msm_fb.c,etnaviv_ioctl_gem_info@drivers_gpu_drm_etnaviv_etnaviv_drv.c,amdgpu_cs_user_fence_chunk@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,psb_user_framebuffer_create@drivers_gpu_drm_gma500_framebuffer.c,nouveau_gem_ioctl_info@drivers_gpu_drm_nouveau_nouveau_gem.c,psb_gem_dumb_map_gtt@drivers_gpu_drm_gma500_gem.c,mgag200_user_framebuffer_create@drivers_gpu_drm_mgag200_mgag200_main.c,amdgpu_gem_metadata_ioctl@drivers_gpu_drm_amd_amdgpu_amdgpu_gem.c,dce_v10_0_crtc_cursor_set2@drivers_gpu_drm_amd_amdgpu_dce_v10_0.c,nouveau_display_dumb_map_offset@drivers_gpu_drm_nouveau_nouveau_display.c,msm_ioctl_gem_info@drivers_gpu_drm_msm_msm_drv.c,amdgpu_bo_list_set@drivers_gpu_drm_amd_amdgpu_amdgpu_bo_list.c,i915_gem_madvise_ioctl@drivers_gpu_drm_i915_i915_gem.c,drm_gem_prime_handle_to_fd@drivers_gpu_drm_drm_prime.c,armada_drm_crtc_cursor_set@drivers_gpu_drm_armada_armada_crtc.c,ioctl_gem_cpu_prep@drivers_gpu_drm_omapdrm_omap_drv.c,i915_gem_get_tiling@drivers_gpu_drm_i915_i915_gem_tiling.c,amdgpu_gem_va_ioctl@drivers_gpu_drm_amd_amdgpu_amdgpu_gem.c,cirrus_dumb_mmap_offset@drivers_gpu_drm_cirrus_cirrus_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m17s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 60
+@@
+expression E0;
+expression E1;
+expression E2;
+@@
+- drm_gem_object_lookup(E0, E1, E2)
++ drm_gem_object_lookup(E1, E2)
+//# pattern-3, witnesses: 5
+@@
+expression E1;
+identifier PV0;
+@@
+- armada_gem_object_lookup(dev, PV0, E1)
++ armada_gem_object_lookup(PV0, E1)

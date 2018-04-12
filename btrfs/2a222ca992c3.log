@@ -1,0 +1,167 @@
+BUILD:
+[33mbase commit: 2a222ca992c3^1
+[0m[33mtarget commit: 2a222ca992c3
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m30 source file(s) touched in the old version
+`-- drivers/md/bitmap.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/check-integrity.h
+`-- fs/btrfs/disk-io.c
+`-- fs/buffer.c
+`-- fs/ext4/balloc.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/mmp.c
+`-- fs/fat/misc.c
+`-- fs/gfs2/bmap.c
+`-- fs/gfs2/dir.c
+`-- fs/gfs2/meta_io.c
+`-- fs/jbd2/commit.c
+`-- fs/jbd2/journal.c
+`-- fs/nilfs2/btnode.c
+`-- fs/nilfs2/btnode.h
+`-- fs/nilfs2/btree.c
+`-- fs/nilfs2/gcinode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/ntfs/aops.c
+`-- fs/ntfs/compress.c
+`-- fs/ntfs/file.c
+`-- fs/ntfs/logfile.c
+`-- fs/ntfs/mft.c
+`-- fs/ocfs2/buffer_head_io.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/journal.c
+`-- fs/ufs/util.c
+`-- include/linux/buffer_head.h
+30 source file(s) touched in the new version
+`-- drivers/md/bitmap.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/check-integrity.h
+`-- fs/btrfs/disk-io.c
+`-- fs/buffer.c
+`-- fs/ext4/balloc.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/mmp.c
+`-- fs/fat/misc.c
+`-- fs/gfs2/bmap.c
+`-- fs/gfs2/dir.c
+`-- fs/gfs2/meta_io.c
+`-- fs/jbd2/commit.c
+`-- fs/jbd2/journal.c
+`-- fs/nilfs2/btnode.c
+`-- fs/nilfs2/btnode.h
+`-- fs/nilfs2/btree.c
+`-- fs/nilfs2/gcinode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/ntfs/aops.c
+`-- fs/ntfs/compress.c
+`-- fs/ntfs/file.c
+`-- fs/ntfs/logfile.c
+`-- fs/ntfs/mft.c
+`-- fs/ocfs2/buffer_head_io.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/journal.c
+`-- fs/ufs/util.c
+`-- include/linux/buffer_head.h
+[33mcompile base commit... [0m[33mok (68s)
+[0m[33mapply [0m[33m2a222ca992c3... [0m[33mok (68s)
+[0m[33mcompile target commit... [0m[33mok (113s)
+[0mPREPARE:
+[33mcollect AST for functions: write_page@drivers_md_bitmap.c,ocfs2_write_super_or_backup@fs_ocfs2_buffer_head_io.c,__block_write_full_page@fs_buffer.c,read_mmp_block@fs_ext4_mmp.c,ocfs2_read_blocks@fs_ocfs2_buffer_head_io.c,write_dev_supers@fs_btrfs_disk-io.c,ocfs2_write_block@fs_ocfs2_buffer_head_io.c,nilfs_mdt_read_block@fs_nilfs2_mdt.c,write_mmp_block@fs_ext4_mmp.c,__ext4_get_inode_loc@fs_ext4_inode.c,jbd2_write_superblock@fs_jbd2_journal.c,btrfsic_submit_bh@fs_btrfs_check-integrity.c,ext4_read_inode_bitmap@fs_ext4_ialloc.c,journal_submit_commit_record@fs_jbd2_commit.c,read_page@drivers_md_bitmap.c,ll_rw_block@fs_buffer.c,bh_submit_read@fs_buffer.c,fat_sync_bhs@fs_fat_misc.c,_submit_bh@fs_buffer.c,__bread_slow@fs_buffer.c,write_dirty_buffer@fs_buffer.c,write_mft_record_nolock@fs_ntfs_mft.c,nobh_write_begin@fs_buffer.c,submit_ordered_buffer@fs_reiserfs_journal.c,nilfs_gccache_submit_read_node@fs_nilfs2_gcinode.c,ntfs_read_compressed_block@fs_ntfs_compress.c,gfs2_aspace_writepage@fs_gfs2_meta_io.c,gfs2_dir_readahead@fs_gfs2_dir.c,ntfs_sync_mft_mirror@fs_ntfs_mft.c,ntfs_empty_logfile@fs_ntfs_logfile.c,submit_bh@fs_buffer.c,submit_bh_wbc@fs_buffer.c,ext4_read_block_bitmap_nowait@fs_ext4_balloc.c,gfs2_metapath_ra@fs_gfs2_bmap.c,journal_read_transaction@fs_reiserfs_journal.c,jbd2_journal_commit_transaction@fs_jbd2_commit.c,reiserfs_write_full_page@fs_reiserfs_inode.c,ntfs_write_block@fs_ntfs_aops.c,ntfs_read_block@fs_ntfs_aops.c,ntfs_write_mst_block@fs_ntfs_aops.c,nilfs_mdt_submit_block@fs_nilfs2_mdt.c,ubh_sync_block@fs_ufs_util.c,nilfs_btnode_submit_block@fs_nilfs2_btnode.c,submit_logged_buffer@fs_reiserfs_journal.c,__sync_dirty_buffer@fs_buffer.c,nilfs_gccache_submit_read_data@fs_nilfs2_gcinode.c,guard_bio_eod@fs_buffer.c,ntfs_submit_bh_for_read@fs_ntfs_file.c,ocfs2_read_blocks_sync@fs_ocfs2_buffer_head_io.c,__nilfs_btree_get_block@fs_nilfs2_btree.c,block_read_full_page@fs_buffer.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: ConditionalOperator
+unknown kind: DoStmt
+unknown kind: ConditionalOperator
+unknown kind: DoStmt
+//# pattern-1, witnesses: 11
+@@
+expression E0;
+@@
+- submit_bh(READ, E0)
++ submit_bh(REQ_OP_READ, 0, E0)
+//# pattern-6, witnesses: 11
+@@
+expression E0;
+@@
+- submit_bh(WRITE, E0)
++ submit_bh(REQ_OP_WRITE, 0, E0)
+//# pattern-33, witnesses: 4
+@@
+expression E0;
+@@
+- submit_bh(E0, bh)
++ submit_bh(REQ_OP_WRITE, E0, bh)
+//# pattern-12, witnesses: 3
+@@
+expression E0;
+expression E1;
+expression E2;
+@@
+- submit_bh(E0 | E1, E2)
++ submit_bh(REQ_OP_READ, E0 | E1, E2)
+//# pattern-21, witnesses: 3
+@@
+@@
+- submit_bh(READ | REQ_META | REQ_PRIO, bh)
++ submit_bh(REQ_OP_READ, REQ_META | REQ_PRIO, bh)
+//# pattern-31, witnesses: 3
+@@
+@@
+- WRITE
++ 0
+//# pattern-4, witnesses: 2
+@r0@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier bh;
+identifier r0.fn;
+identifier rw;
+@@
+- int fn(struct buffer_head * bh, int rw)
++ int fn(struct buffer_head * bh, int op_flags)
+ {
+     <...
+- submit_bh(rw, bh)
++ submit_bh(REQ_OP_WRITE, op_flags, bh)
+     ...>
+ }
+//# pattern-11, witnesses: 2
+@@
+expression E0;
+expression E1;
+expression E2;
+expression E3;
+expression E4;
+@@
+- nilfs_btnode_submit_block(E0, E1, E2, READ, E3, &E4)
++ nilfs_btnode_submit_block(E0, E1, E2, REQ_OP_READ, 0, E3, &E4)
+//# pattern-14, witnesses: 2
+@@
+expression E0;
+@@
+- btrfsic_submit_bh(E0, bh)
++ btrfsic_submit_bh(REQ_OP_WRITE, E0, bh)
+//# pattern-30, witnesses: 2
+@@
+identifier get_block;
+identifier handler;
+identifier inode;
+identifier page;
+identifier wbc;
+@@
+ int __block_write_full_page(struct inode * inode, struct page * page, get_block_t * get_block, struct writeback_control * wbc, bh_end_io_t * handler)
+ {
+     <...
+- int write_op = ;
++ int write_flags = ;
+     ...>
+ }

@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 599c75ec3f7f^1
+[0m[33mtarget commit: 599c75ec3f7f
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/delayed-ref.c
+`-- fs/btrfs/extent-tree.c
+`-- include/trace/events/btrfs.h
+3 source file(s) touched in the new version
+`-- fs/btrfs/delayed-ref.c
+`-- fs/btrfs/extent-tree.c
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m599c75ec3f7f... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

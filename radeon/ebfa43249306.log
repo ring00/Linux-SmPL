@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: ebfa43249306^1
+[0m[33mtarget commit: ebfa43249306
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/mga/mga_state.c
+`-- drivers/gpu/drm/r128/r128_state.c
+`-- drivers/gpu/drm/radeon/radeon_state.c
+`-- include/drm/drmP.h
+5 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/mga/mga_state.c
+`-- drivers/gpu/drm/r128/r128_state.c
+`-- drivers/gpu/drm/radeon/radeon_state.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33mebfa43249306... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

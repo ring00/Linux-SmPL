@@ -1,0 +1,34 @@
+BUILD:
+[33mbase commit: 1690be63a27b^1
+[0m[33mtarget commit: 1690be63a27b
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m10 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/vxlan.c
+`-- include/linux/netdevice.h
+`-- include/uapi/linux/neighbour.h
+`-- net/bridge/br_fdb.c
+`-- net/bridge/br_private.h
+`-- net/core/rtnetlink.c
+10 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+`-- drivers/net/macvlan.c
+`-- drivers/net/vxlan.c
+`-- include/linux/netdevice.h
+`-- include/uapi/linux/neighbour.h
+`-- net/bridge/br_fdb.c
+`-- net/bridge/br_private.h
+`-- net/core/rtnetlink.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m1690be63a27b... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

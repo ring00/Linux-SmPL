@@ -1,0 +1,66 @@
+BUILD:
+[33mbase commit: 7e40145eb111^1
+[0m[33mtarget commit: 7e40145eb111
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m26 source file(s) touched in the old version
+`-- fs/9p/acl.c
+`-- fs/9p/acl.h
+`-- fs/btrfs/acl.c
+`-- fs/btrfs/ctree.h
+`-- fs/ext2/acl.c
+`-- fs/ext2/acl.h
+`-- fs/ext3/acl.c
+`-- fs/ext3/acl.h
+`-- fs/ext4/acl.c
+`-- fs/ext4/acl.h
+`-- fs/generic_acl.c
+`-- fs/gfs2/acl.c
+`-- fs/gfs2/acl.h
+`-- fs/jffs2/acl.c
+`-- fs/jffs2/acl.h
+`-- fs/jfs/acl.c
+`-- fs/jfs/jfs_acl.h
+`-- fs/namei.c
+`-- fs/ocfs2/acl.c
+`-- fs/ocfs2/acl.h
+`-- fs/reiserfs/xattr.c
+`-- fs/xfs/linux-2.6/xfs_acl.c
+`-- fs/xfs/xfs_acl.h
+`-- include/linux/fs.h
+`-- include/linux/generic_acl.h
+`-- include/linux/reiserfs_xattr.h
+26 source file(s) touched in the new version
+`-- fs/9p/acl.c
+`-- fs/9p/acl.h
+`-- fs/btrfs/acl.c
+`-- fs/btrfs/ctree.h
+`-- fs/ext2/acl.c
+`-- fs/ext2/acl.h
+`-- fs/ext3/acl.c
+`-- fs/ext3/acl.h
+`-- fs/ext4/acl.c
+`-- fs/ext4/acl.h
+`-- fs/generic_acl.c
+`-- fs/gfs2/acl.c
+`-- fs/gfs2/acl.h
+`-- fs/jffs2/acl.c
+`-- fs/jffs2/acl.h
+`-- fs/jfs/acl.c
+`-- fs/jfs/jfs_acl.h
+`-- fs/namei.c
+`-- fs/ocfs2/acl.c
+`-- fs/ocfs2/acl.h
+`-- fs/reiserfs/xattr.c
+`-- fs/xfs/linux-2.6/xfs_acl.c
+`-- fs/xfs/xfs_acl.h
+`-- include/linux/fs.h
+`-- include/linux/generic_acl.h
+`-- include/linux/reiserfs_xattr.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m7e40145eb111... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

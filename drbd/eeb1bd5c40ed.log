@@ -1,0 +1,51 @@
+BUILD:
+[33mbase commit: eeb1bd5c40ed^1
+[0m[33mtarget commit: eeb1bd5c40ed
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_receiver.c
+`-- fs/afs/rxrpc.c
+`-- fs/dlm/lowcomms.c
+`-- include/linux/net.h
+`-- net/bluetooth/rfcomm/core.c
+`-- net/ceph/messenger.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/udp_tunnel.c
+`-- net/ipv6/ip6_udp_tunnel.c
+`-- net/l2tp/l2tp_core.c
+`-- net/netfilter/ipvs/ip_vs_sync.c
+`-- net/rxrpc/ar-local.c
+`-- net/socket.c
+13 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_receiver.c
+`-- fs/afs/rxrpc.c
+`-- fs/dlm/lowcomms.c
+`-- include/linux/net.h
+`-- net/bluetooth/rfcomm/core.c
+`-- net/ceph/messenger.c
+`-- net/ipv4/af_inet.c
+`-- net/ipv4/udp_tunnel.c
+`-- net/ipv6/ip6_udp_tunnel.c
+`-- net/l2tp/l2tp_core.c
+`-- net/netfilter/ipvs/ip_vs_sync.c
+`-- net/rxrpc/ar-local.c
+`-- net/socket.c
+[33mcompile base commit... [0m[33mok (29s)
+[0m[33mapply [0m[33meeb1bd5c40ed... [0m[33mok (29s)
+[0m[33mcompile target commit... [0m[33mok (55s)
+[0mPREPARE:
+[33mcollect AST for functions: l2tp_tunnel_sock_create@net_l2tp_l2tp_core.c,afs_open_socket@fs_afs_rxrpc.c,udp_sock_create6@net_ipv6_ip6_udp_tunnel.c,inet_ctl_sock_create@net_ipv4_af_inet.c,tcp_accept_from_sock@fs_dlm_lowcomms.c,make_receive_sock@net_netfilter_ipvs_ip_vs_sync.c,prepare_listen_socket@drivers_block_drbd_drbd_receiver.c,make_send_sock@net_netfilter_ipvs_ip_vs_sync.c,drbd_try_connect@drivers_block_drbd_drbd_receiver.c,rxrpc_create_local@net_rxrpc_ar-local.c,tcp_connect_to_sock@fs_dlm_lowcomms.c,tcp_create_listen_sock@fs_dlm_lowcomms.c,udp_sock_create4@net_ipv4_udp_tunnel.c,ceph_tcp_connect@net_ceph_messenger.c,sctp_listen_for_all@fs_dlm_lowcomms.c,rfcomm_l2sock_create@net_bluetooth_rfcomm_core.c,sock_create_kern@net_socket.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 17
+@@
+expression E0;
+expression E1;
+expression E2;
+expression E3;
+@@
+- sock_create_kern(E0, E1, E2, E3)
++ sock_create_kern(&init_net, E0, E1, E2, E3)

@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 5542aa2fa7f6^1
+[0m[33mtarget commit: 5542aa2fa7f6
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m7 source file(s) touched in the old version
+`-- fs/btrfs/ioctl.c
+`-- fs/cifs/readdir.c
+`-- fs/dcache.c
+`-- fs/fuse/dir.c
+`-- fs/namei.c
+`-- fs/nfs/dir.c
+`-- include/linux/dcache.h
+7 source file(s) touched in the new version
+`-- fs/btrfs/ioctl.c
+`-- fs/cifs/readdir.c
+`-- fs/dcache.c
+`-- fs/fuse/dir.c
+`-- fs/namei.c
+`-- fs/nfs/dir.c
+`-- include/linux/dcache.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33m5542aa2fa7f6... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

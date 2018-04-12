@@ -1,0 +1,328 @@
+BUILD:
+[33mbase commit: 11bac8000449^1
+[0m[33mtarget commit: 11bac8000449
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m87 source file(s) touched in the old version
+`-- arch/powerpc/kvm/book3s_64_vio.c
+`-- arch/powerpc/platforms/cell/spufs/file.c
+`-- drivers/android/binder.c
+`-- drivers/char/agp/alpha-agp.c
+`-- drivers/char/mspec.c
+`-- drivers/dax/dax.c
+`-- drivers/gpu/drm/armada/armada_gem.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_drv.h
+`-- drivers/gpu/drm/etnaviv/etnaviv_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.h
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/tegra/gem.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- drivers/gpu/drm/vgem/vgem_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- drivers/hsi/clients/cmt_speech.c
+`-- drivers/hwtracing/intel_th/msu.c
+`-- drivers/infiniband/hw/hfi1/file_ops.c
+`-- drivers/infiniband/hw/qib/qib_file_ops.c
+`-- drivers/media/v4l2-core/videobuf-dma-sg.c
+`-- drivers/misc/cxl/context.c
+`-- drivers/misc/sgi-gru/grumain.c
+`-- drivers/misc/sgi-gru/grutables.h
+`-- drivers/scsi/cxlflash/superpipe.c
+`-- drivers/scsi/sg.c
+`-- drivers/staging/android/ion/ion.c
+`-- drivers/staging/lustre/lustre/llite/llite_mmap.c
+`-- drivers/staging/lustre/lustre/llite/vvp_io.c
+`-- drivers/target/target_core_user.c
+`-- drivers/uio/uio.c
+`-- drivers/usb/mon/mon_bin.c
+`-- drivers/video/fbdev/core/fb_defio.c
+`-- drivers/xen/privcmd.c
+`-- fs/9p/vfs_file.c
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/inode.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/dax.c
+`-- fs/ext2/file.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/file.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/file.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/file.c
+`-- fs/iomap.c
+`-- fs/kernfs/file.c
+`-- fs/ncpfs/mmap.c
+`-- fs/nfs/file.c
+`-- fs/nilfs2/file.c
+`-- fs/ocfs2/mmap.c
+`-- fs/proc/vmcore.c
+`-- fs/ubifs/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/dax.h
+`-- include/linux/iomap.h
+`-- include/linux/mm.h
+`-- ipc/shm.c
+`-- kernel/events/core.c
+`-- kernel/relay.c
+`-- mm/filemap.c
+`-- mm/hugetlb.c
+`-- mm/memory.c
+`-- mm/mmap.c
+`-- mm/nommu.c
+`-- mm/shmem.c
+`-- security/selinux/selinuxfs.c
+`-- sound/core/pcm_native.c
+`-- sound/usb/usx2y/us122l.c
+`-- sound/usb/usx2y/usX2Yhwdep.c
+`-- sound/usb/usx2y/usx2yhwdeppcm.c
+`-- virt/kvm/kvm_main.c
+87 source file(s) touched in the new version
+`-- arch/powerpc/kvm/book3s_64_vio.c
+`-- arch/powerpc/platforms/cell/spufs/file.c
+`-- drivers/android/binder.c
+`-- drivers/char/agp/alpha-agp.c
+`-- drivers/char/mspec.c
+`-- drivers/dax/dax.c
+`-- drivers/gpu/drm/armada/armada_gem.c
+`-- drivers/gpu/drm/drm_vm.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_drv.h
+`-- drivers/gpu/drm/etnaviv/etnaviv_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.c
+`-- drivers/gpu/drm/exynos/exynos_drm_gem.h
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/gem.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/i915/i915_drv.h
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_gem.c
+`-- drivers/gpu/drm/qxl/qxl_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/tegra/gem.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/udl/udl_drv.h
+`-- drivers/gpu/drm/udl/udl_gem.c
+`-- drivers/gpu/drm/vgem/vgem_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_ttm.c
+`-- drivers/hsi/clients/cmt_speech.c
+`-- drivers/hwtracing/intel_th/msu.c
+`-- drivers/infiniband/hw/hfi1/file_ops.c
+`-- drivers/infiniband/hw/qib/qib_file_ops.c
+`-- drivers/media/v4l2-core/videobuf-dma-sg.c
+`-- drivers/misc/cxl/context.c
+`-- drivers/misc/sgi-gru/grumain.c
+`-- drivers/misc/sgi-gru/grutables.h
+`-- drivers/scsi/cxlflash/superpipe.c
+`-- drivers/scsi/sg.c
+`-- drivers/staging/android/ion/ion.c
+`-- drivers/staging/lustre/lustre/llite/llite_mmap.c
+`-- drivers/staging/lustre/lustre/llite/vvp_io.c
+`-- drivers/target/target_core_user.c
+`-- drivers/uio/uio.c
+`-- drivers/usb/mon/mon_bin.c
+`-- drivers/video/fbdev/core/fb_defio.c
+`-- drivers/xen/privcmd.c
+`-- fs/9p/vfs_file.c
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/inode.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/dax.c
+`-- fs/ext2/file.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/file.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/file.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/file.c
+`-- fs/iomap.c
+`-- fs/kernfs/file.c
+`-- fs/ncpfs/mmap.c
+`-- fs/nfs/file.c
+`-- fs/nilfs2/file.c
+`-- fs/ocfs2/mmap.c
+`-- fs/proc/vmcore.c
+`-- fs/ubifs/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/dax.h
+`-- include/linux/iomap.h
+`-- include/linux/mm.h
+`-- ipc/shm.c
+`-- kernel/events/core.c
+`-- kernel/relay.c
+`-- mm/filemap.c
+`-- mm/hugetlb.c
+`-- mm/memory.c
+`-- mm/mmap.c
+`-- mm/nommu.c
+`-- mm/shmem.c
+`-- security/selinux/selinuxfs.c
+`-- sound/core/pcm_native.c
+`-- sound/usb/usx2y/us122l.c
+`-- sound/usb/usx2y/usX2Yhwdep.c
+`-- sound/usb/usx2y/usx2yhwdeppcm.c
+`-- virt/kvm/kvm_main.c
+[33mcompile base commit... [0m[33mok (74s)
+[0m[33mapply [0m[33m11bac8000449... [0m[33mok (74s)
+[0m[33mcompile target commit... [0m[33mok (139s)
+[0mPREPARE:
+[33mcollect AST for functions: vgem_gem_fault@drivers_gpu_drm_vgem_vgem_drv.c,ceph_filemap_fault@fs_ceph_addr.c,privcmd_fault@drivers_xen_privcmd.c,psb_gem_fault@drivers_gpu_drm_gma500_gem.c,uio_vma_fault@drivers_uio_uio.c,drm_vm_dma_fault@drivers_gpu_drm_drm_vm.c,cxl_mmap_fault@drivers_misc_cxl_context.c,gru_fault@drivers_misc_sgi-gru_grumain.c,mspec_fault@drivers_char_mspec.c,drm_do_vm_fault@drivers_gpu_drm_drm_vm.c,drm_do_vm_sg_fault@drivers_gpu_drm_drm_vm.c,ll_page_mkwrite@drivers_staging_lustre_lustre_llite_llite_mmap.c,drm_vm_shm_fault@drivers_gpu_drm_drm_vm.c,drm_vm_fault@drivers_gpu_drm_drm_vm.c,cxlflash_mmap_fault@drivers_scsi_cxlflash_superpipe.c,alpha_core_agp_vm_fault@drivers_char_agp_alpha-agp.c,cs_char_vma_fault@drivers_hsi_clients_cmt_speech.c,drm_do_vm_dma_fault@drivers_gpu_drm_drm_vm.c,ll_fault@drivers_staging_lustre_lustre_llite_llite_mmap.c,i915_gem_fault@drivers_gpu_drm_i915_i915_gem.c,ceph_page_mkwrite@fs_ceph_addr.c,mon_bin_vma_fault@drivers_usb_mon_mon_bin.c,sg_vma_fault@drivers_scsi_sg.c,msm_gem_fault@drivers_gpu_drm_msm_msm_gem.c,dax_dev_fault@drivers_dax_dax.c,drm_vm_sg_fault@drivers_gpu_drm_drm_vm.c,videobuf_vm_fault@drivers_media_v4l2-core_videobuf-dma-sg.c,qib_file_vma_fault@drivers_infiniband_hw_qib_qib_file_ops.c,radeon_ttm_fault@drivers_gpu_drm_radeon_radeon_ttm.c,vvp_io_kernel_fault@drivers_staging_lustre_lustre_llite_vvp_io.c,psbfb_vm_fault@drivers_gpu_drm_gma500_framebuffer.c,v9fs_vm_page_mkwrite@fs_9p_vfs_file.c,drm_do_vm_shm_fault@drivers_gpu_drm_drm_vm.c,msc_mmap_fault@drivers_hwtracing_intel_th_msu.c,udl_gem_fault@drivers_gpu_drm_udl_udl_gem.c,binder_vm_fault@drivers_android_binder.c,ion_vm_fault@drivers_staging_android_ion_ion.c,omap_gem_fault@drivers_gpu_drm_omapdrm_omap_gem.c,__dax_dev_fault@drivers_dax_dax.c,fb_deferred_io_mkwrite@drivers_video_fbdev_core_fb_defio.c,tegra_bo_fault@drivers_gpu_drm_tegra_gem.c,btrfs_page_mkwrite@fs_btrfs_inode.c,vma_fault@drivers_infiniband_hw_hfi1_file_ops.c,ttm_bo_vm_fault@drivers_gpu_drm_ttm_ttm_bo_vm.c,qxl_ttm_fault@drivers_gpu_drm_qxl_qxl_ttm.c,fb_deferred_io_fault@drivers_video_fbdev_core_fb_defio.c,etnaviv_gem_fault@drivers_gpu_drm_etnaviv_etnaviv_gem.c,armada_gem_vm_fault@drivers_gpu_drm_armada_armada_gem.c,tcmu_vma_fault@drivers_target_target_core_user.c,exynos_drm_gem_fault@drivers_gpu_drm_exynos_exynos_drm_gem.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-8, witnesses: 4
+@r0@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier r0.fn;
+identifier vma;
+identifier vmf;
+@@
+- int fn(struct vm_area_struct * vma, struct vm_fault * vmf)
++ int fn(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_private_data
++ vmf->vma->vm_private_data
+     ...>
+ }
+//# pattern-14, witnesses: 2
+@r1@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier r1.fn;
+identifier vmf;
+@@
+ int fn(struct vm_fault * vmf)
+ {
+     <...
+- vm_insert_pfn(vma, vmf->address, pfn)
++ vm_insert_pfn(vmf->vma, vmf->address, pfn)
+     ...>
+ }
+//# pattern-20, witnesses: 2
+@r2@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .page_mkwrite = fn,
+};
+@@
+identifier vmf;
+@@
+ int btrfs_page_mkwrite(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_file
++ vmf->vma->vm_file
+     ...>
+ }
+//# pattern-22, witnesses: 2
+@r3@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier r3.fn;
+identifier vmf;
+@@
+ int fn(struct vm_fault * vmf)
+ { ... }
+//# pattern-37, witnesses: 2
+@r4@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .page_mkwrite = fn,
+};
+@@
+identifier r4.fn;
+identifier vmf;
+@@
+ int fn(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_file
++ vmf->vma->vm_file
+     ...>
+ }
+//# pattern-42, witnesses: 2
+@r5@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier vmf;
+@@
+ int fb_deferred_io_fault(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_file
++ vmf->vma->vm_file
+     ...>
+ }
+//# pattern-43, witnesses: 2
+@r6@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier vmf;
+@@
+ int msc_mmap_fault(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_file
++ vmf->vma->vm_file
+     ...>
+ }
+//# pattern-47, witnesses: 2
+@r7@
+identifier i, fn;
+@@
+struct vm_operations_struct i = {
+    .fault = fn,
+};
+@@
+identifier r7.fn;
+identifier vmf;
+@@
+ int fn(struct vm_fault * vmf)
+ {
+     <...
+- vma->vm_private_data
++ vmf->vma->vm_private_data
+     ...>
+ }

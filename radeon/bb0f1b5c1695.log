@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: bb0f1b5c1695^1
+[0m[33mtarget commit: bb0f1b5c1695
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/qxl/qxl_irq.c
+`-- drivers/gpu/drm/radeon/radeon_irq_kms.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_drv.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/drm/drmP.h
+13 source file(s) touched in the new version
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/gma500/psb_drv.c
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/qxl/qxl_irq.c
+`-- drivers/gpu/drm/radeon/radeon_irq_kms.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_drv.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33mbb0f1b5c1695... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

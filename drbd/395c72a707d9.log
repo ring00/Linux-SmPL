@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: 395c72a707d9^1
+[0m[33mtarget commit: 395c72a707d9
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m8 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/bio.c
+`-- include/linux/blk_types.h
+8 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/bio.c
+`-- include/linux/blk_types.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33m395c72a707d9... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

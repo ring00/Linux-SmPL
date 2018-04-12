@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 2b88f2de3051^1
+[0m[33mtarget commit: 2b88f2de3051
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m3 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_dcb.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_dcb_nl.c
+`-- include/net/dcbnl.h
+3 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_dcb.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_dcb_nl.c
+`-- include/net/dcbnl.h
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m2b88f2de3051... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

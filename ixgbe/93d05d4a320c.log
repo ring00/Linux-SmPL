@@ -1,0 +1,49 @@
+BUILD:
+[33mbase commit: 93d05d4a320c^1
+[0m[33mtarget commit: 93d05d4a320c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/chelsio/cxgb4/sge.c
+`-- drivers/net/ethernet/cisco/enic/enic_main.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_lib.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_cq.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/virtio_net.c
+`-- include/linux/netdevice.h
+`-- net/core/dev.c
+14 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/chelsio/cxgb4/sge.c
+`-- drivers/net/ethernet/cisco/enic/enic_main.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_lib.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_cq.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/myricom/myri10ge/myri10ge.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/virtio_net.c
+`-- include/linux/netdevice.h
+`-- net/core/dev.c
+[33mcompile base commit... [0m[33mok (42s)
+[0m[33mapply [0m[33m93d05d4a320c... [0m[33mok (42s)
+[0m[33mcompile target commit... [0m[33mok (80s)
+[0mPREPARE:
+[33mcollect AST for functions: virtnet_alloc_queues@drivers_net_virtio_net.c,efx_init_napi_channel@drivers_net_ethernet_sfc_efx.c,free_netdev@net_core_dev.c,ixgbevf_alloc_q_vectors@drivers_net_ethernet_intel_ixgbevf_ixgbevf_main.c,netif_napi_add@net_core_dev.c,t4_sge_alloc_rxq@drivers_net_ethernet_chelsio_cxgb4_sge.c,myri10ge_alloc_slices@drivers_net_ethernet_myricom_myri10ge_myri10ge.c,mlx4_en_activate_cq@drivers_net_ethernet_mellanox_mlx4_en_cq.c,be_evt_queues_create@drivers_net_ethernet_emulex_benet_be_main.c,netif_napi_del@net_core_dev.c,ixgbe_alloc_q_vector@drivers_net_ethernet_intel_ixgbe_ixgbe_lib.c,bnxt_init_napi@drivers_net_ethernet_broadcom_bnxt_bnxt.c,bnx2x_add_all_napi_cnic@drivers_net_ethernet_broadcom_bnx2x_bnx2x_cmn.c,bnx2x_add_all_napi@drivers_net_ethernet_broadcom_bnx2x_bnx2x_cmn.c,enic_dev_init@drivers_net_ethernet_cisco_enic_enic_main.c,mlx5e_open_channel@drivers_net_ethernet_mellanox_mlx5_core_en_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m8s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 14
+@@
+expression E0;
+@@
+- napi_hash_add(&E0);

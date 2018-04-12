@@ -1,0 +1,18 @@
+BUILD:
+[33mbase commit: b3a49557d531^1
+[0m[33mtarget commit: b3a49557d531
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m1 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+1 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33mb3a49557d531... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (41s)
+[0mPREPARE:
+[33mcollect AST for functions: ixgbe_netdev_ops@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_sw_init@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_open@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_set_features@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_add_vxlan_port@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_atr@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_del_vxlan_port@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbe_service_task@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:

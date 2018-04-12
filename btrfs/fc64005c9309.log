@@ -1,0 +1,74 @@
+BUILD:
+[33mbase commit: fc64005c9309^1
+[0m[33mtarget commit: fc64005c9309
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m30 source file(s) touched in the old version
+`-- fs/9p/vfs_inode.c
+`-- fs/btrfs/tree-log.c
+`-- fs/cifs/cifs_dfs_ref.c
+`-- fs/cifs/inode.c
+`-- fs/cifs/readdir.c
+`-- fs/cifs/xattr.c
+`-- fs/efs/namei.c
+`-- fs/exofs/super.c
+`-- fs/ext2/namei.c
+`-- fs/ext4/namei.c
+`-- fs/f2fs/namei.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/gfs2/super.c
+`-- fs/jffs2/dir.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/namei.c
+`-- fs/namei.c
+`-- fs/nfs/direct.c
+`-- fs/nfsd/nfs3proc.c
+`-- fs/nfsd/nfs3xdr.c
+`-- fs/nfsd/nfsfh.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/file.c
+`-- fs/udf/namei.c
+`-- fs/ufs/super.c
+`-- include/trace/events/ext4.h
+`-- kernel/audit_watch.c
+`-- security/integrity/evm/evm_main.c
+`-- security/selinux/hooks.c
+`-- security/smack/smack_lsm.c
+30 source file(s) touched in the new version
+`-- fs/9p/vfs_inode.c
+`-- fs/btrfs/tree-log.c
+`-- fs/cifs/cifs_dfs_ref.c
+`-- fs/cifs/inode.c
+`-- fs/cifs/readdir.c
+`-- fs/cifs/xattr.c
+`-- fs/efs/namei.c
+`-- fs/exofs/super.c
+`-- fs/ext2/namei.c
+`-- fs/ext4/namei.c
+`-- fs/f2fs/namei.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/gfs2/super.c
+`-- fs/jffs2/dir.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/namei.c
+`-- fs/namei.c
+`-- fs/nfs/direct.c
+`-- fs/nfsd/nfs3proc.c
+`-- fs/nfsd/nfs3xdr.c
+`-- fs/nfsd/nfsfh.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/file.c
+`-- fs/udf/namei.c
+`-- fs/ufs/super.c
+`-- include/trace/events/ext4.h
+`-- kernel/audit_watch.c
+`-- security/integrity/evm/evm_main.c
+`-- security/selinux/hooks.c
+`-- security/smack/smack_lsm.c
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33mfc64005c9309... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (11s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

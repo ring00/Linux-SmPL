@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: 815cccbf10b2^1
+[0m[33mtarget commit: 815cccbf10b2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/rtnetlink.h
+`-- net/core/rtnetlink.c
+5 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/rtnetlink.h
+`-- net/core/rtnetlink.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m815cccbf10b2... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Traceback (most recent call last):
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 108, in <module>
+    main()
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 102, in main
+    infer(contexts, list(all_added)[0], True)
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 76, in infer
+    max_count = max(counts.values())
+ValueError: max() arg is an empty sequence

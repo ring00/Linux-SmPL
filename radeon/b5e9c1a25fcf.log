@@ -1,0 +1,42 @@
+BUILD:
+[33mbase commit: b5e9c1a25fcf^1
+[0m[33mtarget commit: b5e9c1a25fcf
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_gem_cma_helper.c
+`-- drivers/gpu/drm/drm_prime.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_gem_prime.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.h
+`-- drivers/gpu/drm/nouveau/nouveau_prime.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_prime.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_gem_cma_helper.h
+12 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_gem_cma_helper.c
+`-- drivers/gpu/drm/drm_prime.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_gem_prime.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.h
+`-- drivers/gpu/drm/nouveau/nouveau_prime.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_prime.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_gem_cma_helper.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33mb5e9c1a25fcf... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <drm/drmP.h>
++#include <linux/dma-buf.h>

@@ -1,0 +1,14 @@
+BUILD:
+[33mbase commit: 91581e4c60db^1
+[0m[33mtarget commit: 91581e4c60db
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m0 source file(s) touched in the old version
+0 source file(s) touched in the new version
+PREPARE:
+[33m0s
+[0mANALYZE:
+grep: fdiff.txt: No such file or directory
+[31mExit with status: 1
+[0m
+COCCIGEN:

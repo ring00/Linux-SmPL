@@ -1,0 +1,38 @@
+BUILD:
+[33mbase commit: 63a7c8ad92af^1
+[0m[33mtarget commit: 63a7c8ad92af
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m5 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- include/linux/drbd.h
+5 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_worker.c
+`-- include/linux/drbd.h
+[33mcompile base commit... [0m[33mok (31s)
+[0m[33mapply [0m[33m63a7c8ad92af... [0m[33mok (31s)
+[0m[33mcompile target commit... [0m[33mok (47s)
+[0mPREPARE:
+[33mcollect AST for functions: drbd_device_cleanup@drivers_block_drbd_drbd_main.c,drbd_ldev_destroy@drivers_block_drbd_drbd_worker.c,drbd_destroy_device@drivers_block_drbd_drbd_main.c,drbd_adm_attach@drivers_block_drbd_drbd_nl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+identifier device;
+identifier fn;
+@@
+ void fn(struct drbd_device * device)
+ {
+     <...
+- drbd_free_ldev(device->ldev)
++ drbd_backing_dev_free(device, device->ldev)
+     ...>
+ }

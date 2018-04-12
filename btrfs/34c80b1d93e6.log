@@ -1,0 +1,88 @@
+BUILD:
+[33mbase commit: 34c80b1d93e6^1
+[0m[33mtarget commit: 34c80b1d93e6
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m37 source file(s) touched in the old version
+`-- arch/s390/hypfs/inode.c
+`-- drivers/staging/pohmelfs/inode.c
+`-- drivers/usb/core/inode.c
+`-- fs/adfs/super.c
+`-- fs/autofs4/inode.c
+`-- fs/btrfs/super.c
+`-- fs/ceph/super.c
+`-- fs/cifs/cifsfs.c
+`-- fs/devpts/inode.c
+`-- fs/ecryptfs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext3/super.c
+`-- fs/ext4/super.c
+`-- fs/fat/inode.c
+`-- fs/fuse/inode.c
+`-- fs/gfs2/super.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/hfsplus_fs.h
+`-- fs/hfsplus/options.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/super.c
+`-- fs/namespace.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/super.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/inode.h
+`-- fs/ocfs2/super.c
+`-- fs/proc_namespace.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/fs.h
+`-- kernel/cgroup.c
+`-- mm/shmem.c
+37 source file(s) touched in the new version
+`-- arch/s390/hypfs/inode.c
+`-- drivers/staging/pohmelfs/inode.c
+`-- drivers/usb/core/inode.c
+`-- fs/adfs/super.c
+`-- fs/autofs4/inode.c
+`-- fs/btrfs/super.c
+`-- fs/ceph/super.c
+`-- fs/cifs/cifsfs.c
+`-- fs/devpts/inode.c
+`-- fs/ecryptfs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext3/super.c
+`-- fs/ext4/super.c
+`-- fs/fat/inode.c
+`-- fs/fuse/inode.c
+`-- fs/gfs2/super.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/hfsplus_fs.h
+`-- fs/hfsplus/options.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/super.c
+`-- fs/namespace.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/super.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/inode.h
+`-- fs/ocfs2/super.c
+`-- fs/proc_namespace.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/fs.h
+`-- kernel/cgroup.c
+`-- mm/shmem.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m34c80b1d93e6... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,36 @@
+BUILD:
+[33mbase commit: 86c1fbd55c6a^1
+[0m[33mtarget commit: 86c1fbd55c6a
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/i810/i810_dma.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/r128/r128_cce.c
+`-- drivers/gpu/drm/radeon/r600_cp.c
+`-- drivers/gpu/drm/radeon/radeon_cp.c
+`-- drivers/gpu/drm/savage/savage_bci.c
+`-- drivers/gpu/drm/via/via_dma.c
+`-- drivers/gpu/drm/via/via_map.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_legacy.h
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_memory.c
+`-- drivers/gpu/drm/i810/i810_dma.c
+`-- drivers/gpu/drm/mga/mga_dma.c
+`-- drivers/gpu/drm/r128/r128_cce.c
+`-- drivers/gpu/drm/radeon/r600_cp.c
+`-- drivers/gpu/drm/radeon/radeon_cp.c
+`-- drivers/gpu/drm/savage/savage_bci.c
+`-- drivers/gpu/drm/via/via_dma.c
+`-- drivers/gpu/drm/via/via_map.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_legacy.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m86c1fbd55c6a... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

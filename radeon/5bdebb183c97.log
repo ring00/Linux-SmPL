@@ -1,0 +1,36 @@
+BUILD:
+[33mbase commit: 5bdebb183c97^1
+[0m[33mtarget commit: 5bdebb183c97
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_sysfs.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/i915/i915_sysfs.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_panel.c
+`-- drivers/gpu/drm/nouveau/nouveau_backlight.c
+`-- drivers/gpu/drm/radeon/atombios_encoders.c
+`-- drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_sysfs.c
+`-- drivers/gpu/drm/gma500/cdv_intel_dp.c
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/i915/i915_sysfs.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_panel.c
+`-- drivers/gpu/drm/nouveau/nouveau_backlight.c
+`-- drivers/gpu/drm/radeon/atombios_encoders.c
+`-- drivers/gpu/drm/radeon/radeon_legacy_encoders.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (10s)
+[0m[33mapply [0m[33m5bdebb183c97... [0m[33mok (10s)
+[0m[33mcompile target commit... [0m[33mok (12s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

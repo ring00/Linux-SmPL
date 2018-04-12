@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: e5de063016ce^1
+[0m[33mtarget commit: e5de063016ce
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m2 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/xen-blkback/common.h
+2 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/xen-blkback/common.h
+[33mcompile base commit... [0m[31mfailed[0m
+PREPARE:
+[31mLack a successful build
+[0m
+ANALYZE:
+grep: fdiff.txt: No such file or directory
+[31mLack a successful preparation
+[0m
+COCCIGEN:

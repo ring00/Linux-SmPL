@@ -1,0 +1,42 @@
+BUILD:
+[33mbase commit: 2c3c031c8f89^1
+[0m[33mtarget commit: 2c3c031c8f89
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m4 source file(s) touched in the old version
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- include/linux/rtnetlink.h
+`-- net/core/rtnetlink.c
+4 source file(s) touched in the new version
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- include/linux/rtnetlink.h
+`-- net/core/rtnetlink.c
+[33mcompile base commit... [0m[33mok (17s)
+[0m[33mapply [0m[33m2c3c031c8f89... [0m[33mok (17s)
+[0m[33mcompile target commit... [0m[33mok (31s)
+[0mPREPARE:
+[33mcollect AST for functions: ndo_dflt_bridge_getlink@net_core_rtnetlink.c,ixgbe_ndo_bridge_getlink@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,be_ndo_bridge_getlink@drivers_net_ethernet_emulex_benet_be_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+expression E0;
+identifier dev;
+identifier filter_mask;
+identifier fn;
+identifier pid;
+identifier seq;
+identifier skb;
+typedef u32;
+@@
+ int fn(struct sk_buff * skb, u32 pid, u32 seq, struct net_device * dev, u32 filter_mask)
+ {
+     <...
+- ndo_dflt_bridge_getlink(skb, pid, seq, dev, E0)
++ ndo_dflt_bridge_getlink(skb, pid, seq, dev, E0, 0, 0)
+     ...>
+ }

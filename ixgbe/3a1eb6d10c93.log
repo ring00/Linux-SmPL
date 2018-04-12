@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 3a1eb6d10c93^1
+[0m[33mtarget commit: 3a1eb6d10c93
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m2 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+2 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+[33mcompile base commit... [0m[33mok (22s)
+[0m[33mapply [0m[33m3a1eb6d10c93... [0m[33mok (22s)
+[0m[33mcompile target commit... [0m[33mok (39s)
+[0mPREPARE:
+[33mcollect AST for functions: igb_build_skb@drivers_net_ethernet_intel_igb_igb_main.c,ixgbe_build_skb@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:

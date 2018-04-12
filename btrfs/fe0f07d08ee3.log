@@ -1,0 +1,45 @@
+BUILD:
+[33mbase commit: fe0f07d08ee3^1
+[0m[33mtarget commit: fe0f07d08ee3
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m9 source file(s) touched in the old version
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/dax.c
+`-- fs/direct-io.c
+`-- fs/ext4/indirect.c
+`-- fs/ext4/inode.c
+`-- fs/inode.c
+`-- fs/nfs/direct.c
+`-- include/linux/fs.h
+9 source file(s) touched in the new version
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/dax.c
+`-- fs/direct-io.c
+`-- fs/ext4/indirect.c
+`-- fs/ext4/inode.c
+`-- fs/inode.c
+`-- fs/nfs/direct.c
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (23s)
+[0m[33mapply [0m[33mfe0f07d08ee3... [0m[33mok (23s)
+[0m[33mcompile target commit... [0m[33mok (41s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_direct_IO@fs_btrfs_inode.c,dio_complete@fs_direct-io.c,ext4_ind_direct_IO@fs_ext4_indirect.c,nfs_direct_write_schedule_iovec@fs_nfs_direct.c,ext4_ext_direct_IO@fs_ext4_inode.c,blkdev_direct_IO@fs_block_dev.c,do_blockdev_direct_IO@fs_direct-io.c,nfs_direct_complete@fs_nfs_direct.c,nfs_direct_read_schedule_iovec@fs_nfs_direct.c,dax_do_io@fs_dax.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-5, witnesses: 9
+@@
+expression list listE0;
+@@
+- inode_dio_done(listE0)
++ inode_dio_end(listE0)
+//# pattern-1, witnesses: 6
+@@
+@@
+- atomic_inc(&inode->i_dio_count)
++ inode_dio_begin(inode)

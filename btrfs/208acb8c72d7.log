@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 208acb8c72d7^1
+[0m[33mtarget commit: 208acb8c72d7
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/ctree.h
+`-- include/trace/events/btrfs.h
+2 source file(s) touched in the new version
+`-- fs/btrfs/ctree.h
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[31mfailed[0m
+PREPARE:
+[31mLack a successful build
+[0m
+ANALYZE:
+grep: fdiff.txt: No such file or directory
+[31mLack a successful preparation
+[0m
+COCCIGEN:

@@ -1,0 +1,76 @@
+BUILD:
+[33mbase commit: a1c6f05733c2^1
+[0m[33mtarget commit: a1c6f05733c2
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m17 source file(s) touched in the old version
+`-- fs/btrfs/super.c
+`-- fs/buffer.c
+`-- fs/ext2/xattr.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/xattr.c
+`-- fs/f2fs/debug.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/jbd2/transaction.c
+`-- fs/minix/itree_v1.c
+`-- fs/minix/itree_v2.c
+`-- fs/nilfs2/super.c
+`-- fs/reiserfs/journal.c
+`-- fs/reiserfs/prints.c
+`-- fs/reiserfs/procfs.c
+`-- fs/squashfs/super.c
+`-- fs/super.c
+`-- fs/xfs/xfs_buf.c
+17 source file(s) touched in the new version
+`-- fs/btrfs/super.c
+`-- fs/buffer.c
+`-- fs/ext2/xattr.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/xattr.c
+`-- fs/f2fs/debug.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/jbd2/transaction.c
+`-- fs/minix/itree_v1.c
+`-- fs/minix/itree_v2.c
+`-- fs/nilfs2/super.c
+`-- fs/reiserfs/journal.c
+`-- fs/reiserfs/prints.c
+`-- fs/reiserfs/procfs.c
+`-- fs/squashfs/super.c
+`-- fs/super.c
+`-- fs/xfs/xfs_buf.c
+[33mcompile base commit... [0m[33mok (36s)
+[0m[33mapply [0m[33ma1c6f05733c2... [0m[33mok (36s)
+[0m[33mcompile target commit... [0m[33mok (65s)
+[0mPREPARE:
+[33mcollect AST for functions: grow_buffers@fs_buffer.c,block_to_path@fs_minix_itree_v1.c,reiserfs_end_buffer_io_sync@fs_reiserfs_journal.c,print_super_block@fs_reiserfs_prints.c,mount_bdev@fs_super.c,journal_init_dev@fs_reiserfs_journal.c,sprintf_buffer_head@fs_reiserfs_prints.c,journal_read@fs_reiserfs_journal.c,buffer_io_error@fs_buffer.c,xfs_setsize_buftarg@fs_xfs_xfs_buf.c,journal_init@fs_reiserfs_journal.c,buffer_io_error@fs_ext4_page-io.c,gfs2_mount@fs_gfs2_ops_fstype.c,stat_show@fs_f2fs_debug.c,squashfs_fill_super@fs_squashfs_super.c,warn_dirty_buffer@fs_jbd2_transaction.c,__find_get_block_slow@fs_buffer.c,nilfs_mount@fs_nilfs2_super.c,show_journal@fs_reiserfs_procfs.c,block_to_path@fs_minix_itree_v2.c,btrfs_mount@fs_btrfs_super.c,do_thaw_one@fs_buffer.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-16, witnesses: 4
+@@
+expression E0;
+@@
+- char [32] b = b;
+- strlcpy(s->s_id, bdevname(E0, b), sizeof(unsigned long));
++ snprintf(s->s_id, sizeof(unsigned long), "%pg", E0);
+//# pattern-10, witnesses: 2
+@@
+expression E0;
+identifier block;
+identifier inode;
+identifier offsets;
+@@
+ int block_to_path(struct inode * inode, long block, int * offsets)
+ {
+     <...
+- char [32] b = b;
+- if (block < 0) {
+- printk("MINIX-fs: block_to_path: block %ld < 0 on dev %s\n", block, bdevname(E0->s_bdev, b));
+- }
++ if (block < 0) {
++ printk("MINIX-fs: block_to_path: block %ld < 0 on dev %pg\n", block, E0->s_bdev);
++ }
+     ...>
+ }

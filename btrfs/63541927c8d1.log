@@ -1,0 +1,36 @@
+BUILD:
+[33mbase commit: 63541927c8d1^1
+[0m[33mtarget commit: 63541927c8d1
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m7 source file(s) touched in the old version
+`-- fs/btrfs/btrfs_inode.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/super.c
+`-- fs/btrfs/xattr.c
+`-- include/uapi/linux/xattr.h
+9 source file(s) touched in the new version
+`-- fs/btrfs/btrfs_inode.h
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/props.c
+`-- fs/btrfs/props.h
+`-- fs/btrfs/super.c
+`-- fs/btrfs/xattr.c
+`-- include/uapi/linux/xattr.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m63541927c8d1... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <fs/btrfs/ctree.h>
+ #include <fs/btrfs/btrfs_inode.h>
++#include <fs/btrfs/props.h>

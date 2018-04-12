@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: 70834d3070c3^1
+[0m[33mtarget commit: 70834d3070c3
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m5 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/staging/rtl8187se/r8180_core.c
+`-- drivers/staging/rtl8192e/rtl8192e/rtl_dm.c
+`-- drivers/video/uvesafb.c
+`-- security/tomoyo/load_policy.c
+5 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/staging/rtl8187se/r8180_core.c
+`-- drivers/staging/rtl8192e/rtl8192e/rtl_dm.c
+`-- drivers/video/uvesafb.c
+`-- security/tomoyo/load_policy.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m70834d3070c3... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

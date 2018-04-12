@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 262c5e86fec7^1
+[0m[33mtarget commit: 262c5e86fec7
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/super.c
+`-- include/linux/printk.h
+2 source file(s) touched in the new version
+`-- fs/btrfs/super.c
+`-- include/linux/printk.h
+[33mcompile base commit... [0m[33mok (18s)
+[0m[33mapply [0m[33m262c5e86fec7... [0m[33mok (18s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_printk@fs_btrfs_super.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+[31mExit with status: 134
+[0m
+COCCIGEN:

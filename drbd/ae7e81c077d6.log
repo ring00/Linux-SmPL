@@ -1,0 +1,70 @@
+BUILD:
+[33mbase commit: ae7e81c077d6^1
+[0m[33mtarget commit: ae7e81c077d6
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m25 source file(s) touched in the old version
+`-- arch/arm/common/bL_switcher.c
+`-- crypto/crypto_engine.c
+`-- drivers/acpi/acpi_pad.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/firmware/psci_checker.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+`-- drivers/gpu/drm/i915/intel_breadcrumbs.c
+`-- drivers/media/pci/ivtv/ivtv-driver.c
+`-- drivers/mmc/core/sdio_irq.c
+`-- drivers/spi/spi.c
+`-- drivers/staging/android/ion/ion_heap.c
+`-- drivers/thermal/intel_powerclamp.c
+`-- drivers/tty/serial/sc16is7xx.c
+`-- kernel/irq/manage.c
+`-- kernel/kthread.c
+`-- kernel/locking/locktorture.c
+`-- kernel/rcu/rcuperf.c
+`-- kernel/rcu/rcutorture.c
+`-- kernel/rcu/tree.c
+`-- kernel/rcu/tree_plugin.h
+`-- kernel/sched/core.c
+`-- kernel/sched/cpufreq_schedutil.c
+`-- kernel/trace/ring_buffer_benchmark.c
+`-- kernel/trace/trace_selftest.c
+`-- kernel/watchdog.c
+26 source file(s) touched in the new version
+`-- arch/arm/common/bL_switcher.c
+`-- crypto/crypto_engine.c
+`-- drivers/acpi/acpi_pad.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/firmware/psci_checker.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+`-- drivers/gpu/drm/i915/intel_breadcrumbs.c
+`-- drivers/media/pci/ivtv/ivtv-driver.c
+`-- drivers/mmc/core/sdio_irq.c
+`-- drivers/spi/spi.c
+`-- drivers/staging/android/ion/ion_heap.c
+`-- drivers/thermal/intel_powerclamp.c
+`-- drivers/tty/serial/sc16is7xx.c
+`-- include/uapi/linux/sched/types.h
+`-- kernel/irq/manage.c
+`-- kernel/kthread.c
+`-- kernel/locking/locktorture.c
+`-- kernel/rcu/rcuperf.c
+`-- kernel/rcu/rcutorture.c
+`-- kernel/rcu/tree.c
+`-- kernel/rcu/tree_plugin.h
+`-- kernel/sched/core.c
+`-- kernel/sched/cpufreq_schedutil.c
+`-- kernel/trace/ring_buffer_benchmark.c
+`-- kernel/trace/trace_selftest.c
+`-- kernel/watchdog.c
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (148s)
+[0m[33mapply [0m[33mae7e81c077d6... [0m[33mok (148s)
+[0m[33mcompile target commit... [0m[33mok (173s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <kernel/rcu/tree_plugin.h>
++#include <uapi/linux/sched/types.h>

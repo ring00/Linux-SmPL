@@ -1,0 +1,24 @@
+BUILD:
+[33mbase commit: 6675df311db8^1
+[0m[33mtarget commit: 6675df311db8
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m4 source file(s) touched in the old version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/free-space-tree.c
+`-- include/uapi/linux/btrfs.h
+4 source file(s) touched in the new version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/free-space-tree.c
+`-- include/uapi/linux/btrfs.h
+[33mcompile base commit... [0m[33mok (19s)
+[0m[33mapply [0m[33m6675df311db8... [0m[33mok (19s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_create_free_space_tree@fs_btrfs_free-space-tree.c,open_ctree@fs_btrfs_disk-io.c,btrfs_clear_free_space_tree@fs_btrfs_free-space-tree.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:

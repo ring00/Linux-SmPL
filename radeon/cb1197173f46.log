@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: cb1197173f46^1
+[0m[33mtarget commit: cb1197173f46
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m9 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.h
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/virtio/virtgpu_fb.c
+9 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/ast/ast_drv.h
+`-- drivers/gpu/drm/cirrus/cirrus_drv.h
+`-- drivers/gpu/drm/i915/intel_drv.h
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.h
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/udl/udl_fb.c
+`-- drivers/gpu/drm/virtio/virtgpu_fb.c
+[33mcompile base commit... [0m[33mok (24s)
+[0m[33mapply [0m[33mcb1197173f46... [0m[33mok (24s)
+[0m[33mcompile target commit... [0m[33mok (37s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

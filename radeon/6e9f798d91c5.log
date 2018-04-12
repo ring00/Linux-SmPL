@@ -1,0 +1,42 @@
+BUILD:
+[33mbase commit: 6e9f798d91c5^1
+[0m[33mtarget commit: 6e9f798d91c5
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_edid.c
+`-- drivers/gpu/drm/drm_plane_helper.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_opregion.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/i915/intel_panel.c
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/radeon/radeon_connectors.c
+`-- include/drm/drm_crtc.h
+14 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/drm_edid.c
+`-- drivers/gpu/drm/drm_plane_helper.c
+`-- drivers/gpu/drm/i915/i915_debugfs.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/i915/intel_display.c
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/i915/intel_opregion.c
+`-- drivers/gpu/drm/i915/intel_overlay.c
+`-- drivers/gpu/drm/i915/intel_panel.c
+`-- drivers/gpu/drm/omapdrm/omap_fb.c
+`-- drivers/gpu/drm/radeon/radeon_connectors.c
+`-- include/drm/drm_crtc.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m6e9f798d91c5... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

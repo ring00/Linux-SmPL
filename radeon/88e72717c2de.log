@@ -1,0 +1,318 @@
+BUILD:
+[33mbase commit: 88e72717c2de^1
+[0m[33mtarget commit: 88e72717c2de
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m42 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_drm_crtc.c
+`-- drivers/gpu/drm/exynos/exynos_drm_crtc.h
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/gma500/psb_irq.c
+`-- drivers/gpu/drm/gma500/psb_irq.h
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/mga/mga_irq.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.h
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_irq.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/r128/r128_drv.h
+`-- drivers/gpu/drm/r128/r128_irq.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.h
+`-- drivers/gpu/drm/radeon/radeon_irq.c
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/rcar-du/rcar_du_drv.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/sti/sti_crtc.c
+`-- drivers/gpu/drm/sti/sti_crtc.h
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_drv.c
+`-- drivers/gpu/drm/via/via_drv.h
+`-- drivers/gpu/drm/via/via_irq.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- include/drm/drmP.h
+42 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_kms.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mode.h
+`-- drivers/gpu/drm/armada/armada_drv.c
+`-- drivers/gpu/drm/atmel-hlcdc/atmel_hlcdc_dc.c
+`-- drivers/gpu/drm/drm_irq.c
+`-- drivers/gpu/drm/exynos/exynos_drm_crtc.c
+`-- drivers/gpu/drm/exynos/exynos_drm_crtc.h
+`-- drivers/gpu/drm/fsl-dcu/fsl_dcu_drm_drv.c
+`-- drivers/gpu/drm/gma500/psb_drv.h
+`-- drivers/gpu/drm/gma500/psb_irq.c
+`-- drivers/gpu/drm/gma500/psb_irq.h
+`-- drivers/gpu/drm/i915/i915_irq.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/mga/mga_irq.c
+`-- drivers/gpu/drm/msm/msm_drv.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.c
+`-- drivers/gpu/drm/nouveau/nouveau_display.h
+`-- drivers/gpu/drm/omapdrm/omap_drv.h
+`-- drivers/gpu/drm/omapdrm/omap_irq.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/r128/r128_drv.h
+`-- drivers/gpu/drm/r128/r128_irq.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.h
+`-- drivers/gpu/drm/radeon/radeon_irq.c
+`-- drivers/gpu/drm/radeon/radeon_mode.h
+`-- drivers/gpu/drm/rcar-du/rcar_du_drv.c
+`-- drivers/gpu/drm/rockchip/rockchip_drm_drv.c
+`-- drivers/gpu/drm/shmobile/shmob_drm_drv.c
+`-- drivers/gpu/drm/sti/sti_crtc.c
+`-- drivers/gpu/drm/sti/sti_crtc.h
+`-- drivers/gpu/drm/tegra/drm.c
+`-- drivers/gpu/drm/tilcdc/tilcdc_drv.c
+`-- drivers/gpu/drm/via/via_drv.h
+`-- drivers/gpu/drm/via/via_irq.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- include/drm/drmP.h
+[33mcompile base commit... [0m[33mok (54s)
+[0m[33mapply [0m[33m88e72717c2de... [0m[33mok (54s)
+[0m[33mcompile target commit... [0m[33mok (97s)
+[0mPREPARE:
+[33mcollect AST for functions: exynos_drm_crtc_enable_vblank@drivers_gpu_drm_exynos_exynos_drm_crtc.c,r128_get_vblank_counter@drivers_gpu_drm_r128_r128_irq.c,sti_crtc_enable_vblank@drivers_gpu_drm_sti_sti_crtc.c,omap_irq_disable_vblank@drivers_gpu_drm_omapdrm_omap_irq.c,vmw_get_vblank_counter@drivers_gpu_drm_vmwgfx_vmwgfx_kms.c,i8xx_get_vblank_counter@drivers_gpu_drm_i915_i915_irq.c,via_disable_vblank@drivers_gpu_drm_via_via_irq.c,imx_drm_enable_vblank@drivers_gpu_drm_imx_imx-drm-core.c,valleyview_disable_vblank@drivers_gpu_drm_i915_i915_irq.c,gen8_disable_vblank@drivers_gpu_drm_i915_i915_irq.c,drm_vblank_count@drivers_gpu_drm_drm_irq.c,radeon_get_crtc_scanoutpos@drivers_gpu_drm_radeon_radeon_display.c,shmob_drm_enable_vblank@drivers_gpu_drm_shmobile_shmob_drm_drv.c,tilcdc_disable_vblank@drivers_gpu_drm_tilcdc_tilcdc_drv.c,armada_drm_enable_vblank@drivers_gpu_drm_armada_armada_drv.c,rockchip_drm_crtc_disable_vblank@drivers_gpu_drm_rockchip_rockchip_drm_drv.c,valleyview_enable_vblank@drivers_gpu_drm_i915_i915_irq.c,radeon_disable_vblank@drivers_gpu_drm_radeon_radeon_irq.c,i915_get_vblank_counter@drivers_gpu_drm_i915_i915_irq.c,tilcdc_enable_vblank@drivers_gpu_drm_tilcdc_tilcdc_drv.c,i915_enable_vblank@drivers_gpu_drm_i915_i915_irq.c,rockchip_drm_crtc_enable_vblank@drivers_gpu_drm_rockchip_rockchip_drm_drv.c,gm45_get_vblank_counter@drivers_gpu_drm_i915_i915_irq.c,rcar_du_enable_vblank@drivers_gpu_drm_rcar-du_rcar_du_drv.c,msm_enable_vblank@drivers_gpu_drm_msm_msm_drv.c,amdgpu_get_vblank_timestamp_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c,ironlake_enable_vblank@drivers_gpu_drm_i915_i915_irq.c,amdgpu_get_crtc_scanoutpos@drivers_gpu_drm_amd_amdgpu_amdgpu_display.c,mga_disable_vblank@drivers_gpu_drm_mga_mga_irq.c,qxl_noop_enable_vblank@drivers_gpu_drm_qxl_qxl_drv.c,msm_disable_vblank@drivers_gpu_drm_msm_msm_drv.c,qxl_noop_get_vblank_counter@drivers_gpu_drm_qxl_qxl_drv.c,nouveau_display_vblank_enable@drivers_gpu_drm_nouveau_nouveau_display.c,psb_disable_vblank@drivers_gpu_drm_gma500_psb_irq.c,radeon_get_vblank_counter@drivers_gpu_drm_radeon_radeon_irq.c,psb_get_vblank_counter@drivers_gpu_drm_gma500_psb_irq.c,tegra_drm_enable_vblank@drivers_gpu_drm_tegra_drm.c,mga_get_vblank_counter@drivers_gpu_drm_mga_mga_irq.c,nouveau_display_vblstamp@drivers_gpu_drm_nouveau_nouveau_display.c,omap_irq_enable_vblank@drivers_gpu_drm_omapdrm_omap_irq.c,atmel_hlcdc_dc_enable_vblank@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_dc.c,exynos_drm_crtc_disable_vblank@drivers_gpu_drm_exynos_exynos_drm_crtc.c,ironlake_disable_vblank@drivers_gpu_drm_i915_i915_irq.c,amdgpu_get_vblank_counter_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c,shmob_drm_disable_vblank@drivers_gpu_drm_shmobile_shmob_drm_drv.c,r128_disable_vblank@drivers_gpu_drm_r128_r128_irq.c,fsl_dcu_drm_enable_vblank@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_drv.c,sti_crtc_disable_vblank@drivers_gpu_drm_sti_sti_crtc.c,imx_drm_disable_vblank@drivers_gpu_drm_imx_imx-drm-core.c,atmel_hlcdc_dc_disable_vblank@drivers_gpu_drm_atmel-hlcdc_atmel_hlcdc_dc.c,radeon_enable_vblank@drivers_gpu_drm_radeon_radeon_irq.c,i915_disable_vblank@drivers_gpu_drm_i915_i915_irq.c,amdgpu_disable_vblank_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c,amdgpu_enable_vblank_kms@drivers_gpu_drm_amd_amdgpu_amdgpu_kms.c,tegra_drm_get_vblank_counter@drivers_gpu_drm_tegra_drm.c,fsl_dcu_drm_disable_vblank@drivers_gpu_drm_fsl-dcu_fsl_dcu_drm_drv.c,nouveau_display_scanoutpos@drivers_gpu_drm_nouveau_nouveau_display.c,psb_enable_vblank@drivers_gpu_drm_gma500_psb_irq.c,qxl_noop_disable_vblank@drivers_gpu_drm_qxl_qxl_drv.c,via_enable_vblank@drivers_gpu_drm_via_via_irq.c,vmw_disable_vblank@drivers_gpu_drm_vmwgfx_vmwgfx_kms.c,i915_get_crtc_scanoutpos@drivers_gpu_drm_i915_i915_irq.c,tegra_drm_disable_vblank@drivers_gpu_drm_tegra_drm.c,r128_enable_vblank@drivers_gpu_drm_r128_r128_irq.c,gen8_enable_vblank@drivers_gpu_drm_i915_i915_irq.c,nouveau_display_vblank_disable@drivers_gpu_drm_nouveau_nouveau_display.c,i915_get_vblank_timestamp@drivers_gpu_drm_i915_i915_irq.c,vmw_enable_vblank@drivers_gpu_drm_vmwgfx_vmwgfx_kms.c,rcar_du_disable_vblank@drivers_gpu_drm_rcar-du_rcar_du_drv.c,armada_drm_disable_vblank@drivers_gpu_drm_armada_armada_drv.c,mga_enable_vblank@drivers_gpu_drm_mga_mga_irq.c,via_get_vblank_counter@drivers_gpu_drm_via_via_irq.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: PredefinedExpr
+unknown kind: PredefinedExpr
+unknown kind: PredefinedExpr
+unknown kind: PredefinedExpr
+//# pattern-23, witnesses: 4
+@@
+identifier crtc;
+identifier dev;
+identifier fn;
+@@
+- int fn(struct drm_device * dev, int crtc)
++ int fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- DRM_ERROR("tried to enable vblank on non-existent crtc %d\n", crtc)
++ DRM_ERROR("tried to enable vblank on non-existent crtc %u\n", pipe)
+     ...>
+ }
+//# pattern-72, witnesses: 3
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-76, witnesses: 3
+@@
+identifier drm;
+identifier fn;
+identifier pipe;
+@@
+- void fn(struct drm_device * drm, int pipe)
++ void fn(struct drm_device * drm, unsigned int pipe)
+ { ... }
+//# pattern-1, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ void fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- nv_crtc->index == head
++ nv_crtc->index == pipe
+     ...>
+ }
+//# pattern-2, witnesses: 2
+@@
+identifier drm;
+identifier fn;
+identifier pipe;
+typedef u32;
+@@
+- u32 fn(struct drm_device * drm, int pipe)
++ u32 fn(struct drm_device * drm, unsigned int pipe)
+ { ... }
+//# pattern-17, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ void fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- DRM_ERROR("%s:  bad crtc %d\n", , crtc)
++ DRM_ERROR("%s:  bad crtc %u\n", , pipe)
+     ...>
+ }
+//# pattern-27, witnesses: 2
+@@
+identifier drm;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * drm, unsigned int pipe)
+ {
+     <...
+- imxdrm->crtc[crtc]
++ imxdrm->crtc[pipe]
+     ...>
+ }
+//# pattern-31, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- rcdu->crtcs[crtc]
++ rcdu->crtcs[pipe]
+     ...>
+ }
+//# pattern-32, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-33, witnesses: 2
+@r1@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier drm_dev;
+identifier pipe;
+@@
+ void sti_crtc_disable_vblank(struct drm_device * drm_dev, unsigned int pipe)
+ {
+     <...
+- compo->mixer[crtc]
++ compo->mixer[pipe]
+     ...>
+ }
+//# pattern-36, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ void fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- amdgpu_crtc_idx_to_irq_type(adev, crtc)
++ amdgpu_crtc_idx_to_irq_type(adev, pipe)
+     ...>
+ }
+//# pattern-38, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+typedef u32;
+@@
+ u32 fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-43, witnesses: 2
+@r2@
+identifier i, fn;
+@@
+struct drm_driver i = {
+    .get_vblank_counter = fn,
+};
+@@
+identifier dev;
+identifier pipe;
+identifier r2.fn;
+typedef u32;
+@@
+ u32 fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- DRM_ERROR("Invalid crtc %d\n", crtc)
++ DRM_ERROR("Invalid crtc %u\n", pipe)
+     ...>
+ }
+//# pattern-47, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ void fn(struct drm_device * dev, unsigned int pipe)
+ {
+     <...
+- DRM_ERROR("%s:  bad crtc %d\n", , crtc)
++ DRM_ERROR("%s:  bad crtc %u\n", , pipe)
+     ...>
+ }
+//# pattern-57, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-62, witnesses: 2
+@@
+identifier drm;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * drm, unsigned int pipe)
+ { ... }
+//# pattern-65, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-67, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }
+//# pattern-77, witnesses: 2
+@@
+identifier dev;
+identifier fn;
+identifier pipe;
+@@
+ int fn(struct drm_device * dev, unsigned int pipe)
+ { ... }

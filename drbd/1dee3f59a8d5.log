@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: 1dee3f59a8d5^1
+[0m[33mtarget commit: 1dee3f59a8d5
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m2 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/genl_magic_struct.h
+2 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/genl_magic_struct.h
+[33mcompile base commit... [0m[33mok (22s)
+[0m[33mapply [0m[33m1dee3f59a8d5... [0m[33mok (22s)
+[0m[33mcompile target commit... [0m[33mok (42s)
+[0mPREPARE:
+[33mcollect AST for functions: nla_put_status_info@drivers_block_drbd_drbd_nl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 12
+@@
+expression list listE0;
+@@
+- nla_put_u64(listE0)
++ nla_put_u64_0pad(listE0)

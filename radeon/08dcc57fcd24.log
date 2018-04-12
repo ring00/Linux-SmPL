@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 08dcc57fcd24^1
+[0m[33mtarget commit: 08dcc57fcd24
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m3 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+3 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/cik.c
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+[33mcompile base commit... [0m[33mok (22s)
+[0m[33mapply [0m[33m08dcc57fcd24... [0m[33mok (22s)
+[0m[33mcompile target commit... [0m[33mok (37s)
+[0mPREPARE:
+[33mcollect AST for functions: kfd2kgd@drivers_gpu_drm_radeon_radeon_kfd.c,cik_pcie_gart_enable@drivers_gpu_drm_radeon_cik.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:

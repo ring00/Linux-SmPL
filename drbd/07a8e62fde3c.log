@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 07a8e62fde3c^1
+[0m[33mtarget commit: 07a8e62fde3c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m2 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_debugfs.c
+`-- security/inode.c
+2 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_debugfs.c
+`-- security/inode.c
+[33mcompile base commit... [0m[33mok (17s)
+[0m[33mapply [0m[33m07a8e62fde3c... [0m[33mok (17s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0mPREPARE:
+[33mcollect AST for functions: drbd_single_open@drivers_block_drbd_drbd_debugfs.c,securityfs_remove@security_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

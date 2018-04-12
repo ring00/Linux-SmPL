@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: e76edab7f059^1
+[0m[33mtarget commit: e76edab7f059
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/ordered-data.c
+`-- fs/btrfs/ordered-data.h
+`-- include/trace/events/btrfs.h
+3 source file(s) touched in the new version
+`-- fs/btrfs/ordered-data.c
+`-- fs/btrfs/ordered-data.h
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (15s)
+[0m[33mapply [0m[33me76edab7f059... [0m[33mok (15s)
+[0m[33mcompile target commit... [0m[33mok (25s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_get_logged_extents@fs_btrfs_ordered-data.c,btrfs_put_ordered_extent@fs_btrfs_ordered-data.c,btrfs_dec_test_ordered_pending@fs_btrfs_ordered-data.c,btrfs_lookup_ordered_range@fs_btrfs_ordered-data.c,btrfs_dec_test_first_ordered_pending@fs_btrfs_ordered-data.c,btrfs_lookup_first_ordered_extent@fs_btrfs_ordered-data.c,__btrfs_add_ordered_extent@fs_btrfs_ordered-data.c,btrfs_wait_ordered_extents@fs_btrfs_ordered-data.c,btrfs_lookup_ordered_extent@fs_btrfs_ordered-data.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m0s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 7
+@@
+expression list listE0;
+@@
+- atomic_inc(listE0)
++ refcount_inc(listE0)

@@ -1,0 +1,45 @@
+BUILD:
+[33mbase commit: 44ae12a768b7^1
+[0m[33mtarget commit: 44ae12a768b7
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m11 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+`-- net/dsa/slave.c
+`-- net/sched/cls_api.c
+11 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_vfr.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+`-- net/dsa/slave.c
+`-- net/sched/cls_api.c
+[33mcompile base commit... [0m[33mok (45s)
+[0m[33mapply [0m[33m44ae12a768b7... [0m[33mok (45s)
+[0m[33mcompile target commit... [0m[33mok (80s)
+[0mPREPARE:
+[33mcollect AST for functions: bnxt_setup_tc_block_cb@drivers_net_ethernet_broadcom_bnxt_bnxt.c,nfp_bpf_setup_tc_block_cb@drivers_net_ethernet_netronome_nfp_bpf_main.c,nfp_flower_setup_tc_block_cb@drivers_net_ethernet_netronome_nfp_flower_offload.c,mlx5e_rep_setup_tc_cb@drivers_net_ethernet_mellanox_mlx5_core_en_rep.c,ixgbe_setup_tc_block_cb@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,dsa_slave_setup_tc_block_cb@net_dsa_slave.c,mlxsw_sp_setup_tc_block_cb@drivers_net_ethernet_mellanox_mlxsw_spectrum.c,tcf_block_offload_cmd@net_sched_cls_api.c,cxgb_setup_tc_block_cb@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,bnxt_vf_rep_setup_tc_block_cb@drivers_net_ethernet_broadcom_bnxt_bnxt_vfr.c,mlx5e_setup_tc_block_cb@drivers_net_ethernet_mellanox_mlx5_core_en_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m8s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 2
+@@
+expression E0;
+statement S1;
+@@
+- if (!bnxt_tc_flower_enabled(E0)) { S1 }
++ if (!bnxt_tc_flower_enabled(E0) || !tc_can_offload(bp->dev)) { S1 }

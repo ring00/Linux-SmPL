@@ -1,0 +1,115 @@
+BUILD:
+[33mbase commit: 8ae126660fdd^1
+[0m[33mtarget commit: 8ae126660fdd
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m32 source file(s) touched in the old version
+`-- block/blk-merge.c
+`-- block/blk-settings.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/rbd.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-era-target.c
+`-- drivers/md/dm-flakey.c
+`-- drivers/md/dm-linear.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-raid.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-stripe.c
+`-- drivers/md/dm-table.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity.c
+`-- drivers/md/dm.c
+`-- drivers/md/dm.h
+`-- drivers/md/linear.c
+`-- drivers/md/md.c
+`-- drivers/md/md.h
+`-- drivers/md/multipath.c
+`-- drivers/md/raid0.c
+`-- drivers/md/raid0.h
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5.c
+`-- include/linux/blkdev.h
+`-- include/linux/device-mapper.h
+32 source file(s) touched in the new version
+`-- block/blk-merge.c
+`-- block/blk-settings.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/rbd.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-era-target.c
+`-- drivers/md/dm-flakey.c
+`-- drivers/md/dm-linear.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-raid.c
+`-- drivers/md/dm-snap.c
+`-- drivers/md/dm-stripe.c
+`-- drivers/md/dm-table.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm-verity.c
+`-- drivers/md/dm.c
+`-- drivers/md/dm.h
+`-- drivers/md/linear.c
+`-- drivers/md/md.c
+`-- drivers/md/md.h
+`-- drivers/md/multipath.c
+`-- drivers/md/raid0.c
+`-- drivers/md/raid0.h
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5.c
+`-- include/linux/blkdev.h
+`-- include/linux/device-mapper.h
+[33mcompile base commit... [0m[33mok (53s)
+[0m[33mapply [0m[33m8ae126660fdd... [0m[33mok (53s)
+[0m[33mcompile target commit... [0m[33mok (94s)
+[0mPREPARE:
+[33mcollect AST for functions: dm_setup_md_queue@drivers_md_dm.c,raid5_personality@drivers_md_raid5.c,log_writes_target@drivers_md_dm-log-writes.c,thin_target@drivers_md_dm-thin.c,multipath_run@drivers_md_multipath.c,fix_read_error@drivers_md_raid10.c,raid10_add_disk@drivers_md_raid10.c,linear_personality@drivers_md_linear.c,__make_request@drivers_md_raid10.c,dm_set_device_limits@drivers_md_dm-table.c,raid0_personality@drivers_md_raid0.c,md_run@drivers_md_md.c,cache_target@drivers_md_dm-cache-target.c,rbd_init_disk@drivers_block_rbd.c,do_md_stop@drivers_md_md.c,blk_bio_segment_split@block_blk-merge.c,make_request@drivers_md_raid1.c,multipath_add_disk@drivers_md_multipath.c,read_balance@drivers_md_raid10.c,drbd_create_device@drivers_block_drbd_drbd_main.c,origin_target@drivers_md_dm-snap.c,raid1_personality@drivers_md_raid1.c,pool_target@drivers_md_dm-thin.c,linear_target@drivers_md_dm-linear.c,raid1_add_disk@drivers_md_raid1.c,pkt_init_queue@drivers_block_pktcdvd.c,raid6_personality@drivers_md_raid5.c,setup_conf@drivers_md_raid1.c,__bind@drivers_md_dm.c,run@drivers_md_raid10.c,raid10_personality@drivers_md_raid10.c,flakey_target@drivers_md_dm-flakey.c,verity_target@drivers_md_dm-verity.c,era_target@drivers_md_dm-era-target.c,raid_target@drivers_md_dm-raid.c,crypt_target@drivers_md_dm-crypt.c,raid4_personality@drivers_md_raid5.c,md_clean@drivers_md_md.c,create_strip_zones@drivers_md_raid0.c,read_balance@drivers_md_raid1.c,stripe_target@drivers_md_dm-stripe.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m8s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 12
+@@
+expression F1;
+identifier s;
+@@
+ struct target_type s = {
+-    .merge = F1,
+ };
+//# pattern-3, witnesses: 6
+@@
+expression F1;
+identifier s;
+@@
+ struct md_personality s = {
+-    .mergeable_bvec = F1,
+ };
+//# pattern-7, witnesses: 5
+@@
+expression E0;
+expression F1;
+@@
+- blk_queue_merge_bvec(E0, F1);
+//# pattern-5, witnesses: 4
+@@
+expression E0;
+@@
+- if (E0->merge_bvec_fn) {
+- }
+//# pattern-8, witnesses: 2
+@@
+expression E0;
+expression E1;
+@@
+- E0 || E1 || test_bit(Unmerged, &rdev->flags)
++ E0 || E1

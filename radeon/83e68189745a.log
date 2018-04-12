@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: 83e68189745a^1
+[0m[33mtarget commit: 83e68189745a
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- arch/x86/include/asm/efi.h
+`-- arch/x86/kernel/reboot.c
+`-- arch/x86/kernel/setup.c
+`-- arch/x86/platform/efi/efi.c
+`-- drivers/acpi/osl.c
+`-- drivers/firmware/dmi_scan.c
+`-- drivers/firmware/efivars.c
+`-- drivers/firmware/iscsi_ibft_find.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/platform/x86/ibm_rtl.c
+`-- drivers/scsi/isci/init.c
+`-- include/linux/efi.h
+`-- init/main.c
+13 source file(s) touched in the new version
+`-- arch/x86/include/asm/efi.h
+`-- arch/x86/kernel/reboot.c
+`-- arch/x86/kernel/setup.c
+`-- arch/x86/platform/efi/efi.c
+`-- drivers/acpi/osl.c
+`-- drivers/firmware/dmi_scan.c
+`-- drivers/firmware/efivars.c
+`-- drivers/firmware/iscsi_ibft_find.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/platform/x86/ibm_rtl.c
+`-- drivers/scsi/isci/init.c
+`-- include/linux/efi.h
+`-- init/main.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m83e68189745a... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

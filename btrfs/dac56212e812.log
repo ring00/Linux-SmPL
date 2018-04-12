@@ -1,0 +1,34 @@
+BUILD:
+[33mbase commit: dac56212e812^1
+[0m[33mtarget commit: dac56212e812
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- block/bio.c
+`-- drivers/md/bcache/request.c
+`-- fs/btrfs/volumes.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/bio.h
+`-- include/linux/blk_types.h
+6 source file(s) touched in the new version
+`-- block/bio.c
+`-- drivers/md/bcache/request.c
+`-- fs/btrfs/volumes.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/bio.h
+`-- include/linux/blk_types.h
+[33mcompile base commit... [0m[33mok (14s)
+[0m[33mapply [0m[33mdac56212e812... [0m[33mok (14s)
+[0m[33mcompile target commit... [0m[33mok (25s)
+[0mPREPARE:
+[33mcollect AST for functions: do_bio_hook@drivers_md_bcache_request.c,bio_put@block_bio.c,xfs_end_bio@fs_xfs_xfs_aops.c,run_scheduled_bios@fs_btrfs_volumes.c,bio_init@block_bio.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 2
+@@
+expression E0;
+@@
+- E0->bi_cnt
++ E0->__bi_cnt

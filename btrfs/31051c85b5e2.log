@@ -1,0 +1,122 @@
+BUILD:
+[33mbase commit: 31051c85b5e2^1
+[0m[33mtarget commit: 31051c85b5e2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m50 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/llite/llite_lib.c
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/adfs/inode.c
+`-- fs/affs/inode.c
+`-- fs/attr.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/inode.c
+`-- fs/cifs/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exofs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/inode.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/fs.c
+`-- fs/jfs/file.c
+`-- fs/kernfs/inode.c
+`-- fs/libfs.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfsd/nfsproc.c
+`-- fs/nilfs2/inode.c
+`-- fs/ntfs/inode.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/file.c
+`-- fs/omfs/file.c
+`-- fs/orangefs/inode.c
+`-- fs/overlayfs/inode.c
+`-- fs/proc/base.c
+`-- fs/proc/generic.c
+`-- fs/proc/proc_sysctl.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/reiserfs/inode.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/inode.c
+`-- fs/utimes.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+50 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/llite/llite_lib.c
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/adfs/inode.c
+`-- fs/affs/inode.c
+`-- fs/attr.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/inode.c
+`-- fs/cifs/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exofs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/inode.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/jffs2/fs.c
+`-- fs/jfs/file.c
+`-- fs/kernfs/inode.c
+`-- fs/libfs.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfsd/nfsproc.c
+`-- fs/nilfs2/inode.c
+`-- fs/ntfs/inode.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/file.c
+`-- fs/omfs/file.c
+`-- fs/orangefs/inode.c
+`-- fs/overlayfs/inode.c
+`-- fs/proc/base.c
+`-- fs/proc/generic.c
+`-- fs/proc/proc_sysctl.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/reiserfs/inode.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/inode.c
+`-- fs/utimes.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+[33mcompile base commit... [0m[33mok (84s)
+[0m[33mapply [0m[33m31051c85b5e2... [0m[33mok (84s)
+[0m[33mcompile target commit... [0m[33mok (146s)
+[0mPREPARE:
+[33mcollect AST for functions: logfs_setattr@fs_logfs_file.c,exofs_setattr@fs_exofs_inode.c,ovl_setattr@fs_overlayfs_inode.c,cifs_setattr_unix@fs_cifs_inode.c,v9fs_vfs_setattr_dotl@fs_9p_vfs_inode_dotl.c,ext4_setattr@fs_ext4_inode.c,gfs2_setattr@fs_gfs2_inode.c,omfs_setattr@fs_omfs_file.c,adfs_notify_change@fs_adfs_inode.c,jfs_setattr@fs_jfs_file.c,affs_notify_change@fs_affs_inode.c,proc_setattr@fs_proc_base.c,proc_notify_change@fs_proc_generic.c,jffs2_setattr@fs_jffs2_fs.c,minix_setattr@fs_minix_file.c,ecryptfs_setattr@fs_ecryptfs_inode.c,v9fs_vfs_setattr@fs_9p_vfs_inode.c,ext2_setattr@fs_ext2_inode.c,hfs_inode_setattr@fs_hfs_inode.c,ceph_setattr@fs_ceph_inode.c,kernfs_iop_setattr@fs_kernfs_inode.c,hostfs_setattr@fs_hostfs_hostfs_kern.c,nfsd_proc_setattr@fs_nfsd_nfsproc.c,proc_sys_setattr@fs_proc_proc_sysctl.c,nilfs_setattr@fs_nilfs2_inode.c,hpfs_setattr@fs_hpfs_inode.c,ntfs_setattr@fs_ntfs_inode.c,fuse_do_setattr@fs_fuse_dir.c,ncp_notify_change@fs_ncpfs_inode.c,ocfs2_setattr@fs_ocfs2_file.c,fat_setattr@fs_fat_file.c,orangefs_setattr@fs_orangefs_inode.c,hfsplus_setattr@fs_hfsplus_inode.c,cifs_setattr_nounix@fs_cifs_inode.c,btrfs_setattr@fs_btrfs_inode.c,simple_setattr@fs_libfs.c,ll_setattr_raw@drivers_staging_lustre_lustre_llite_llite_lib.c,dlmfs_file_setattr@fs_ocfs2_dlmfs_dlmfs.c,f2fs_setattr@fs_f2fs_file.c,hugetlbfs_setattr@fs_hugetlbfs_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m15s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 35
+@@
+expression V0;
+@@
+- inode_change_ok(V0, attr)
++ setattr_prepare(dentry, attr)

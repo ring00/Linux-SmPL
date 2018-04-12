@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 46a15bc3ec42^1
+[0m[33mtarget commit: 46a15bc3ec42
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m4 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/lru_cache.h
+`-- lib/lru_cache.c
+4 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/lru_cache.h
+`-- lib/lru_cache.c
+[33mcompile base commit... [0m[33mok (4s)
+[0m[33mapply [0m[33m46a15bc3ec42... [0m[33mok (4s)
+[0m[33mcompile target commit... [0m[33mok (5s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

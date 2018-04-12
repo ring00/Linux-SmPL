@@ -1,0 +1,44 @@
+BUILD:
+[33mbase commit: 7efd26d0db59^1
+[0m[33mtarget commit: 7efd26d0db59
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m15 source file(s) touched in the old version
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_hw.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/atheros/atlx/atl2.c
+`-- drivers/net/ethernet/ethoc.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/lantiq_etop.c
+`-- drivers/net/ethernet/micrel/ks8851.c
+`-- drivers/net/ethernet/micrel/ks8851_mll.c
+`-- drivers/net/ethernet/smsc/smsc911x.c
+`-- drivers/net/ethernet/ti/cpsw.c
+`-- drivers/net/ethernet/tile/tilegx.c
+`-- drivers/net/ethernet/wiznet/w5100.c
+`-- drivers/net/ethernet/wiznet/w5300.c
+`-- drivers/net/ethernet/xilinx/xilinx_axienet_main.c
+15 source file(s) touched in the new version
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_hw.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/atheros/atlx/atl2.c
+`-- drivers/net/ethernet/ethoc.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/lantiq_etop.c
+`-- drivers/net/ethernet/micrel/ks8851.c
+`-- drivers/net/ethernet/micrel/ks8851_mll.c
+`-- drivers/net/ethernet/smsc/smsc911x.c
+`-- drivers/net/ethernet/ti/cpsw.c
+`-- drivers/net/ethernet/tile/tilegx.c
+`-- drivers/net/ethernet/wiznet/w5100.c
+`-- drivers/net/ethernet/wiznet/w5300.c
+`-- drivers/net/ethernet/xilinx/xilinx_axienet_main.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m7efd26d0db59... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

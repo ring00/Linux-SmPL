@@ -1,0 +1,108 @@
+BUILD:
+[33mbase commit: 71baba4b92dc^1
+[0m[33mtarget commit: 71baba4b92dc
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m38 source file(s) touched in the old version
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- block/scsi_ioctl.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/mtip32xx/mtip32xx.c
+`-- drivers/block/paride/pd.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/ide/ide-atapi.c
+`-- drivers/ide/ide-cd.c
+`-- drivers/ide/ide-cd_ioctl.c
+`-- drivers/ide/ide-devsets.c
+`-- drivers/ide/ide-disk.c
+`-- drivers/ide/ide-ioctls.c
+`-- drivers/ide/ide-park.c
+`-- drivers/ide/ide-pm.c
+`-- drivers/ide/ide-tape.c
+`-- drivers/ide/ide-taskfile.c
+`-- drivers/infiniband/hw/qib/qib_init.c
+`-- drivers/misc/vmw_balloon.c
+`-- drivers/nvme/host/pci.c
+`-- drivers/scsi/scsi_error.c
+`-- drivers/scsi/scsi_lib.c
+`-- drivers/staging/rdma/hfi1/init.c
+`-- drivers/staging/rdma/ipath/ipath_file_ops.c
+`-- fs/cachefiles/internal.h
+`-- fs/direct-io.c
+`-- fs/nilfs2/mdt.h
+`-- include/linux/gfp.h
+`-- kernel/power/swap.c
+`-- lib/percpu_ida.c
+`-- mm/failslab.c
+`-- mm/filemap.c
+`-- mm/huge_memory.c
+`-- mm/memcontrol.c
+`-- mm/migrate.c
+`-- mm/page_alloc.c
+`-- security/integrity/ima/ima_crypto.c
+38 source file(s) touched in the new version
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- block/scsi_ioctl.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/mtip32xx/mtip32xx.c
+`-- drivers/block/paride/pd.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/ide/ide-atapi.c
+`-- drivers/ide/ide-cd.c
+`-- drivers/ide/ide-cd_ioctl.c
+`-- drivers/ide/ide-devsets.c
+`-- drivers/ide/ide-disk.c
+`-- drivers/ide/ide-ioctls.c
+`-- drivers/ide/ide-park.c
+`-- drivers/ide/ide-pm.c
+`-- drivers/ide/ide-tape.c
+`-- drivers/ide/ide-taskfile.c
+`-- drivers/infiniband/hw/qib/qib_init.c
+`-- drivers/misc/vmw_balloon.c
+`-- drivers/nvme/host/pci.c
+`-- drivers/scsi/scsi_error.c
+`-- drivers/scsi/scsi_lib.c
+`-- drivers/staging/rdma/hfi1/init.c
+`-- drivers/staging/rdma/ipath/ipath_file_ops.c
+`-- fs/cachefiles/internal.h
+`-- fs/direct-io.c
+`-- fs/nilfs2/mdt.h
+`-- include/linux/gfp.h
+`-- kernel/power/swap.c
+`-- lib/percpu_ida.c
+`-- mm/failslab.c
+`-- mm/filemap.c
+`-- mm/huge_memory.c
+`-- mm/memcontrol.c
+`-- mm/migrate.c
+`-- mm/page_alloc.c
+`-- security/integrity/ima/ima_crypto.c
+[33mcompile base commit... [0m[33mok (63s)
+[0m[33mapply [0m[33m71baba4b92dc... [0m[33mok (63s)
+[0m[33mcompile target commit... [0m[33mok (116s)
+[0mPREPARE:
+[33mcollect AST for functions: fail_page_alloc_debugfs@mm_page_alloc.c,try_charge@mm_memcontrol.c,set_multcount@drivers_ide_ide-disk.c,sg_scsi_ioctl@block_scsi_ioctl.c,i915_gem_object_get_pages_gtt@drivers_gpu_drm_i915_i915_gem.c,failslab_debugfs_init@mm_failslab.c,scsi_eh_lock_door@drivers_scsi_scsi_error.c,idetape_queue_rw_tail@drivers_ide_ide-tape.c,load_image_lzo@kernel_power_swap.c,fail_page_alloc@mm_page_alloc.c,ipath_create_user_egr@drivers_staging_rdma_ipath_ipath_file_ops.c,generic_ide_suspend@drivers_ide_ide-pm.c,should_failslab@mm_failslab.c,should_fail_alloc_page@mm_page_alloc.c,__nvme_submit_sync_cmd@drivers_nvme_host_pci.c,hib_submit_io@kernel_power_swap.c,blk_mq_map_request@block_blk-mq.c,ide_raw_taskfile@drivers_ide_ide-taskfile.c,generic_make_request@block_blk-core.c,dio_bio_alloc@fs_direct-io.c,failslab@mm_failslab.c,ide_devset_execute@drivers_ide_ide-devsets.c,write_page@kernel_power_swap.c,ide_cd_queue_pc@drivers_ide_ide-cd.c,blk_queue_enter@block_blk-core.c,pkt_generic_packet@drivers_block_pktcdvd.c,pd_special_command@drivers_block_paride_pd.c,ima_alloc_pages@security_integrity_ima_ima_crypto.c,ide_cdrom_reset@drivers_ide_ide-cd_ioctl.c,migrate_misplaced_transhuge_page@mm_migrate.c,mtip_get_int_command@drivers_block_mtip32xx_mtip32xx.c,generic_drive_reset@drivers_ide_ide-ioctls.c,generic_ide_resume@drivers_ide_ide-pm.c,qib_setup_eagerbufs@drivers_infiniband_hw_qib_qib_init.c,issue_park_cmd@drivers_ide_ide-park.c,save_image_lzo@kernel_power_swap.c,bm_page_io_async@drivers_block_drbd_drbd_bitmap.c,ide_queue_pc_tail@drivers_ide_ide-atapi.c,ide_cmd_ioctl@drivers_ide_ide-ioctls.c,__blk_send_generic@block_scsi_ioctl.c,hfi1_setup_eagerbufs@drivers_staging_rdma_hfi1_init.c,scsi_execute@drivers_scsi_scsi_lib.c,alloc_hugepage_gfpmask@mm_huge_memory.c,get_swap_reader@kernel_power_swap.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m10s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 33
+@@
+@@
+- __GFP_WAIT
++ __GFP_RECLAIM
+//# pattern-4, witnesses: 4
+@@
+expression E0;
+@@
+- E0.ignore_gfp_wait
++ E0.ignore_gfp_reclaim
+//# pattern-3, witnesses: 3
+@@
+@@
+- __GFP_WAIT
++ __GFP_DIRECT_RECLAIM

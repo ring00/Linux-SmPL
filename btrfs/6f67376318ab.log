@@ -1,0 +1,125 @@
+BUILD:
+[33mbase commit: 6f67376318ab^1
+[0m[33mtarget commit: 6f67376318ab
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m22 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/llite/rw26.c
+`-- fs/9p/vfs_addr.c
+`-- fs/affs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/indirect.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/fat/inode.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/aops.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/jfs/inode.c
+`-- fs/nfs/direct.c
+`-- fs/nilfs2/inode.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+22 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/llite/rw26.c
+`-- fs/9p/vfs_addr.c
+`-- fs/affs/file.c
+`-- fs/btrfs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/indirect.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/fat/inode.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/aops.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/jfs/inode.c
+`-- fs/nfs/direct.c
+`-- fs/nilfs2/inode.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+[33mcompile base commit... [0m[33mok (42s)
+[0m[33mapply [0m[33m6f67376318ab... [0m[33mok (42s)
+[0m[33mcompile target commit... [0m[33mok (79s)
+[0mPREPARE:
+[33mcollect AST for functions: reiserfs_direct_IO@fs_reiserfs_inode.c,nilfs_direct_IO@fs_nilfs2_inode.c,check_direct_IO@fs_f2fs_data.c,nfs_direct_IO@fs_nfs_direct.c,hfs_direct_IO@fs_hfs_inode.c,fuse_direct_IO@fs_fuse_file.c,jfs_direct_IO@fs_jfs_inode.c,hfsplus_direct_IO@fs_hfsplus_inode.c,affs_direct_IO@fs_affs_file.c,btrfs_direct_IO@fs_btrfs_inode.c,gfs2_direct_IO@fs_gfs2_aops.c,f2fs_direct_IO@fs_f2fs_data.c,v9fs_direct_IO@fs_9p_vfs_addr.c,xfs_vm_direct_IO@fs_xfs_xfs_aops.c,udf_direct_IO@fs_udf_inode.c,ll_direct_IO_26@drivers_staging_lustre_lustre_llite_rw26.c,ocfs2_direct_IO@fs_ocfs2_aops.c,check_direct_IO@fs_btrfs_inode.c,ext4_ext_direct_IO@fs_ext4_inode.c,fat_direct_IO@fs_fat_inode.c,ext2_direct_IO@fs_ext2_inode.c,ext4_direct_IO@fs_ext4_inode.c,gfs2_ok_for_dio@fs_gfs2_aops.c,ext4_ind_direct_IO@fs_ext4_indirect.c,ext3_direct_IO@fs_ext3_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 10
+@@
+identifier file_offset;
+identifier fn;
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier rw;
+@@
+ ssize_t fn(int rw, struct kiocb * iocb, struct iov_iter * iter, loff_t file_offset)
+ {
+     <...
+- rw == WRITE
++ iov_iter_rw(iter) == WRITE
+     ...>
+ }
+//# pattern-1, witnesses: 9
+@@
+identifier fn;
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier offset;
+identifier rw;
+@@
+ ssize_t fn(int rw, struct kiocb * iocb, struct iov_iter * iter, loff_t offset)
+ {
+     <...
+- rw & WRITE
++ iov_iter_rw(iter) == WRITE
+     ...>
+ }
+//# pattern-5, witnesses: 7
+@@
+expression E0;
+identifier fn;
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier offset;
+identifier rw;
+@@
+ ssize_t fn(int rw, struct kiocb * iocb, struct iov_iter * iter, loff_t offset)
+ {
+     <...
+- rw & WRITE && E0
++ iov_iter_rw == WRITE && E0
+     ...>
+ }
+//# pattern-14, witnesses: 7
+@@
+identifier file_offset;
+identifier fn;
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier rw;
+@@
+ ssize_t fn(int rw, struct kiocb * iocb, struct iov_iter * iter, loff_t file_offset)
+ {
+     <...
+- rw == READ
++ iov_iter_rw(iter) == READ
+     ...>
+ }

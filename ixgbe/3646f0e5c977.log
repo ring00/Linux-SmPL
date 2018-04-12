@@ -1,0 +1,60 @@
+BUILD:
+[33mbase commit: 3646f0e5c977^1
+[0m[33mtarget commit: 3646f0e5c977
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m23 source file(s) touched in the old version
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_main.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/main.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+`-- drivers/net/ethernet/qlogic/qlge/qlge_main.c
+23 source file(s) touched in the new version
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+`-- drivers/net/ethernet/broadcom/bnx2.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/tg3.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_main.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/main.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/neterion/vxge/vxge-main.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/ethernet/qlogic/netxen/netxen_nic_main.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_main.c
+`-- drivers/net/ethernet/qlogic/qlge/qlge_main.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m3646f0e5c977... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

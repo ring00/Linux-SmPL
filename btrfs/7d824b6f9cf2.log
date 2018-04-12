@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 7d824b6f9cf2^1
+[0m[33mtarget commit: 7d824b6f9cf2
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m4 source file(s) touched in the old version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/uapi/linux/btrfs.h
+4 source file(s) touched in the new version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- include/uapi/linux/btrfs.h
+[33mcompile base commit... [0m[33mok (10s)
+[0m[33mapply [0m[33m7d824b6f9cf2... [0m[33mok (10s)
+[0m[33mcompile target commit... [0m[33mok (13s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

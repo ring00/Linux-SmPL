@@ -1,0 +1,84 @@
+BUILD:
+[33mbase commit: 4a7c972644c1^1
+[0m[33mtarget commit: 4a7c972644c1
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m24 source file(s) touched in the old version
+`-- arch/m68k/emu/nfeth.c
+`-- drivers/net/ethernet/cavium/liquidio/lio_main.c
+`-- drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+`-- drivers/net/ethernet/hisilicon/hns/hns_enet.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/marvell/sky2.h
+`-- drivers/net/ethernet/qualcomm/emac/emac-mac.c
+`-- drivers/net/ethernet/realtek/atp.c
+`-- drivers/net/ethernet/smsc/smc91c92_cs.c
+`-- drivers/net/irda/bfin_sir.c
+`-- drivers/net/irda/sh_sir.c
+`-- drivers/staging/ks7010/ks_hostif.c
+`-- drivers/staging/netlogic/xlr_net.c
+`-- drivers/staging/rtl8192e/rtllib_rx.c
+`-- drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
+`-- drivers/staging/wlan-ng/hfa384x_usb.c
+`-- drivers/staging/wlan-ng/p80211netdev.c
+`-- include/linux/netdevice.h
+`-- net/batman-adv/bridge_loop_avoidance.c
+`-- net/batman-adv/distributed-arp-table.c
+`-- net/batman-adv/soft-interface.c
+24 source file(s) touched in the new version
+`-- arch/m68k/emu/nfeth.c
+`-- drivers/net/ethernet/cavium/liquidio/lio_main.c
+`-- drivers/net/ethernet/cavium/liquidio/lio_vf_main.c
+`-- drivers/net/ethernet/hisilicon/hns/hns_enet.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/marvell/sky2.c
+`-- drivers/net/ethernet/marvell/sky2.h
+`-- drivers/net/ethernet/qualcomm/emac/emac-mac.c
+`-- drivers/net/ethernet/realtek/atp.c
+`-- drivers/net/ethernet/smsc/smc91c92_cs.c
+`-- drivers/net/irda/bfin_sir.c
+`-- drivers/net/irda/sh_sir.c
+`-- drivers/staging/ks7010/ks_hostif.c
+`-- drivers/staging/netlogic/xlr_net.c
+`-- drivers/staging/rtl8192e/rtllib_rx.c
+`-- drivers/staging/rtl8192u/ieee80211/ieee80211_rx.c
+`-- drivers/staging/wlan-ng/hfa384x_usb.c
+`-- drivers/staging/wlan-ng/p80211netdev.c
+`-- include/linux/netdevice.h
+`-- net/batman-adv/bridge_loop_avoidance.c
+`-- net/batman-adv/distributed-arp-table.c
+`-- net/batman-adv/soft-interface.c
+[33mcompile base commit... [0m[33mok (54s)
+[0m[33mapply [0m[33m4a7c972644c1... [0m[33mok (54s)
+[0m[33mcompile target commit... [0m[33mok (102s)
+[0mPREPARE:
+[33mcollect AST for functions: liquidio_push_packet@drivers_net_ethernet_cavium_liquidio_lio_vf_main.c,e1000e_dump@drivers_net_ethernet_intel_e1000e_netdev.c,hns_nic_rx_up_pro@drivers_net_ethernet_hisilicon_hns_hns_enet.c,batadv_interface_rx@net_batman-adv_soft-interface.c,emac_mac_rx_process@drivers_net_ethernet_qualcomm_emac_emac-mac.c,media_check@drivers_net_ethernet_smsc_smc91c92_cs.c,hostif_data_indication@drivers_staging_ks7010_ks_hostif.c,sky2_rx_done@drivers_net_ethernet_marvell_sky2.c,atp_interrupt@drivers_net_ethernet_realtek_atp.c,ixgbe_dump@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,turnaround_delay@drivers_net_irda_bfin_sir.c,batadv_bla_send_claim@net_batman-adv_bridge_loop_avoidance.c,rtllib_rx_InfraAdhoc@drivers_staging_rtl8192e_rtllib_rx.c,smc_rx@drivers_net_ethernet_smsc_smc91c92_cs.c,sh_sir_rx@drivers_net_irda_sh_sir.c,p80211netdev_rx_bh@drivers_staging_wlan-ng_p80211netdev.c,xlr_net_fmn_handler@drivers_staging_netlogic_xlr_net.c,net_rx@drivers_net_ethernet_realtek_atp.c,ieee80211_rx_rsl@drivers_staging_rtl8192u_ieee80211_ieee80211_rx.c,batadv_dat_snoop_outgoing_arp_request@net_batman-adv_distributed-arp-table.c,liquidio_push_packet@drivers_net_ethernet_cavium_liquidio_lio_main.c,sky2_rx_hung@drivers_net_ethernet_marvell_sky2.c,igb_dump@drivers_net_ethernet_intel_igb_igb_main.c,p80211_convert_to_ether@drivers_staging_wlan-ng_p80211netdev.c,bfin_sir_send_work@drivers_net_irda_bfin_sir.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 14
+@@
+expression E0;
+@@
+- E0->last_rx = jiffies;
+//# pattern-3, witnesses: 3
+@@
+@@
+- dev->last_rx
++ sky2->last_rx
+//# pattern-6, witnesses: 3
+@@
+@@
+- pr_info(, netdev->name, netdev->state, dev_trans_start(netdev))
++ pr_info(, netdev->name, netdev->state)
+//# pattern-5, witnesses: 2
+@@
+@@
+- dev->last_rx
++ lp->last_rx_time

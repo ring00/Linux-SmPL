@@ -1,0 +1,84 @@
+BUILD:
+[33mbase commit: aad4f8bb42af^1
+[0m[33mtarget commit: aad4f8bb42af
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m35 source file(s) touched in the old version
+`-- drivers/char/raw.c
+`-- fs/9p/vfs_file.c
+`-- fs/adfs/file.c
+`-- fs/affs/file.c
+`-- fs/afs/file.c
+`-- fs/bfs/file.c
+`-- fs/btrfs/file.c
+`-- fs/cifs/cifsfs.c
+`-- fs/exofs/file.c
+`-- fs/ext2/file.c
+`-- fs/ext3/file.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/file.c
+`-- fs/jffs2/file.c
+`-- fs/jfs/file.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/nilfs2/file.c
+`-- fs/ntfs/file.c
+`-- fs/omfs/file.c
+`-- fs/ramfs/file-mmu.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/read_write.c
+`-- fs/reiserfs/file.c
+`-- fs/romfs/mmap-nommu.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/file.c
+35 source file(s) touched in the new version
+`-- drivers/char/raw.c
+`-- fs/9p/vfs_file.c
+`-- fs/adfs/file.c
+`-- fs/affs/file.c
+`-- fs/afs/file.c
+`-- fs/bfs/file.c
+`-- fs/btrfs/file.c
+`-- fs/cifs/cifsfs.c
+`-- fs/exofs/file.c
+`-- fs/ext2/file.c
+`-- fs/ext3/file.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/fat/file.c
+`-- fs/gfs2/file.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/file.c
+`-- fs/jffs2/file.c
+`-- fs/jfs/file.c
+`-- fs/logfs/file.c
+`-- fs/minix/file.c
+`-- fs/nilfs2/file.c
+`-- fs/ntfs/file.c
+`-- fs/omfs/file.c
+`-- fs/ramfs/file-mmu.c
+`-- fs/ramfs/file-nommu.c
+`-- fs/read_write.c
+`-- fs/reiserfs/file.c
+`-- fs/romfs/mmap-nommu.c
+`-- fs/sysv/file.c
+`-- fs/ubifs/file.c
+`-- fs/udf/file.c
+`-- fs/ufs/file.c
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33maad4f8bb42af... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (11s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

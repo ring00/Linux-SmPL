@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 40c3c4094732^1
+[0m[33mtarget commit: 40c3c4094732
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/disk-io.c
+`-- include/uapi/linux/btrfs_tree.h
+2 source file(s) touched in the new version
+`-- fs/btrfs/disk-io.c
+`-- include/uapi/linux/btrfs_tree.h
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33m40c3c4094732... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33mcollect AST for functions: check_leaf@fs_btrfs_disk-io.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,74 @@
+BUILD:
+[33mbase commit: b1116f645cb5^1
+[0m[33mtarget commit: b1116f645cb5
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m26 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/fiji_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/polaris10_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/ppatomctrl.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/tonga_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/tonga_processpptables.c
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs.h
+`-- drivers/gpu/drm/bridge/parade-ps8622.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_helper.c
+`-- drivers/gpu/drm/gma500/accel_2d.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/psb_intel_modes.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/i915/intel_modes.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/imx/ipuv3-crtc.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-nec-nl8048hl11.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-sony-acx565akm.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+26 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fb.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/fiji_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/polaris10_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/ppatomctrl.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/tonga_hwmgr.c
+`-- drivers/gpu/drm/amd/powerplay/hwmgr/tonga_processpptables.c
+`-- drivers/gpu/drm/armada/armada_fbdev.c
+`-- drivers/gpu/drm/ast/ast_fb.c
+`-- drivers/gpu/drm/bochs/bochs.h
+`-- drivers/gpu/drm/bridge/parade-ps8622.c
+`-- drivers/gpu/drm/cirrus/cirrus_fbdev.c
+`-- drivers/gpu/drm/drm_fb_helper.c
+`-- drivers/gpu/drm/gma500/accel_2d.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/gma500/psb_intel_modes.c
+`-- drivers/gpu/drm/i915/intel_fbdev.c
+`-- drivers/gpu/drm/i915/intel_modes.c
+`-- drivers/gpu/drm/imx/imx-drm-core.c
+`-- drivers/gpu/drm/imx/ipuv3-crtc.c
+`-- drivers/gpu/drm/mgag200/mgag200_fb.c
+`-- drivers/gpu/drm/nouveau/nouveau_fbcon.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-dsi-cm.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-nec-nl8048hl11.c
+`-- drivers/gpu/drm/omapdrm/displays/panel-sony-acx565akm.c
+`-- drivers/gpu/drm/qxl/qxl_fb.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+[33mcompile base commit... [0m[33mok (20s)
+[0m[33mapply [0m[33mb1116f645cb5... [0m[33mok (20s)
+[0m[33mcompile target commit... [0m[33mok (36s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Traceback (most recent call last):
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 108, in <module>
+    main()
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 104, in main
+    infer(contexts, list(all_deleted)[0], False)
+  File "/home/oslab/Desktop/seda/lib/infer_inclusion.py", line 76, in infer
+    max_count = max(counts.values())
+ValueError: max() arg is an empty sequence

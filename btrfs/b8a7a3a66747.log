@@ -1,0 +1,52 @@
+BUILD:
+[33mbase commit: b8a7a3a66747^1
+[0m[33mtarget commit: b8a7a3a66747
+[0m[33mchecking out base commit... [0m[33mok (4s)
+[0m[33mformatting diff... [0m[33mok (4s)
+[0m17 source file(s) touched in the old version
+`-- fs/9p/acl.c
+`-- fs/btrfs/acl.c
+`-- fs/ceph/acl.c
+`-- fs/ext2/acl.c
+`-- fs/ext4/acl.c
+`-- fs/f2fs/acl.c
+`-- fs/hfsplus/posix_acl.c
+`-- fs/inode.c
+`-- fs/jffs2/acl.c
+`-- fs/jfs/acl.c
+`-- fs/namei.c
+`-- fs/nfs/nfs3acl.c
+`-- fs/ocfs2/dlmglue.c
+`-- fs/posix_acl.c
+`-- fs/reiserfs/xattr_acl.c
+`-- fs/xfs/xfs_acl.c
+`-- include/linux/fs.h
+17 source file(s) touched in the new version
+`-- fs/9p/acl.c
+`-- fs/btrfs/acl.c
+`-- fs/ceph/acl.c
+`-- fs/ext2/acl.c
+`-- fs/ext4/acl.c
+`-- fs/f2fs/acl.c
+`-- fs/hfsplus/posix_acl.c
+`-- fs/inode.c
+`-- fs/jffs2/acl.c
+`-- fs/jfs/acl.c
+`-- fs/namei.c
+`-- fs/nfs/nfs3acl.c
+`-- fs/ocfs2/dlmglue.c
+`-- fs/posix_acl.c
+`-- fs/reiserfs/xattr_acl.c
+`-- fs/xfs/xfs_acl.c
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (12s)
+[0m[33mapply [0m[33mb8a7a3a66747... [0m[33mok (12s)
+[0m[33mcompile target commit... [0m[33mok (15s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <linux/fs.h>
++#include <fs/ocfs2/acl.h>

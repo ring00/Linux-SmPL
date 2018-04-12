@@ -1,0 +1,162 @@
+BUILD:
+[33mbase commit: 5d097056c9a0^1
+[0m[33mtarget commit: 5d097056c9a0
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m65 source file(s) touched in the old version
+`-- arch/powerpc/platforms/cell/spufs/inode.c
+`-- drivers/staging/lustre/lustre/llite/super25.c
+`-- fs/9p/v9fs.c
+`-- fs/adfs/super.c
+`-- fs/affs/super.c
+`-- fs/afs/super.c
+`-- fs/befs/linuxvfs.c
+`-- fs/bfs/inode.c
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/super.c
+`-- fs/cifs/cifsfs.c
+`-- fs/coda/inode.c
+`-- fs/dcache.c
+`-- fs/ecryptfs/main.c
+`-- fs/efs/super.c
+`-- fs/exofs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext4/super.c
+`-- fs/f2fs/super.c
+`-- fs/fat/inode.c
+`-- fs/file.c
+`-- fs/fuse/inode.c
+`-- fs/gfs2/main.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/super.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/super.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- fs/isofs/inode.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/super.c
+`-- fs/logfs/inode.c
+`-- fs/minix/inode.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/inode.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/super.c
+`-- fs/openpromfs/inode.c
+`-- fs/proc/inode.c
+`-- fs/qnx4/inode.c
+`-- fs/qnx6/inode.c
+`-- fs/reiserfs/super.c
+`-- fs/romfs/super.c
+`-- fs/squashfs/super.c
+`-- fs/sysv/inode.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/kmem.h
+`-- fs/xfs/xfs_super.c
+`-- include/linux/thread_info.h
+`-- ipc/mqueue.c
+`-- kernel/cred.c
+`-- kernel/delayacct.c
+`-- kernel/fork.c
+`-- kernel/pid.c
+`-- mm/nommu.c
+`-- mm/rmap.c
+`-- mm/shmem.c
+`-- net/socket.c
+`-- net/sunrpc/rpc_pipe.c
+65 source file(s) touched in the new version
+`-- arch/powerpc/platforms/cell/spufs/inode.c
+`-- drivers/staging/lustre/lustre/llite/super25.c
+`-- fs/9p/v9fs.c
+`-- fs/adfs/super.c
+`-- fs/affs/super.c
+`-- fs/afs/super.c
+`-- fs/befs/linuxvfs.c
+`-- fs/bfs/inode.c
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/super.c
+`-- fs/cifs/cifsfs.c
+`-- fs/coda/inode.c
+`-- fs/dcache.c
+`-- fs/ecryptfs/main.c
+`-- fs/efs/super.c
+`-- fs/exofs/super.c
+`-- fs/ext2/super.c
+`-- fs/ext4/super.c
+`-- fs/f2fs/super.c
+`-- fs/fat/inode.c
+`-- fs/file.c
+`-- fs/fuse/inode.c
+`-- fs/gfs2/main.c
+`-- fs/hfs/super.c
+`-- fs/hfsplus/super.c
+`-- fs/hostfs/hostfs_kern.c
+`-- fs/hpfs/super.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- fs/isofs/inode.c
+`-- fs/jffs2/super.c
+`-- fs/jfs/super.c
+`-- fs/logfs/inode.c
+`-- fs/minix/inode.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/inode.c
+`-- fs/nilfs2/super.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/dlmfs/dlmfs.c
+`-- fs/ocfs2/super.c
+`-- fs/openpromfs/inode.c
+`-- fs/proc/inode.c
+`-- fs/qnx4/inode.c
+`-- fs/qnx6/inode.c
+`-- fs/reiserfs/super.c
+`-- fs/romfs/super.c
+`-- fs/squashfs/super.c
+`-- fs/sysv/inode.c
+`-- fs/ubifs/super.c
+`-- fs/udf/super.c
+`-- fs/ufs/super.c
+`-- fs/xfs/kmem.h
+`-- fs/xfs/xfs_super.c
+`-- include/linux/thread_info.h
+`-- ipc/mqueue.c
+`-- kernel/cred.c
+`-- kernel/delayacct.c
+`-- kernel/fork.c
+`-- kernel/pid.c
+`-- mm/nommu.c
+`-- mm/rmap.c
+`-- mm/shmem.c
+`-- net/socket.c
+`-- net/sunrpc/rpc_pipe.c
+[33mcompile base commit... [0m[33mok (142s)
+[0m[33mapply [0m[33m5d097056c9a0... [0m[33mok (142s)
+[0m[33mcompile target commit... [0m[33mok (210s)
+[0mPREPARE:
+[33mcollect AST for functions: alloc_fdmem@fs_file.c,fuse_fs_init@fs_fuse_inode.c,coda_init_inodecache@fs_coda_inode.c,init_hfs_fs@fs_hfs_super.c,nfs_alloc_inode@fs_inode.c,init_hugetlbfs_fs@fs_hugetlbfs_inode.c,v9fs_init_inode_cache@fs_9p_v9fs.c,init_inodecache@fs_efs_super.c,init_inodecache@fs_exofs_super.c,init_inodecache@fs_adfs_super.c,fat_init_inodecache@fs_fat_inode.c,init_jffs2_fs@fs_jffs2_super.c,befs_init_inodecache@fs_befs_linuxvfs.c,init_hfsplus_fs@fs_hfsplus_super.c,init_inodecache@fs_f2fs_super.c,afs_fs_init@fs_afs_super.c,btrfs_init_cachep@fs_btrfs_inode.c,cifs_init_inodecache@fs_cifs_cifsfs.c,init_gfs2_fs@fs_gfs2_main.c,ocfs2_initialize_mem_caches@fs_ocfs2_super.c,hostfs_alloc_inode@fs_hostfs_hostfs_kern.c,nilfs_init_cachep@fs_nilfs2_super.c,init_inodecache@fs_ext2_super.c,init_inodecache@fs_bfs_inode.c,init_inodecache@fs_minix_inode.c,init_dlmfs_fs@fs_ocfs2_dlmfs_dlmfs.c,ecryptfs_cache_infos@fs_ecryptfs_main.c,init_ntfs_fs@fs_ntfs_super.c,init_inodecache@fs_ext4_super.c,init_inodecache@fs_hpfs_super.c,init_lustre_lite@drivers_staging_lustre_lustre_llite_super25.c,init_caches@fs_ceph_super.c,ecryptfs_init_kmem_caches@fs_ecryptfs_main.c,init_jfs_fs@fs_jfs_super.c,alloc_fdtable@fs_file.c,init_inodecache@fs_affs_super.c,dcache_init@fs_dcache.c,bdev_cache_init@fs_block_dev.c,__d_alloc@fs_dcache.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m17s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 21
+@@
+expression E0;
+@@
+- E0 | SLAB_MEM_SPREAD
++ E0 | SLAB_MEM_SPREAD | SLAB_ACCOUNT
+//# pattern-1, witnesses: 5
+@@
+@@
+- SLAB_HWCACHE_ALIGN
++ SLAB_HWCACHE_ALIGN | SLAB_ACCOUNT
+//# pattern-2, witnesses: 3
+@@
+@@
+- GFP_KERNEL
++ GFP_KERNEL_ACCOUNT

@@ -1,0 +1,29 @@
+BUILD:
+[33mbase commit: c3d98ea08291^1
+[0m[33mtarget commit: c3d98ea08291
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m4 source file(s) touched in the old version
+`-- fs/btrfs/super.c
+`-- fs/debugfs/inode.c
+`-- fs/reiserfs/super.c
+`-- fs/tracefs/inode.c
+4 source file(s) touched in the new version
+`-- fs/btrfs/super.c
+`-- fs/debugfs/inode.c
+`-- fs/reiserfs/super.c
+`-- fs/tracefs/inode.c
+[33mcompile base commit... [0m[33mok (19s)
+[0m[33mapply [0m[33mc3d98ea08291... [0m[33mok (19s)
+[0m[33mcompile target commit... [0m[33mok (37s)
+[0mPREPARE:
+[33mcollect AST for functions: reiserfs_fill_super@fs_reiserfs_super.c,trace_fill_super@fs_tracefs_inode.c,btrfs_fill_super@fs_btrfs_super.c,reiserfs_remount@fs_reiserfs_super.c,debug_fill_super@fs_debugfs_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 4
+@@
+identifier PV0;
+@@
+- save_mount_options(PV0, data);

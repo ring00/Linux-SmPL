@@ -1,0 +1,43 @@
+BUILD:
+[33mbase commit: 74d23cc704d1^1
+[0m[33mtarget commit: 74d23cc704d1
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- drivers/net/ethernet/amd/xgbe/xgbe.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x.h
+`-- drivers/net/ethernet/freescale/fec.h
+`-- drivers/net/ethernet/intel/e1000e/e1000.h
+`-- drivers/net/ethernet/intel/igb/igb.h
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe.h
+`-- drivers/net/ethernet/ti/cpts.h
+`-- include/clocksource/arm_arch_timer.h
+`-- include/linux/clocksource.h
+`-- include/linux/mlx4/device.h
+`-- include/linux/types.h
+`-- kernel/time/clocksource.c
+`-- sound/pci/hda/hda_priv.h
+15 source file(s) touched in the new version
+`-- drivers/net/ethernet/amd/xgbe/xgbe.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x.h
+`-- drivers/net/ethernet/freescale/fec.h
+`-- drivers/net/ethernet/intel/e1000e/e1000.h
+`-- drivers/net/ethernet/intel/igb/igb.h
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe.h
+`-- drivers/net/ethernet/ti/cpts.h
+`-- include/clocksource/arm_arch_timer.h
+`-- include/linux/clocksource.h
+`-- include/linux/mlx4/device.h
+`-- include/linux/timecounter.h
+`-- include/linux/types.h
+`-- kernel/time/clocksource.c
+`-- kernel/time/timecounter.c
+`-- sound/pci/hda/hda_priv.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (11s)
+[0m[33mapply [0m[33m74d23cc704d1... [0m[33mok (11s)
+[0m[33mcompile target commit... [0m[33mok (15s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

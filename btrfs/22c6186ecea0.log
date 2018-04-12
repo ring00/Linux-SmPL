@@ -1,0 +1,117 @@
+BUILD:
+[33mbase commit: 22c6186ecea0^1
+[0m[33mtarget commit: 22c6186ecea0
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m29 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/llite/rw26.c
+`-- fs/9p/vfs_addr.c
+`-- fs/affs/file.c
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/exofs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/fat/inode.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/aops.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/jfs/inode.c
+`-- fs/nfs/direct.c
+`-- fs/nilfs2/inode.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/udf/file.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/fs.h
+`-- include/linux/nfs_fs.h
+`-- mm/filemap.c
+`-- mm/page_io.c
+29 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/llite/rw26.c
+`-- fs/9p/vfs_addr.c
+`-- fs/affs/file.c
+`-- fs/block_dev.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/addr.c
+`-- fs/cifs/file.c
+`-- fs/exofs/inode.c
+`-- fs/ext2/inode.c
+`-- fs/ext3/inode.c
+`-- fs/ext4/inode.c
+`-- fs/f2fs/data.c
+`-- fs/fat/inode.c
+`-- fs/fuse/file.c
+`-- fs/gfs2/aops.c
+`-- fs/hfs/inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/jfs/inode.c
+`-- fs/nfs/direct.c
+`-- fs/nilfs2/inode.c
+`-- fs/ocfs2/aops.c
+`-- fs/reiserfs/inode.c
+`-- fs/udf/file.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+`-- include/linux/fs.h
+`-- include/linux/nfs_fs.h
+`-- mm/filemap.c
+`-- mm/page_io.c
+[33mcompile base commit... [0m[33mok (48s)
+[0m[33mapply [0m[33m22c6186ecea0... [0m[33mok (48s)
+[0m[33mcompile target commit... [0m[33mok (92s)
+[0mPREPARE:
+[33mcollect AST for functions: ceph_direct_io@fs_ceph_addr.c,reiserfs_direct_IO@fs_reiserfs_inode.c,nilfs_direct_IO@fs_nilfs2_inode.c,generic_file_direct_write@mm_filemap.c,nfs_direct_IO@fs_nfs_direct.c,blkdev_direct_IO@fs_block_dev.c,udf_adinicb_direct_IO@fs_udf_file.c,fuse_direct_IO@fs_fuse_file.c,jfs_direct_IO@fs_jfs_inode.c,__swap_writepage@mm_page_io.c,hfsplus_direct_IO@fs_hfsplus_inode.c,affs_direct_IO@fs_affs_file.c,btrfs_direct_IO@fs_btrfs_inode.c,gfs2_direct_IO@fs_gfs2_aops.c,f2fs_direct_IO@fs_f2fs_data.c,v9fs_direct_IO@fs_9p_vfs_addr.c,udf_direct_IO@fs_udf_inode.c,ll_direct_IO_26@drivers_staging_lustre_lustre_llite_rw26.c,ocfs2_direct_IO@fs_ocfs2_aops.c,cifs_direct_io@fs_cifs_file.c,generic_file_read_iter@mm_filemap.c,fat_direct_IO@fs_fat_inode.c,ext2_direct_IO@fs_ext2_inode.c,hfs_direct_IO@fs_hfs_inode.c,exofs_direct_IO@fs_exofs_inode.c,ext4_direct_IO@fs_ext4_inode.c,ext3_direct_IO@fs_ext3_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m8s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 17
+@r0@
+identifier i, fn;
+@@
+struct address_space_operations i = {
+    .direct_IO = fn,
+};
+@@
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier pos;
+identifier r0.fn;
+identifier rw;
+@@
+- ssize_t fn(int rw, struct kiocb * iocb, struct iov_iter * iter, loff_t pos)
++ ssize_t fn(struct kiocb * iocb, struct iov_iter * iter, loff_t pos)
+ { ... }
+//# pattern-3, witnesses: 7
+@r1@
+identifier i, fn;
+@@
+struct address_space_operations i = {
+    .direct_IO = fn,
+};
+@@
+identifier iocb;
+identifier iter;
+typedef loff_t;
+identifier offset;
+identifier r1.fn;
+@@
+ ssize_t fn(struct kiocb * iocb, struct iov_iter * iter, loff_t offset)
+ { ... }
+//# pattern-1, witnesses: 3
+@@
+expression E0;
+expression E1;
+expression E3;
+expression V2;
+@@
+- mapping->a_ops->direct_IO(E0, E1, &V2, E3)
++ mapping->a_ops->direct_IO(E1, &V2, E3)

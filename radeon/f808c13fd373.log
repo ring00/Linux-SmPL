@@ -1,0 +1,115 @@
+BUILD:
+[33mbase commit: f808c13fd373^1
+[0m[33mtarget commit: f808c13fd373
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m33 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.h
+`-- drivers/gpu/drm/drm_mm.c
+`-- drivers/gpu/drm/drm_vma_manager.c
+`-- drivers/gpu/drm/i915/i915_gem_userptr.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_mn.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- drivers/infiniband/core/umem_rbtree.c
+`-- drivers/infiniband/core/uverbs_cmd.c
+`-- drivers/infiniband/hw/hfi1/mmu_rb.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom.h
+`-- drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.h
+`-- drivers/vhost/vhost.c
+`-- drivers/vhost/vhost.h
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- include/drm/drm_mm.h
+`-- include/linux/fs.h
+`-- include/linux/interval_tree.h
+`-- include/linux/interval_tree_generic.h
+`-- include/linux/mm.h
+`-- include/linux/rmap.h
+`-- include/rdma/ib_umem_odp.h
+`-- include/rdma/ib_verbs.h
+`-- lib/interval_tree_test.c
+`-- mm/interval_tree.c
+`-- mm/memory.c
+`-- mm/mmap.c
+`-- mm/rmap.c
+33 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_mn.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.h
+`-- drivers/gpu/drm/drm_mm.c
+`-- drivers/gpu/drm/drm_vma_manager.c
+`-- drivers/gpu/drm/i915/i915_gem_userptr.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_mn.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- drivers/infiniband/core/umem_rbtree.c
+`-- drivers/infiniband/core/uverbs_cmd.c
+`-- drivers/infiniband/hw/hfi1/mmu_rb.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom.h
+`-- drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.c
+`-- drivers/infiniband/hw/usnic/usnic_uiom_interval_tree.h
+`-- drivers/vhost/vhost.c
+`-- drivers/vhost/vhost.h
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- include/drm/drm_mm.h
+`-- include/linux/fs.h
+`-- include/linux/interval_tree.h
+`-- include/linux/interval_tree_generic.h
+`-- include/linux/mm.h
+`-- include/linux/rmap.h
+`-- include/rdma/ib_umem_odp.h
+`-- include/rdma/ib_verbs.h
+`-- lib/interval_tree_test.c
+`-- mm/interval_tree.c
+`-- mm/memory.c
+`-- mm/mmap.c
+`-- mm/rmap.c
+[33mcompile base commit... [0m[33mok (68s)
+[0m[33mapply [0m[33mf808c13fd373... [0m[33mok (68s)
+[0m[33mcompile target commit... [0m[33mok (110s)
+[0mPREPARE:
+[33mcollect AST for functions: vm_lock_anon_vma@mm_mmap.c,__vma_adjust@mm_mmap.c,amdgpu_vm_init@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,ib_uverbs_get_context@drivers_infiniband_core_uverbs_cmd.c,hugetlb_vmdelete_list@fs_hugetlbfs_inode.c,drm_mm_interval_tree_add_node@drivers_gpu_drm_drm_mm.c,anon_vma_interval_tree_iter_first@mm_interval_tree.c,find_intervals_intersection_sorted@drivers_infiniband_hw_usnic_usnic_uiom_interval_tree.c,drm_mm_init@drivers_gpu_drm_drm_mm.c,radeon_mn_get@drivers_gpu_drm_radeon_radeon_mn.c,usnic_uiom_get_intervals_diff@drivers_infiniband_hw_usnic_usnic_uiom_interval_tree.c,search@lib_interval_tree_test.c,unlink_anon_vmas@mm_rmap.c,usnic_uiom_reg_get@drivers_infiniband_hw_usnic_usnic_uiom.c,hfi1_mmu_rb_unregister@drivers_infiniband_hw_hfi1_mmu_rb.c,address_space_init_once@fs_inode.c,root@lib_interval_tree_test.c,unmap_mapping_range_tree@mm_memory.c,vm_unlock_anon_vma@mm_mmap.c,amdgpu_mn_get@drivers_gpu_drm_amd_amdgpu_amdgpu_mn.c,amdgpu_mn_destroy@drivers_gpu_drm_amd_amdgpu_amdgpu_mn.c,drm_vma_offset_lookup_locked@drivers_gpu_drm_drm_vma_manager.c,radeon_vm_fini@drivers_gpu_drm_radeon_radeon_vm.c,rbt_ib_umem_for_each_in_range@drivers_infiniband_core_umem_rbtree.c,i915_gem_userptr_mn_invalidate_range_start@drivers_gpu_drm_i915_i915_gem_userptr.c,drm_mm_replace_node@drivers_gpu_drm_drm_mm.c,usnic_uiom_insert_interval@drivers_infiniband_hw_usnic_usnic_uiom_interval_tree.c,hugetlb_vmtruncate@fs_hugetlbfs_inode.c,unmap_mapping_range@mm_memory.c,anon_vma_ctor@mm_rmap.c,vhost_umem_alloc@drivers_vhost_vhost.c,i915_mmu_notifier_create@drivers_gpu_drm_i915_i915_gem_userptr.c,mapping_mapped@include_linux_fs.h,__usnic_uiom_reg_release@drivers_infiniband_hw_usnic_usnic_uiom.c,radeon_vm_init@drivers_gpu_drm_radeon_radeon_vm.c,__drm_mm_interval_first@drivers_gpu_drm_drm_mm.c,amdgpu_vm_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,anon_vma_interval_tree_insert@mm_interval_tree.c,usnic_uiom_remove_interval@drivers_infiniband_hw_usnic_usnic_uiom_interval_tree.c,rbt_ib_umem_lookup@drivers_infiniband_core_umem_rbtree.c,radeon_mn_destroy@drivers_gpu_drm_radeon_radeon_mn.c,hugetlbfs_punch_hole@fs_hugetlbfs_inode.c,vma_interval_tree_insert_after@mm_interval_tree.c,hfi1_mmu_rb_register@drivers_infiniband_hw_hfi1_mmu_rb.c,anon_vma_interval_tree_remove@mm_interval_tree.c,mmu_notifier_mem_invalidate@drivers_infiniband_hw_hfi1_mmu_rb.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-12, witnesses: 11
+@@
+@@
+- RB_ROOT
++ RB_ROOT_CACHED
+//# pattern-18, witnesses: 5
+@@
+expression E0;
+@@
+- E0->rb_root
++ E0->rb_root.rb_root
+//# pattern-20, witnesses: 3
+@@
+expression E0;
+@@
+- E0->rb_root
++ E0->root
+//# pattern-2, witnesses: 2
+@@
+@@
+- &mapping->i_mmap
++ &mapping->i_mmap.rb_root
+//# pattern-5, witnesses: 2
+@@
+expression E0;
+@@
+- E0->interval_tree
++ E0->interval_tree.rb_root
+//# pattern-7, witnesses: 2
+@@
+@@
+- &vm->va
++ &vm->va.rb_root

@@ -1,0 +1,186 @@
+BUILD:
+[33mbase commit: 752ade68cbd8^1
+[0m[33mtarget commit: 752ade68cbd8
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m44 source file(s) touched in the old version
+`-- arch/s390/kvm/kvm-s390.c
+`-- crypto/lzo.c
+`-- drivers/acpi/apei/erst.c
+`-- drivers/char/agp/generic.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/md/bcache/util.h
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_defs.h
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+`-- drivers/net/ethernet/chelsio/cxgb3/l2t.c
+`-- drivers/net/ethernet/chelsio/cxgb3/l2t.h
+`-- drivers/net/ethernet/chelsio/cxgb4/clip_tbl.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/chelsio/cxgb4/l2t.c
+`-- drivers/net/ethernet/chelsio/cxgb4/sched.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_tx.c
+`-- drivers/net/ethernet/mellanox/mlx4/mr.c
+`-- drivers/nvdimm/dimm_devs.c
+`-- drivers/staging/lustre/lnet/libcfs/linux/linux-mem.c
+`-- drivers/xen/evtchn.c
+`-- fs/btrfs/ctree.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/send.c
+`-- fs/ceph/file.c
+`-- fs/select.c
+`-- fs/xattr.c
+`-- include/linux/mlx5/driver.h
+`-- include/linux/mm.h
+`-- lib/iov_iter.c
+`-- mm/frame_vector.c
+`-- net/ipv4/inet_hashtables.c
+`-- net/ipv4/tcp_metrics.c
+`-- net/mpls/af_mpls.c
+`-- net/netfilter/x_tables.c
+`-- net/netfilter/xt_recent.c
+`-- net/sched/sch_choke.c
+`-- net/sched/sch_fq_codel.c
+`-- net/sched/sch_hhf.c
+`-- net/sched/sch_netem.c
+`-- net/sched/sch_sfq.c
+`-- security/keys/keyctl.c
+44 source file(s) touched in the new version
+`-- arch/s390/kvm/kvm-s390.c
+`-- crypto/lzo.c
+`-- drivers/acpi/apei/erst.c
+`-- drivers/char/agp/generic.c
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/md/bcache/util.h
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_defs.h
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+`-- drivers/net/ethernet/chelsio/cxgb3/l2t.c
+`-- drivers/net/ethernet/chelsio/cxgb3/l2t.h
+`-- drivers/net/ethernet/chelsio/cxgb4/clip_tbl.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4.h
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_debugfs.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/chelsio/cxgb4/l2t.c
+`-- drivers/net/ethernet/chelsio/cxgb4/sched.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_tx.c
+`-- drivers/net/ethernet/mellanox/mlx4/mr.c
+`-- drivers/nvdimm/dimm_devs.c
+`-- drivers/staging/lustre/lnet/libcfs/linux/linux-mem.c
+`-- drivers/xen/evtchn.c
+`-- fs/btrfs/ctree.c
+`-- fs/btrfs/ioctl.c
+`-- fs/btrfs/send.c
+`-- fs/ceph/file.c
+`-- fs/select.c
+`-- fs/xattr.c
+`-- include/linux/mlx5/driver.h
+`-- include/linux/mm.h
+`-- lib/iov_iter.c
+`-- mm/frame_vector.c
+`-- net/ipv4/inet_hashtables.c
+`-- net/ipv4/tcp_metrics.c
+`-- net/mpls/af_mpls.c
+`-- net/netfilter/x_tables.c
+`-- net/netfilter/xt_recent.c
+`-- net/sched/sch_choke.c
+`-- net/sched/sch_fq_codel.c
+`-- net/sched/sch_hhf.c
+`-- net/sched/sch_netem.c
+`-- net/sched/sch_sfq.c
+`-- security/keys/keyctl.c
+[33mcompile base commit... [0m[33mok (188s)
+[0m[33mapply [0m[33m752ade68cbd8... [0m[33mok (188s)
+[0m[33mcompile target commit... [0m[33mok (271s)
+[0mPREPARE:
+[33mcollect AST for functions: cxgb3_offload_activate@drivers_net_ethernet_chelsio_cxgb3_cxgb3_offload.c,mlx4_en_create_tx_ring@drivers_net_ethernet_mellanox_mlx4_en_tx.c,lzo_alloc_ctx@crypto_lzo.c,blocked_fl_write@drivers_net_ethernet_chelsio_cxgb4_cxgb4_debugfs.c,inet_ehash_locks_alloc@net_ipv4_inet_hashtables.c,t3_init_l2t@drivers_net_ethernet_chelsio_cxgb3_l2t.c,agp_alloc_page_array@drivers_char_agp_generic.c,sfq_alloc@net_sched_sch_sfq.c,resize_platform_label_table@net_mpls_af_mpls.c,free_tid_maps@drivers_net_ethernet_chelsio_cxgb3_cxgb3_offload.c,nvdimm_init_config_data@drivers_nvdimm_dimm_devs.c,mlx4_buddy_init@drivers_net_ethernet_mellanox_mlx4_mr.c,cxgb4_init_tc_u32@drivers_net_ethernet_chelsio_cxgb4_cxgb4_tc_u32.c,init_tid_tabs@drivers_net_ethernet_chelsio_cxgb3_cxgb3_offload.c,tid_init@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,get_pages_array@lib_iov_iter.c,keyctl_instantiate_key_common@security_keys_keyctl.c,t4_init_clip_tbl@drivers_net_ethernet_chelsio_cxgb4_clip_tbl.c,get_dist_table@net_sched_sch_netem.c,t4_init_l2t@drivers_net_ethernet_chelsio_cxgb4_l2t.c,hhf_init@net_sched_sch_hhf.c,mem_read@drivers_net_ethernet_chelsio_cxgb4_cxgb4_debugfs.c,tcp_net_metrics_init@net_ipv4_tcp_metrics.c,hhf_destroy@net_sched_sch_hhf.c,set_eeprom@drivers_net_ethernet_chelsio_cxgb4_cxgb4_ethtool.c,adap_init0@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,t4_cleanup_clip_tbl@drivers_net_ethernet_chelsio_cxgb4_clip_tbl.c,fq_codel_init@net_sched_sch_fq_codel.c,evtchn_resize_ring@drivers_xen_evtchn.c,xt_alloc_entry_offsets@net_netfilter_x_tables.c,__erst_record_id_cache_add_one@drivers_acpi_apei_erst.c,choke_change@net_sched_sch_choke.c,getxattr@fs_xattr.c,xt_jumpstack_alloc@net_netfilter_x_tables.c,u_memcpya@drivers_gpu_drm_nouveau_nouveau_gem.c,btrfs_compare_trees@fs_btrfs_ctree.c,fq_codel_destroy@net_sched_sch_fq_codel.c,t4_sched_queue_bind@drivers_net_ethernet_chelsio_cxgb4_sched.c,t4_sched_queue_unbind@drivers_net_ethernet_chelsio_cxgb4_sched.c,btrfs_ioctl_send@fs_btrfs_send.c,t4_init_sched@drivers_net_ethernet_chelsio_cxgb4_sched.c,free_some_resources@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,get_eeprom@drivers_net_ethernet_chelsio_cxgb4_cxgb4_ethtool.c,cxgb4_cleanup_tc_u32@drivers_net_ethernet_chelsio_cxgb4_cxgb4_tc_u32.c,listxattr@fs_xattr.c,libcfs_kvzalloc_cpt@drivers_staging_lustre_lnet_libcfs_linux_linux-mem.c,qtimer_val@drivers_net_ethernet_chelsio_cxgb4_cxgb4.h,frame_vector_create@mm_frame_vector.c,setxattr@fs_xattr.c,t4_cleanup_sched@drivers_net_ethernet_chelsio_cxgb4_sched.c,dio_get_pages_alloc@fs_ceph_file.c,btrfs_clone@fs_btrfs_ioctl.c,recent_mt_check@net_netfilter_xt_recent.c,blocked_fl_read@drivers_net_ethernet_chelsio_cxgb4_cxgb4_debugfs.c,core_sys_select@fs_select.c,clean_l2_data@drivers_net_ethernet_chelsio_cxgb3_cxgb3_offload.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m24s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-10, witnesses: 20
+@@
+expression list listE0;
+@@
+- t4_free_mem(listE0)
++ kvfree(listE0)
+//# pattern-3, witnesses: 12
+@@
+expression E0;
+@@
+- t4_alloc_mem(E0)
++ kvzalloc(E0, GFP_KERNEL)
+//# pattern-12, witnesses: 3
+@@
+expression list listE0;
+@@
+- fq_codel_free(listE0)
++ kvfree(listE0)
+//# pattern-19, witnesses: 3
+@@
+expression list listE0;
+@@
+- hhf_free(listE0)
++ kvfree(listE0)
+//# pattern-20, witnesses: 3
+@@
+expression E1;
+expression E2;
+expression E4;
+expression V0;
+expression V3;
+@@
+- V0 = kmalloc(E1, GFP_KERNEL | __GFP_NOWARN);
+- if (E2) {
+- V3 = vmalloc(E4);
+- }
++ V0 = kvmalloc(E1, GFP_KERNEL);
+//# pattern-22, witnesses: 3
+@@
+expression E0;
+expression E2;
+expression ME1;
+@@
+- if (E0) {
+- ME1 = vmalloc(E2);
+- }
+//# pattern-33, witnesses: 3
+@@
+expression BO0;
+expression E1;
+@@
+- hhf_zalloc(BO0)
++ kvzalloc(1024 BO0 E1, GFP_KERNEL)
+//# pattern-4, witnesses: 2
+@@
+expression E0;
+@@
+- kmalloc(E0, GFP_KERNEL | __GFP_NOWARN)
++ kvmalloc(E0, GFP_KERNEL)
+//# pattern-21, witnesses: 2
+@@
+expression list listE0;
+@@
+- t3_free_l2t(listE0)
++ kvfree(listE0)
+//# pattern-31, witnesses: 2
+@@
+expression E1;
+expression V0;
+expression V2;
+expression V3;
+@@
+- V0 = kzalloc(size, GFP_KERNEL | E1);
+- if (!V2) {
+- V3 = vzalloc(size);
+- }
++ V0 = kvzalloc(size, GFP_KERNEL);
+//# pattern-42, witnesses: 2
+@@
+@@
+- cxgb_alloc_mem(size)
++ kvzalloc(size, GFP_KERNEL)

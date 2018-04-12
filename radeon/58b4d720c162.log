@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 58b4d720c162^1
+[0m[33mtarget commit: 58b4d720c162
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m7 source file(s) touched in the old version
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_execbuf_util.h
+7 source file(s) touched in the new version
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_execbuf.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/ttm/ttm_execbuf_util.h
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m58b4d720c162... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

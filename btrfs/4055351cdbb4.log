@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 4055351cdbb4^1
+[0m[33mtarget commit: 4055351cdbb4
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/inode.c
+`-- fs/direct-io.c
+`-- include/linux/fs.h
+3 source file(s) touched in the new version
+`-- fs/btrfs/inode.c
+`-- fs/direct-io.c
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (18s)
+[0m[33mapply [0m[33m4055351cdbb4... [0m[33mok (18s)
+[0m[33mcompile target commit... [0m[33mok (32s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_submit_direct@fs_btrfs_inode.c,btrfs_endio_direct_read@fs_btrfs_inode.c,btrfs_endio_direct_write@fs_btrfs_inode.c,dio_end_io@fs_direct-io.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 3
+@@
+expression E0;
+@@
+- dio_end_io(dio_bio, E0)
++ dio_end_io(dio_bio)

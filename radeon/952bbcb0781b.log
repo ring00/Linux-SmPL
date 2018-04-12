@@ -1,0 +1,53 @@
+BUILD:
+[33mbase commit: 952bbcb0781b^1
+[0m[33mtarget commit: 952bbcb0781b
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m18 source file(s) touched in the old version
+`-- drivers/ata/pata_macio.c
+`-- drivers/char/agp/uninorth-agp.c
+`-- drivers/gpu/drm/radeon/radeon_combios.c
+`-- drivers/ide/pdc202xx_new.c
+`-- drivers/ide/pmac.c
+`-- drivers/macintosh/macio_asic.c
+`-- drivers/misc/cxl/pci.c
+`-- drivers/net/ethernet/sun/sungem.c
+`-- drivers/net/ethernet/toshiba/spider_net.c
+`-- drivers/scsi/mac53c94.c
+`-- drivers/scsi/mesh.c
+`-- drivers/usb/core/hcd-pci.c
+`-- drivers/video/fbdev/aty/aty128fb.c
+`-- drivers/video/fbdev/aty/radeon_base.c
+`-- drivers/video/fbdev/imsttfb.c
+`-- drivers/video/fbdev/matrox/matroxfb_base.h
+`-- drivers/video/fbdev/offb.c
+`-- sound/ppc/pmac.c
+18 source file(s) touched in the new version
+`-- drivers/ata/pata_macio.c
+`-- drivers/char/agp/uninorth-agp.c
+`-- drivers/gpu/drm/radeon/radeon_combios.c
+`-- drivers/ide/pdc202xx_new.c
+`-- drivers/ide/pmac.c
+`-- drivers/macintosh/macio_asic.c
+`-- drivers/misc/cxl/pci.c
+`-- drivers/net/ethernet/sun/sungem.c
+`-- drivers/net/ethernet/toshiba/spider_net.c
+`-- drivers/scsi/mac53c94.c
+`-- drivers/scsi/mesh.c
+`-- drivers/usb/core/hcd-pci.c
+`-- drivers/video/fbdev/aty/aty128fb.c
+`-- drivers/video/fbdev/aty/radeon_base.c
+`-- drivers/video/fbdev/imsttfb.c
+`-- drivers/video/fbdev/matrox/matroxfb_base.h
+`-- drivers/video/fbdev/offb.c
+`-- sound/ppc/pmac.c
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33m952bbcb0781b... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/pci.h'])
+deleted: set(['asm/pci-bridge.h'])

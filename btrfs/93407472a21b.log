@@ -1,0 +1,75 @@
+BUILD:
+[33mbase commit: 93407472a21b^1
+[0m[33mtarget commit: 93407472a21b
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m27 source file(s) touched in the old version
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/direct-io.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/mballoc.c
+`-- fs/ext4/move_extent.c
+`-- fs/iomap.c
+`-- fs/jfs/super.c
+`-- fs/mpage.c
+`-- fs/nfsd/blocklayout.c
+`-- fs/nilfs2/btnode.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/nilfs2/segment.c
+`-- fs/ocfs2/aops.c
+`-- fs/ocfs2/file.c
+`-- fs/orangefs/orangefs-utils.c
+`-- fs/reiserfs/file.c
+`-- fs/reiserfs/inode.c
+`-- fs/stat.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/truncate.c
+27 source file(s) touched in the new version
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/buffer.c
+`-- fs/ceph/addr.c
+`-- fs/direct-io.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/mballoc.c
+`-- fs/ext4/move_extent.c
+`-- fs/iomap.c
+`-- fs/jfs/super.c
+`-- fs/mpage.c
+`-- fs/nfsd/blocklayout.c
+`-- fs/nilfs2/btnode.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/mdt.c
+`-- fs/nilfs2/segment.c
+`-- fs/ocfs2/aops.c
+`-- fs/ocfs2/file.c
+`-- fs/orangefs/orangefs-utils.c
+`-- fs/reiserfs/file.c
+`-- fs/reiserfs/inode.c
+`-- fs/stat.c
+`-- fs/udf/inode.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/truncate.c
+[33mcompile base commit... [0m[33mok (59s)
+[0m[33mapply [0m[33m93407472a21b... [0m[33mok (59s)
+[0m[33mcompile target commit... [0m[33mok (113s)
+[0mPREPARE:
+[33mcollect AST for functions: xfs_file_fallocate@fs_xfs_xfs_file.c,ext4_wait_for_tail_page_commit@fs_ext4_inode.c,generic_fillattr@fs_stat.c,iomap_dio_actor@fs_iomap.c,xfs_get_blocks@fs_xfs_xfs_aops.c,nfsd4_scsi_proc_layoutcommit@fs_nfsd_blocklayout.c,nilfs_lookup_dirty_data_buffers@fs_nilfs2_segment.c,nilfs_mdt_set_entry_size@fs_nilfs2_mdt.c,mext_page_mkuptodate@fs_ext4_move_extent.c,ocfs2_write_zero_page@fs_ocfs2_file.c,nobh_truncate_page@fs_buffer.c,xfs_finish_page_writeback@fs_xfs_xfs_aops.c,ocfs2_map_page_blocks@fs_ocfs2_aops.c,ceph_writepages_start@fs_ceph_addr.c,xfs_vm_set_page_dirty@fs_xfs_xfs_aops.c,xfs_aops_discard_page@fs_xfs_xfs_aops.c,cont_write_begin@fs_buffer.c,ext4_direct_IO_write@fs_ext4_inode.c,ext4_mb_init_cache@fs_ext4_mballoc.c,xfs_writepage_map@fs_xfs_xfs_aops.c,nilfs_btnode_create_block@fs_nilfs2_btnode.c,btrfs_fallocate@fs_btrfs_file.c,nilfs_mdt_insert_new_block@fs_nilfs2_mdt.c,nfsd4_block_proc_layoutcommit@fs_nfsd_blocklayout.c,cont_expand_zero@fs_buffer.c,block_truncate_page@fs_buffer.c,pagecache_isize_extended@mm_truncate.c,mpage_process_page_bufs@fs_ext4_inode.c,jfs_quota_write@fs_jfs_super.c,jfs_quota_read@fs_jfs_super.c,reiserfs_commit_page@fs_reiserfs_file.c,nilfs_inode_add_blocks@fs_nilfs2_inode.c,nfsd4_block_proc_layoutget@fs_nfsd_blocklayout.c,udf_setsize@fs_udf_inode.c,bdget@fs_block_dev.c,xfs_map_blocks@fs_xfs_xfs_aops.c,xfs_map_trim_size@fs_xfs_xfs_aops.c,reiserfs_get_blocks_direct_io@fs_reiserfs_inode.c,iomap_truncate_page@fs_iomap.c,orangefs_inode_getattr@fs_orangefs_orangefs-utils.c,generic_block_bmap@fs_buffer.c,nilfs_inode_sub_blocks@fs_nilfs2_inode.c,map_buffer_to_page@fs_mpage.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 44
+@@
+@@
+- 1 << inode->i_blkbits
++ i_blocksize(inode)

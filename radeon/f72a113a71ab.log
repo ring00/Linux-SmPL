@@ -1,0 +1,37 @@
+BUILD:
+[33mbase commit: f72a113a71ab^1
+[0m[33mtarget commit: f72a113a71ab
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m10 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- include/uapi/drm/radeon_drm.h
+10 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_prime.c
+`-- drivers/gpu/drm/radeon/radeon_ttm.c
+`-- drivers/gpu/drm/radeon/radeon_vm.c
+`-- include/uapi/drm/radeon_drm.h
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33mf72a113a71ab... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (15s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/swap.h', 'linux/pagemap.h'])
+deleted: set([])

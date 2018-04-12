@@ -1,0 +1,44 @@
+BUILD:
+[33mbase commit: 2f064f3485cd^1
+[0m[33mtarget commit: 2f064f3485cd
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m11 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/fm10k/fm10k_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/mm.h
+`-- include/linux/mm_types.h
+`-- include/linux/skbuff.h
+`-- mm/page_alloc.c
+`-- mm/slab.c
+`-- mm/slub.c
+`-- net/core/skbuff.c
+11 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/fm10k/fm10k_main.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- include/linux/mm.h
+`-- include/linux/mm_types.h
+`-- include/linux/skbuff.h
+`-- mm/page_alloc.c
+`-- mm/slab.c
+`-- mm/slub.c
+`-- net/core/skbuff.c
+[33mcompile base commit... [0m[33mok (29s)
+[0m[33mapply [0m[33m2f064f3485cd... [0m[33mok (29s)
+[0m[33mcompile target commit... [0m[33mok (50s)
+[0mPREPARE:
+[33mcollect AST for functions: fm10k_page_is_reserved@drivers_net_ethernet_intel_fm10k_fm10k_main.c,igb_page_is_reserved@drivers_net_ethernet_intel_igb_igb_main.c,ixgbe_page_is_reserved@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ixgbevf_page_is_reserved@drivers_net_ethernet_intel_ixgbevf_ixgbevf_main.c,skb_propagate_pfmemalloc@include_linux_skbuff.h,kmem_getpages@mm_slab.c,build_skb@net_core_skbuff.c,__alloc_page_frag@mm_page_alloc.c,new_slab@mm_slub.c,prep_new_page@mm_page_alloc.c,__skb_fill_page_desc@include_linux_skbuff.h
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 7
+@@
+expression E0;
+@@
+- E0->pfmemalloc
++ page_is_pfmemalloc(E0)

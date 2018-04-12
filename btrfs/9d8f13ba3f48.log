@@ -1,0 +1,42 @@
+BUILD:
+[33mbase commit: 9d8f13ba3f48^1
+[0m[33mtarget commit: 9d8f13ba3f48
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- fs/btrfs/xattr.c
+`-- fs/ext2/xattr_security.c
+`-- fs/ext3/xattr_security.c
+`-- fs/ext4/xattr_security.c
+`-- fs/gfs2/inode.c
+`-- fs/jffs2/security.c
+`-- fs/jfs/xattr.c
+`-- fs/ocfs2/xattr.c
+`-- fs/reiserfs/xattr_security.c
+`-- fs/xfs/linux-2.6/xfs_iops.c
+`-- include/linux/security.h
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+`-- security/security.c
+14 source file(s) touched in the new version
+`-- fs/btrfs/xattr.c
+`-- fs/ext2/xattr_security.c
+`-- fs/ext3/xattr_security.c
+`-- fs/ext4/xattr_security.c
+`-- fs/gfs2/inode.c
+`-- fs/jffs2/security.c
+`-- fs/jfs/xattr.c
+`-- fs/ocfs2/xattr.c
+`-- fs/reiserfs/xattr_security.c
+`-- fs/xfs/linux-2.6/xfs_iops.c
+`-- include/linux/security.h
+`-- include/linux/xattr.h
+`-- mm/shmem.c
+`-- security/security.c
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m9d8f13ba3f48... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

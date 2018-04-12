@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: 2211d5ba5c6c^1
+[0m[33mtarget commit: 2211d5ba5c6c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- drivers/staging/lustre/lustre/include/lustre_acl.h
+`-- drivers/staging/lustre/lustre/ptlrpc/wiretest.c
+`-- fs/btrfs/send.c
+`-- fs/cifs/cifssmb.c
+`-- fs/posix_acl.c
+`-- include/linux/posix_acl_xattr.h
+6 source file(s) touched in the new version
+`-- drivers/staging/lustre/lustre/include/lustre_acl.h
+`-- drivers/staging/lustre/lustre/ptlrpc/wiretest.c
+`-- fs/btrfs/send.c
+`-- fs/cifs/cifssmb.c
+`-- fs/posix_acl.c
+`-- include/linux/posix_acl_xattr.h
+[33mcompile base commit... [0m[33mok (29s)
+[0m[33mapply [0m[33m2211d5ba5c6c... [0m[33mok (29s)
+[0m[33mcompile target commit... [0m[33mok (53s)
+[0mPREPARE:
+[33mcollect AST for functions: posix_acl_xattr_count@include_linux_posix_acl_xattr.h,posix_acl_fix_xattr_userns@fs_posix_acl.c,ACL_to_cifs_posix@fs_cifs_cifssmb.c,lustre_assert_wire_constants@drivers_staging_lustre_lustre_ptlrpc_wiretest.c,cifs_convert_ace@fs_cifs_cifssmb.c,__process_new_xattr@fs_btrfs_send.c,cifs_copy_posix_acl@fs_cifs_cifssmb.c,posix_acl_xattr_size@include_linux_posix_acl_xattr.h,convert_ace_to_cifs_ace@fs_cifs_cifssmb.c,posix_acl_from_xattr@fs_posix_acl.c,posix_acl_to_xattr@fs_posix_acl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+[31mExit with status: 124
+[0m
+COCCIGEN:

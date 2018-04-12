@@ -1,0 +1,31 @@
+BUILD:
+[33mbase commit: 91f9943e1c7b^1
+[0m[33mtarget commit: 91f9943e1c7b
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m5 source file(s) touched in the old version
+`-- fs/aio.c
+`-- fs/btrfs/file.c
+`-- fs/ext4/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+5 source file(s) touched in the new version
+`-- fs/aio.c
+`-- fs/btrfs/file.c
+`-- fs/ext4/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33m91f9943e1c7b... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (46s)
+[0mPREPARE:
+[33mcollect AST for functions: btrfs_file_write_iter@fs_btrfs_file.c,xfs_file_buffered_aio_read@fs_xfs_xfs_file.c,io_submit_one@fs_aio.c,btrfs_file_open@fs_btrfs_file.c,ext4_file_open@fs_ext4_file.c,xfs_file_open@fs_xfs_xfs_file.c,xfs_file_buffered_aio_write@fs_xfs_xfs_file.c,kiocb_set_rw_flags@include_linux_fs.h,ext4_file_write_iter@fs_ext4_file.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-3, witnesses: 3
+@@
+@@
+- FMODE_AIO_NOWAIT
++ FMODE_NOWAIT

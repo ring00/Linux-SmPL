@@ -1,0 +1,38 @@
+BUILD:
+[33mbase commit: e259221763a4^1
+[0m[33mtarget commit: e259221763a4
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m12 source file(s) touched in the old version
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/cifs/file.c
+`-- fs/direct-io.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/nfs/direct.c
+`-- fs/ntfs/file.c
+`-- fs/udf/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/filemap.c
+12 source file(s) touched in the new version
+`-- fs/block_dev.c
+`-- fs/btrfs/file.c
+`-- fs/cifs/file.c
+`-- fs/direct-io.c
+`-- fs/ext4/file.c
+`-- fs/f2fs/file.c
+`-- fs/nfs/direct.c
+`-- fs/ntfs/file.c
+`-- fs/udf/file.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/fs.h
+`-- mm/filemap.c
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33me259221763a4... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (11s)
+[0mPREPARE:
+[33m1s
+[0mANALYZE:
+COCCIGEN:

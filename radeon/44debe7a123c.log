@@ -1,0 +1,38 @@
+BUILD:
+[33mbase commit: 44debe7a123c^1
+[0m[33mtarget commit: 44debe7a123c
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/linux/console.h
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_drv.c
+`-- drivers/gpu/drm/ast/ast_drv.c
+`-- drivers/gpu/drm/cirrus/cirrus_drv.c
+`-- drivers/gpu/drm/i915/i915_drv.c
+`-- drivers/gpu/drm/mgag200/mgag200_drv.c
+`-- drivers/gpu/drm/nouveau/nouveau_drm.c
+`-- drivers/gpu/drm/qxl/qxl_drv.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_drv.c
+`-- include/linux/console.h
+[33mcompile base commit... [0m[33mok (38s)
+[0m[33mapply [0m[33m44debe7a123c... [0m[33mok (38s)
+[0m[33mcompile target commit... [0m[33mok (57s)
+[0mPREPARE:
+[33mcollect AST for functions: mgag200_init@drivers_gpu_drm_mgag200_mgag200_drv.c,vmwgfx_init@drivers_gpu_drm_vmwgfx_vmwgfx_drv.c,qxl_init@drivers_gpu_drm_qxl_qxl_drv.c,i915_init@drivers_gpu_drm_i915_i915_drv.c,nouveau_drm_init@drivers_gpu_drm_nouveau_nouveau_drm.c,virtio_gpu_probe@drivers_gpu_drm_virtio_virtgpu_drv.c,radeon_init@drivers_gpu_drm_radeon_radeon_drv.c,ast_init@drivers_gpu_drm_ast_ast_drv.c,cirrus_init@drivers_gpu_drm_cirrus_cirrus_drv.c,amdgpu_init@drivers_gpu_drm_amd_amdgpu_amdgpu_drv.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:

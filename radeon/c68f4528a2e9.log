@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: c68f4528a2e9^1
+[0m[33mtarget commit: c68f4528a2e9
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m4 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_module.c
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+4 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_module.c
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+[33mcompile base commit... [0m[33mok (15s)
+[0m[33mapply [0m[33mc68f4528a2e9... [0m[33mok (15s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33mcollect AST for functions: radeon_kfd_init@drivers_gpu_drm_radeon_radeon_kfd.c,kgd2kfd_init@drivers_gpu_drm_amd_amdkfd_kfd_module.c,kfd_module_exit@drivers_gpu_drm_amd_amdkfd_kfd_module.c,amdgpu_amdkfd_load_interface@drivers_gpu_drm_amd_amdgpu_amdgpu_amdkfd.c,kfd_module_init@drivers_gpu_drm_amd_amdkfd_kfd_module.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 2
+@@
+statement S0;
+@@
+- if (!kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) { S0 }
++ if (kgd2kfd_init(KFD_INTERFACE_VERSION, &kgd2kfd)) { S0 }

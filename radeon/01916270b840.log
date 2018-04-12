@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 01916270b840^1
+[0m[33mtarget commit: 01916270b840
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m3 source file(s) touched in the old version
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/radeon/atombios_dp.c
+`-- include/drm/drm_dp_helper.h
+3 source file(s) touched in the new version
+`-- drivers/gpu/drm/i915/intel_dp.c
+`-- drivers/gpu/drm/radeon/atombios_dp.c
+`-- include/drm/drm_dp_helper.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m01916270b840... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: 3ca8bc6de2b3^1
+[0m[33mtarget commit: 3ca8bc6de2b3
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m6 source file(s) touched in the old version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe.h
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+7 source file(s) touched in the new version
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe.h
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82599.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sysfs.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m3ca8bc6de2b3... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: d9f65229f625^1
+[0m[33mtarget commit: d9f65229f625
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m3 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_strings.c
+`-- include/linux/drbd.h
+4 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_strings.c
+`-- drivers/block/drbd/drbd_strings.h
+`-- include/linux/drbd.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33md9f65229f625... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <linux/drbd.h>
++#include <drivers/block/drbd/drbd_strings.h>

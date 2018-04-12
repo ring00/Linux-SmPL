@@ -1,0 +1,140 @@
+BUILD:
+[33mbase commit: ea1754a08476^1
+[0m[33mtarget commit: ea1754a08476
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m61 source file(s) touched in the old version
+`-- arch/parisc/mm/init.c
+`-- block/bio.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/staging/lustre/include/linux/lnet/types.h
+`-- drivers/staging/lustre/lnet/selftest/selftest.h
+`-- drivers/staging/lustre/lustre/include/lu_object.h
+`-- drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
+`-- drivers/staging/lustre/lustre/include/lustre_net.h
+`-- drivers/staging/lustre/lustre/include/obd.h
+`-- drivers/staging/lustre/lustre/llite/dir.c
+`-- drivers/staging/lustre/lustre/llite/rw.c
+`-- drivers/staging/lustre/lustre/llite/vvp_io.c
+`-- drivers/staging/lustre/lustre/lmv/lmv_obd.c
+`-- drivers/staging/lustre/lustre/obdclass/linux/linux-obdo.c
+`-- drivers/staging/lustre/lustre/osc/osc_cache.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/struct-funcs.c
+`-- fs/btrfs/tests/extent-io-tests.c
+`-- fs/cifs/cifsglob.h
+`-- fs/cifs/file.c
+`-- fs/cramfs/inode.c
+`-- fs/dax.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ext2/dir.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/inode.c
+`-- fs/ext4/mballoc.c
+`-- fs/ext4/readpage.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/mpage.c
+`-- fs/ntfs/aops.c
+`-- fs/ntfs/aops.h
+`-- fs/ntfs/compress.c
+`-- fs/ntfs/dir.c
+`-- fs/ntfs/file.c
+`-- fs/ntfs/index.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/aops.c
+`-- fs/ocfs2/refcounttree.c
+`-- fs/reiserfs/journal.c
+`-- fs/squashfs/cache.c
+`-- fs/squashfs/file.c
+`-- fs/ubifs/file.c
+`-- fs/ubifs/super.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/backing-dev-defs.h
+`-- include/linux/mm.h
+`-- include/linux/mm_types.h
+`-- include/linux/nfs_page.h
+`-- include/linux/nilfs2_fs.h
+`-- include/linux/pagemap.h
+`-- include/linux/sunrpc/svc.h
+`-- include/linux/swap.h
+`-- mm/gup.c
+`-- mm/memory.c
+`-- mm/mincore.c
+`-- mm/swap.c
+`-- net/sunrpc/xdr.c
+61 source file(s) touched in the new version
+`-- arch/parisc/mm/init.c
+`-- block/bio.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/staging/lustre/include/linux/lnet/types.h
+`-- drivers/staging/lustre/lnet/selftest/selftest.h
+`-- drivers/staging/lustre/lustre/include/lu_object.h
+`-- drivers/staging/lustre/lustre/include/lustre/lustre_idl.h
+`-- drivers/staging/lustre/lustre/include/lustre_net.h
+`-- drivers/staging/lustre/lustre/include/obd.h
+`-- drivers/staging/lustre/lustre/llite/dir.c
+`-- drivers/staging/lustre/lustre/llite/rw.c
+`-- drivers/staging/lustre/lustre/llite/vvp_io.c
+`-- drivers/staging/lustre/lustre/lmv/lmv_obd.c
+`-- drivers/staging/lustre/lustre/obdclass/linux/linux-obdo.c
+`-- drivers/staging/lustre/lustre/osc/osc_cache.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/struct-funcs.c
+`-- fs/btrfs/tests/extent-io-tests.c
+`-- fs/cifs/cifsglob.h
+`-- fs/cifs/file.c
+`-- fs/cramfs/inode.c
+`-- fs/dax.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ext2/dir.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/inode.c
+`-- fs/ext4/mballoc.c
+`-- fs/ext4/readpage.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/mpage.c
+`-- fs/ntfs/aops.c
+`-- fs/ntfs/aops.h
+`-- fs/ntfs/compress.c
+`-- fs/ntfs/dir.c
+`-- fs/ntfs/file.c
+`-- fs/ntfs/index.c
+`-- fs/ntfs/inode.c
+`-- fs/ntfs/super.c
+`-- fs/ocfs2/aops.c
+`-- fs/ocfs2/refcounttree.c
+`-- fs/reiserfs/journal.c
+`-- fs/squashfs/cache.c
+`-- fs/squashfs/file.c
+`-- fs/ubifs/file.c
+`-- fs/ubifs/super.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_super.c
+`-- include/linux/backing-dev-defs.h
+`-- include/linux/mm.h
+`-- include/linux/mm_types.h
+`-- include/linux/nfs_page.h
+`-- include/linux/nilfs2_fs.h
+`-- include/linux/pagemap.h
+`-- include/linux/sunrpc/svc.h
+`-- include/linux/swap.h
+`-- mm/gup.c
+`-- mm/memory.c
+`-- mm/mincore.c
+`-- mm/swap.c
+`-- net/sunrpc/xdr.c
+[33mcompile base commit... [0m[33mok (9s)
+[0m[33mapply [0m[33mea1754a08476... [0m[33mok (9s)
+[0m[33mcompile target commit... [0m[33mok (13s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <linux/pagemap.h>
+-#include <linux/pagemap.h>

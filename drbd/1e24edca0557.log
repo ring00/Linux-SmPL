@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: 1e24edca0557^1
+[0m[33mtarget commit: 1e24edca0557
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- fs/fuse/fuse_i.h
+`-- include/linux/kref.h
+`-- init/version.c
+`-- kernel/pid.c
+5 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- fs/fuse/fuse_i.h
+`-- include/linux/kref.h
+`-- init/version.c
+`-- kernel/pid.c
+[33mcompile base commit... [0m[33mok (26s)
+[0m[33mapply [0m[33m1e24edca0557... [0m[33mok (26s)
+[0m[33mcompile target commit... [0m[33mok (39s)
+[0mPREPARE:
+[33mcollect AST for functions: bm_rw@drivers_block_drbd_drbd_bitmap.c,init_pid_ns@kernel_pid.c,init_uts_ns@init_version.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:

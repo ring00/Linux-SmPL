@@ -1,0 +1,37 @@
+BUILD:
+[33mbase commit: d9515c5ec1a2^1
+[0m[33mtarget commit: d9515c5ec1a2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m4 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_dp_mst_topology.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drm_dp_mst_helper.h
+4 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_dp_mst_topology.c
+`-- drivers/gpu/drm/i915/intel_dp_mst.c
+`-- drivers/gpu/drm/radeon/radeon_dp_mst.c
+`-- include/drm/drm_dp_mst_helper.h
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33md9515c5ec1a2... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33mcollect AST for functions: drm_dp_mst_get_edid@drivers_gpu_drm_drm_dp_mst_topology.c,mst_cbs@drivers_gpu_drm_radeon_radeon_dp_mst.c,radeon_dp_add_mst_connector@drivers_gpu_drm_radeon_radeon_dp_mst.c,mst_cbs@drivers_gpu_drm_i915_intel_dp_mst.c,intel_dp_add_mst_connector@drivers_gpu_drm_i915_intel_dp_mst.c,drm_dp_add_port@drivers_gpu_drm_drm_dp_mst_topology.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+expression E0;
+@@
+- drm_connector_register(E0);
+//# pattern-2, witnesses: 2
+@@
+@@
+- drm_modeset_unlock_all(dev);
+//# pattern-4, witnesses: 2
+@@
+@@
+- drm_modeset_lock_all(dev);

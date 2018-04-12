@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 2f2f43d3c7b1^1
+[0m[33mtarget commit: 2f2f43d3c7b1
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m3 source file(s) touched in the old version
+`-- fs/btrfs/delayed-inode.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+3 source file(s) touched in the new version
+`-- fs/btrfs/delayed-inode.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/ioctl.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m2f2f43d3c7b1... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

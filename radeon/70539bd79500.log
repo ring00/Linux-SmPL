@@ -1,0 +1,67 @@
+BUILD:
+[33mbase commit: 70539bd79500^1
+[0m[33mtarget commit: 70539bd79500
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m11 source file(s) touched in the old version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_kernel_queue.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager.h
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_vi.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_priv.h
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v7.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_amdkfd_gfx_v8.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_device_queue_manager.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_kernel_queue.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager.h
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_cik.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_mqd_manager_vi.c
+`-- drivers/gpu/drm/amd/amdkfd/kfd_priv.h
+`-- drivers/gpu/drm/amd/include/kgd_kfd_interface.h
+`-- drivers/gpu/drm/radeon/radeon_kfd.c
+[33mcompile base commit... [0m[33mok (28s)
+[0m[33mapply [0m[33m70539bd79500... [0m[33mok (28s)
+[0m[33mcompile target commit... [0m[33mok (47s)
+[0mPREPARE:
+[33mcollect AST for functions: initialize@drivers_gpu_drm_amd_amdkfd_kfd_kernel_queue.c,load_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_vi.c,create_sdma_queue_nocpsch@drivers_gpu_drm_amd_amdkfd_kfd_device_queue_manager.c,destroy_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_vi.c,create_compute_queue_nocpsch@drivers_gpu_drm_amd_amdkfd_kfd_device_queue_manager.c,kgd_hqd_destroy@drivers_gpu_drm_radeon_radeon_kfd.c,update_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_cik.c,__update_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_vi.c,kgd_hqd_load@drivers_gpu_drm_amd_amdgpu_amdgpu_amdkfd_gfx_v7.c,load_mqd_sdma@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_cik.c,kgd_hqd_load@drivers_gpu_drm_radeon_radeon_kfd.c,kgd_hqd_destroy@drivers_gpu_drm_amd_amdgpu_amdgpu_amdkfd_gfx_v7.c,load_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_cik.c,kgd_hqd_load@drivers_gpu_drm_amd_amdgpu_amdgpu_amdkfd_gfx_v8.c,destroy_mqd@drivers_gpu_drm_amd_amdkfd_kfd_mqd_manager_cik.c,kgd_hqd_destroy@drivers_gpu_drm_amd_amdgpu_amdgpu_amdkfd_gfx_v8.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 2
+@@
+expression E0;
+expression E1;
+@@
+- m->cp_hqd_pq_doorbell_control = E0 | E1;
+- m->cp_hqd_active = 0;
++ m->cp_hqd_pq_doorbell_control = E1;
+//# pattern-14, witnesses: 2
+@@
+identifier mm;
+identifier mqd;
+identifier pipe_id;
+identifier queue_id;
+identifier timeout;
+identifier type;
+typedef uint32_t;
+@@
+ int destroy_mqd(struct mqd_manager * mm, void * mqd, enum kfd_preempt_type type, unsigned int timeout, uint32_t pipe_id, uint32_t queue_id)
+ {
+     <...
+- mm->dev->kfd2kgd->hqd_destroy(mm->dev->kgd, type, timeout, pipe_id, queue_id)
++ mm->dev->kfd2kgd->hqd_destroy(mm->dev->kgd, mqd, type, timeout, pipe_id, queue_id)
+     ...>
+ }
+//# pattern-15, witnesses: 2
+@@
+@@
+- m->cp_hqd_active = 1;

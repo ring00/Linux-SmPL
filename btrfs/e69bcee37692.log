@@ -1,0 +1,26 @@
+BUILD:
+[33mbase commit: e69bcee37692^1
+[0m[33mtarget commit: e69bcee37692
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/qgroup.h
+`-- include/trace/events/btrfs.h
+5 source file(s) touched in the new version
+`-- fs/btrfs/ctree.h
+`-- fs/btrfs/extent-tree.c
+`-- fs/btrfs/qgroup.c
+`-- fs/btrfs/qgroup.h
+`-- include/trace/events/btrfs.h
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33me69bcee37692... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (27s)
+[0mPREPARE:
+[33mcollect AST for functions: __btrfs_free_extent@fs_btrfs_extent-tree.c,__btrfs_inc_extent_ref@fs_btrfs_extent-tree.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m4s
+[0mANALYZE:
+COCCIGEN:

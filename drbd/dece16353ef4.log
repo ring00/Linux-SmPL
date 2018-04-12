@@ -1,0 +1,161 @@
+BUILD:
+[33mbase commit: dece16353ef4^1
+[0m[33mtarget commit: dece16353ef4
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m28 source file(s) touched in the old version
+`-- arch/m68k/emu/nfblock.c
+`-- arch/powerpc/sysdev/axonram.c
+`-- arch/xtensa/platforms/iss/simdisk.c
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/null_blk.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/umem.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/lightnvm/rrpc.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- include/linux/blk_types.h
+`-- include/linux/blkdev.h
+`-- include/linux/fs.h
+`-- include/linux/lightnvm.h
+28 source file(s) touched in the new version
+`-- arch/m68k/emu/nfblock.c
+`-- arch/powerpc/sysdev/axonram.c
+`-- arch/xtensa/platforms/iss/simdisk.c
+`-- block/blk-core.c
+`-- block/blk-mq.c
+`-- drivers/block/brd.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/null_blk.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/umem.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/lightnvm/rrpc.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/nvdimm/blk.c
+`-- drivers/nvdimm/btt.c
+`-- drivers/nvdimm/pmem.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- include/linux/blk_types.h
+`-- include/linux/blkdev.h
+`-- include/linux/fs.h
+`-- include/linux/lightnvm.h
+[33mcompile base commit... [0m[33mok (44s)
+[0m[33mapply [0m[33mdece16353ef4... [0m[33mok (44s)
+[0m[33mcompile target commit... [0m[33mok (80s)
+[0mPREPARE:
+[33mcollect AST for functions: md_make_request@drivers_md_md.c,simdisk_make_request@arch_xtensa_platforms_iss_simdisk.c,blk_queue_bio@block_blk-core.c,drbd_make_request@drivers_block_drbd_drbd_req.c,zram_make_request@drivers_block_zram_zram_drv.c,ps3vram_make_request@drivers_block_ps3vram.c,cached_dev_make_request@drivers_md_bcache_request.c,pmem_make_request@drivers_nvdimm_pmem.c,brd_make_request@drivers_block_brd.c,nd_blk_make_request@drivers_nvdimm_blk.c,null_queue_bio@drivers_block_null_blk.c,generic_make_request@block_blk-core.c,blk_mq_make_request@block_blk-mq.c,xpram_make_request@drivers_s390_block_xpram.c,pkt_make_request@drivers_block_pktcdvd.c,dcssblk_make_request@drivers_s390_block_dcssblk.c,submit_bio@block_blk-core.c,rrpc_make_rq@drivers_lightnvm_rrpc.c,mm_make_request@drivers_block_umem.c,flash_dev_make_request@drivers_md_bcache_request.c,btt_make_request@drivers_nvdimm_btt.c,loop_make_request@drivers_staging_lustre_lustre_llite_lloop.c,blk_sq_make_request@block_blk-mq.c,dm_make_request@drivers_md_dm.c,rsxx_make_request@drivers_block_rsxx_dev.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m7s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-4, witnesses: 18
+@r0@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+identifier r0.fn;
+@@
+- void fn(struct request_queue * q, struct bio * bio)
++ blk_qc_t fn(struct request_queue * q, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-1, witnesses: 9
+@r1@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+identifier r1.fn;
+@@
+ blk_qc_t fn(struct request_queue * q, struct bio * bio)
+ {
+     ...
++ return BLK_QC_T_NONE;
+ }
+//# pattern-3, witnesses: 5
+@r2@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier queue;
+identifier r2.fn;
+@@
+ blk_qc_t fn(struct request_queue * queue, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-6, witnesses: 3
+@r3@
+identifier i, fn;
+@@
+struct nvm_tgt_type i = {
+    .make_rq = fn,
+};
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+@@
+ blk_qc_t rrpc_make_rq(struct request_queue * q, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-11, witnesses: 2
+@r4@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier bio;
+typedef blk_qc_t;
+@@
+- void generic_make_request(struct bio * bio)
++ blk_qc_t generic_make_request(struct bio * bio)
+ { ... }

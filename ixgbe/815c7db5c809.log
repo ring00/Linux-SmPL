@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: 815c7db5c809^1
+[0m[33mtarget commit: 815c7db5c809
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m8 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/freescale/gianfar_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/sfc/ethtool.c
+`-- drivers/net/ethernet/sun/niu.c
+`-- drivers/net/vmxnet3/vmxnet3_ethtool.c
+`-- include/linux/ethtool.h
+8 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_ethtool.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/freescale/gianfar_ethtool.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ethtool.c
+`-- drivers/net/ethernet/sfc/ethtool.c
+`-- drivers/net/ethernet/sun/niu.c
+`-- drivers/net/vmxnet3/vmxnet3_ethtool.c
+`-- include/linux/ethtool.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m815c7db5c809... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

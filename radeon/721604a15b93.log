@@ -1,0 +1,52 @@
+BUILD:
+[33mbase commit: 721604a15b93^1
+[0m[33mtarget commit: 721604a15b93
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m19 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/evergreen_cs.c
+`-- drivers/gpu/drm/radeon/evergreend.h
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/nid.h
+`-- drivers/gpu/drm/radeon/r300.c
+`-- drivers/gpu/drm/radeon/r600_cs.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gart.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- include/drm/radeon_drm.h
+19 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/evergreen_cs.c
+`-- drivers/gpu/drm/radeon/evergreend.h
+`-- drivers/gpu/drm/radeon/ni.c
+`-- drivers/gpu/drm/radeon/nid.h
+`-- drivers/gpu/drm/radeon/r300.c
+`-- drivers/gpu/drm/radeon/r600_cs.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_asic.c
+`-- drivers/gpu/drm/radeon/radeon_asic.h
+`-- drivers/gpu/drm/radeon/radeon_cs.c
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_drv.c
+`-- drivers/gpu/drm/radeon/radeon_gart.c
+`-- drivers/gpu/drm/radeon/radeon_gem.c
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_object.c
+`-- drivers/gpu/drm/radeon/radeon_object.h
+`-- drivers/gpu/drm/radeon/radeon_ring.c
+`-- include/drm/radeon_drm.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33m721604a15b93... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

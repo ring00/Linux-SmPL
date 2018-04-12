@@ -1,0 +1,118 @@
+BUILD:
+[33mbase commit: 5fd9fc4e207d^1
+[0m[33mtarget commit: 5fd9fc4e207d
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m39 source file(s) touched in the old version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.h
+`-- drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+`-- drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.h
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/main.h
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_app.h
+`-- drivers/net/ethernet/netronome/nfp/nfp_port.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_port.h
+`-- drivers/net/ethernet/sfc/efx.h
+`-- drivers/net/ethernet/sfc/falcon/efx.h
+`-- drivers/net/ethernet/sfc/falcon/tx.c
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+`-- include/linux/netdevice.h
+`-- include/net/pkt_cls.h
+`-- net/dsa/slave.c
+`-- net/sched/cls_bpf.c
+`-- net/sched/cls_flower.c
+`-- net/sched/cls_matchall.c
+`-- net/sched/cls_u32.c
+`-- net/sched/sch_mqprio.c
+39 source file(s) touched in the new version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_tc_u32.h
+`-- drivers/net/ethernet/freescale/dpaa/dpaa_eth.c
+`-- drivers/net/ethernet/hisilicon/hns3/hns3pf/hns3_enet.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_rep.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_tc.h
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.c
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum.h
+`-- drivers/net/ethernet/mellanox/mlxsw/spectrum_flower.c
+`-- drivers/net/ethernet/netronome/nfp/bpf/main.c
+`-- drivers/net/ethernet/netronome/nfp/flower/main.h
+`-- drivers/net/ethernet/netronome/nfp/flower/offload.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_app.h
+`-- drivers/net/ethernet/netronome/nfp/nfp_port.c
+`-- drivers/net/ethernet/netronome/nfp/nfp_port.h
+`-- drivers/net/ethernet/sfc/efx.h
+`-- drivers/net/ethernet/sfc/falcon/efx.h
+`-- drivers/net/ethernet/sfc/falcon/tx.c
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+`-- include/linux/netdevice.h
+`-- include/net/pkt_cls.h
+`-- net/dsa/slave.c
+`-- net/sched/cls_bpf.c
+`-- net/sched/cls_flower.c
+`-- net/sched/cls_matchall.c
+`-- net/sched/cls_u32.c
+`-- net/sched/sch_mqprio.c
+[33mcompile base commit... [0m[33mok (90s)
+[0m[33mapply [0m[33m5fd9fc4e207d... [0m[33mok (90s)
+[0m[33mcompile target commit... [0m[33mok (167s)
+[0mPREPARE:
+[33mcollect AST for functions: mall_destroy_hw_filter@net_sched_cls_matchall.c,u32_clear_hw_hnode@net_sched_cls_u32.c,fl_hw_replace_filter@net_sched_cls_flower.c,mlx5e_configure_flower@drivers_net_ethernet_mellanox_mlx5_core_en_tc.c,cxgb4_delete_knode@drivers_net_ethernet_chelsio_cxgb4_cxgb4_tc_u32.c,cls_bpf_offload_cmd@net_sched_cls_bpf.c,u32_remove_hw_knode@net_sched_cls_u32.c,nfp_flower_setup_tc@drivers_net_ethernet_netronome_nfp_flower_offload.c,mlxsw_sp_flower_replace@drivers_net_ethernet_mellanox_mlxsw_spectrum_flower.c,u32_replace_hw_knode@net_sched_cls_u32.c,fl_hw_destroy_filter@net_sched_cls_flower.c,cxgb4_config_knode@drivers_net_ethernet_chelsio_cxgb4_cxgb4_tc_u32.c,mqprio_init@net_sched_sch_mqprio.c,mall_replace_hw_filter@net_sched_cls_matchall.c,fl_hw_update_stats@net_sched_cls_flower.c,nfp_bpf_setup_tc@drivers_net_ethernet_netronome_nfp_bpf_main.c,mqprio_destroy@net_sched_sch_mqprio.c,u32_replace_hw_hnode@net_sched_cls_u32.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m16s
+[0mANALYZE:
+COCCIGEN:
+unknown kind: InitListExpr
+unknown kind: InitListExpr
+//# pattern-1, witnesses: 7
+@@
+expression E1;
+expression E2;
+expression E3;
+expression E4;
+expression EC0;
+@@
+- dev->netdev_ops->ndo_setup_tc(dev, EC0, E1->handle, E2, E3, E4)
++ dev->netdev_ops->ndo_setup_tc(dev, EC0, E4)
+//# pattern-7, witnesses: 2
+@@
+@@
+- struct tc_cls_u32_offload u32_offload = ;
+- if (tc_should_offload(dev, tp, 0)) {
+- dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_CLSU32, tp->q->handle, tp->chain->index, tp->protocol, &offload);
+- }
++ struct tc_cls_u32_offload u32_offload = ;
++ if (tc_should_offload(dev, tp, 0)) {
++ tc_cls_common_offload_init(&u32_offload.common, tp);
++ dev->netdev_ops->ndo_setup_tc(dev, TC_SETUP_CLSU32, &offload);
++ }

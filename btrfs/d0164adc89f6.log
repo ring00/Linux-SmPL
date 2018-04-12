@@ -1,0 +1,148 @@
+BUILD:
+[33mbase commit: d0164adc89f6^1
+[0m[33mtarget commit: d0164adc89f6
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m65 source file(s) touched in the old version
+`-- arch/arm/mm/dma-mapping.c
+`-- arch/arm/xen/mm.c
+`-- arch/arm64/mm/dma-mapping.c
+`-- arch/x86/kernel/pci-dma.c
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-ioc.c
+`-- block/blk-mq-tag.c
+`-- block/blk-mq.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/osdblk.c
+`-- drivers/connector/connector.c
+`-- drivers/firewire/core-cdev.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/infiniband/core/sa_query.c
+`-- drivers/iommu/amd_iommu.c
+`-- drivers/iommu/intel-iommu.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-kcopyd.c
+`-- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+`-- drivers/media/pci/solo6x10/solo6x10-v4l2.c
+`-- drivers/media/pci/tw68/tw68-video.c
+`-- drivers/mtd/mtdcore.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/staging/android/ion/ion_system_heap.c
+`-- drivers/staging/lustre/include/linux/libcfs/libcfs_private.h
+`-- drivers/usb/host/u132-hcd.c
+`-- drivers/video/fbdev/vermilion/vermilion.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/volumes.c
+`-- fs/ext4/super.c
+`-- fs/fscache/cookie.c
+`-- fs/fscache/page.c
+`-- fs/jbd2/transaction.c
+`-- fs/nfs/file.c
+`-- fs/xfs/xfs_qm.c
+`-- include/linux/gfp.h
+`-- include/linux/skbuff.h
+`-- include/net/sock.h
+`-- include/trace/events/gfpflags.h
+`-- kernel/audit.c
+`-- kernel/cgroup.c
+`-- kernel/locking/lockdep.c
+`-- kernel/power/snapshot.c
+`-- kernel/smp.c
+`-- lib/idr.c
+`-- lib/radix-tree.c
+`-- mm/backing-dev.c
+`-- mm/dmapool.c
+`-- mm/memcontrol.c
+`-- mm/mempool.c
+`-- mm/migrate.c
+`-- mm/page_alloc.c
+`-- mm/slab.c
+`-- mm/slub.c
+`-- mm/vmalloc.c
+`-- mm/vmscan.c
+`-- mm/zswap.c
+`-- net/core/skbuff.c
+`-- net/core/sock.c
+`-- net/netlink/af_netlink.c
+`-- net/rds/ib_recv.c
+`-- net/rxrpc/ar-connection.c
+`-- net/sctp/associola.c
+65 source file(s) touched in the new version
+`-- arch/arm/mm/dma-mapping.c
+`-- arch/arm/xen/mm.c
+`-- arch/arm64/mm/dma-mapping.c
+`-- arch/x86/kernel/pci-dma.c
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-ioc.c
+`-- block/blk-mq-tag.c
+`-- block/blk-mq.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/osdblk.c
+`-- drivers/connector/connector.c
+`-- drivers/firewire/core-cdev.c
+`-- drivers/gpu/drm/i915/i915_gem.c
+`-- drivers/infiniband/core/sa_query.c
+`-- drivers/iommu/amd_iommu.c
+`-- drivers/iommu/intel-iommu.c
+`-- drivers/md/dm-crypt.c
+`-- drivers/md/dm-kcopyd.c
+`-- drivers/media/pci/solo6x10/solo6x10-v4l2-enc.c
+`-- drivers/media/pci/solo6x10/solo6x10-v4l2.c
+`-- drivers/media/pci/tw68/tw68-video.c
+`-- drivers/mtd/mtdcore.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/staging/android/ion/ion_system_heap.c
+`-- drivers/staging/lustre/include/linux/libcfs/libcfs_private.h
+`-- drivers/usb/host/u132-hcd.c
+`-- drivers/video/fbdev/vermilion/vermilion.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/volumes.c
+`-- fs/ext4/super.c
+`-- fs/fscache/cookie.c
+`-- fs/fscache/page.c
+`-- fs/jbd2/transaction.c
+`-- fs/nfs/file.c
+`-- fs/xfs/xfs_qm.c
+`-- include/linux/gfp.h
+`-- include/linux/skbuff.h
+`-- include/net/sock.h
+`-- include/trace/events/gfpflags.h
+`-- kernel/audit.c
+`-- kernel/cgroup.c
+`-- kernel/locking/lockdep.c
+`-- kernel/power/snapshot.c
+`-- kernel/smp.c
+`-- lib/idr.c
+`-- lib/radix-tree.c
+`-- mm/backing-dev.c
+`-- mm/dmapool.c
+`-- mm/memcontrol.c
+`-- mm/mempool.c
+`-- mm/migrate.c
+`-- mm/page_alloc.c
+`-- mm/slab.c
+`-- mm/slub.c
+`-- mm/vmalloc.c
+`-- mm/vmscan.c
+`-- mm/zswap.c
+`-- net/core/skbuff.c
+`-- net/core/sock.c
+`-- net/netlink/af_netlink.c
+`-- net/rds/ib_recv.c
+`-- net/rxrpc/ar-connection.c
+`-- net/sctp/associola.c
+[33mcompile base commit... [0m[33mok (75s)
+[0m[33mapply [0m[33md0164adc89f6... [0m[33mok (75s)
+[0m[33mcompile target commit... [0m[33mok (141s)
+[0mPREPARE:
+[33mcollect AST for functions: cgroup_idr_alloc@kernel_cgroup.c,nfs_release_page@fs_nfs_file.c,mtd_kmalloc_up_to@drivers_mtd_mtdcore.c,dma_generic_alloc_coherent@arch_x86_kernel_pci-dma.c,i915_gem_object_get_pages_gtt@drivers_gpu_drm_i915_i915_gem.c,radix_tree_maybe_preload@lib_radix-tree.c,solo_enc_alloc@drivers_media_pci_solo6x10_solo6x10-v4l2-enc.c,radix_tree_preload@lib_radix-tree.c,__set_extent_bit@fs_btrfs_extent_io.c,tw68_video_init2@drivers_media_pci_tw68_tw68-video.c,add_client_resource@drivers_firewire_core-cdev.c,sk_page_frag@include_net_sock.h,skb_unclone@include_linux_skbuff.h,kcopyd_get_pages@drivers_md_dm-kcopyd.c,bvec_alloc@block_bio.c,bio_chain_clone@drivers_block_osdblk.c,send_mad@drivers_infiniband_core_sa_query.c,open_ctree@fs_btrfs_disk-io.c,blk_mq_map_request@block_blk-mq.c,drbd_alloc_peer_req@drivers_block_drbd_drbd_receiver.c,alloc_coherent@drivers_iommu_amd_iommu.c,bt_get@block_blk-mq-tag.c,idr_alloc@lib_idr.c,get_request@block_blk-core.c,bio_alloc_bioset@block_bio.c,bnx2x_frag_alloc@drivers_net_ethernet_broadcom_bnx2x_bnx2x_cmn.c,__fscache_maybe_release_page@fs_fscache_page.c,crypt_alloc_buffer@drivers_md_dm-crypt.c,intel_alloc_coherent@drivers_iommu_intel-iommu.c,u132_urb_enqueue@drivers_usb_host_u132-hcd.c,idr_preload@lib_idr.c,__fscache_acquire_cookie@fs_fscache_cookie.c,clear_extent_bit@fs_btrfs_extent_io.c,__lockdep_trace_alloc@kernel_locking_lockdep.c,skb_share_check@include_linux_skbuff.h,high_order_gfp_flags@drivers_staging_android_ion_ion_system_heap.c,get_task_io_context@block_blk-ioc.c,xfs_qm_shrink_scan@fs_xfs_xfs_qm.c,try_release_extent_mapping@fs_btrfs_extent_io.c,audit_log_start@kernel_audit.c,radix_tree_node_alloc@lib_radix-tree.c,__alloc_device@fs_btrfs_volumes.c,on_each_cpu_cond@kernel_smp.c,blk_mq_alloc_request@block_blk-mq.c,cn_netlink_send_mult@drivers_connector_connector.c,bdev_try_to_free_page@fs_ext4_super.c,vmlfb_alloc_vram_area@drivers_video_fbdev_vermilion_vermilion.c,convert_extent_bit@fs_btrfs_extent_io.c,skb_unshare@include_linux_skbuff.h,solo_v4l2_init@drivers_media_pci_solo6x10_solo6x10-v4l2.c
+[0m[33mTransforming and linking bitcode files...
+[0m[31mLink error[0m
+ANALYZE:
+[31mLack a successful preparation
+[0m
+COCCIGEN:

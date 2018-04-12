@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: 4f03b1fc1eb2^1
+[0m[33mtarget commit: 4f03b1fc1eb2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m10 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_legacy.h
+`-- drivers/gpu/drm/i810/i810_drv.h
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/r128/r128_drv.h
+`-- drivers/gpu/drm/radeon/radeon_drv.h
+`-- drivers/gpu/drm/savage/savage_drv.h
+`-- drivers/gpu/drm/sis/sis_drv.h
+`-- drivers/gpu/drm/via/via_drv.h
+`-- include/drm/drmP.h
+11 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_legacy.h
+`-- drivers/gpu/drm/i810/i810_drv.h
+`-- drivers/gpu/drm/i915/i915_dma.c
+`-- drivers/gpu/drm/mga/mga_drv.h
+`-- drivers/gpu/drm/r128/r128_drv.h
+`-- drivers/gpu/drm/radeon/radeon_drv.h
+`-- drivers/gpu/drm/savage/savage_drv.h
+`-- drivers/gpu/drm/sis/sis_drv.h
+`-- drivers/gpu/drm/via/via_drv.h
+`-- include/drm/drmP.h
+`-- include/drm/drm_legacy.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m4f03b1fc1eb2... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
+@@
+@@
+ #include <drm/drmP.h>
++#include <drm/drm_legacy.h>

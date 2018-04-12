@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: 8d38633c3b40^1
+[0m[33mtarget commit: 8d38633c3b40
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m2 source file(s) touched in the old version
+`-- fs/btrfs/extent_io.c
+`-- mm/page-writeback.c
+2 source file(s) touched in the new version
+`-- fs/btrfs/extent_io.c
+`-- mm/page-writeback.c
+[33mcompile base commit... [0m[33mok (13s)
+[0m[33mapply [0m[33m8d38633c3b40... [0m[33mok (13s)
+[0m[33mcompile target commit... [0m[33mok (22s)
+[0mPREPARE:
+[33mcollect AST for functions: redirty_page_for_writepage@mm_page-writeback.c,extent_range_redirty_for_io@fs_btrfs_extent_io.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

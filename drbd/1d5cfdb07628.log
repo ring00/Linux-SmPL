@@ -1,0 +1,74 @@
+BUILD:
+[33mbase commit: 1d5cfdb07628^1
+[0m[33mtarget commit: 1d5cfdb07628
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m17 source file(s) touched in the old version
+`-- arch/arm/mm/dma-mapping.c
+`-- drivers/acpi/apei/erst.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/char/mspec.c
+`-- drivers/gpu/drm/drm_hashtab.c
+`-- drivers/staging/lustre/include/linux/libcfs/libcfs_private.h
+`-- fs/coda/coda_linux.h
+`-- fs/jffs2/build.c
+`-- fs/jffs2/fs.c
+`-- fs/jffs2/super.c
+`-- fs/udf/super.c
+`-- ipc/sem.c
+`-- ipc/util.c
+`-- ipc/util.h
+`-- mm/percpu.c
+`-- net/ipv4/fib_trie.c
+17 source file(s) touched in the new version
+`-- arch/arm/mm/dma-mapping.c
+`-- drivers/acpi/apei/erst.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/drbd/drbd_int.h
+`-- drivers/char/mspec.c
+`-- drivers/gpu/drm/drm_hashtab.c
+`-- drivers/staging/lustre/include/linux/libcfs/libcfs_private.h
+`-- fs/coda/coda_linux.h
+`-- fs/jffs2/build.c
+`-- fs/jffs2/fs.c
+`-- fs/jffs2/super.c
+`-- fs/udf/super.c
+`-- ipc/sem.c
+`-- ipc/util.c
+`-- ipc/util.h
+`-- mm/percpu.c
+`-- net/ipv4/fib_trie.c
+[33mcompile base commit... [0m[33mok (34s)
+[0m[33mapply [0m[33m1d5cfdb07628... [0m[33mok (34s)
+[0m[33mcompile target commit... [0m[33mok (64s)
+[0mPREPARE:
+[33mcollect AST for functions: udf_sb_free_bitmap@fs_udf_super.c,__node_free_rcu@net_ipv4_fib_trie.c,pcpu_mem_free@mm_percpu.c,pcpu_free_chunk@mm_percpu.c,jffs2_do_fill_super@fs_jffs2_fs.c,bm_vk_free@drivers_block_drbd_drbd_bitmap.c,pcpu_alloc_chunk@mm_percpu.c,drbd_bm_cleanup@drivers_block_drbd_drbd_bitmap.c,semctl_main@ipc_sem.c,mspec_close@drivers_char_mspec.c,jffs2_put_super@fs_jffs2_super.c,__erst_record_id_cache_add_one@drivers_acpi_apei_erst.c,drm_ht_remove@drivers_gpu_drm_drm_hashtab.c,jffs2_do_mount_fs@fs_jffs2_build.c,mspec_mmap@drivers_char_mspec.c,bm_realloc_pages@drivers_block_drbd_drbd_bitmap.c,ipc_free@ipc_util.c,pcpu_extend_area_map@mm_percpu.c,drbd_bm_resize@drivers_block_drbd_drbd_bitmap.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-2, witnesses: 5
+@@
+expression E0;
+expression E1;
+@@
+- pcpu_mem_free(E0, E1)
++ pcpu_mem_free(E0)
+//# pattern-7, witnesses: 3
+@@
+@@
+- if (jffs2_blocks_use_vmalloc(c)) {
+- vfree(c->blocks);
+- }
++ kvfree(c->blocks)
+//# pattern-8, witnesses: 3
+@@
+expression BO0;
+expression E1;
+expression E2;
+@@
+- if (BO0) {
+- kfree(E1);
+- }
++ kvfree(E2);

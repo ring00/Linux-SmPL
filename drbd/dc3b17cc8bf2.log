@@ -1,0 +1,145 @@
+BUILD:
+[33mbase commit: dc3b17cc8bf2^1
+[0m[33mtarget commit: dc3b17cc8bf2
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m33 source file(s) touched in the old version
+`-- block/blk-cgroup.c
+`-- block/blk-core.c
+`-- block/blk-integrity.c
+`-- block/blk-settings.c
+`-- block/blk-sysfs.c
+`-- block/blk-wbt.c
+`-- block/genhd.c
+`-- drivers/block/aoe/aoeblk.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_proc.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/rbd.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-era-target.c
+`-- drivers/md/dm-table.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm.c
+`-- drivers/md/linear.c
+`-- drivers/md/md.c
+`-- drivers/md/multipath.c
+`-- drivers/md/raid0.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/nilfs2/super.c
+`-- fs/super.c
+`-- include/linux/blkdev.h
+`-- mm/page-writeback.c
+33 source file(s) touched in the new version
+`-- block/blk-cgroup.c
+`-- block/blk-core.c
+`-- block/blk-integrity.c
+`-- block/blk-settings.c
+`-- block/blk-sysfs.c
+`-- block/blk-wbt.c
+`-- block/genhd.c
+`-- drivers/block/aoe/aoeblk.c
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_nl.c
+`-- drivers/block/drbd/drbd_proc.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/rbd.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-cache-target.c
+`-- drivers/md/dm-era-target.c
+`-- drivers/md/dm-table.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/dm.c
+`-- drivers/md/linear.c
+`-- drivers/md/md.c
+`-- drivers/md/multipath.c
+`-- drivers/md/raid0.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/nilfs2/super.c
+`-- fs/super.c
+`-- include/linux/blkdev.h
+`-- mm/page-writeback.c
+[33mcompile base commit... [0m[33mok (71s)
+[0m[33mapply [0m[33mdc3b17cc8bf2... [0m[33mok (71s)
+[0m[33mcompile target commit... [0m[33mok (135s)
+[0mPREPARE:
+[33mcollect AST for functions: raid10_congested@drivers_md_raid10.c,end_reshape@drivers_md_raid10.c,drbd_seq_show@drivers_block_drbd_drbd_proc.c,device_add_disk@block_genhd.c,flash_dev_congested@drivers_md_bcache_request.c,wb_recent_wait@block_blk-wbt.c,dm_init_md_queue@drivers_md_dm.c,is_congested@drivers_md_dm-cache-target.c,nilfs_fill_super@fs_nilfs2_super.c,dm_table_any_congested@drivers_md_dm-table.c,drbd_congested@drivers_block_drbd_drbd_main.c,dm_any_congested@drivers_md_dm.c,raid1_congested@drivers_md_raid1.c,pkt_make_request_write@drivers_block_pktcdvd.c,bch_cached_dev_request_init@drivers_md_bcache_request.c,blk_finish_request@block_blk-core.c,end_reshape@drivers_md_raid5.c,laptop_mode_timer_fn@mm_page-writeback.c,blk_cleanup_queue@block_blk-core.c,cached_dev_init@drivers_md_bcache_super.c,pool_is_congested@drivers_md_dm-thin.c,raid5_store_skip_copy@drivers_md_raid5.c,rbd_init_disk@drivers_block_rbd.c,queue_ra_store@block_blk-sysfs.c,raid0_congested@drivers_md_raid0.c,rwb_trace_step@block_blk-wbt.c,raid10_run@drivers_md_raid10.c,linear_congested@drivers_md_linear.c,drbd_create_device@drivers_block_drbd_drbd_main.c,bch_flash_dev_request_init@drivers_md_bcache_request.c,dm_init_normal_md_queue@drivers_md_dm.c,blk_get_backing_dev_info@block_blk-core.c,blk_release_queue@block_blk-sysfs.c,md_run@drivers_md_md.c,__get_request@block_blk-core.c,blk_set_congested@block_blk-core.c,multipath_congested@drivers_md_multipath.c,dev_is_congested@drivers_md_dm-era-target.c,blk_alloc_queue_node@block_blk-core.c,blk_clear_congested@block_blk-core.c,queue_max_sectors_store@block_blk-sysfs.c,blkg_dev_name@block_blk-cgroup.c,cached_dev_congested@drivers_md_bcache_request.c,remote_due_to_read_balancing@drivers_block_drbd_drbd_req.c,set_bdev_super@fs_super.c,aoeblk_gdalloc@drivers_block_aoe_aoeblk.c,device_to_statistics@drivers_block_drbd_drbd_nl.c,drbd_setup_queue_param@drivers_block_drbd_drbd_nl.c,raid0_run@drivers_md_raid0.c,__latency_exceeded@block_blk-wbt.c,pkt_handle_queue@drivers_block_pktcdvd.c,raid5_run@drivers_md_raid5.c,queue_ra_show@block_blk-sysfs.c,wb_timer_fn@block_blk-wbt.c,blkg_create@block_blk-cgroup.c,bcache_device_init@drivers_md_bcache_super.c,blk_queue_max_hw_sectors@block_blk-settings.c,do_md_stop@drivers_md_md.c,set_gfs2_super@fs_gfs2_ops_fstype.c,blk_integrity_revalidate@block_blk-integrity.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 32
+@@
+expression E0;
+@@
+- &E0->backing_dev_info
++ E0->backing_dev_info
+//# pattern-2, witnesses: 6
+@@
+expression E0;
+expression E1;
+@@
+- E0->backing_dev_info.congested_fn = E1
++ E0->backing_dev_info->congested_fn = E1
+//# pattern-3, witnesses: 5
+@@
+expression E0;
+expression E1;
+@@
+- E0->backing_dev_info.ra_pages = E1
++ E0->backing_dev_info->ra_pages = E1
+//# pattern-5, witnesses: 5
+@@
+expression E0;
+@@
+- E0->backing_dev_info.capabilities
++ E0->backing_dev_info->capabilities
+//# pattern-6, witnesses: 4
+@@
+expression E0;
+expression E1;
+@@
+- E0->backing_dev_info.congested_data = E1
++ E0->backing_dev_info->congested_data = E1
+//# pattern-4, witnesses: 3
+@@
+expression E0;
+expression E1;
+@@
+- E0->queue->backing_dev_info.ra_pages < E1
++ E0->queue->backing_dev_info->ra_pages < E1
+//# pattern-8, witnesses: 3
+@@
+expression E0;
+@@
+- E0->backing_dev_info.dev
++ E0->backing_dev_info->dev
+//# pattern-10, witnesses: 2
+@@
+expression E0;
+@@
+- E0->queue->backing_dev_info.wb
++ E0->queue->backing_dev_info->wb
+//# pattern-11, witnesses: 2
+@@
+expression E0;
+@@
+- q->backing_dev_info.io_pages = E0
++ q->backing_dev_info->io_pages = E0
+//# pattern-12, witnesses: 2
+@@
+@@
+- &q->backing_dev_info.laptop_mode_wb_timer
++ &q->backing_dev_info->laptop_mode_wb_timer

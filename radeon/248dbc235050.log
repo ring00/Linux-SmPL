@@ -1,0 +1,30 @@
+BUILD:
+[33mbase commit: 248dbc235050^1
+[0m[33mtarget commit: 248dbc235050
+[0m[33mchecking out base commit... [0m[33mok (0s)
+[0m[33mformatting diff... [0m[33mok (0s)
+[0m8 source file(s) touched in the old version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/staging/gma500/framebuffer.c
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_crtc_helper.h
+8 source file(s) touched in the new version
+`-- drivers/gpu/drm/drm_crtc.c
+`-- drivers/gpu/drm/drm_crtc_helper.c
+`-- drivers/gpu/drm/gma500/framebuffer.c
+`-- drivers/gpu/drm/radeon/radeon_fb.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_kms.c
+`-- drivers/staging/gma500/framebuffer.c
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_crtc_helper.h
+[33mcompile base commit... [0m[33mok (4s)
+[0m[33mapply [0m[33m248dbc235050... [0m[33mok (4s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

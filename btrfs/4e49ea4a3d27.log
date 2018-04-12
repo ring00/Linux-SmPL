@@ -1,0 +1,207 @@
+BUILD:
+[33mbase commit: 4e49ea4a3d27^1
+[0m[33mtarget commit: 4e49ea4a3d27
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m53 source file(s) touched in the old version
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-flush.c
+`-- block/blk-lib.c
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/floppy.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/block/xen-blkfront.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/journal.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/md.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/check-integrity.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/raid56.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/buffer.c
+`-- fs/crypto/crypto.c
+`-- fs/direct-io.c
+`-- fs/ext4/crypto.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/segment.c
+`-- fs/gfs2/lops.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/hfsplus/wrapper.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/logfs/dev_bdev.c
+`-- fs/mpage.c
+`-- fs/nfs/blocklayout/blocklayout.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/bio.h
+`-- include/linux/fs.h
+`-- kernel/power/swap.c
+`-- mm/page_io.c
+53 source file(s) touched in the new version
+`-- block/bio.c
+`-- block/blk-core.c
+`-- block/blk-flush.c
+`-- block/blk-lib.c
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/block/floppy.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/block/xen-blkfront.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/journal.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-io.c
+`-- drivers/md/dm-log-writes.c
+`-- drivers/md/dm-thin.c
+`-- drivers/md/md.c
+`-- drivers/md/raid1.c
+`-- drivers/md/raid10.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/btrfs/check-integrity.c
+`-- fs/btrfs/check-integrity.h
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/raid56.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/buffer.c
+`-- fs/crypto/crypto.c
+`-- fs/direct-io.c
+`-- fs/ext4/crypto.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/readpage.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/segment.c
+`-- fs/gfs2/lops.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/hfsplus/wrapper.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/jfs/jfs_metapage.c
+`-- fs/logfs/dev_bdev.c
+`-- fs/mpage.c
+`-- fs/nfs/blocklayout/blocklayout.c
+`-- fs/nilfs2/segbuf.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/bio.h
+`-- include/linux/fs.h
+`-- kernel/power/swap.c
+`-- mm/page_io.c
+[33mcompile base commit... [0m[33mok (73s)
+[0m[33mapply [0m[33m4e49ea4a3d27... [0m[33mok (73s)
+[0m[33mcompile target commit... [0m[33mok (139s)
+[0mPREPARE:
+[33mcollect AST for functions: ext4_mpage_readpages@fs_ext4_readpage.c,write_metadata@drivers_md_dm-log-writes.c,scrub_add_page_to_wr_bio@fs_btrfs_scrub.c,write_dev_flush@fs_btrfs_disk-io.c,r5l_submit_current_io@drivers_md_raid5-cache.c,scrub_add_page_to_rd_bio@fs_btrfs_scrub.c,__blkdev_issue_discard@block_blk-lib.c,scrub_repair_page_from_good_copy@fs_btrfs_scrub.c,btrfsic_submit_bio_wait@fs_btrfs_check-integrity.c,ext4_encrypted_zeroout@fs_ext4_crypto.c,run_scheduled_bios@fs_btrfs_volumes.c,narrow_write_error@drivers_md_raid10.c,hfsplus_submit_bio@fs_hfsplus_wrapper.c,_drbd_md_sync_page_io@drivers_block_drbd_drbd_actlog.c,blkdev_issue_flush@block_blk-flush.c,f2fs_mpage_readpages@fs_f2fs_data.c,scrub_wr_submit@fs_btrfs_scrub.c,submit_bio_wait@block_bio.c,raid56_parity_scrub_stripe@fs_btrfs_raid56.c,log_one_block@drivers_md_dm-log-writes.c,submit_one_bio@fs_btrfs_extent_io.c,blkdev_issue_write_same@block_blk-lib.c,md_super_write@drivers_md_md.c,narrow_write_error@drivers_md_raid1.c,finish_parity_scrub@fs_btrfs_raid56.c,write_page_nocow@fs_btrfs_scrub.c,sync_page_io@drivers_md_md.c,f2fs_issue_flush@fs_f2fs_segment.c,__floppy_read_block_0@drivers_block_floppy.c,dispatch_rw_block_io@drivers_block_xen-blkback_blkback.c,end_discard@drivers_md_dm-thin.c,dio_bio_alloc@fs_direct-io.c,iblock_get_bio@drivers_target_target_core_iblock.c,iblock_execute_write_same@drivers_target_target_core_iblock.c,btrfsic_submit_bio@fs_btrfs_check-integrity.c,blkif_recover@drivers_block_xen-blkfront.c,submit_stripe_bio@fs_btrfs_volumes.c,lbmStartIO@fs_jfs_jfs_logmgr.c,r5l_flush_stripe_to_raid@drivers_md_raid5-cache.c,dio_bio_submit@fs_direct-io.c,bch_data_verify@drivers_md_bcache_debug.c,__submit_bio@fs_f2fs_data.c,btrfsic_read_block@fs_btrfs_check-integrity.c,journal_discard_work@drivers_md_bcache_journal.c,__btrfsic_submit_bio@fs_btrfs_check-integrity.c,fscrypt_zeroout_range@fs_crypto_crypto.c,submit_bio@block_blk-core.c,submit_bh_wbc@fs_buffer.c,iblock_execute_sync_cache@drivers_target_target_core_iblock.c,scrub_submit@fs_btrfs_scrub.c,bm_page_io_async@drivers_block_drbd_drbd_bitmap.c,ext4_io_submit@fs_ext4_page-io.c,finish_rmw@fs_btrfs_raid56.c,iblock_execute_rw@drivers_target_target_core_iblock.c,__raid56_parity_recover@fs_btrfs_raid56.c,r5l_append_payload_page@drivers_md_raid5-cache.c,repair_io_failure@fs_btrfs_extent_io.c,next_bio@block_blk-lib.c,issue_flush_thread@fs_f2fs_segment.c,gfs2_submit_bhs@fs_gfs2_meta_io.c,bch_btree_verify@drivers_md_bcache_debug.c,submit_flushes@drivers_md_md.c,use_inline_bio@drivers_md_dm-bufio.c,iblock_submit_bios@drivers_target_target_core_iblock.c,gfs2_read_super@fs_gfs2_ops_fstype.c,gfs2_log_flush_bio@fs_gfs2_lops.c,do_region@drivers_md_dm-io.c,__blkdev_issue_zeroout@block_blk-lib.c,__write_super@drivers_md_bcache_super.c,lbmRead@fs_jfs_jfs_logmgr.c,blkdev_issue_discard@block_blk-lib.c,raid56_rmw_stripe@fs_btrfs_raid56.c,btrfs_schedule_bio@fs_btrfs_volumes.c,scrub_recheck_block@fs_btrfs_scrub.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m13s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-26, witnesses: 13
+@@
+expression E0;
+expression E1;
+@@
+- submit_bio(E0, E1)
++ submit_bio(E1)
+//# pattern-9, witnesses: 6
+@@
+expression E1;
+expression V0;
+@@
+- V0 = submit_bio_wait(E1, bio);
++ bio->bi_rw = E1;
++ V0 = submit_bio_wait(bio);
+//# pattern-25, witnesses: 5
+@@
+expression E0;
+expression E1;
+@@
+- btrfsic_submit_bio(E0, E1)
++ btrfsic_submit_bio(E1)
+//# pattern-23, witnesses: 4
+@@
+expression E0;
+expression V1;
+@@
+- submit_bio_wait(E0, V1)
++ submit_bio_wait(V1)
+//# pattern-38, witnesses: 3
+@@
+@@
++ bio->bi_rw = WRITE;
+//# pattern-5, witnesses: 2
+@r0@
+identifier i, fn;
+@@
+struct sbc_ops i = {
+    .execute_rw = fn,
+};
+@@
+expression E0;
+identifier cmd;
+identifier data_direction;
+typedef sense_reason_t;
+identifier sgl;
+identifier sgl_nents;
+typedef u32;
+@@
+ sense_reason_t iblock_execute_rw(struct se_cmd * cmd, struct scatterlist * sgl, u32 sgl_nents, enum dma_data_direction data_direction)
+ {
+     <...
+- iblock_get_bio(cmd, block_lba, E0)
++ iblock_get_bio(cmd, block_lba, E0, rw)
+     ...>
+ }
+//# pattern-28, witnesses: 2
+@@
+@@
+- iblock_submit_bios(&list, rw)
++ iblock_submit_bios(&list)
+//# pattern-32, witnesses: 2
+@@
+@@
++ bio->bi_rw = WRITE_FLUSH;
+//# pattern-37, witnesses: 2
+@r1@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier rw;
+@@
+- blk_qc_t submit_bio(int rw, struct bio * bio)
++ blk_qc_t submit_bio(struct bio * bio)
+ {
+     <...
+- rw & WRITE
++ bio->bi_rw & WRITE
+     ...>
+ }

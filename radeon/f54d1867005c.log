@@ -1,0 +1,451 @@
+BUILD:
+[33mbase commit: f54d1867005c^1
+[0m[33mtarget commit: f54d1867005c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m105 source file(s) touched in the old version
+`-- drivers/dma-buf/dma-buf.c
+`-- drivers/dma-buf/fence-array.c
+`-- drivers/dma-buf/fence.c
+`-- drivers/dma-buf/reservation.c
+`-- drivers/dma-buf/seqno-fence.c
+`-- drivers/dma-buf/sw_sync.c
+`-- drivers/dma-buf/sync_debug.c
+`-- drivers/dma-buf/sync_debug.h
+`-- drivers/dma-buf/sync_file.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_benchmark.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ctx.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ib.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_job.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_test.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_trace.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_uvd.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_uvd.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vce.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vce.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+`-- drivers/gpu/drm/amd/amdgpu/cik_sdma.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v2_4.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+`-- drivers/gpu/drm/amd/amdgpu/si_dma.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_sched_trace.h
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.h
+`-- drivers/gpu/drm/amd/scheduler/sched_fence.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_atomic_helper.c
+`-- drivers/gpu/drm/drm_fops.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gem.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gpu.h
+`-- drivers/gpu/drm/i915/i915_gem_request.c
+`-- drivers/gpu/drm/i915/i915_gem_request.h
+`-- drivers/gpu/drm/i915/i915_sw_fence.c
+`-- drivers/gpu/drm/i915/i915_sw_fence.h
+`-- drivers/gpu/drm/i915/i915_trace.h
+`-- drivers/gpu/drm/i915/intel_breadcrumbs.c
+`-- drivers/gpu/drm/i915/intel_engine_cs.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_fence.c
+`-- drivers/gpu/drm/msm/msm_fence.h
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/msm/msm_gem.h
+`-- drivers/gpu/drm/msm/msm_gem_submit.c
+`-- drivers/gpu/drm/msm/msm_gpu.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.h
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nv04_fence.c
+`-- drivers/gpu/drm/nouveau/nv10_fence.c
+`-- drivers/gpu/drm/nouveau/nv17_fence.c
+`-- drivers/gpu/drm/nouveau/nv50_fence.c
+`-- drivers/gpu/drm/nouveau/nv84_fence.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/gpu/drm/radeon/radeon_sync.c
+`-- drivers/gpu/drm/radeon/radeon_uvd.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_bo_util.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vgem/vgem_fence.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_fence.c
+`-- drivers/gpu/drm/virtio/virtgpu_ioctl.c
+`-- drivers/gpu/drm/virtio/virtgpu_kms.c
+`-- drivers/gpu/drm/virtio/virtgpu_plane.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fence.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_plane.h
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+`-- include/drm/ttm/ttm_execbuf_util.h
+`-- include/linux/dma-buf.h
+`-- include/linux/fence-array.h
+`-- include/linux/fence.h
+`-- include/linux/reservation.h
+`-- include/linux/seqno-fence.h
+`-- include/linux/sync_file.h
+`-- include/trace/events/fence.h
+105 source file(s) touched in the new version
+`-- drivers/dma-buf/dma-buf.c
+`-- drivers/dma-buf/dma-fence-array.c
+`-- drivers/dma-buf/dma-fence.c
+`-- drivers/dma-buf/reservation.c
+`-- drivers/dma-buf/seqno-fence.c
+`-- drivers/dma-buf/sw_sync.c
+`-- drivers/dma-buf/sync_debug.c
+`-- drivers/dma-buf/sync_debug.h
+`-- drivers/dma-buf/sync_file.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_benchmark.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_cs.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ctx.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_device.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_display.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_fence.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ib.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_job.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_object.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_sa.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_sync.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_test.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_trace.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_ttm.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_uvd.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_uvd.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vce.c
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vce.h
+`-- drivers/gpu/drm/amd/amdgpu/amdgpu_vm.c
+`-- drivers/gpu/drm/amd/amdgpu/cik_sdma.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v6_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v7_0.c
+`-- drivers/gpu/drm/amd/amdgpu/gfx_v8_0.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v2_4.c
+`-- drivers/gpu/drm/amd/amdgpu/sdma_v3_0.c
+`-- drivers/gpu/drm/amd/amdgpu/si_dma.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_sched_trace.h
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.c
+`-- drivers/gpu/drm/amd/scheduler/gpu_scheduler.h
+`-- drivers/gpu/drm/amd/scheduler/sched_fence.c
+`-- drivers/gpu/drm/drm_atomic.c
+`-- drivers/gpu/drm/drm_atomic_helper.c
+`-- drivers/gpu/drm/drm_fops.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gem.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gpu.c
+`-- drivers/gpu/drm/etnaviv/etnaviv_gpu.h
+`-- drivers/gpu/drm/i915/i915_gem_request.c
+`-- drivers/gpu/drm/i915/i915_gem_request.h
+`-- drivers/gpu/drm/i915/i915_sw_fence.c
+`-- drivers/gpu/drm/i915/i915_sw_fence.h
+`-- drivers/gpu/drm/i915/i915_trace.h
+`-- drivers/gpu/drm/i915/intel_breadcrumbs.c
+`-- drivers/gpu/drm/i915/intel_engine_cs.c
+`-- drivers/gpu/drm/msm/msm_drv.h
+`-- drivers/gpu/drm/msm/msm_fence.c
+`-- drivers/gpu/drm/msm/msm_fence.h
+`-- drivers/gpu/drm/msm/msm_gem.c
+`-- drivers/gpu/drm/msm/msm_gem.h
+`-- drivers/gpu/drm/msm/msm_gem_submit.c
+`-- drivers/gpu/drm/msm/msm_gpu.c
+`-- drivers/gpu/drm/nouveau/nouveau_bo.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.c
+`-- drivers/gpu/drm/nouveau/nouveau_fence.h
+`-- drivers/gpu/drm/nouveau/nouveau_gem.c
+`-- drivers/gpu/drm/nouveau/nv04_fence.c
+`-- drivers/gpu/drm/nouveau/nv10_fence.c
+`-- drivers/gpu/drm/nouveau/nv17_fence.c
+`-- drivers/gpu/drm/nouveau/nv50_fence.c
+`-- drivers/gpu/drm/nouveau/nv84_fence.c
+`-- drivers/gpu/drm/qxl/qxl_drv.h
+`-- drivers/gpu/drm/qxl/qxl_release.c
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_device.c
+`-- drivers/gpu/drm/radeon/radeon_display.c
+`-- drivers/gpu/drm/radeon/radeon_fence.c
+`-- drivers/gpu/drm/radeon/radeon_sync.c
+`-- drivers/gpu/drm/radeon/radeon_uvd.c
+`-- drivers/gpu/drm/ttm/ttm_bo.c
+`-- drivers/gpu/drm/ttm/ttm_bo_util.c
+`-- drivers/gpu/drm/ttm/ttm_bo_vm.c
+`-- drivers/gpu/drm/ttm/ttm_execbuf_util.c
+`-- drivers/gpu/drm/vgem/vgem_fence.c
+`-- drivers/gpu/drm/virtio/virtgpu_drv.h
+`-- drivers/gpu/drm/virtio/virtgpu_fence.c
+`-- drivers/gpu/drm/virtio/virtgpu_ioctl.c
+`-- drivers/gpu/drm/virtio/virtgpu_kms.c
+`-- drivers/gpu/drm/virtio/virtgpu_plane.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fence.c
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_fence.h
+`-- drivers/gpu/drm/vmwgfx/vmwgfx_resource.c
+`-- include/drm/drmP.h
+`-- include/drm/drm_crtc.h
+`-- include/drm/drm_plane.h
+`-- include/drm/ttm/ttm_bo_api.h
+`-- include/drm/ttm/ttm_bo_driver.h
+`-- include/drm/ttm/ttm_execbuf_util.h
+`-- include/linux/dma-buf.h
+`-- include/linux/dma-fence-array.h
+`-- include/linux/dma-fence.h
+`-- include/linux/reservation.h
+`-- include/linux/seqno-fence.h
+`-- include/linux/sync_file.h
+`-- include/trace/events/dma_fence.h
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (215s)
+[0m[33mapply [0m[33mf54d1867005c... [0m[33mok (215s)
+[0m[33mcompile target commit... [0m[33mok (367s)
+[0mPREPARE:
+[33mcollect AST for functions: gfx_v7_0_ring_test_ib@drivers_gpu_drm_amd_amdgpu_gfx_v7_0.c,sync_file_set_fence@drivers_dma-buf_sync_file.c,add_fence@drivers_dma-buf_sync_file.c,etnaviv_fence_get_driver_name@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_cs_parser_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,amdgpu_job_free@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,amdgpu_vce_ring_test_ib@drivers_gpu_drm_amd_amdgpu_amdgpu_vce.c,to_request@drivers_gpu_drm_i915_i915_gem_request.h,reservation_object_fini@include_linux_reservation.h,amdgpu_vm_bo_rmv@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,etnaviv_gpu_bind@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_bo_backup_to_shadow@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,amdgpu_uvd_send_msg@drivers_gpu_drm_amd_amdgpu_amdgpu_uvd.c,amdgpu_vm_clear_bo@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,reservation_object_test_signaled_single@drivers_dma-buf_reservation.c,gfx_v8_0_ring_test_ib@drivers_gpu_drm_amd_amdgpu_gfx_v8_0.c,amdgpu_cs_dependencies@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,timeline_fence_get_driver_name@drivers_dma-buf_sw_sync.c,i915_fence_timeline_value_str@drivers_gpu_drm_i915_i915_gem_request.c,retire_worker@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_ib_free@drivers_gpu_drm_amd_amdgpu_amdgpu_ib.c,dma_i915_sw_fence_wake@drivers_gpu_drm_i915_i915_sw_fence.c,seqno_fence_get_timeline_name@drivers_dma-buf_seqno-fence.c,amdgpu_sync_peek_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,amdgpu_sync_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,seqno_fence_ops@drivers_dma-buf_seqno-fence.c,i915_gem_request_alloc@drivers_gpu_drm_i915_i915_gem_request.c,i915_fence_ops@drivers_gpu_drm_i915_i915_gem_request.c,amdgpu_sync_same_dev@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,reservation_object_test_signaled_rcu@drivers_dma-buf_reservation.c,timeline_fence_value_str@drivers_dma-buf_sw_sync.c,sdma_v3_0_ring_test_ib@drivers_gpu_drm_amd_amdgpu_sdma_v3_0.c,sync_print_sync_file@drivers_dma-buf_sync_debug.c,amdgpu_recover_vram_from_shadow@drivers_gpu_drm_amd_amdgpu_amdgpu_device.c,to_amdgpu_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_fence_emit@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,fence_check_cb_func@drivers_dma-buf_sync_file.c,amdgpu_uvd_get_create_msg@drivers_gpu_drm_amd_amdgpu_amdgpu_uvd.c,drm_event_cancel_free@drivers_gpu_drm_drm_fops.c,amdgpu_cs_submit@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,timeline_fence_signaled@drivers_dma-buf_sw_sync.c,amdgpu_vm_manager_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,amdgpu_job_submit@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,seqno_fence_init@include_linux_seqno-fence.h,reservation_object_get_excl@include_linux_reservation.h,amdgpu_copy_buffer@drivers_gpu_drm_amd_amdgpu_amdgpu_ttm.c,reservation_object_wait_timeout_rcu@drivers_dma-buf_reservation.c,__i915_gem_active_get_rcu@drivers_gpu_drm_i915_i915_gem_request.h,amdgpu_sa_bo_next_hole@drivers_gpu_drm_amd_amdgpu_amdgpu_sa.c,amdgpu_flip_callback@drivers_gpu_drm_amd_amdgpu_amdgpu_display.c,reservation_object_get_fences_rcu@drivers_dma-buf_reservation.c,timeline_fence_ops@drivers_dma-buf_sw_sync.c,create_vblank_event@drivers_gpu_drm_drm_atomic.c,amdgpu_ctx_init@drivers_gpu_drm_amd_amdgpu_amdgpu_ctx.c,amdgpu_fence_ops@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,intel_engine_enable_signaling@drivers_gpu_drm_i915_intel_breadcrumbs.c,seqno_signaled@drivers_dma-buf_seqno-fence.c,amdgpu_cs_wait_ioctl@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,dma_buf_poll@drivers_dma-buf_dma-buf.c,sync_timeline_create@drivers_dma-buf_sw_sync.c,seqno_fence_get_driver_name@drivers_dma-buf_seqno-fence.c,recover_worker@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,intel_breadcrumbs_signaler@drivers_gpu_drm_i915_intel_breadcrumbs.c,amdgpu_uvd_ring_test_ib@drivers_gpu_drm_amd_amdgpu_amdgpu_uvd.c,amdgpu_vm_bo_update@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,amdgpu_sa_bo_try_free@drivers_gpu_drm_amd_amdgpu_amdgpu_sa.c,timeline_fence_release@drivers_dma-buf_sw_sync.c,reservation_object_get_excl_rcu@include_linux_reservation.h,amdgpu_ctx_get_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_ctx.c,dma_buf_poll_cb@drivers_dma-buf_dma-buf.c,amdgpu_crtc_page_flip_target@drivers_gpu_drm_amd_amdgpu_amdgpu_display.c,amdgpu_bo_create_restricted@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,amdgpu_vce_get_create_msg@drivers_gpu_drm_amd_amdgpu_amdgpu_vce.c,sync_file_get_fence@drivers_dma-buf_sync_file.c,etnaviv_fence_get_timeline_name@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,timer_i915_sw_fence_wake@drivers_gpu_drm_i915_i915_sw_fence.c,amdgpu_fence_wait_empty@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_fill_buffer@drivers_gpu_drm_amd_amdgpu_amdgpu_ttm.c,i915_fence_get_timeline_name@drivers_gpu_drm_i915_i915_gem_request.c,i915_gem_request_put@drivers_gpu_drm_i915_i915_gem_request.h,amdgpu_fence_driver_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_bo_vm_update_pte@drivers_gpu_drm_amd_amdgpu_amdgpu_cs.c,timeline_fence_timeline_value_str@drivers_dma-buf_sw_sync.c,amdgpu_sync_keep_later@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,i915_fence_get_driver_name@drivers_gpu_drm_i915_i915_gem_request.c,amdgpu_uvd_free_handles@drivers_gpu_drm_amd_amdgpu_amdgpu_uvd.c,seqno_release@drivers_dma-buf_seqno-fence.c,amdgpu_job_free_resources@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,etnaviv_fence_signaled@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,drm_send_event_locked@drivers_gpu_drm_drm_fops.c,i915_fence_value_str@drivers_gpu_drm_i915_i915_gem_request.c,amdgpu_vce_get_destroy_msg@drivers_gpu_drm_amd_amdgpu_amdgpu_vce.c,timeline_fence_get_timeline_name@drivers_dma-buf_sw_sync.c,reservation_object_add_shared_inplace@drivers_dma-buf_reservation.c,etnaviv_gem_describe_fence@drivers_gpu_drm_etnaviv_etnaviv_gem.c,i915_fence_signaled@drivers_gpu_drm_i915_i915_gem_request.c,to_seqno_fence@include_linux_seqno-fence.h,amdgpu_vm_manager_init@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,sync_file_merge@drivers_dma-buf_sync_file.c,sw_sync_ioctl_create_fence@drivers_dma-buf_sw_sync.c,amdgpu_uvd_get_destroy_msg@drivers_gpu_drm_amd_amdgpu_amdgpu_uvd.c,drm_atomic_helper_wait_for_fences@drivers_gpu_drm_drm_atomic_helper.c,seqno_enable_signaling@drivers_dma-buf_seqno-fence.c,sync_file_ioctl_fence_info@drivers_dma-buf_sync_file.c,amdgpu_ib_schedule@drivers_gpu_drm_amd_amdgpu_amdgpu_ib.c,amdgpu_fence_free@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_sync_free@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,amdgpu_vm_bo_update_mapping@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,sync_file_poll@drivers_dma-buf_sync_file.c,cik_sdma_ring_test_ib@drivers_gpu_drm_amd_amdgpu_cik_sdma.c,amdgpu_ctx_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_ctx.c,etnaviv_fence_enable_signaling@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_ctx_add_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_ctx.c,etnaviv_fence_ops@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,i915_fence_enable_signaling@drivers_gpu_drm_i915_i915_gem_request.c,amdgpu_fence_enable_signaling@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_vm_fini@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,amdgpu_gpu_reset@drivers_gpu_drm_amd_amdgpu_amdgpu_device.c,amdgpu_do_test_moves@drivers_gpu_drm_amd_amdgpu_amdgpu_test.c,amdgpu_bo_restore_from_shadow@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,sync_print_fence@drivers_dma-buf_sync_debug.c,to_etnaviv_fence@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_sa_bo_free@drivers_gpu_drm_amd_amdgpu_amdgpu_sa.c,etnaviv_fence_release@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,etnaviv_gpu_submit@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,amdgpu_sync_get_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,amdgpu_move_blit@drivers_gpu_drm_amd_amdgpu_amdgpu_ttm.c,get_fences@drivers_dma-buf_sync_file.c,amdgpu_job_dependency@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,reservation_object_add_shared_replace@drivers_dma-buf_reservation.c,amdgpu_vm_grab_id@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,amdgpu_fence_process@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,i915_gem_request_get@drivers_gpu_drm_i915_i915_gem_request.h,amdgpu_vm_update_pd_or_shadow@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,gfx_v6_0_ring_test_ib@drivers_gpu_drm_amd_amdgpu_gfx_v6_0.c,amdgpu_sync_add_later@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,intel_engine_setup_common@drivers_gpu_drm_i915_intel_engine_cs.c,amdgpu_vm_bo_split_mapping@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,gfx_v8_0_do_edc_gpr_workarounds@drivers_gpu_drm_amd_amdgpu_gfx_v8_0.c,amdgpu_sync_resv@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,etnaviv_gpu_fence_sync_obj@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,sdma_v2_4_ring_test_ib@drivers_gpu_drm_amd_amdgpu_sdma_v2_4.c,si_dma_ring_test_ib@drivers_gpu_drm_amd_amdgpu_si_dma.c,amdgpu_fence_release@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_fence_get_timeline_name@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,amdgpu_job_run@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,etnaviv_gem_describe@drivers_gpu_drm_etnaviv_etnaviv_gem.c,i915_sw_fence_await_dma_fence@drivers_gpu_drm_i915_i915_sw_fence.c,seqno_wait@drivers_dma-buf_seqno-fence.c,amdgpu_sa_bo_remove_locked@drivers_gpu_drm_amd_amdgpu_amdgpu_sa.c,amdgpu_device_init@drivers_gpu_drm_amd_amdgpu_amdgpu_device.c,amdgpu_fence_get_driver_name@drivers_gpu_drm_amd_amdgpu_amdgpu_fence.c,irq_handler@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,sync_fill_fence_info@drivers_dma-buf_sync_file.c,sync_file_create@drivers_dma-buf_sync_file.c,amdgpu_benchmark_do_move@drivers_gpu_drm_amd_amdgpu_amdgpu_benchmark.c,i915_sw_fence_await_reservation@drivers_gpu_drm_i915_i915_sw_fence.c,sync_pt_create@drivers_dma-buf_sw_sync.c,reservation_object_add_excl_fence@drivers_dma-buf_reservation.c,sync_file_free@drivers_dma-buf_sync_file.c,fence_is_i915@drivers_gpu_drm_i915_i915_gem_request.h,amdgpu_vm_flush@drivers_gpu_drm_amd_amdgpu_amdgpu_vm.c,amdgpu_bo_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_object.c,etnaviv_gpu_fence_alloc@drivers_gpu_drm_etnaviv_etnaviv_gpu.c,timeline_fence_enable_signaling@drivers_dma-buf_sw_sync.c,i915_gem_request_get_rcu@drivers_gpu_drm_i915_i915_gem_request.h,i915_fence_release@drivers_gpu_drm_i915_i915_gem_request.c,reservation_object_add_shared_fence@drivers_dma-buf_reservation.c,sync_timeline_signal@drivers_dma-buf_sw_sync.c,amdgpu_job_free_cb@drivers_gpu_drm_amd_amdgpu_amdgpu_job.c,amdgpu_sa_bo_new@drivers_gpu_drm_amd_amdgpu_amdgpu_sa.c,amdgpu_sync_get_owner@drivers_gpu_drm_amd_amdgpu_amdgpu_sync.c,i915_fence_wait@drivers_gpu_drm_i915_i915_gem_request.c,amdgpu_flip_handle_fence@drivers_gpu_drm_amd_amdgpu_amdgpu_display.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m16s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-7, witnesses: 84
+@@
+expression list listE0;
+@@
+- fence_put(listE0)
++ dma_fence_put(listE0)
+//# pattern-6, witnesses: 31
+@@
+expression list listE0;
+@@
+- fence_get(listE0)
++ dma_fence_get(listE0)
+//# pattern-10, witnesses: 16
+@@
+expression list listE0;
+@@
+- fence_is_signaled(listE0)
++ dma_fence_is_signaled(listE0)
+//# pattern-15, witnesses: 12
+@@
+expression list listE0;
+@@
+- fence_wait_timeout(listE0)
++ dma_fence_wait_timeout(listE0)
+//# pattern-20, witnesses: 11
+@@
+expression list listE0;
+@@
+- fence_wait(listE0)
++ dma_fence_wait(listE0)
+//# pattern-2, witnesses: 8
+@@
+expression list listE0;
+@@
+- fence_get_rcu(listE0)
++ dma_fence_get_rcu(listE0)
+//# pattern-17, witnesses: 6
+@@
+expression list listE0;
+@@
+- fence_parent(listE0)
++ dma_fence_parent(listE0)
+//# pattern-12, witnesses: 4
+@@
+expression list listE0;
+@@
+- fence_context_alloc(listE0)
++ dma_fence_context_alloc(listE0)
+//# pattern-34, witnesses: 4
+@r0@
+identifier fn;
+expression P0, P1;
+@@
+(varies)(P0, P1, fn)
+@@
+identifier cb;
+identifier fence;
+identifier r0.fn;
+@@
+- void fn(struct fence * fence, struct fence_cb * cb)
++ void fn(struct dma_fence * fence, struct dma_fence_cb * cb)
+ { ... }
+//# pattern-56, witnesses: 4
+@@
+@@
+- FENCE_FLAG_SIGNALED_BIT
++ DMA_FENCE_FLAG_SIGNALED_BIT
+//# pattern-61, witnesses: 4
+@@
+expression list listE0;
+@@
+- fence_add_callback(listE0)
++ dma_fence_add_callback(listE0)
+//# pattern-18, witnesses: 3
+@@
+expression list listE0;
+@@
+- fence_init(listE0)
++ dma_fence_init(listE0)
+//# pattern-27, witnesses: 3
+@@
+identifier fence;
+identifier fn;
+identifier size;
+identifier str;
+@@
+- void fn(struct fence * fence, char * str, int size)
++ void fn(struct dma_fence * fence, char * str, int size)
+ { ... }
+//# pattern-35, witnesses: 3
+@@
+expression list listE0;
+@@
+- fence_signal(listE0)
++ dma_fence_signal(listE0)
+//# pattern-14, witnesses: 2
+@@
+typedef bool;
+identifier f;
+identifier fn;
+@@
+- bool fn(struct fence * f)
++ bool fn(struct dma_fence * f)
+ { ... }
+//# pattern-28, witnesses: 2
+@@
+typedef bool;
+identifier fence;
+identifier fn;
+@@
+ bool fn(struct dma_fence * fence)
+ { ... }
+//# pattern-31, witnesses: 2
+@@
+expression list listE0;
+@@
+- fence_is_later(listE0)
++ dma_fence_is_later(listE0)
+//# pattern-38, witnesses: 2
+@r1@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier fence;
+identifier obj;
+identifier r1.fn;
+@@
+- void fn(struct reservation_object * obj, struct fence * fence)
++ void fn(struct reservation_object * obj, struct dma_fence * fence)
+ { ... }
+//# pattern-40, witnesses: 2
+@@
+identifier fence;
+identifier fn;
+@@
+- const char * fn(struct fence * fence)
++ const char * fn(struct dma_fence * fence)
+ { ... }
+//# pattern-42, witnesses: 2
+@@
+identifier fence;
+identifier fn;
+@@
+ const char * fn(struct dma_fence * fence)
+ { ... }
+//# pattern-50, witnesses: 2
+@@
+typedef bool;
+identifier fence;
+identifier fn;
+@@
+ bool fn(struct dma_fence * fence)
+ { ... }
+//# pattern-51, witnesses: 2
+@@
+expression list listE0;
+@@
+- fence_is_signaled_locked(listE0)
++ dma_fence_is_signaled_locked(listE0)
+//# pattern-52, witnesses: 2
+@@
+typedef bool;
+identifier fence;
+identifier fn;
+identifier interruptible;
+identifier timeout_jiffies;
+@@
+- long fn(struct fence * fence, bool interruptible, long timeout_jiffies)
++ long fn(struct dma_fence * fence, bool interruptible, long timeout_jiffies)
+ { ... }
+//# pattern-54, witnesses: 2
+@@
+expression list listE0;
+@@
+- fence_free(listE0)
++ dma_fence_free(listE0)
+//# pattern-60, witnesses: 2
+@@
+identifier fence;
+identifier fn;
+@@
+- void fn(struct fence * fence)
++ void fn(struct dma_fence * fence)
+ { ... }
+//# pattern-62, witnesses: 2
+@@
+identifier fence;
+identifier fn;
+@@
+- struct sync_file * fn(struct fence * fence)
++ struct sync_file * fn(struct dma_fence * fence)
+ { ... }
+//# pattern-70, witnesses: 2
+@@
+typedef bool;
+identifier fence;
+identifier fn;
+@@
+ bool fn(struct dma_fence * fence)
+ { ... }
+//# pattern-75, witnesses: 2
+@@
+identifier fence;
+identifier fn;
+@@
+ void fn(struct dma_fence * fence)
+ { ... }
+//# pattern-80, witnesses: 2
+@@
+typedef bool;
+identifier fence;
+identifier fn;
+@@
+ bool fn(struct dma_fence * fence)
+ { ... }
+//# pattern-83, witnesses: 2
+@@
+expression list listE0;
+@@
+- fence_to_sync_pt(listE0)
++ dma_fence_to_sync_pt(listE0)

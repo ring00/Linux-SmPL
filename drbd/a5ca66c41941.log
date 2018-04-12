@@ -1,0 +1,28 @@
+BUILD:
+[33mbase commit: a5ca66c41941^1
+[0m[33mtarget commit: a5ca66c41941
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/drbd_limits.h
+3 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_nl.c
+`-- include/linux/drbd_genl.h
+`-- include/linux/drbd_limits.h
+[33mcompile base commit... [0m[33mok (20s)
+[0m[33mapply [0m[33ma5ca66c41941... [0m[33mok (20s)
+[0m[33mcompile target commit... [0m[33mok (36s)
+[0mPREPARE:
+[33mcollect AST for functions: sanitize_disk_conf@drivers_block_drbd_drbd_nl.c,drbd_adm_attach@drivers_block_drbd_drbd_nl.c,drbd_adm_disk_opts@drivers_block_drbd_drbd_nl.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+expression E0;
+@@
+- sanitize_disk_conf(new_disk_conf, E0)
++ sanitize_disk_conf(device, new_disk_conf, E0)

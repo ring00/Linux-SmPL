@@ -1,0 +1,44 @@
+BUILD:
+[33mbase commit: 71d8e532b154^1
+[0m[33mtarget commit: 71d8e532b154
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m15 source file(s) touched in the old version
+`-- fs/btrfs/file.c
+`-- fs/ceph/file.c
+`-- fs/cifs/file.c
+`-- fs/fuse/file.c
+`-- fs/nfs/file.c
+`-- fs/ocfs2/file.c
+`-- fs/pipe.c
+`-- fs/splice.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/uio.h
+`-- mm/filemap.c
+`-- mm/iov_iter.c
+`-- mm/page_io.c
+`-- mm/process_vm_access.c
+`-- mm/shmem.c
+15 source file(s) touched in the new version
+`-- fs/btrfs/file.c
+`-- fs/ceph/file.c
+`-- fs/cifs/file.c
+`-- fs/fuse/file.c
+`-- fs/nfs/file.c
+`-- fs/ocfs2/file.c
+`-- fs/pipe.c
+`-- fs/splice.c
+`-- fs/xfs/xfs_file.c
+`-- include/linux/uio.h
+`-- mm/filemap.c
+`-- mm/iov_iter.c
+`-- mm/page_io.c
+`-- mm/process_vm_access.c
+`-- mm/shmem.c
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m71d8e532b154... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

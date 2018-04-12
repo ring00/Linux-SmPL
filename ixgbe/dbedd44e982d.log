@@ -1,0 +1,138 @@
+BUILD:
+[33mbase commit: dbedd44e982d^1
+[0m[33mtarget commit: dbedd44e982d
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m61 source file(s) touched in the old version
+`-- drivers/net/ethernet/allwinner/sun4i-emac.c
+`-- drivers/net/ethernet/amd/amd8111e.c
+`-- drivers/net/ethernet/amd/amd8111e.h
+`-- drivers/net/ethernet/amd/xgbe/xgbe.h
+`-- drivers/net/ethernet/apple/mace.c
+`-- drivers/net/ethernet/apple/macmace.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_hw.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_link.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_reg.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_stats.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_vfpf.c
+`-- drivers/net/ethernet/brocade/bna/bfa_defs_cna.h
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc.c
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc_ct.c
+`-- drivers/net/ethernet/brocade/bna/bfi.h
+`-- drivers/net/ethernet/brocade/bna/bna_hw_defs.h
+`-- drivers/net/ethernet/calxeda/xgmac.c
+`-- drivers/net/ethernet/chelsio/cxgb3/t3_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h
+`-- drivers/net/ethernet/chelsio/cxgb4vf/sge.c
+`-- drivers/net/ethernet/chelsio/cxgb4vf/t4vf_hw.c
+`-- drivers/net/ethernet/cirrus/cs89x0.c
+`-- drivers/net/ethernet/dec/tulip/dmfe.c
+`-- drivers/net/ethernet/dec/tulip/uli526x.c
+`-- drivers/net/ethernet/emulex/benet/be_cmds.c
+`-- drivers/net/ethernet/freescale/fec_ptp.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_main.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+`-- drivers/net/ethernet/intel/ixgbevf/vf.c
+`-- drivers/net/ethernet/marvell/mvpp2.c
+`-- drivers/net/ethernet/mellanox/mlx4/mlx4.h
+`-- drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+`-- drivers/net/ethernet/moxa/moxart_ether.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/packetengines/hamachi.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.h
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_init.c
+`-- drivers/net/ethernet/qualcomm/qca_spi.c
+`-- drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/ethernet/sfc/farch.c
+`-- drivers/net/ethernet/sfc/mcdi_pcol.h
+`-- drivers/net/ethernet/sfc/siena_sriov.c
+`-- drivers/net/ethernet/sfc/vfdi.h
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+`-- drivers/net/ethernet/sun/sungem.c
+`-- drivers/net/ethernet/ti/cpsw.c
+`-- drivers/net/ethernet/toshiba/ps3_gelic_net.c
+`-- drivers/net/ethernet/wiznet/w5100.c
+`-- drivers/net/ethernet/wiznet/w5300.c
+61 source file(s) touched in the new version
+`-- drivers/net/ethernet/allwinner/sun4i-emac.c
+`-- drivers/net/ethernet/amd/amd8111e.c
+`-- drivers/net/ethernet/amd/amd8111e.h
+`-- drivers/net/ethernet/amd/xgbe/xgbe.h
+`-- drivers/net/ethernet/apple/mace.c
+`-- drivers/net/ethernet/apple/macmace.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_hw.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_init.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_link.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_reg.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_stats.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_vfpf.c
+`-- drivers/net/ethernet/brocade/bna/bfa_defs_cna.h
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc.c
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc_ct.c
+`-- drivers/net/ethernet/brocade/bna/bfi.h
+`-- drivers/net/ethernet/brocade/bna/bna_hw_defs.h
+`-- drivers/net/ethernet/calxeda/xgmac.c
+`-- drivers/net/ethernet/chelsio/cxgb3/t3_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4fw_api.h
+`-- drivers/net/ethernet/chelsio/cxgb4vf/sge.c
+`-- drivers/net/ethernet/chelsio/cxgb4vf/t4vf_hw.c
+`-- drivers/net/ethernet/cirrus/cs89x0.c
+`-- drivers/net/ethernet/dec/tulip/dmfe.c
+`-- drivers/net/ethernet/dec/tulip/uli526x.c
+`-- drivers/net/ethernet/emulex/benet/be_cmds.c
+`-- drivers/net/ethernet/freescale/fec_ptp.c
+`-- drivers/net/ethernet/intel/e100.c
+`-- drivers/net/ethernet/intel/e1000/e1000_main.c
+`-- drivers/net/ethernet/intel/i40evf/i40evf_main.c
+`-- drivers/net/ethernet/intel/igb/igb_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_type.h
+`-- drivers/net/ethernet/intel/ixgbevf/vf.c
+`-- drivers/net/ethernet/marvell/mvpp2.c
+`-- drivers/net/ethernet/mellanox/mlx4/mlx4.h
+`-- drivers/net/ethernet/mellanox/mlx4/resource_tracker.c
+`-- drivers/net/ethernet/moxa/moxart_ether.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/packetengines/hamachi.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_hw.h
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_83xx_init.c
+`-- drivers/net/ethernet/qualcomm/qca_spi.c
+`-- drivers/net/ethernet/samsung/sxgbe/sxgbe_main.c
+`-- drivers/net/ethernet/sfc/efx.c
+`-- drivers/net/ethernet/sfc/farch.c
+`-- drivers/net/ethernet/sfc/mcdi_pcol.h
+`-- drivers/net/ethernet/sfc/siena_sriov.c
+`-- drivers/net/ethernet/sfc/vfdi.h
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_main.c
+`-- drivers/net/ethernet/sun/sungem.c
+`-- drivers/net/ethernet/ti/cpsw.c
+`-- drivers/net/ethernet/toshiba/ps3_gelic_net.c
+`-- drivers/net/ethernet/wiznet/w5100.c
+`-- drivers/net/ethernet/wiznet/w5300.c
+[33mcompile base commit... [0m[33mok (64s)
+[0m[33mapply [0m[33mdbedd44e982d... [0m[33mok (64s)
+[0m[33mcompile target commit... [0m[33mok (122s)
+[0mPREPARE:
+[33mcollect AST for functions: init_rx_ring@drivers_net_ethernet_samsung_sxgbe_sxgbe_main.c,atl1c_patch_assign@drivers_net_ethernet_atheros_atl1c_atl1c_main.c,bnx2x_eee_initial_config@drivers_net_ethernet_broadcom_bnx2x_bnx2x_link.c,t4_init_tp_params@drivers_net_ethernet_chelsio_cxgb4_t4_hw.c,mvpp2_bm_bufs_free@drivers_net_ethernet_marvell_mvpp2.c,mvpp2_prs_mac_promisc_set@drivers_net_ethernet_marvell_mvpp2.c,qcaspi_spi_thread@drivers_net_ethernet_qualcomm_qca_spi.c,bfa_ioc_ct2_sclk_init@drivers_net_ethernet_brocade_bna_bfa_ioc_ct.c,be_cmd_get_mac_from_list@drivers_net_ethernet_emulex_benet_be_cmds.c,mace_interrupt@drivers_net_ethernet_apple_mace.c,ixgbe_msix_other@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,sxgbe_open@drivers_net_ethernet_samsung_sxgbe_sxgbe_main.c,mlx4_WRITE_MTT_wrapper@drivers_net_ethernet_mellanox_mlx4_resource_tracker.c,bnx2x_vfpf_config_rss@drivers_net_ethernet_broadcom_bnx2x_bnx2x_vfpf.c,t4_fixup_host_params@drivers_net_ethernet_chelsio_cxgb4_t4_hw.c,adap_init0@drivers_net_ethernet_chelsio_cxgb4_cxgb4_main.c,qlcnic_83xx_idc_clear_registers@drivers_net_ethernet_qlogic_qlcnic_qlcnic_83xx_init.c,bnx2x_vf_mbx_update_rss@drivers_net_ethernet_broadcom_bnx2x_bnx2x_vfpf.c,uli526x_init@drivers_net_ethernet_dec_tulip_uli526x.c,init_tx_ring@drivers_net_ethernet_samsung_sxgbe_sxgbe_main.c,sxgbe_restart_tx_queue@drivers_net_ethernet_samsung_sxgbe_sxgbe_main.c,mace_interrupt@drivers_net_ethernet_apple_macmace.c,fec_ptp_enable_pps@drivers_net_ethernet_freescale_fec_ptp.c,emac_shutdown@drivers_net_ethernet_allwinner_sun4i-emac.c,moxart_mac_setup_desc_ring@drivers_net_ethernet_moxa_moxart_ether.c,amd8111e_rx_poll@drivers_net_ethernet_amd_amd8111e.c,dmfe_init_dm910x@drivers_net_ethernet_dec_tulip_dmfe.c,ixgbe_enable_sriov@drivers_net_ethernet_intel_ixgbe_ixgbe_sriov.c,init_nic@drivers_net_ethernet_neterion_s2io.c,bnx2x_memset_stats@drivers_net_ethernet_broadcom_bnx2x_bnx2x_stats.c,e1000_probe@drivers_net_ethernet_intel_e1000_e1000_main.c,calc_tx_flits@drivers_net_ethernet_chelsio_cxgb4vf_sge.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,40 @@
+BUILD:
+[33mbase commit: b3d9b7a3c752^1
+[0m[33mtarget commit: b3d9b7a3c752
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m13 source file(s) touched in the old version
+`-- fs/affs/amigaffs.c
+`-- fs/btrfs/inode.c
+`-- fs/cifs/inode.c
+`-- fs/dcache.c
+`-- fs/exportfs/expfs.c
+`-- fs/ext4/fsync.c
+`-- fs/fuse/dir.c
+`-- fs/inode.c
+`-- fs/nfs/getroot.c
+`-- fs/notify/fsnotify.c
+`-- fs/ocfs2/dcache.c
+`-- include/linux/dcache.h
+`-- include/linux/fs.h
+13 source file(s) touched in the new version
+`-- fs/affs/amigaffs.c
+`-- fs/btrfs/inode.c
+`-- fs/cifs/inode.c
+`-- fs/dcache.c
+`-- fs/exportfs/expfs.c
+`-- fs/ext4/fsync.c
+`-- fs/fuse/dir.c
+`-- fs/inode.c
+`-- fs/nfs/getroot.c
+`-- fs/notify/fsnotify.c
+`-- fs/ocfs2/dcache.c
+`-- include/linux/dcache.h
+`-- include/linux/fs.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33mb3d9b7a3c752... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (7s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

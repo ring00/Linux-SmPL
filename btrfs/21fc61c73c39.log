@@ -1,0 +1,139 @@
+BUILD:
+[33mbase commit: 21fc61c73c39^1
+[0m[33mtarget commit: 21fc61c73c39
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m56 source file(s) touched in the old version
+`-- fs/affs/inode.c
+`-- fs/affs/namei.c
+`-- fs/affs/symlink.c
+`-- fs/afs/inode.c
+`-- fs/befs/linuxvfs.c
+`-- fs/btrfs/inode.c
+`-- fs/coda/cnode.c
+`-- fs/coda/symlink.c
+`-- fs/cramfs/inode.c
+`-- fs/efs/inode.c
+`-- fs/efs/symlink.c
+`-- fs/exofs/inode.c
+`-- fs/exofs/namei.c
+`-- fs/ext2/inode.c
+`-- fs/ext2/namei.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/namei.c
+`-- fs/ext4/symlink.c
+`-- fs/f2fs/inode.c
+`-- fs/f2fs/namei.c
+`-- fs/freevxfs/vxfs_inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hpfs/inode.c
+`-- fs/hpfs/namei.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- fs/isofs/inode.c
+`-- fs/isofs/rock.c
+`-- fs/jfs/inode.c
+`-- fs/jfs/namei.c
+`-- fs/logfs/dir.c
+`-- fs/logfs/inode.c
+`-- fs/minix/inode.c
+`-- fs/namei.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/inode.c
+`-- fs/nfs/symlink.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/inode.c
+`-- fs/ocfs2/namei.c
+`-- fs/qnx4/inode.c
+`-- fs/qnx6/inode.c
+`-- fs/ramfs/inode.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/namei.c
+`-- fs/romfs/super.c
+`-- fs/squashfs/inode.c
+`-- fs/sysv/inode.c
+`-- fs/udf/inode.c
+`-- fs/udf/namei.c
+`-- fs/udf/symlink.c
+`-- fs/ufs/inode.c
+`-- fs/ufs/namei.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+56 source file(s) touched in the new version
+`-- fs/affs/inode.c
+`-- fs/affs/namei.c
+`-- fs/affs/symlink.c
+`-- fs/afs/inode.c
+`-- fs/befs/linuxvfs.c
+`-- fs/btrfs/inode.c
+`-- fs/coda/cnode.c
+`-- fs/coda/symlink.c
+`-- fs/cramfs/inode.c
+`-- fs/efs/inode.c
+`-- fs/efs/symlink.c
+`-- fs/exofs/inode.c
+`-- fs/exofs/namei.c
+`-- fs/ext2/inode.c
+`-- fs/ext2/namei.c
+`-- fs/ext4/inode.c
+`-- fs/ext4/namei.c
+`-- fs/ext4/symlink.c
+`-- fs/f2fs/inode.c
+`-- fs/f2fs/namei.c
+`-- fs/freevxfs/vxfs_inode.c
+`-- fs/hfsplus/inode.c
+`-- fs/hpfs/inode.c
+`-- fs/hpfs/namei.c
+`-- fs/hugetlbfs/inode.c
+`-- fs/inode.c
+`-- fs/isofs/inode.c
+`-- fs/isofs/rock.c
+`-- fs/jfs/inode.c
+`-- fs/jfs/namei.c
+`-- fs/logfs/dir.c
+`-- fs/logfs/inode.c
+`-- fs/minix/inode.c
+`-- fs/namei.c
+`-- fs/ncpfs/inode.c
+`-- fs/nfs/inode.c
+`-- fs/nfs/symlink.c
+`-- fs/nilfs2/inode.c
+`-- fs/nilfs2/namei.c
+`-- fs/ocfs2/inode.c
+`-- fs/ocfs2/namei.c
+`-- fs/qnx4/inode.c
+`-- fs/qnx6/inode.c
+`-- fs/ramfs/inode.c
+`-- fs/reiserfs/inode.c
+`-- fs/reiserfs/namei.c
+`-- fs/romfs/super.c
+`-- fs/squashfs/inode.c
+`-- fs/sysv/inode.c
+`-- fs/udf/inode.c
+`-- fs/udf/namei.c
+`-- fs/udf/symlink.c
+`-- fs/ufs/inode.c
+`-- fs/ufs/namei.c
+`-- include/linux/fs.h
+`-- mm/shmem.c
+[33mcompile base commit... [0m[33mok (73s)
+[0m[33mapply [0m[33m21fc61c73c39... [0m[33mok (73s)
+[0m[33mcompile target commit... [0m[33mok (130s)
+[0mPREPARE:
+[33mcollect AST for functions: nfs_follow_link@fs_nfs_symlink.c,minix_set_inode@fs_minix_inode.c,hpfs_symlink@fs_hpfs_namei.c,affs_symlink@fs_affs_namei.c,page_getlink@fs_namei.c,exofs_iget@fs_exofs_inode.c,hpfs_symlink_readpage@fs_hpfs_namei.c,btrfs_symlink@fs_btrfs_inode.c,f2fs_iget@fs_f2fs_inode.c,befs_iget@fs_befs_linuxvfs.c,efs_iget@fs_efs_inode.c,coda_fill_inode@fs_coda_cnode.c,page_put_link@fs_namei.c,ext4_symlink@fs_ext4_namei.c,vxfs_iget@fs_freevxfs_vxfs_inode.c,logfs_symlink@fs_logfs_dir.c,exofs_symlink@fs_exofs_namei.c,nilfs_symlink@fs_nilfs2_namei.c,__page_symlink@fs_namei.c,hfsplus_new_inode@fs_hfsplus_inode.c,btrfs_read_locked_inode@fs_btrfs_inode.c,ext2_iget@fs_ext2_inode.c,efs_symlink_readpage@fs_efs_symlink.c,affs_symlink_readpage@fs_affs_symlink.c,jfs_symlink@fs_jfs_namei.c,ext4_iget@fs_ext4_inode.c,ocfs2_populate_inode@fs_ocfs2_inode.c,hugetlbfs_get_inode@fs_hugetlbfs_inode.c,afs_inode_map_status@fs_afs_inode.c,coda_symlink_filler@fs_coda_symlink.c,befs_symlink_readpage@fs_befs_linuxvfs.c,f2fs_symlink@fs_f2fs_namei.c,init_nfs_fs@fs_inode.c,f2fs_encrypted_follow_link@fs_f2fs_namei.c,rock_ridge_symlink_readpage@fs_isofs_rock.c,hpfs_read_inode@fs_hpfs_inode.c,hfsplus_cat_read_inode@fs_hfsplus_inode.c,__nilfs_read_inode@fs_nilfs2_inode.c,ext2_symlink@fs_ext2_namei.c,ext4_encrypted_follow_link@fs_ext4_symlink.c,get_cramfs_inode@fs_cramfs_inode.c,affs_iget@fs_affs_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 17
+@@
+expression E0;
+@@
+- kunmap(E0);
+//# pattern-4, witnesses: 10
+@@
+expression list listE0;
+@@
+- kmap(listE0)
++ page_address

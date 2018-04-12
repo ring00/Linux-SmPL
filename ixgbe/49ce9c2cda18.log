@@ -1,0 +1,102 @@
+BUILD:
+[33mbase commit: 49ce9c2cda18^1
+[0m[33mtarget commit: 49ce9c2cda18
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m44 source file(s) touched in the old version
+`-- drivers/net/ethernet/3com/3c501.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_param.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/atheros/atlx/atl2.c
+`-- drivers/net/ethernet/atheros/atlx/atlx.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/brocade/bna/bfa_cee.c
+`-- drivers/net/ethernet/chelsio/cxgb3/sge.c
+`-- drivers/net/ethernet/chelsio/cxgb3/t3_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+`-- drivers/net/ethernet/ethoc.c
+`-- drivers/net/ethernet/freescale/fec.c
+`-- drivers/net/ethernet/intel/e1000/e1000_hw.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/igbvf/vf.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_lib.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sysfs.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/micrel/ks8851_mll.c
+`-- drivers/net/ethernet/micrel/ksz884x.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_api.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_param.c
+`-- drivers/net/ethernet/sfc/net_driver.h
+`-- drivers/net/ethernet/sfc/rx.c
+`-- drivers/net/ethernet/smsc/smc911x.c
+`-- drivers/net/ethernet/smsc/smc91x.c
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_pci.c
+`-- drivers/net/ethernet/tehuti/tehuti.c
+`-- drivers/net/ethernet/ti/davinci_emac.c
+`-- drivers/net/ethernet/toshiba/spider_net.c
+`-- drivers/net/ethernet/xilinx/ll_temac_main.c
+44 source file(s) touched in the new version
+`-- drivers/net/ethernet/3com/3c501.c
+`-- drivers/net/ethernet/atheros/atl1c/atl1c_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_main.c
+`-- drivers/net/ethernet/atheros/atl1e/atl1e_param.c
+`-- drivers/net/ethernet/atheros/atlx/atl1.c
+`-- drivers/net/ethernet/atheros/atlx/atl2.c
+`-- drivers/net/ethernet/atheros/atlx/atlx.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/brocade/bna/bfa_cee.c
+`-- drivers/net/ethernet/chelsio/cxgb3/sge.c
+`-- drivers/net/ethernet/chelsio/cxgb3/t3_hw.c
+`-- drivers/net/ethernet/chelsio/cxgb4/t4_hw.c
+`-- drivers/net/ethernet/ethoc.c
+`-- drivers/net/ethernet/freescale/fec.c
+`-- drivers/net/ethernet/intel/e1000/e1000_hw.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/igbvf/netdev.c
+`-- drivers/net/ethernet/intel/igbvf/vf.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_common.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_fcoe.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_lib.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_ptp.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sysfs.c
+`-- drivers/net/ethernet/intel/ixgbevf/ixgbevf_main.c
+`-- drivers/net/ethernet/micrel/ks8851_mll.c
+`-- drivers/net/ethernet/micrel/ksz884x.c
+`-- drivers/net/ethernet/neterion/s2io.c
+`-- drivers/net/ethernet/nvidia/forcedeth.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_api.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_ethtool.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_param.c
+`-- drivers/net/ethernet/sfc/net_driver.h
+`-- drivers/net/ethernet/sfc/rx.c
+`-- drivers/net/ethernet/smsc/smc911x.c
+`-- drivers/net/ethernet/smsc/smc91x.c
+`-- drivers/net/ethernet/stmicro/stmmac/stmmac_pci.c
+`-- drivers/net/ethernet/tehuti/tehuti.c
+`-- drivers/net/ethernet/ti/davinci_emac.c
+`-- drivers/net/ethernet/toshiba/spider_net.c
+`-- drivers/net/ethernet/xilinx/ll_temac_main.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m49ce9c2cda18... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

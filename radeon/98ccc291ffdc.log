@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 98ccc291ffdc^1
+[0m[33mtarget commit: 98ccc291ffdc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m4 source file(s) touched in the old version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_vce.c
+`-- include/uapi/drm/radeon_drm.h
+4 source file(s) touched in the new version
+`-- drivers/gpu/drm/radeon/radeon.h
+`-- drivers/gpu/drm/radeon/radeon_kms.c
+`-- drivers/gpu/drm/radeon/radeon_vce.c
+`-- include/uapi/drm/radeon_drm.h
+[33mcompile base commit... [0m[33mok (7s)
+[0m[33mapply [0m[33m98ccc291ffdc... [0m[33mok (7s)
+[0m[33mcompile target commit... [0m[33mok (9s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

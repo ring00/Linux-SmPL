@@ -1,0 +1,84 @@
+BUILD:
+[33mbase commit: 23677ce3172f^1
+[0m[33mtarget commit: 23677ce3172f
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m35 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/brocade/bna/bfa_cee.c
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_ee.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/phy/broadcom.c
+`-- drivers/net/wireless/ath/ath5k/ani.c
+`-- drivers/net/wireless/ath/ath9k/ani.c
+`-- drivers/net/wireless/ath/ath9k/hw-ops.h
+`-- drivers/net/wireless/ath/ath9k/hw.c
+`-- drivers/net/wireless/brcm80211/brcmfmac/dhd_sdio.c
+`-- drivers/net/wireless/brcm80211/brcmsmac/main.c
+`-- drivers/net/wireless/brcm80211/brcmsmac/phy/phy_n.c
+`-- drivers/net/wireless/iwlwifi/iwl-trans-pcie-tx.c
+`-- drivers/net/wireless/mwl8k.c
+`-- drivers/net/wireless/rtlwifi/efuse.c
+`-- drivers/net/wireless/rtlwifi/ps.c
+`-- drivers/net/wireless/rtlwifi/rtl8192c/dm_common.c
+`-- drivers/net/wireless/rtlwifi/rtl8192c/phy_common.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192cu/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192cu/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/dm.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/fw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/rf.c
+35 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/brocade/bna/bfa_cee.c
+`-- drivers/net/ethernet/brocade/bna/bfa_ioc.c
+`-- drivers/net/ethernet/intel/ixgb/ixgb_ee.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_82598.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_x540.c
+`-- drivers/net/ethernet/oki-semi/pch_gbe/pch_gbe_main.c
+`-- drivers/net/phy/broadcom.c
+`-- drivers/net/wireless/ath/ath5k/ani.c
+`-- drivers/net/wireless/ath/ath9k/ani.c
+`-- drivers/net/wireless/ath/ath9k/hw-ops.h
+`-- drivers/net/wireless/ath/ath9k/hw.c
+`-- drivers/net/wireless/brcm80211/brcmfmac/dhd_sdio.c
+`-- drivers/net/wireless/brcm80211/brcmsmac/main.c
+`-- drivers/net/wireless/brcm80211/brcmsmac/phy/phy_n.c
+`-- drivers/net/wireless/iwlwifi/iwl-trans-pcie-tx.c
+`-- drivers/net/wireless/mwl8k.c
+`-- drivers/net/wireless/rtlwifi/efuse.c
+`-- drivers/net/wireless/rtlwifi/ps.c
+`-- drivers/net/wireless/rtlwifi/rtl8192c/dm_common.c
+`-- drivers/net/wireless/rtlwifi/rtl8192c/phy_common.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192ce/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192cu/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192cu/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/dm.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192de/rf.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/fw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/hw.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/phy.c
+`-- drivers/net/wireless/rtlwifi/rtl8192se/rf.c
+[33mcompile base commit... [0m[33mok (6s)
+[0m[33mapply [0m[33m23677ce3172f... [0m[33mok (6s)
+[0m[33mcompile target commit... [0m[33mok (8s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

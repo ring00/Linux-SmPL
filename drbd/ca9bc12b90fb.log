@@ -1,0 +1,20 @@
+BUILD:
+[33mbase commit: ca9bc12b90fb^1
+[0m[33mtarget commit: ca9bc12b90fb
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- include/linux/drbd.h
+3 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_main.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- include/linux/drbd.h
+[33mcompile base commit... [0m[33mok (5s)
+[0m[33mapply [0m[33mca9bc12b90fb... [0m[33mok (5s)
+[0m[33mcompile target commit... [0m[33mok (6s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

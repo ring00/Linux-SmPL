@@ -1,0 +1,70 @@
+BUILD:
+[33mbase commit: e4c6734eaab9^1
+[0m[33mtarget commit: e4c6734eaab9
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m16 source file(s) touched in the old version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e.h
+`-- drivers/net/ethernet/intel/i40e/i40e_fcoe.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/sfc/efx.h
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+`-- include/linux/netdevice.h
+`-- net/sched/sch_mqprio.c
+16 source file(s) touched in the new version
+`-- drivers/net/ethernet/amd/xgbe/xgbe-drv.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.c
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_main.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k_netdev.c
+`-- drivers/net/ethernet/intel/i40e/i40e.h
+`-- drivers/net/ethernet/intel/i40e/i40e_fcoe.c
+`-- drivers/net/ethernet/intel/i40e/i40e_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/sfc/efx.h
+`-- drivers/net/ethernet/sfc/tx.c
+`-- drivers/net/ethernet/ti/netcp_core.c
+`-- include/linux/netdevice.h
+`-- net/sched/sch_mqprio.c
+[33mcompile base commit... [0m[33mok (41s)
+[0m[33mapply [0m[33me4c6734eaab9... [0m[33mok (41s)
+[0m[33mcompile target commit... [0m[33mok (81s)
+[0mPREPARE:
+[33mcollect AST for functions: bnxt_setup_tc@drivers_net_ethernet_broadcom_bnxt_bnxt.c,xgbe_setup_tc@drivers_net_ethernet_amd_xgbe_xgbe-drv.c,efx_setup_tc@drivers_net_ethernet_sfc_tx.c,bnx2x_netdev_ops@drivers_net_ethernet_broadcom_bnx2x_bnx2x_main.c,mqprio_destroy@net_sched_sch_mqprio.c,i40e_fcoe_netdev_ops@drivers_net_ethernet_intel_i40e_i40e_fcoe.c,mqprio_init@net_sched_sch_mqprio.c,fm10k_netdev_ops@drivers_net_ethernet_intel_fm10k_fm10k_netdev.c,mlx4_netdev_ops@drivers_net_ethernet_mellanox_mlx4_en_netdev.c,ixgbe_netdev_ops@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,netcp_setup_tc@drivers_net_ethernet_ti_netcp_core.c,mlx4_netdev_ops_master@drivers_net_ethernet_mellanox_mlx4_en_netdev.c,i40e_netdev_ops@drivers_net_ethernet_intel_i40e_i40e_main.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m9s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 2
+@@
+expression E0;
+@@
+- dev->netdev_ops->ndo_setup_tc(dev, E0)
++ dev->netdev_ops->ndo_setup_tc(dev, sch->handle, E0)
+//# pattern-2, witnesses: 2
+@@
+identifier s;
+@@
+ const struct net_device_ops s = {
+-    .ndo_setup_tc = mlx4_en_setup_tc,
++    .ndo_setup_tc = __mlx4_en_setup_tc,
+ };
+//# pattern-6, witnesses: 2
+@@
+identifier s;
+@@
+ const struct net_device_ops s = {
+-    .ndo_setup_tc = i40e_setup_tc,
++    .ndo_setup_tc = __i40e_setup_tc,
+ };

@@ -1,0 +1,196 @@
+BUILD:
+[33mbase commit: 70fd76140a6c^1
+[0m[33mtarget commit: 70fd76140a6c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m53 source file(s) touched in the old version
+`-- block/blk-flush.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-log.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-snap-persistent.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5.c
+`-- drivers/nvme/target/io-cmd.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- fs/buffer.c
+`-- fs/direct-io.c
+`-- fs/ext4/mmp.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/super.c
+`-- fs/f2fs/checkpoint.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/gc.c
+`-- fs/f2fs/inline.c
+`-- fs/f2fs/node.c
+`-- fs/f2fs/segment.c
+`-- fs/f2fs/super.c
+`-- fs/gfs2/log.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/hfsplus/super.c
+`-- fs/jbd2/checkpoint.c
+`-- fs/jbd2/commit.c
+`-- fs/jbd2/journal.c
+`-- fs/jbd2/revoke.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/mpage.c
+`-- fs/nilfs2/super.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/reiserfs/journal.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/fs.h
+`-- include/trace/events/f2fs.h
+`-- kernel/power/swap.c
+53 source file(s) touched in the new version
+`-- block/blk-flush.c
+`-- drivers/block/drbd/drbd_receiver.c
+`-- drivers/block/xen-blkback/blkback.c
+`-- drivers/md/bcache/btree.c
+`-- drivers/md/bcache/debug.c
+`-- drivers/md/bcache/request.c
+`-- drivers/md/bcache/super.c
+`-- drivers/md/dm-bufio.c
+`-- drivers/md/dm-log.c
+`-- drivers/md/dm-raid1.c
+`-- drivers/md/dm-snap-persistent.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/md/raid5-cache.c
+`-- drivers/md/raid5.c
+`-- drivers/nvme/target/io-cmd.c
+`-- drivers/target/target_core_iblock.c
+`-- fs/btrfs/disk-io.c
+`-- fs/btrfs/extent_io.c
+`-- fs/btrfs/inode.c
+`-- fs/btrfs/scrub.c
+`-- fs/btrfs/volumes.c
+`-- fs/btrfs/volumes.h
+`-- fs/buffer.c
+`-- fs/direct-io.c
+`-- fs/ext4/mmp.c
+`-- fs/ext4/page-io.c
+`-- fs/ext4/super.c
+`-- fs/f2fs/checkpoint.c
+`-- fs/f2fs/data.c
+`-- fs/f2fs/gc.c
+`-- fs/f2fs/inline.c
+`-- fs/f2fs/node.c
+`-- fs/f2fs/segment.c
+`-- fs/f2fs/super.c
+`-- fs/gfs2/log.c
+`-- fs/gfs2/meta_io.c
+`-- fs/gfs2/ops_fstype.c
+`-- fs/hfsplus/super.c
+`-- fs/jbd2/checkpoint.c
+`-- fs/jbd2/commit.c
+`-- fs/jbd2/journal.c
+`-- fs/jbd2/revoke.c
+`-- fs/jfs/jfs_logmgr.c
+`-- fs/mpage.c
+`-- fs/nilfs2/super.c
+`-- fs/ocfs2/cluster/heartbeat.c
+`-- fs/reiserfs/journal.c
+`-- fs/xfs/xfs_aops.c
+`-- fs/xfs/xfs_buf.c
+`-- include/linux/fs.h
+`-- include/trace/events/f2fs.h
+`-- kernel/power/swap.c
+[33mcompile base commit... [0m[33mok (80s)
+[0m[33mapply [0m[33m70fd76140a6c... [0m[33mok (80s)
+[0m[33mcompile target commit... [0m[33mok (154s)
+[0mPREPARE:
+[33mcollect AST for functions: __extent_writepage@fs_btrfs_extent_io.c,prio_read@drivers_md_bcache_super.c,__block_write_full_page@fs_buffer.c,read_mmp_block@fs_ext4_mmp.c,f2fs_convert_inline_page@fs_f2fs_inline.c,write_dev_flush@fs_btrfs_disk-io.c,write_one_eb@fs_btrfs_extent_io.c,write_dev_supers@fs_btrfs_disk-io.c,sync_dirty_buffer@fs_buffer.c,__commit_inmem_pages@fs_f2fs_segment.c,get_lock_data_page@fs_f2fs_data.c,flush_header@drivers_md_dm-log.c,blkdev_issue_flush@block_blk-flush.c,dio_read_error@fs_btrfs_inode.c,move_data_page@fs_f2fs_gc.c,persistent_commit_exception@drivers_md_dm-snap-persistent.c,write_mmp_block@fs_ext4_mmp.c,__get_node_page@fs_f2fs_node.c,__get_meta_page@fs_f2fs_checkpoint.c,persistent_commit_merge@drivers_md_dm-snap-persistent.c,dispatch_rw_block_io@drivers_block_xen-blkback_blkback.c,f2fs_write_begin@fs_f2fs_data.c,fsync_buffers_list@fs_buffer.c,dm_bufio_issue_flush@drivers_md_dm-bufio.c,move_encrypted_block@fs_f2fs_gc.c,do_btree_node_write@drivers_md_bcache_btree.c,bch_btree_node_read@drivers_md_bcache_btree.c,md_super_write@drivers_md_md.c,jbd2_journal_commit_transaction@fs_jbd2_commit.c,blk_kick_flush@block_blk-flush.c,f2fs_write_node_page@fs_f2fs_node.c,hfsplus_sync_fs@fs_hfsplus_super.c,repair_io_failure@fs_btrfs_extent_io.c,mirror_flush@drivers_md_dm-raid1.c,ext4_commit_super@fs_ext4_super.c,f2fs_issue_flush@fs_f2fs_segment.c,__f2fs_submit_merged_bio@fs_f2fs_data.c,r5l_flush_stripe_to_raid@drivers_md_raid5-cache.c,bio_readpage_error@fs_btrfs_extent_io.c,bch_data_verify@drivers_md_bcache_debug.c,write_page_nocow@fs_btrfs_scrub.c,f2fs_write_data_page@fs_f2fs_data.c,r5l_log_write_empty_meta_block@drivers_md_raid5-cache.c,gfs2_aspace_writepage@fs_gfs2_meta_io.c,ra_meta_pages@fs_f2fs_checkpoint.c,__flush_batch@fs_jbd2_checkpoint.c,btrfs_end_bio@fs_btrfs_volumes.c,do_blockdev_direct_IO@fs_direct-io.c,iblock_execute_sync_cache@drivers_target_target_core_iblock.c,nvmet_execute_rw@drivers_nvme_target_io-cmd.c,iblock_execute_rw@drivers_target_target_core_iblock.c,write_meta_page@fs_f2fs_segment.c,__f2fs_commit_super@fs_f2fs_super.c,journal_submit_commit_record@fs_jbd2_commit.c,ext4_io_submit@fs_ext4_page-io.c,issue_flush_thread@fs_f2fs_segment.c,alloc_dev@drivers_md_dm.c,bch_btree_verify@drivers_md_bcache_debug.c,gfs2_meta_read@fs_gfs2_meta_io.c,nvmet_execute_flush@drivers_nvme_target_io-cmd.c,ops_run_io@drivers_md_raid5.c,submit_flushes@drivers_md_md.c,find_data_page@fs_f2fs_data.c,submit_one_flush@drivers_block_drbd_drbd_receiver.c,gfs2_read_super@fs_gfs2_ops_fstype.c,uuid_read@drivers_md_bcache_super.c,log_write_header@fs_gfs2_log.c,cached_dev_write@drivers_md_bcache_request.c,gfs2_meta_ra@fs_gfs2_meta_io.c,do_write@drivers_md_dm-raid1.c,flush_epd_write_bio@fs_btrfs_extent_io.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m16s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 24
+@@
+@@
+- WRITE_SYNC
++ REQ_SYNC
+//# pattern-9, witnesses: 9
+@@
+expression EC1;
+expression V0;
+@@
+- bio_set_op_attrs(V0, EC1, WRITE_FLUSH);
++ V0->bi_opf = EC1 | REQ_PREFLUSH;
+//# pattern-14, witnesses: 7
+@@
+@@
+- WRITE_FLUSH
++ REQ_PREFLUSH
+//# pattern-20, witnesses: 6
+@@
+@@
+- WRITE_FUA
++ REQ_FUA
+//# pattern-8, witnesses: 5
+@@
+@@
+- READ_SYNC | REQ_META
++ REQ_META
+//# pattern-7, witnesses: 4
+@@
+@@
+- WRITE_FLUSH_FUA
++ REQ_PREFLUSH | REQ_FUA
+//# pattern-3, witnesses: 3
+@@
+expression E0;
+@@
+- E0 = WRITE_ODIRECT
++ E0 = REQ_SYNC | REQ_IDLE
+//# pattern-13, witnesses: 3
+@@
+expression E2;
+expression EC1;
+expression V0;
+@@
+- bio_set_op_attrs(V0, EC1, E2);
++ V0->bi_opf = EC1;
+//# pattern-2, witnesses: 2
+@@
+expression E0;
+@@
+- bio_set_op_attrs(&E0->flush_bio, REQ_OP_WRITE, WRITE_FLUSH);
++ E0->flush_bio.bi_opf = REQ_OP_WRITE | REQ_PREFLUSH;
+//# pattern-4, witnesses: 2
+@@
+@@
+- bio_set_op_attrs(bio, REQ_OP_WRITE, WRITE_SYNC);
++ bio->bi_opf = REQ_OP_WRITE | REQ_SYNC;
+//# pattern-10, witnesses: 2
+@@
+expression BO0;
+expression E1;
+expression E2;
+@@
+- if (BO0) {
+- read_mode = READ_SYNC | REQ_FAILFAST_DEV;
+- }
++ if (E1 BO0 E2) {
++ read_mode |= REQ_FAILFAST_DEV;
++ }
+//# pattern-18, witnesses: 2
+@@
+@@
+- bio_set_op_attrs(bio, REQ_OP_READ);
++ bio->bi_opf = REQ_OP_READ | REQ_META;

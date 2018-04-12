@@ -1,0 +1,48 @@
+BUILD:
+[33mbase commit: 54efd50bfd87^1
+[0m[33mtarget commit: 54efd50bfd87
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m16 source file(s) touched in the old version
+`-- block/blk-core.c
+`-- block/blk-merge.c
+`-- block/blk-mq.c
+`-- block/blk-sysfs.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/umem.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- include/linux/blkdev.h
+16 source file(s) touched in the new version
+`-- block/blk-core.c
+`-- block/blk-merge.c
+`-- block/blk-mq.c
+`-- block/blk-sysfs.c
+`-- drivers/block/drbd/drbd_req.c
+`-- drivers/block/pktcdvd.c
+`-- drivers/block/ps3vram.c
+`-- drivers/block/rsxx/dev.c
+`-- drivers/block/umem.c
+`-- drivers/block/zram/zram_drv.c
+`-- drivers/md/dm.c
+`-- drivers/md/md.c
+`-- drivers/s390/block/dcssblk.c
+`-- drivers/s390/block/xpram.c
+`-- drivers/staging/lustre/lustre/llite/lloop.c
+`-- include/linux/blkdev.h
+[33mcompile base commit... [0m[33mok (28s)
+[0m[33mapply [0m[33m54efd50bfd87... [0m[33mok (28s)
+[0m[33mcompile target commit... [0m[33mok (51s)
+[0mPREPARE:
+[33mcollect AST for functions: md_make_request@drivers_md_md.c,blk_queue_bio@block_blk-core.c,drbd_make_request@drivers_block_drbd_drbd_req.c,zram_make_request@drivers_block_zram_zram_drv.c,ps3vram_make_request@drivers_block_ps3vram.c,blk_mq_make_request@block_blk-mq.c,blk_release_queue@block_blk-sysfs.c,blk_alloc_queue_node@block_blk-core.c,pkt_make_request@drivers_block_pktcdvd.c,generic_make_request_checks@block_blk-core.c,dcssblk_make_request@drivers_s390_block_dcssblk.c,xpram_make_request@drivers_s390_block_xpram.c,__blk_recalc_rq_segments@block_blk-merge.c,mm_make_request@drivers_block_umem.c,loop_make_request@drivers_staging_lustre_lustre_llite_lloop.c,blk_sq_make_request@block_blk-mq.c,dm_make_request@drivers_md_dm.c,rsxx_make_request@drivers_block_rsxx_dev.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m5s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,61 @@
+BUILD:
+[33mbase commit: 4d0e965732db^1
+[0m[33mtarget commit: 4d0e965732db
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m10 source file(s) touched in the old version
+`-- drivers/infiniband/ulp/ipoib/ipoib_main.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/microchip/encx24j600.c
+`-- drivers/net/ethernet/qualcomm/qca_spi.c
+`-- drivers/net/fjes/fjes_main.c
+`-- drivers/net/hamradio/mkiss.c
+`-- drivers/staging/rtl8192e/rtllib_softmac.c
+`-- drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
+10 source file(s) touched in the new version
+`-- drivers/infiniband/ulp/ipoib/ipoib_main.c
+`-- drivers/net/ethernet/intel/e1000e/netdev.c
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_main.c
+`-- drivers/net/ethernet/microchip/encx24j600.c
+`-- drivers/net/ethernet/qualcomm/qca_spi.c
+`-- drivers/net/fjes/fjes_main.c
+`-- drivers/net/hamradio/mkiss.c
+`-- drivers/staging/rtl8192e/rtllib_softmac.c
+`-- drivers/staging/rtl8192u/ieee80211/ieee80211_softmac.c
+[33mcompile base commit... [0m[33mok (30s)
+[0m[33mapply [0m[33m4d0e965732db... [0m[33mok (30s)
+[0m[33mcompile target commit... [0m[33mok (57s)
+[0mPREPARE:
+[33mcollect AST for functions: e1000e_dump@drivers_net_ethernet_intel_e1000e_netdev.c,ixgbe_dump@drivers_net_ethernet_intel_ixgbe_ixgbe_main.c,ipoib_timeout@drivers_infiniband_ulp_ipoib_ipoib_main.c,qcaspi_netdev_tx_timeout@drivers_net_ethernet_qualcomm_qca_spi.c,fjes_tx_stall_task@drivers_net_fjes_fjes_main.c,ax_xmit@drivers_net_hamradio_mkiss.c,rtllib_sta_ps_sleep@drivers_staging_rtl8192e_rtllib_softmac.c,encx24j600_tx_timeout@drivers_net_ethernet_microchip_encx24j600.c,igb_dump@drivers_net_ethernet_intel_igb_igb_main.c,ieee80211_sta_ps_sleep@drivers_staging_rtl8192u_ieee80211_ieee80211_softmac.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:
+//# pattern-1, witnesses: 8
+@@
+expression E0;
+@@
+- E0->trans_start
++ dev_trans_start(E0)
+//# pattern-2, witnesses: 2
+@r0@
+identifier i, fn;
+@@
+struct net_device_ops i = {
+    .ndo_tx_timeout = fn,
+};
+@@
+expression E0;
+identifier dev;
+identifier r0.fn;
+@@
+ void fn(struct net_device * dev)
+ {
+     <...
+- E0 - dev->trans_start
++ E0 - dev_trans_start(dev)
+     ...>
+ }

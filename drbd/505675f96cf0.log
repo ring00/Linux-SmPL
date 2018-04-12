@@ -1,0 +1,22 @@
+BUILD:
+[33mbase commit: 505675f96cf0^1
+[0m[33mtarget commit: 505675f96cf0
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m3 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_int.h
+`-- include/linux/drbd_limits.h
+3 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_actlog.c
+`-- drivers/block/drbd/drbd_int.h
+`-- include/linux/drbd_limits.h
+[33mcompile base commit... [0m[33mok (17s)
+[0m[33mapply [0m[33m505675f96cf0... [0m[33mok (17s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0mPREPARE:
+[33mcollect AST for functions: drbd_al_begin_io_fastpath@drivers_block_drbd_drbd_actlog.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0mANALYZE:
+COCCIGEN:

@@ -1,0 +1,62 @@
+BUILD:
+[33mbase commit: 79aab093a0b5^1
+[0m[33mtarget commit: 79aab093a0b5
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m23 source file(s) touched in the old version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_sriov.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.h
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k.h
+`-- drivers/net/ethernet/intel/fm10k/fm10k_iov.c
+`-- drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
+`-- drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.h
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.h
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/qlogic/qede/qede_main.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_sriov.h
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_sriov_pf.c
+`-- drivers/net/ethernet/sfc/sriov.c
+`-- drivers/net/ethernet/sfc/sriov.h
+`-- include/linux/if_link.h
+`-- include/linux/netdevice.h
+`-- include/uapi/linux/if_link.h
+`-- net/core/rtnetlink.c
+23 source file(s) touched in the new version
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_cmn.h
+`-- drivers/net/ethernet/broadcom/bnx2x/bnx2x_sriov.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.c
+`-- drivers/net/ethernet/broadcom/bnxt/bnxt_sriov.h
+`-- drivers/net/ethernet/emulex/benet/be_main.c
+`-- drivers/net/ethernet/intel/fm10k/fm10k.h
+`-- drivers/net/ethernet/intel/fm10k/fm10k_iov.c
+`-- drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.c
+`-- drivers/net/ethernet/intel/i40e/i40e_virtchnl_pf.h
+`-- drivers/net/ethernet/intel/igb/igb_main.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.c
+`-- drivers/net/ethernet/intel/ixgbe/ixgbe_sriov.h
+`-- drivers/net/ethernet/mellanox/mlx4/en_netdev.c
+`-- drivers/net/ethernet/mellanox/mlx5/core/en_main.c
+`-- drivers/net/ethernet/qlogic/qede/qede_main.c
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_sriov.h
+`-- drivers/net/ethernet/qlogic/qlcnic/qlcnic_sriov_pf.c
+`-- drivers/net/ethernet/sfc/sriov.c
+`-- drivers/net/ethernet/sfc/sriov.h
+`-- include/linux/if_link.h
+`-- include/linux/netdevice.h
+`-- include/uapi/linux/if_link.h
+`-- net/core/rtnetlink.c
+[33mcompile base commit... [0m[33mok (55s)
+[0m[33mapply [0m[33m79aab093a0b5... [0m[33mok (55s)
+[0m[33mcompile target commit... [0m[33mok (97s)
+[0mPREPARE:
+[33mcollect AST for functions: qlcnic_sriov_set_vf_vlan@drivers_net_ethernet_qlogic_qlcnic_qlcnic_sriov_pf.c,be_set_vf_vlan@drivers_net_ethernet_emulex_benet_be_main.c,efx_sriov_set_vf_vlan@drivers_net_ethernet_sfc_sriov.c,rtnl_vfinfo_size@net_core_rtnetlink.c,qede_set_vf_vlan@drivers_net_ethernet_qlogic_qede_qede_main.c,i40e_ndo_set_vf_port_vlan@drivers_net_ethernet_intel_i40e_i40e_virtchnl_pf.c,bnxt_set_vf_vlan@drivers_net_ethernet_broadcom_bnxt_bnxt_sriov.c,bnx2x_set_vf_vlan@drivers_net_ethernet_broadcom_bnx2x_bnx2x_sriov.c,ifla_vf_policy@net_core_rtnetlink.c,fm10k_ndo_set_vf_vlan@drivers_net_ethernet_intel_fm10k_fm10k_iov.c,do_setvfinfo@net_core_rtnetlink.c,igb_ndo_set_vf_vlan@drivers_net_ethernet_intel_igb_igb_main.c,ixgbe_ndo_set_vf_vlan@drivers_net_ethernet_intel_ixgbe_ixgbe_sriov.c,mlx4_en_set_vf_vlan@drivers_net_ethernet_mellanox_mlx4_en_netdev.c,mlx5e_set_vf_vlan@drivers_net_ethernet_mellanox_mlx5_core_en_main.c,rtnl_fill_vfinfo@net_core_rtnetlink.c,bnx2x_pf_set_vfs_vlan@drivers_net_ethernet_broadcom_bnx2x_bnx2x_sriov.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m12s
+[0mANALYZE:
+COCCIGEN:

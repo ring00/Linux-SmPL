@@ -1,0 +1,32 @@
+BUILD:
+[33mbase commit: 8be04b9374e5^1
+[0m[33mtarget commit: 8be04b9374e5
+[0m[33mchecking out base commit... [0m[33mok (5s)
+[0m[33mformatting diff... [0m[33mok (5s)
+[0m9 source file(s) touched in the old version
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/infiniband/hw/ehca/ipz_pt_fn.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/scsi/cxgbi/libcxgbi.h
+`-- fs/btrfs/send.c
+`-- fs/ext4/super.c
+`-- fs/gfs2/dir.c
+`-- net/sched/sch_choke.c
+9 source file(s) touched in the new version
+`-- drivers/block/drbd/drbd_bitmap.c
+`-- drivers/infiniband/hw/ehca/ipz_pt_fn.c
+`-- drivers/net/ethernet/chelsio/cxgb3/cxgb3_offload.c
+`-- drivers/net/ethernet/chelsio/cxgb4/cxgb4_main.c
+`-- drivers/scsi/cxgbi/libcxgbi.h
+`-- fs/btrfs/send.c
+`-- fs/ext4/super.c
+`-- fs/gfs2/dir.c
+`-- net/sched/sch_choke.c
+[33mcompile base commit... [0m[33mok (10s)
+[0m[33mapply [0m[33m8be04b9374e5... [0m[33mok (10s)
+[0m[33mcompile target commit... [0m[33mok (12s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:

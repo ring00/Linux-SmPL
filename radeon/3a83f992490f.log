@@ -1,0 +1,56 @@
+BUILD:
+[33mbase commit: 3a83f992490f^1
+[0m[33mtarget commit: 3a83f992490f
+[0m[33mchecking out base commit... [0m[33mok (3s)
+[0m[33mformatting diff... [0m[33mok (3s)
+[0m21 source file(s) touched in the old version
+`-- drivers/acpi/device_pm.c
+`-- drivers/gpu/drm/i915/intel_acpi.c
+`-- drivers/gpu/drm/i915/intel_opregion.c
+`-- drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+`-- drivers/gpu/drm/nouveau/nouveau_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- drivers/gpu/drm/radeon/radeon_bios.c
+`-- drivers/ide/ide-acpi.c
+`-- drivers/pci/hotplug/acpi_pcihp.c
+`-- drivers/pci/hotplug/pciehp_acpi.c
+`-- drivers/pci/ioapic.c
+`-- drivers/pci/pci-acpi.c
+`-- drivers/pci/pci-label.c
+`-- drivers/platform/x86/apple-gmux.c
+`-- drivers/pnp/pnpacpi/core.c
+`-- drivers/usb/core/hub.c
+`-- drivers/usb/core/usb-acpi.c
+`-- drivers/xen/pci.c
+`-- include/linux/acpi.h
+`-- include/linux/pci-acpi.h
+21 source file(s) touched in the new version
+`-- drivers/acpi/device_pm.c
+`-- drivers/gpu/drm/i915/intel_acpi.c
+`-- drivers/gpu/drm/i915/intel_opregion.c
+`-- drivers/gpu/drm/nouveau/core/subdev/mxm/base.c
+`-- drivers/gpu/drm/nouveau/nouveau_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_acpi.c
+`-- drivers/gpu/drm/radeon/radeon_atpx_handler.c
+`-- drivers/gpu/drm/radeon/radeon_bios.c
+`-- drivers/ide/ide-acpi.c
+`-- drivers/pci/hotplug/acpi_pcihp.c
+`-- drivers/pci/hotplug/pciehp_acpi.c
+`-- drivers/pci/ioapic.c
+`-- drivers/pci/pci-acpi.c
+`-- drivers/pci/pci-label.c
+`-- drivers/platform/x86/apple-gmux.c
+`-- drivers/pnp/pnpacpi/core.c
+`-- drivers/usb/core/hub.c
+`-- drivers/usb/core/usb-acpi.c
+`-- drivers/xen/pci.c
+`-- include/linux/acpi.h
+`-- include/linux/pci-acpi.h
+[33mcompile base commit... [0m[33mok (8s)
+[0m[33mapply [0m[33m3a83f992490f... [0m[33mok (8s)
+[0m[33mcompile target commit... [0m[33mok (10s)
+[0mPREPARE:
+[33m0s
+[0mANALYZE:
+COCCIGEN:
