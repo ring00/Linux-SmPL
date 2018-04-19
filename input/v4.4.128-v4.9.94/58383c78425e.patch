@@ -1,0 +1,20 @@
+--- /home/oslab/Desktop/common/drivers/input/keyreset.c	2018-04-19 17:45:31.416745551 +0800
++++ v4.4.128-v4.9.94/58383c78425e.c	2018-04-19 18:06:30.667072320 +0800
+@@ -121,7 +121,7 @@
+ 	if (!handle)
+ 		return -ENOMEM;
+ 
+-	handle->dev = dev;
++	handle->parent = dev;
+ 	handle->handler = handler;
+ 	handle->name = "keyreset";
+ 	handle->private = state;
+@@ -166,7 +166,7 @@
+ 	int ret;
+ 	int key, *keyp;
+ 	struct keyreset_state *state;
+-	struct keyreset_platform_data *pdata = pdev->dev.platform_data;
++	struct keyreset_platform_data *pdata = pdev->parent.platform_data;
+ 
+ 	if (!pdata)
+ 		return -EINVAL;
