@@ -1,0 +1,19 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:45.871618539 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:45.955619852 +0800
+@@ -359,6 +359,7 @@
+ 
+ 
+ const struct file_operations sdcardfs_main_fops = {
++	.clone_file_range = cifs_clone_file_range,
+ 	.llseek		= generic_file_llseek,
+ 	.read		= sdcardfs_read,
+ 	.write		= sdcardfs_write,
+@@ -376,6 +377,7 @@
+ 
+ /* trimmed directory options */
+ const struct file_operations sdcardfs_dir_fops = {
++	.clone_file_range = cifs_clone_file_range,
+ 	.llseek		= sdcardfs_file_llseek,
+ 	.read		= generic_read_dir,
+ 	.iterate	= sdcardfs_readdir,

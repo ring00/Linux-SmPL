@@ -1,0 +1,96 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:35:17.636115692 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:35:17.780117950 +0800
+@@ -351,7 +351,7 @@
+ 	fixup_tmp_permissions(d_inode(sb->s_root));
+ 	sb_info->sb = sb;
+ 	list_add(&sb_info->list, &sdcardfs_super_list);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ 
+ 	if (!silent)
+ 		pr_info("sdcardfs: mounted on top of %s type %s\n",
+@@ -427,7 +427,7 @@
+ 		sbi = SDCARDFS_SB(sb);
+ 		mutex_lock(&sdcardfs_super_list_lock);
+ 		list_del(&sbi->list);
+-		up_write(&sdcardfs_super_list_lock);
++		up_read(&sdcardfs_super_list_lock);
+ 	}
+ 	kill_anon_super(sb);
+ }
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:35:17.636115692 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:35:17.876119456 +0800
+@@ -291,7 +291,7 @@
+ 	err = insert_packagelist_appid_entry_locked(key, value);
+ 	if (!err)
+ 		fixup_all_perms_name(key);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ 
+ 	return err;
+ }
+@@ -302,7 +302,7 @@
+ 
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	err = insert_ext_gid_entry_locked(key, value);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ 
+ 	return err;
+ }
+@@ -315,7 +315,7 @@
+ 	err = insert_userid_exclude_entry_locked(key, value);
+ 	if (!err)
+ 		fixup_all_perms_name_userid(key, value);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ 
+ 	return err;
+ }
+@@ -356,7 +356,7 @@
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	remove_packagelist_entry_locked(key);
+ 	fixup_all_perms_name(key);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ }
+ 
+ static void remove_ext_gid_entry_locked(const struct qstr *key, gid_t group)
+@@ -378,7 +378,7 @@
+ {
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	remove_ext_gid_entry_locked(key, group);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ }
+ 
+ static void remove_userid_all_entry_locked(userid_t userid)
+@@ -405,7 +405,7 @@
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	remove_userid_all_entry_locked(userid);
+ 	fixup_all_perms_userid(userid);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ }
+ 
+ static void remove_userid_exclude_entry_locked(const struct qstr *key, userid_t userid)
+@@ -429,7 +429,7 @@
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	remove_userid_exclude_entry_locked(key, userid);
+ 	fixup_all_perms_name_userid(key, userid);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ }
+ 
+ static void packagelist_destroy(void)
+@@ -451,7 +451,7 @@
+ 	synchronize_rcu();
+ 	hlist_for_each_entry_safe(hash_cur, h_t, &free_list, dlist)
+ 		free_hashtable_entry(hash_cur);
+-	up_write(&sdcardfs_super_list_lock);
++	up_read(&sdcardfs_super_list_lock);
+ 	pr_info("sdcardfs: destroyed packagelist pkgld\n");
+ }
+ 

@@ -1,0 +1,25 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:10.735070809 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:10.803071865 +0800
+@@ -138,8 +138,7 @@
+ 	free_dentry_private_data(dentry);
+ }
+ 
+-static int sdcardfs_hash_ci(const struct dentry *dentry,
+-				const struct inode *inode, struct qstr *qstr)
++static int sdcardfs_hash_ci(const struct dentry *dentry, struct qstr *qstr)
+ {
+ 	/*
+ 	 * This function is copy of vfat_hashi.
+@@ -166,9 +165,8 @@
+  * Case insensitive compare of two vfat names.
+  */
+ static int sdcardfs_cmp_ci(const struct dentry *parent,
+-		const struct inode *pinode,
+-		const struct dentry *dentry, const struct inode *inode,
+-		unsigned int len, const char *str, const struct qstr *name)
++			   const struct dentry *dentry, unsigned int len,
++			   const char *str, const struct qstr *name)
+ {
+ 	/* FIXME Should we support national language? */
+ 

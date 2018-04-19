@@ -1,0 +1,42 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:29.727366576 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:29.771367262 +0800
+@@ -51,7 +51,6 @@
+ 	 * whether the base obbpath has been changed or not
+ 	 */
+ 	if (is_obbpath_invalid(dentry)) {
+-		d_drop(dentry);
+ 		return 0;
+ 	}
+ 
+@@ -65,7 +64,6 @@
+ 	if ((lower_dentry->d_flags & DCACHE_OP_REVALIDATE)) {
+ 		err = lower_dentry->d_op->d_revalidate(lower_dentry, flags);
+ 		if (err == 0) {
+-			d_drop(dentry);
+ 			goto out;
+ 		}
+ 	}
+@@ -73,14 +71,12 @@
+ 	spin_lock(&lower_dentry->d_lock);
+ 	if (d_unhashed(lower_dentry)) {
+ 		spin_unlock(&lower_dentry->d_lock);
+-		d_drop(dentry);
+ 		err = 0;
+ 		goto out;
+ 	}
+ 	spin_unlock(&lower_dentry->d_lock);
+ 
+ 	if (parent_lower_dentry != lower_cur_parent_dentry) {
+-		d_drop(dentry);
+ 		err = 0;
+ 		goto out;
+ 	}
+@@ -113,7 +109,6 @@
+ 	if (inode) {
+ 		data = top_data_get(SDCARDFS_I(inode));
+ 		if (!data || data->abandoned) {
+-			d_drop(dentry);
+ 			err = 0;
+ 		}
+ 		if (data)

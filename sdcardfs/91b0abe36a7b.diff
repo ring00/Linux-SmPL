@@ -1,0 +1,12 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:34:22.439252994 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:34:22.727257481 +0800
+@@ -182,7 +182,7 @@
+ {
+ 	struct inode *lower_inode;
+ 
+-	truncate_inode_pages(&inode->i_data, 0);
++	truncate_inode_pages_final(&inode->i_data);
+ 	set_top(SDCARDFS_I(inode), NULL);
+ 	clear_inode(inode);
+ 	/*

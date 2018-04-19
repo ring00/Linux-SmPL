@@ -1,0 +1,36 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:57.155794940 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:57.191795504 +0800
+@@ -69,7 +69,7 @@
+ 	}
+ 
+ 	spin_lock(&lower_dentry->d_lock);
+-	if (d_unhashed(lower_dentry)) {
++	if (d_in_lookup(lower_dentry)) {
+ 		spin_unlock(&lower_dentry->d_lock);
+ 		err = 0;
+ 		goto out;
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:57.155794940 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:57.243796317 +0800
+@@ -390,7 +390,7 @@
+ 				pr_err("sdcardfs: fail to allocate path_buf in %s.\n", __func__);
+ 			} else {
+ 				obbpath_s = d_path(&di->lower_path, path_buf, PATH_MAX);
+-				if (d_unhashed(di->lower_path.dentry) ||
++				if (d_in_lookup(di->lower_path.dentry) ||
+ 					!str_case_eq(sbi->obbpath_s, obbpath_s)) {
+ 					ret = 1;
+ 				}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:57.155794940 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:57.287797005 +0800
+@@ -228,7 +228,7 @@
+ 	const struct cred *saved_cred = NULL;
+ 
+ 	/* don't open unhashed/deleted files */
+-	if (d_unhashed(dentry)) {
++	if (d_in_lookup(dentry)) {
+ 		err = -ENOENT;
+ 		goto out_err;
+ 	}

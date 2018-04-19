@@ -1,0 +1,12 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:32.027402443 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:32.115403815 +0800
+@@ -39,7 +39,7 @@
+ #ifdef CONFIG_SDCARD_FS_FADV_NOACTIVE
+ 	if (file->f_mode & FMODE_NOACTIVE) {
+ 		if (!(lower_file->f_mode & FMODE_NOACTIVE)) {
+-			bdi = lower_file->f_mapping->backing_dev_info;
++			bdi = inode_to_bdi(inode);
+ 			lower_file->f_ra.ra_pages = bdi->ra_pages * 2;
+ 			spin_lock(&lower_file->f_lock);
+ 			lower_file->f_mode |= FMODE_NOACTIVE;

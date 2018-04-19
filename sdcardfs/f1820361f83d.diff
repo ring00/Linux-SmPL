@@ -1,0 +1,11 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/mmap.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/mmap.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/mmap.c	2018-04-16 00:34:22.839259225 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/mmap.c	2018-04-16 00:34:22.987261531 +0800
+@@ -83,6 +83,7 @@
+ };
+ 
+ const struct vm_operations_struct sdcardfs_vm_ops = {
++	.map_pages = filemap_map_pages,
+ 	.fault		= sdcardfs_fault,
+ 	.page_mkwrite	= sdcardfs_page_mkwrite,
+ 	.open		= sdcardfs_vm_open,

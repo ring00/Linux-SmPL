@@ -1,0 +1,133 @@
+//# pattern-4, witnesses: 4
+@@
+@@
+- -EPERM
++ -ENOKEY
+//# pattern-2, witnesses: 2
+@@
+@@
+- -EACCES
++ -ENOKEY
+
+//# pattern-8, witnesses: 11
+@@
+expression E0;
+expression list listE1;
+@@
+- E0->i_op->getxattr(listE1)
++ __vfs_getxattr(listE1)
+//# pattern-9, witnesses: 9
+@@
+expression E0;
+@@
+- !E0->i_op->getxattr
++ !E0->i_opflags & IOP_XATTR
+//# pattern-1, witnesses: 3
+@@
+expression V0;
+expression list listE1;
+@@
+- V0->i_op->removexattr(listE1)
++ __vfs_removexattr(listE1)
+//# pattern-10, witnesses: 3
+@@
+expression E0;
+expression list listE1;
+@@
+- E0->i_op->setxattr(listE1)
++ __vfs_setxattr(listE1)
+//# pattern-2, witnesses: 2
+@@
+identifier PV0;
+statement S1;
+@@
+- if (PV0->i_op->getxattr == NULL) { S1 }
++ if (!PV0->i_opflags & IOP_XATTR) { S1 }
+//# pattern-5, witnesses: 2
+@@
+expression E1;
+expression ME0;
+@@
+- if (!ME0) {
+- return E1;
+- }
+//# pattern-13, witnesses: 2
+@@
+expression V0;
+@@
+- !V0->i_op->removexattr
++ !V0->i_opflags & IOP_XATTR
+
+//# pattern-1, witnesses: 24
+@@
+@@
+- 1 << inode->i_blkbits
++ i_blocksize(inode)
+
+//# pattern-6, witnesses: 5
+@r0@
+identifier i, fn;
+@@
+struct inode_operations i = {
+    .getattr = fn,
+};
+@@
+identifier dentry;
+identifier mnt;
+identifier r0.fn;
+identifier stat;
+typedef u32;
+@@
+- int fn(struct vfsmount * mnt, struct dentry * dentry, struct kstat * stat)
++ int fn(const struct path * path, struct kstat * stat, u32 request_mask, unsigned int flags)
+ {
+     <...
+- d_inode(dentry)
++ d_inode(path->dentry)
+     ...>
+ }
+//# pattern-13, witnesses: 2
+@@
+@@
+- vfs_getattr(&path, &stat)
++ vfs_getattr(&path, &stat, STATX_TYPE, AT_STATX_SYNC_AS_STAT)
+
+//# pattern-1, witnesses: 12
+@@
+expression list listE0;
+@@
+- mutex_unlock(listE0)
++ up_write(listE0)
+//# pattern-2, witnesses: 12
+@@
+expression E0;
+@@
+- mutex_lock(&E0->dqio_mutex)
++ down_write(&E0->dqio_sem)
+//# pattern-3, witnesses: 12
+@@
+expression E0;
+@@
+- E0->dqio_mutex
++ E0->dqio_sem
+
+//# pattern-1, witnesses: 3
+@@
+expression list listE0;
+@@
+- up_write(listE0)
++ up_read(listE0)
+//# pattern-2, witnesses: 3
+@@
+expression list listE0;
+@@
+- down_write(listE0)
++ down_read(listE0)
+
+//# pattern-1, witnesses: 3
+@@
+identifier s;
+@@
+ const struct file_operations s = {
++    .get_unmapped_area = thp_get_unmapped_area,
+ };

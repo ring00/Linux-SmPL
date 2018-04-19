@@ -1,0 +1,12 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:09.451987428 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:09.579989433 +0800
+@@ -842,7 +842,7 @@
+ 	stat->atime = inode->i_atime;
+ 	stat->mtime = inode->i_mtime;
+ 	stat->ctime = inode->i_ctime;
+-	stat->blksize = (1 << inode->i_blkbits);
++	stat->blksize = (i_blocksize(inode));
+ 	stat->blocks = inode->i_blocks;
+ 	data_put(top);
+ 	return 0;

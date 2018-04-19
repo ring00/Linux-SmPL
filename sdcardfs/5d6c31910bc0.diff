@@ -1,0 +1,184 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:01.519863225 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:01.763867044 +0800
+@@ -31,8 +31,6 @@
+ 	uid_t uid;
+ 
+ 	cred = prepare_creds();
+-	if (!cred)
+-		return NULL;
+ 
+ 	if (sbi->options.gid_derivation) {
+ 		if (data->under_obb)
+@@ -642,8 +640,6 @@
+ 
+ 	if (IS_ERR(mnt))
+ 		return PTR_ERR(mnt);
+-	if (!top)
+-		return -EFSBADCRC;
+ 
+ 	/*
+ 	 * Permission check on sdcardfs inode.
+@@ -718,9 +714,6 @@
+ 	inode = d_inode(dentry);
+ 	top = top_data_get(SDCARDFS_I(inode));
+ 
+-	if (!top)
+-		return -EFSBADCRC;
+-
+ 	/*
+ 	 * Permission check on sdcardfs inode.
+ 	 * Calling process should have AID_SDCARD_RW permission
+@@ -838,9 +831,6 @@
+ 	struct sdcardfs_inode_data *top = top_data_get(info);
+ 	struct super_block *sb = inode->i_sb;
+ 
+-	if (!top)
+-		return -EFSBADCRC;
+-
+ 	stat->dev = inode->i_sb->s_dev;
+ 	stat->ino = inode->i_ino;
+ 	stat->mode = (inode->i_mode  & S_IFMT) | get_mode(mnt, info, top);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c	2018-04-16 00:35:01.519863225 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c	2018-04-16 00:35:01.827868046 +0800
+@@ -54,8 +54,6 @@
+ 
+ 	/* use zalloc to init dentry_info.lower_path */
+ 	info = kmem_cache_zalloc(sdcardfs_dentry_cachep, GFP_ATOMIC);
+-	if (!info)
+-		return -ENOMEM;
+ 
+ 	spin_lock_init(&info->lock);
+ 	dentry->d_fsdata = info;
+@@ -92,9 +90,6 @@
+ 	struct inode_data data;
+ 	struct inode *inode; /* the new inode to return */
+ 
+-	if (!igrab(lower_inode))
+-		return ERR_PTR(-ESTALE);
+-
+ 	data.id = id;
+ 	data.lower_inode = lower_inode;
+ 	inode = iget5_locked(sb, /* our superblock */
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:35:01.519863225 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:35:01.895869111 +0800
+@@ -74,9 +74,6 @@
+ 
+ 	*debug = 0;
+ 
+-	if (!options)
+-		return 0;
+-
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		int token;
+ 
+@@ -155,9 +152,6 @@
+ 	int option;
+ 	int debug;
+ 
+-	if (!options)
+-		return 0;
+-
+ 	while ((p = strsep(&options, ",")) != NULL) {
+ 		int token;
+ 
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:35:01.523863289 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:35:02.043871426 +0800
+@@ -181,8 +181,6 @@
+ {
+ 	struct hashtable_entry *ret = kmem_cache_alloc(hashtable_entry_cachep,
+ 			readahead_gfp_mask(mapping));
+-	if (!ret)
+-		return NULL;
+ 	INIT_HLIST_NODE(&ret->dlist);
+ 	INIT_HLIST_NODE(&ret->hlist);
+ 
+@@ -208,8 +206,6 @@
+ 		}
+ 	}
+ 	new_entry = alloc_hashtable_entry(key, value);
+-	if (!new_entry)
+-		return -ENOMEM;
+ 	hash_add_rcu(package_to_appid, &new_entry->hlist, hash);
+ 	return 0;
+ }
+@@ -226,8 +222,6 @@
+ 			return -EFSBADCRC;
+ 	}
+ 	new_entry = alloc_hashtable_entry(key, value);
+-	if (!new_entry)
+-		return -ENOMEM;
+ 	hash_add_rcu(ext_to_groupid, &new_entry->hlist, hash);
+ 	return 0;
+ }
+@@ -245,8 +239,6 @@
+ 			return 0;
+ 	}
+ 	new_entry = alloc_hashtable_entry(key, value);
+-	if (!new_entry)
+-		return -ENOMEM;
+ 	hash_add_rcu(package_to_userid, &new_entry->hlist, hash);
+ 	return 0;
+ }
+@@ -638,9 +630,6 @@
+ 	const char *tmp;
+ 	int ret;
+ 
+-	if (!extension_details)
+-		return ERR_PTR(-ENOMEM);
+-
+ 	tmp = kstrdup(name, readahead_gfp_mask(mapping));
+ 	if (!tmp) {
+ 		kfree(extension_details);
+@@ -676,8 +665,6 @@
+ 
+ 	extensions_value = kzalloc(sizeof(struct extensions_value),
+ 				   readahead_gfp_mask(mapping));
+-	if (!extensions_value)
+-		return ERR_PTR(-ENOMEM);
+ 	ret = kstrtouint(name, 10, &tmp);
+ 	if (ret) {
+ 		kfree(extensions_value);
+@@ -737,8 +724,6 @@
+ 
+ 	package_details = kzalloc(sizeof(struct package_details),
+ 				  readahead_gfp_mask(mapping));
+-	if (!package_details)
+-		return ERR_PTR(-ENOMEM);
+ 	tmp = kstrdup(name, readahead_gfp_mask(mapping));
+ 	if (!tmp) {
+ 		kfree(package_details);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:35:01.523863289 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:35:02.099872304 +0800
+@@ -157,8 +157,6 @@
+ 							readahead_gfp_mask(mapping));
+ 	struct sdcardfs_vfsmount_options *old = data;
+ 
+-	if (!opt)
+-		return NULL;
+ 	opt->gid = old->gid;
+ 	opt->mask = old->mask;
+ 	return opt;
+@@ -202,8 +200,6 @@
+ 
+ 	i = kmem_cache_alloc(sdcardfs_inode_cachep,
+ 			     readahead_gfp_mask(mapping));
+-	if (!i)
+-		return NULL;
+ 
+ 	/* memset everything up to the inode to 0 */
+ 	memset(i, 0, offsetof(struct sdcardfs_inode_info, vfs_inode));
+@@ -250,9 +246,6 @@
+ 				  sizeof(struct sdcardfs_inode_info), 0,
+ 				  SLAB_RECLAIM_ACCOUNT, init_once);
+ 
+-	if (!sdcardfs_inode_cachep)
+-		return -ENOMEM;
+-
+ 	sdcardfs_inode_data_cachep =
+ 		kmem_cache_create("sdcardfs_inode_data_cache",
+ 				  sizeof(struct sdcardfs_inode_data), 0,

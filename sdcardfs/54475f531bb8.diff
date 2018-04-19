@@ -1,0 +1,90 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:35:06.763945325 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:35:06.847946641 +0800
+@@ -234,7 +234,7 @@
+ 	}
+ 
+ 	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_err;
+ 	}
+ 
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:06.763945325 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:35:06.939948081 +0800
+@@ -71,7 +71,7 @@
+ 	struct fs_struct *copied_fs;
+ 
+ 	if (!check_caller_access_to_name(dir, &dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_eacces;
+ 	}
+ 
+@@ -171,7 +171,7 @@
+ 	const struct cred *saved_cred = NULL;
+ 
+ 	if (!check_caller_access_to_name(dir, &dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_eacces;
+ 	}
+ 
+@@ -279,7 +279,7 @@
+ 	struct qstr q_data = QSTR_LITERAL("data");
+ 
+ 	if (!check_caller_access_to_name(dir, &dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_eacces;
+ 	}
+ 
+@@ -392,7 +392,7 @@
+ 	const struct cred *saved_cred = NULL;
+ 
+ 	if (!check_caller_access_to_name(dir, &dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_eacces;
+ 	}
+ 
+@@ -479,7 +479,7 @@
+ 
+ 	if (!check_caller_access_to_name(old_dir, &old_dentry->d_name) ||
+ 		!check_caller_access_to_name(new_dir, &new_dentry->d_name)) {
+-		err = -EPERM;
++		err = -ENOKEY;
+ 		goto out_eacces;
+ 	}
+ 
+@@ -752,7 +752,7 @@
+ 		/* check the Android group ID */
+ 		parent = dget_parent(dentry);
+ 		if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name))
+-			err = -EPERM;
++			err = -ENOKEY;
+ 		dput(parent);
+ 	}
+ 
+@@ -859,7 +859,7 @@
+ 	parent = dget_parent(dentry);
+ 	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+ 		dput(parent);
+-		return -EPERM;
++		return -ENOKEY;
+ 	}
+ 	dput(parent);
+ 
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c	2018-04-16 00:35:06.763945325 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c	2018-04-16 00:35:06.983948770 +0800
+@@ -423,7 +423,7 @@
+ 	parent = dget_parent(dentry);
+ 
+ 	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+-		ret = ERR_PTR(-EPERM);
++		ret = ERR_PTR(-ENOKEY);
+ 		goto out_err;
+ 	}
+ 

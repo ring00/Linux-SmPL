@@ -1,0 +1,142 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:43.007573804 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:43.099575240 +0800
+@@ -242,7 +242,8 @@
+ 	OVERRIDE_CRED(sbi, saved_cred, SDCARDFS_I(inode));
+ 
+ 	file->private_data =
+-		kzalloc(sizeof(struct sdcardfs_file_info), GFP_KERNEL);
++		kzalloc(sizeof(struct sdcardfs_file_info),
++			GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!SDCARDFS_F(file)) {
+ 		goto out_revert_cred;
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:43.007573804 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:43.215577052 +0800
+@@ -275,7 +275,8 @@
+ 	}
+ 
+ 	/* allocate superblock private data */
+-	sb->s_fs_info = kzalloc(sizeof(struct sdcardfs_sb_info), GFP_KERNEL);
++	sb->s_fs_info = kzalloc(sizeof(struct sdcardfs_sb_info),
++				GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!SDCARDFS_SB(sb)) {
+ 		pr_crit("sdcardfs: read_super: out of memory\n");
+ 		goto out_free;
+@@ -337,7 +338,8 @@
+ 	d_rehash(sb->s_root);
+ 
+ 	/* setup permission policy */
+-	sb_info->obbpath_s = kzalloc(PATH_MAX, GFP_KERNEL);
++	sb_info->obbpath_s = kzalloc(PATH_MAX,
++				     GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	if (sb_info->options.multiuser) {
+ 		setup_derived_state(d_inode(sb->s_root), PERM_PRE_ROOT,
+@@ -419,7 +421,8 @@
+ 
+ void *sdcardfs_alloc_mnt_data(void)
+ {
+-	return kmalloc(sizeof(struct sdcardfs_vfsmount_options), GFP_KERNEL);
++	return kmalloc(sizeof(struct sdcardfs_vfsmount_options),
++		       GFP_KERNEL & mapping_gfp_mask(mapping));
+ }
+ 
+ void sdcardfs_kill_sb(struct super_block *sb)
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:43.007573804 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:43.323578740 +0800
+@@ -63,7 +63,8 @@
+ 
+ static inline int qstr_copy(const struct qstr *src, struct qstr *dest)
+ {
+-	dest->name = kstrdup(src->name, GFP_KERNEL);
++	dest->name = kstrdup(src->name,
++			     GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	dest->hash_len = src->hash_len;
+ 	return !!dest->name;
+ }
+@@ -179,7 +180,7 @@
+ 		appid_t value)
+ {
+ 	struct hashtable_entry *ret = kmem_cache_alloc(hashtable_entry_cachep,
+-			GFP_KERNEL);
++			GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!ret)
+ 		return NULL;
+ 	INIT_HLIST_NODE(&ret->dlist);
+@@ -632,14 +633,15 @@
+ static struct config_item *extension_details_make_item(struct config_group *group, const char *name)
+ {
+ 	struct extensions_value *extensions_value = to_extensions_value(&group->cg_item);
+-	struct extension_details *extension_details = kzalloc(sizeof(struct extension_details), GFP_KERNEL);
++	struct extension_details *extension_details = kzalloc(sizeof(struct extension_details),
++							      GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	const char *tmp;
+ 	int ret;
+ 
+ 	if (!extension_details)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	tmp = kstrdup(name, GFP_KERNEL);
++	tmp = kstrdup(name, GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!tmp) {
+ 		kfree(extension_details);
+ 		return ERR_PTR(-ENOMEM);
+@@ -672,7 +674,8 @@
+ 	unsigned int tmp;
+ 	int ret;
+ 
+-	extensions_value = kzalloc(sizeof(struct extensions_value), GFP_KERNEL);
++	extensions_value = kzalloc(sizeof(struct extensions_value),
++				   GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!extensions_value)
+ 		return ERR_PTR(-ENOMEM);
+ 	ret = kstrtouint(name, 10, &tmp);
+@@ -732,10 +735,11 @@
+ 	struct package_details *package_details;
+ 	const char *tmp;
+ 
+-	package_details = kzalloc(sizeof(struct package_details), GFP_KERNEL);
++	package_details = kzalloc(sizeof(struct package_details),
++				  GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!package_details)
+ 		return ERR_PTR(-ENOMEM);
+-	tmp = kstrdup(name, GFP_KERNEL);
++	tmp = kstrdup(name, GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!tmp) {
+ 		kfree(package_details);
+ 		return ERR_PTR(-ENOMEM);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:34:43.007573804 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:34:43.363579365 +0800
+@@ -153,7 +153,8 @@
+ 
+ static void *sdcardfs_clone_mnt_data(void *data)
+ {
+-	struct sdcardfs_vfsmount_options *opt = kmalloc(sizeof(struct sdcardfs_vfsmount_options), GFP_KERNEL);
++	struct sdcardfs_vfsmount_options *opt = kmalloc(sizeof(struct sdcardfs_vfsmount_options),
++							GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	struct sdcardfs_vfsmount_options *old = data;
+ 
+ 	if (!opt)
+@@ -199,7 +200,8 @@
+ 	struct sdcardfs_inode_info *i;
+ 	struct sdcardfs_inode_data *d;
+ 
+-	i = kmem_cache_alloc(sdcardfs_inode_cachep, GFP_KERNEL);
++	i = kmem_cache_alloc(sdcardfs_inode_cachep,
++			     GFP_KERNEL & mapping_gfp_mask(mapping));
+ 	if (!i)
+ 		return NULL;
+ 
+@@ -207,7 +209,7 @@
+ 	memset(i, 0, offsetof(struct sdcardfs_inode_info, vfs_inode));
+ 
+ 	d = kmem_cache_alloc(sdcardfs_inode_data_cachep,
+-					GFP_KERNEL | __GFP_ZERO);
++					GFP_KERNEL & mapping_gfp_mask(mapping) | __GFP_ZERO);
+ 	if (!d) {
+ 		kmem_cache_free(sdcardfs_inode_cachep, i);
+ 		return NULL;

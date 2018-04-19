@@ -1,0 +1,13 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:58.787820473 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:58.831821161 +0800
+@@ -159,8 +159,7 @@
+ /*
+  * Case insensitive compare of two vfat names.
+  */
+-static int sdcardfs_cmp_ci(const struct dentry *parent,
+-			   const struct dentry *dentry, unsigned int len,
++static int sdcardfs_cmp_ci(const struct dentry *dentry, unsigned int len,
+ 			   const char *str, const struct qstr *name)
+ {
+ 	/* FIXME Should we support national language? */

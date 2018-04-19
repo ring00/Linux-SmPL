@@ -1,0 +1,132 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:44.415595795 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:44.507597232 +0800
+@@ -243,7 +243,7 @@
+ 
+ 	file->private_data =
+ 		kzalloc(sizeof(struct sdcardfs_file_info),
+-			GFP_KERNEL & mapping_gfp_mask(mapping));
++			mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!SDCARDFS_F(file)) {
+ 		goto out_revert_cred;
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:44.415595795 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:44.603598732 +0800
+@@ -276,7 +276,7 @@
+ 
+ 	/* allocate superblock private data */
+ 	sb->s_fs_info = kzalloc(sizeof(struct sdcardfs_sb_info),
+-				GFP_KERNEL & mapping_gfp_mask(mapping));
++				mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!SDCARDFS_SB(sb)) {
+ 		pr_crit("sdcardfs: read_super: out of memory\n");
+ 		goto out_free;
+@@ -339,7 +339,7 @@
+ 
+ 	/* setup permission policy */
+ 	sb_info->obbpath_s = kzalloc(PATH_MAX,
+-				     GFP_KERNEL & mapping_gfp_mask(mapping));
++				     mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	if (sb_info->options.multiuser) {
+ 		setup_derived_state(d_inode(sb->s_root), PERM_PRE_ROOT,
+@@ -422,7 +422,7 @@
+ void *sdcardfs_alloc_mnt_data(void)
+ {
+ 	return kmalloc(sizeof(struct sdcardfs_vfsmount_options),
+-		       GFP_KERNEL & mapping_gfp_mask(mapping));
++		       mapping_gfp_constraint(mapping, GFP_KERNEL));
+ }
+ 
+ void sdcardfs_kill_sb(struct super_block *sb)
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:44.415595795 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:44.707600356 +0800
+@@ -64,7 +64,7 @@
+ static inline int qstr_copy(const struct qstr *src, struct qstr *dest)
+ {
+ 	dest->name = kstrdup(src->name,
+-			     GFP_KERNEL & mapping_gfp_mask(mapping));
++			     mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	dest->hash_len = src->hash_len;
+ 	return !!dest->name;
+ }
+@@ -180,7 +180,7 @@
+ 		appid_t value)
+ {
+ 	struct hashtable_entry *ret = kmem_cache_alloc(hashtable_entry_cachep,
+-			GFP_KERNEL & mapping_gfp_mask(mapping));
++			mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!ret)
+ 		return NULL;
+ 	INIT_HLIST_NODE(&ret->dlist);
+@@ -634,14 +634,14 @@
+ {
+ 	struct extensions_value *extensions_value = to_extensions_value(&group->cg_item);
+ 	struct extension_details *extension_details = kzalloc(sizeof(struct extension_details),
+-							      GFP_KERNEL & mapping_gfp_mask(mapping));
++							      mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	const char *tmp;
+ 	int ret;
+ 
+ 	if (!extension_details)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	tmp = kstrdup(name, GFP_KERNEL & mapping_gfp_mask(mapping));
++	tmp = kstrdup(name, mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!tmp) {
+ 		kfree(extension_details);
+ 		return ERR_PTR(-ENOMEM);
+@@ -675,7 +675,7 @@
+ 	int ret;
+ 
+ 	extensions_value = kzalloc(sizeof(struct extensions_value),
+-				   GFP_KERNEL & mapping_gfp_mask(mapping));
++				   mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!extensions_value)
+ 		return ERR_PTR(-ENOMEM);
+ 	ret = kstrtouint(name, 10, &tmp);
+@@ -736,10 +736,10 @@
+ 	const char *tmp;
+ 
+ 	package_details = kzalloc(sizeof(struct package_details),
+-				  GFP_KERNEL & mapping_gfp_mask(mapping));
++				  mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!package_details)
+ 		return ERR_PTR(-ENOMEM);
+-	tmp = kstrdup(name, GFP_KERNEL & mapping_gfp_mask(mapping));
++	tmp = kstrdup(name, mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!tmp) {
+ 		kfree(package_details);
+ 		return ERR_PTR(-ENOMEM);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:34:44.415595795 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:34:44.751601044 +0800
+@@ -154,7 +154,7 @@
+ static void *sdcardfs_clone_mnt_data(void *data)
+ {
+ 	struct sdcardfs_vfsmount_options *opt = kmalloc(sizeof(struct sdcardfs_vfsmount_options),
+-							GFP_KERNEL & mapping_gfp_mask(mapping));
++							mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	struct sdcardfs_vfsmount_options *old = data;
+ 
+ 	if (!opt)
+@@ -201,7 +201,7 @@
+ 	struct sdcardfs_inode_data *d;
+ 
+ 	i = kmem_cache_alloc(sdcardfs_inode_cachep,
+-			     GFP_KERNEL & mapping_gfp_mask(mapping));
++			     mapping_gfp_constraint(mapping, GFP_KERNEL));
+ 	if (!i)
+ 		return NULL;
+ 
+@@ -209,7 +209,7 @@
+ 	memset(i, 0, offsetof(struct sdcardfs_inode_info, vfs_inode));
+ 
+ 	d = kmem_cache_alloc(sdcardfs_inode_data_cachep,
+-					GFP_KERNEL & mapping_gfp_mask(mapping) | __GFP_ZERO);
++					mapping_gfp_constraint(mapping, GFP_KERNEL) | __GFP_ZERO);
+ 	if (!d) {
+ 		kmem_cache_free(sdcardfs_inode_cachep, i);
+ 		return NULL;

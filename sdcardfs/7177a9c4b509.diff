@@ -1,0 +1,11 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:27.399330284 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:27.519332154 +0800
+@@ -903,7 +903,6 @@
+ 	.unlink		= sdcardfs_unlink,
+ 	.mkdir		= sdcardfs_mkdir,
+ 	.rmdir		= sdcardfs_rmdir,
+-	.rename		= sdcardfs_rename,
+ 	.setattr	= sdcardfs_setattr_wrn,
+ 	.setattr2	= sdcardfs_setattr,
+ 	.getattr	= sdcardfs_getattr,

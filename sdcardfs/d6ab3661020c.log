@@ -1,0 +1,28 @@
+[33mbase commit: d6ab3661020c^1
+[0m[33mtarget commit: d6ab3661020c
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m2 source file(s) touched in the old version
+`-- fs/ocfs2/quota_local.c
+`-- fs/quota/dquot.c
+2 source file(s) touched in the new version
+`-- fs/ocfs2/quota_local.c
+`-- fs/quota/dquot.c
+[33mcompile base commit... [0m[33mok (19s)
+[0m[33mapply [0m[33md6ab3661020c... [0m[33mok (19s)
+[0m[33mcompile target commit... [0m[33mok (30s)
+[0m[33mcollect AST for functions: ocfs2_local_read_info@fs_ocfs2_quota_local.c,vfs_load_quota_inode@fs_quota_dquot.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m0s
+[0m//# pattern-1, witnesses: 3
+@@
+expression list listE0;
+@@
+- up_write(listE0)
++ up_read(listE0)
+//# pattern-2, witnesses: 3
+@@
+expression list listE0;
+@@
+- down_write(listE0)
++ down_read(listE0)

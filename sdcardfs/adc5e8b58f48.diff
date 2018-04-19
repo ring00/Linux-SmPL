@@ -1,0 +1,33 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:18.291188395 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:18.539192256 +0800
+@@ -292,7 +292,7 @@
+ 
+ 	/* set the lower superblock field of upper superblock */
+ 	lower_sb = lower_path.dentry->d_sb;
+-	atomic_inc(&lower_sb->s_active);
++	atomic_inc(&lower_sb->active);
+ 	sdcardfs_set_lower_super(sb, lower_sb);
+ 
+ 	/* inherit maxbytes from lower file system */
+@@ -367,7 +367,7 @@
+ 	iput(inode);
+ out_sput:
+ 	/* drop refs we took earlier */
+-	atomic_dec(&lower_sb->s_active);
++	atomic_dec(&lower_sb->active);
+ out_freesbi:
+ 	kfree(SDCARDFS_SB(sb));
+ 	sb->s_fs_info = NULL;
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:34:18.291188395 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:34:18.655194062 +0800
+@@ -61,7 +61,7 @@
+ 	/* decrement lower super references */
+ 	s = sdcardfs_lower_super(sb);
+ 	sdcardfs_set_lower_super(sb, NULL);
+-	atomic_dec(&s->s_active);
++	atomic_dec(&s->active);
+ 
+ 	kfree(spd);
+ 	sb->s_fs_info = NULL;

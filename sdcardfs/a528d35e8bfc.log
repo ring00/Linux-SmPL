@@ -1,0 +1,169 @@
+[33mbase commit: a528d35e8bfc^1
+[0m[33mtarget commit: a528d35e8bfc
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m64 source file(s) touched in the old version
+`-- drivers/base/devtmpfs.c
+`-- drivers/block/loop.c
+`-- drivers/mtd/ubi/build.c
+`-- drivers/mtd/ubi/kapi.c
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/staging/lustre/lustre/llite/llite_internal.h
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/afs/inode.c
+`-- fs/afs/internal.h
+`-- fs/bad_inode.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/inode.c
+`-- fs/ceph/super.h
+`-- fs/cifs/cifsfs.h
+`-- fs/cifs/inode.c
+`-- fs/coda/coda_linux.h
+`-- fs/coda/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exportfs/expfs.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/inode.c
+`-- fs/f2fs/f2fs.h
+`-- fs/f2fs/file.c
+`-- fs/fat/fat.h
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/kernfs/inode.c
+`-- fs/kernfs/kernfs-internal.h
+`-- fs/libfs.c
+`-- fs/minix/inode.c
+`-- fs/minix/minix.h
+`-- fs/nfs/inode.c
+`-- fs/nfs/namespace.c
+`-- fs/nfsd/nfs4xdr.c
+`-- fs/nfsd/vfs.h
+`-- fs/ocfs2/file.c
+`-- fs/ocfs2/file.h
+`-- fs/orangefs/inode.c
+`-- fs/orangefs/orangefs-kernel.h
+`-- fs/overlayfs/copy_up.c
+`-- fs/overlayfs/dir.c
+`-- fs/overlayfs/inode.c
+`-- fs/proc/base.c
+`-- fs/proc/generic.c
+`-- fs/proc/internal.h
+`-- fs/proc/proc_net.c
+`-- fs/proc/proc_sysctl.c
+`-- fs/proc/root.c
+`-- fs/stat.c
+`-- fs/sysv/itree.c
+`-- fs/sysv/sysv.h
+`-- fs/ubifs/dir.c
+`-- fs/ubifs/ubifs.h
+`-- fs/udf/symlink.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/nfs_fs.h
+`-- include/linux/stat.h
+`-- include/linux/syscalls.h
+`-- include/uapi/linux/fcntl.h
+`-- include/uapi/linux/stat.h
+`-- mm/shmem.c
+65 source file(s) touched in the new version
+`-- drivers/base/devtmpfs.c
+`-- drivers/block/loop.c
+`-- drivers/mtd/ubi/build.c
+`-- drivers/mtd/ubi/kapi.c
+`-- drivers/staging/lustre/lustre/llite/file.c
+`-- drivers/staging/lustre/lustre/llite/llite_internal.h
+`-- fs/9p/vfs_inode.c
+`-- fs/9p/vfs_inode_dotl.c
+`-- fs/afs/inode.c
+`-- fs/afs/internal.h
+`-- fs/bad_inode.c
+`-- fs/btrfs/inode.c
+`-- fs/ceph/inode.c
+`-- fs/ceph/super.h
+`-- fs/cifs/cifsfs.h
+`-- fs/cifs/inode.c
+`-- fs/coda/coda_linux.h
+`-- fs/coda/inode.c
+`-- fs/ecryptfs/inode.c
+`-- fs/exportfs/expfs.c
+`-- fs/ext4/ext4.h
+`-- fs/ext4/inode.c
+`-- fs/f2fs/f2fs.h
+`-- fs/f2fs/file.c
+`-- fs/fat/fat.h
+`-- fs/fat/file.c
+`-- fs/fuse/dir.c
+`-- fs/gfs2/inode.c
+`-- fs/kernfs/inode.c
+`-- fs/kernfs/kernfs-internal.h
+`-- fs/libfs.c
+`-- fs/minix/inode.c
+`-- fs/minix/minix.h
+`-- fs/nfs/inode.c
+`-- fs/nfs/namespace.c
+`-- fs/nfsd/nfs4xdr.c
+`-- fs/nfsd/vfs.h
+`-- fs/ocfs2/file.c
+`-- fs/ocfs2/file.h
+`-- fs/orangefs/inode.c
+`-- fs/orangefs/orangefs-kernel.h
+`-- fs/overlayfs/copy_up.c
+`-- fs/overlayfs/dir.c
+`-- fs/overlayfs/inode.c
+`-- fs/proc/base.c
+`-- fs/proc/generic.c
+`-- fs/proc/internal.h
+`-- fs/proc/proc_net.c
+`-- fs/proc/proc_sysctl.c
+`-- fs/proc/root.c
+`-- fs/stat.c
+`-- fs/sysv/itree.c
+`-- fs/sysv/sysv.h
+`-- fs/ubifs/dir.c
+`-- fs/ubifs/ubifs.h
+`-- fs/udf/symlink.c
+`-- fs/xfs/xfs_iops.c
+`-- include/linux/fs.h
+`-- include/linux/nfs_fs.h
+`-- include/linux/stat.h
+`-- include/linux/syscalls.h
+`-- include/uapi/linux/fcntl.h
+`-- include/uapi/linux/stat.h
+`-- mm/shmem.c
+`-- samples/statx/test-statx.c
+[33mIgnore files that are created or deleted by the patch.
+[0m[33mcompile base commit... [0m[33mok (21s)
+[0m[33mapply [0m[33ma528d35e8bfc... [0m[33mok (21s)
+[0m[33mcompile target commit... [0m[33mok (37s)
+[0m[33mcollect AST for functions: bad_inode_getattr@fs_bad_inode.c,get_name@fs_exportfs_expfs.c,ceph_getattr@fs_ceph_inode.c,loop_get_status@drivers_block_loop.c,afs_getattr@fs_afs_inode.c,ll_getattr@drivers_staging_lustre_lustre_llite_file.c,cifs_getattr@fs_cifs_inode.c,handle_remove@drivers_base_devtmpfs.c,ecryptfs_getattr@fs_ecryptfs_inode.c,ubi_open_volume_path@drivers_mtd_ubi_kapi.c,coda_getattr@fs_coda_inode.c,btrfs_getattr@fs_btrfs_inode.c,open_mtd_by_chdev@drivers_mtd_ubi_build.c,v9fs_vfs_getattr_dotl@fs_9p_vfs_inode_dotl.c,v9fs_vfs_getattr@fs_9p_vfs_inode.c,ecryptfs_getattr_link@fs_ecryptfs_inode.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m6s
+[0m//# pattern-6, witnesses: 5
+@r0@
+identifier i, fn;
+@@
+struct inode_operations i = {
+    .getattr = fn,
+};
+@@
+identifier dentry;
+identifier mnt;
+identifier r0.fn;
+identifier stat;
+typedef u32;
+@@
+- int fn(struct vfsmount * mnt, struct dentry * dentry, struct kstat * stat)
++ int fn(const struct path * path, struct kstat * stat, u32 request_mask, unsigned int flags)
+ {
+     <...
+- d_inode(dentry)
++ d_inode(path->dentry)
+     ...>
+ }
+//# pattern-13, witnesses: 2
+@@
+@@
+- vfs_getattr(&path, &stat)
++ vfs_getattr(&path, &stat, STATX_TYPE, AT_STATX_SYNC_AS_STAT)

@@ -1,0 +1,60 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:39.939525900 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:40.047527586 +0800
+@@ -244,7 +244,6 @@
+ 	file->private_data =
+ 		kzalloc(sizeof(struct sdcardfs_file_info), GFP_KERNEL);
+ 	if (!SDCARDFS_F(file)) {
+-		err = -ENOMEM;
+ 		goto out_revert_cred;
+ 	}
+ 
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:39.939525900 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:40.131528897 +0800
+@@ -92,7 +92,6 @@
+ 	saved_fs = current->fs;
+ 	copied_fs = copy_fs_struct(current->fs);
+ 	if (!copied_fs) {
+-		err = -ENOMEM;
+ 		goto out_unlock;
+ 	}
+ 	current->fs = copied_fs;
+@@ -309,7 +308,6 @@
+ 	saved_fs = current->fs;
+ 	copied_fs = copy_fs_struct(current->fs);
+ 	if (!copied_fs) {
+-		err = -ENOMEM;
+ 		unlock_dir(lower_parent_dentry);
+ 		goto out_unlock;
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:39.939525900 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:40.187529772 +0800
+@@ -292,7 +292,6 @@
+ 		};
+ 
+ 		if (!buffer.name) {
+-			err = -ENOMEM;
+ 			goto out;
+ 		}
+ 		file = dentry_open(lower_parent_path, O_RDONLY, cred);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:39.939525900 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:40.251530771 +0800
+@@ -278,7 +278,6 @@
+ 	sb->s_fs_info = kzalloc(sizeof(struct sdcardfs_sb_info), GFP_KERNEL);
+ 	if (!SDCARDFS_SB(sb)) {
+ 		pr_crit("sdcardfs: read_super: out of memory\n");
+-		err = -ENOMEM;
+ 		goto out_free;
+ 	}
+ 
+@@ -315,7 +314,6 @@
+ 	}
+ 	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root) {
+-		err = -ENOMEM;
+ 		goto out_iput;
+ 	}
+ 	d_set_d_op(sb->s_root, &sdcardfs_ci_dops);

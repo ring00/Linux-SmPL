@@ -1,0 +1,134 @@
+// pattern-1, witnesses: 85
+- E0->d_inode
++ d_inode(E0)
+
+// pattern-2, witnesses: 2
+-	unsigned long hash = init_name_hash();
++	unsigned long hash = init_name_hash(E0);
+
+//# pattern-3, witnesses: 3
+- mutex_lock(&E0->i_mutex)
++ inode_lock(E0)
+
+//# pattern-4, witnesses: 7
+- mutex_unlock(&E0->i_mutex)
++ inode_unlock(E0)
+
+//# pattern-5, witnesses: 2
+-	notify_change2(parent.mnt, dent, &attrs);
++	notify_change2(parent.mnt, dent, &attrs, E0);
+
+//# pattern-6, witnesses: 2
+-		list_for_each_entry(child, &dentry->d_subdirs, E0.d_child) {
++		list_for_each_entry(child, &dentry->d_subdirs, d_child) {
+
+//# pattern-7, witnesses: 4
+- E0->f_path.dentry->d_inode
++ file_inode(E0)
+
+// # pattern-8, witnesses: 1
+-	err = generic_file_fsync(...);
++	err = __generic_file_fsync(...);
+
+// # pattern-9, witnesses: 1
+// https://github.com/torvalds/linux/commit/293bc98
+ const struct file_operations E0_main_fops = {
++	.read_iter	= E0_read_iter,
++	.write_iter	= E0_write_iter,
+ };
+
+// # pattern-10, witnesses: 4
+-	E0.ia_uid = E1;
++	E0.ia_uid = make_kuid(&init_user_ns, E1);
+
+// # pattern-10, witnesses: 4
+-	E0.ia_gid = E1;
++	E0.ia_gid = make_kgid(&init_user_ns, E1);
+
+// # pattern-11, witnesses: 1
+// https://github.com/torvalds/linux/commit/146a8595c6399ee6ab4b5cc34c0d28aa4835fdc5
+- vfs_link(E0, E1, E2)
++ vfs_link(E0, E1, E2, E3)
+
+// # pattern-11, witnesses: 1
+-	vfs_unlink2(E0, E1, E2)
++	vfs_unlink2(E0, E1, E2, E3)
+
+// # pattern-12, witnesses: 1
+- static int E0_rename(struct inode *old_dir, struct dentry *old_dentry, struct inode *new_dir, struct dentry *new_dentry)
++ static int E0_rename(struct inode *old_dir, struct dentry *old_dentry, struct inode *new_dir, struct dentry *new_dentry, unsigned int flags)
+
+// # pattern-11, witnesses: 1
+// https://lwn.net/Articles/572297/
+-	vfs_rename2(E0, E1, E2, E3)
++	vfs_rename2(E0, E1, E2, E3, E4)
+
+// # pattern-12, witnesses: 1
+-static int sdcardfs_fillattr(struct vfsmount *mnt,
+-				struct inode *inode, struct kstat *stat)
++static int sdcardfs_fillattr(struct vfsmount *mnt, struct inode *inode,
++				struct kstat *lower_stat, struct kstat *stat)
+ {
+ 	struct sdcardfs_inode_info *info = SDCARDFS_I(inode);
+ 	struct sdcardfs_inode_data *top = top_data_get(info);
+@@ -845,39 +841,39 @@
+ 	stat->uid = make_kuid(&init_user_ns, top->d_uid);
+ 	stat->gid = make_kgid(&init_user_ns, get_gid(mnt, sb, top));
+ 	stat->rdev = inode->i_rdev;
+-	stat->size = i_size_read(inode);
+-	stat->atime = inode->i_atime;
+-	stat->mtime = inode->i_mtime;
+-	stat->ctime = inode->i_ctime;
+-	stat->blksize = (1 << inode->i_blkbits);
+-	stat->blocks = inode->i_blocks;
++	stat->size = lower_stat->size;
++	stat->atime = lower_stat->atime;
++	stat->mtime = lower_stat->mtime;
++	stat->ctime = lower_stat->ctime;
++	stat->blksize = lower_stat->blksize;
++	stat->blocks = lower_stat->blocks;
+ 	data_put(top);
+ 	return 0;
+ }
+
+// # pattern-13, witnesses: 1
+-static int sdcardfs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+-		 struct kstat *stat)
++static int sdcardfs_getattr(const struct path *path, struct kstat *stat,
++				u32 request_mask, unsigned int flags)
+
+// pattern-14, witnesses: 1
+-	vfs_getattr(&lower_path, &lower_stat);
++	vfs_getattr(&lower_path, &lower_stat, request_mask, flags);
+
+// pattern-15, witnesses: 1
+-static int sdcardfs_fault(struct vm_area_struct *vma, struct vm_fault *vmf)
++static int sdcardfs_fault(struct vm_fault *vmf)
+
+-	file = (struct file *)vma->vm_private_data;
++	file = (struct file *)vmf->vma->vm_private_data;
+
+-	err = lower_vm_ops->fault(vma, vmf);
++	err = lower_vm_ops->fault(vmf);
+
+// pattern-16, witnesses: 1
+-static int sdcardfs_page_mkwrite(struct vm_area_struct *vma,
+-			       struct vm_fault *vmf)
++static int sdcardfs_page_mkwrite(struct vm_fault *vmf)
+
+-	err = lower_vm_ops->page_mkwrite(vma, vmf);
++	err = lower_vm_ops->page_mkwrite(vmf);
+
+// pattern-17
+-static ssize_t sdcardfs_direct_IO(int rw, struct kiocb *iocb,
+-			      const struct iovec *iov, loff_t offset,
+-			      unsigned long nr_segs)
++static ssize_t sdcardfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+
+// pattern-18
+-	configfs_unregister_subsystem(&sdcardfs_packages.subsystem);
++	configfs_unregister_subsystem(&sdcardfs_packages);
+
+// pattern-19
+-	mutex_lock_nested(&E0->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(E0, I_MUTEX_PARENT);

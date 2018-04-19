@@ -1,0 +1,32 @@
+[33mbase commit: 54475f531bb8^1
+[0m[33mtarget commit: 54475f531bb8
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m5 source file(s) touched in the old version
+`-- fs/crypto/fname.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/namei.c
+`-- fs/f2fs/dir.c
+`-- fs/f2fs/namei.c
+5 source file(s) touched in the new version
+`-- fs/crypto/fname.c
+`-- fs/ext4/ialloc.c
+`-- fs/ext4/namei.c
+`-- fs/f2fs/dir.c
+`-- fs/f2fs/namei.c
+[33mcompile base commit... [0m[33mok (14s)
+[0m[33mapply [0m[33m54475f531bb8... [0m[33mok (14s)
+[0m[33mcompile target commit... [0m[33mok (22s)
+[0m[33mcollect AST for functions: f2fs_find_entry@fs_f2fs_dir.c,ext4_symlink@fs_ext4_namei.c,fscrypt_setup_filename@fs_crypto_fname.c,ext4_find_entry@fs_ext4_namei.c,fscrypt_fname_usr_to_disk@fs_crypto_fname.c,__ext4_new_inode@fs_ext4_ialloc.c,f2fs_symlink@fs_f2fs_namei.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m2s
+[0m//# pattern-4, witnesses: 4
+@@
+@@
+- -EPERM
++ -ENOKEY
+//# pattern-2, witnesses: 2
+@@
+@@
+- -EACCES
++ -ENOKEY

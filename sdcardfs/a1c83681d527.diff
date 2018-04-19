@@ -1,0 +1,81 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:42.727569432 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:42.895572056 +0800
+@@ -193,8 +193,10 @@
+ 	/* inherit lower inode number for sdcardfs's inode */
+ 	inode = sdcardfs_iget(sb, lower_inode, id);
+ 	if (IS_ERR(inode)) {
+-		ret_dentry = ERR_CAST(inode);
+-		goto out;
++		{
++			ret_dentry = ERR_CAST(inode);
++			goto out;
++		}
+ 	}
+ 
+ 	ret_dentry = d_splice_alias(inode, dentry);
+@@ -296,8 +298,10 @@
+ 		}
+ 		file = dentry_open(lower_parent_path, O_RDONLY, cred);
+ 		if (IS_ERR(file)) {
+-			err = PTR_ERR(file);
+-			goto put_name;
++			{
++				err = PTR_ERR(file);
++				goto put_name;
++			}
+ 		}
+ 		err = iterate_dir(file, &buffer.ctx);
+ 		fput(file);
+@@ -349,9 +353,10 @@
+ 		ret_dentry =
+ 			__sdcardfs_interpose(dentry, dentry->d_sb, &lower_path, id);
+ 		if (IS_ERR(ret_dentry)) {
+-			err = PTR_ERR(ret_dentry);
+-			 /* path_put underlying path on error */
+-			sdcardfs_put_reset_lower_path(dentry);
++			{
++				err = PTR_ERR(ret_dentry);
++				sdcardfs_put_reset_lower_path(dentry);
++			}
+ 		}
+ 		goto out;
+ 	}
+@@ -371,8 +376,9 @@
+ 	 * to use its own hash
+ 	 */
+ 	lower_dentry = d_hash_and_lookup(lower_dir_dentry, &dname);
+-	if (IS_ERR(lower_dentry))
++	if (IS_ERR(lower_dentry)) {
+ 		return lower_dentry;
++	}
+ 	if (!lower_dentry) {
+ 		/* We called vfs_path_lookup earlier, and did not get a negative
+ 		 * dentry then. Don't confuse the lower filesystem by forcing
+@@ -440,8 +446,9 @@
+ 
+ 	ret = __sdcardfs_lookup(dentry, flags, &lower_parent_path,
+ 				SDCARDFS_I(dir)->data->userid);
+-	if (IS_ERR(ret))
++	if (IS_ERR(ret)) {
+ 		goto out;
++	}
+ 	if (ret)
+ 		dentry = ret;
+ 	if (d_inode(dentry)) {
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:42.727569432 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:42.951572929 +0800
+@@ -309,8 +309,10 @@
+ 	/* get a new inode and allocate our root dentry */
+ 	inode = sdcardfs_iget(sb, d_inode(lower_path.dentry), 0);
+ 	if (IS_ERR(inode)) {
+-		err = PTR_ERR(inode);
+-		goto out_sput;
++		{
++			err = PTR_ERR(inode);
++			goto out_sput;
++		}
+ 	}
+ 	sb->s_root = d_make_root(inode);
+ 	if (!sb->s_root) {

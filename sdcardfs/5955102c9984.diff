@@ -1,0 +1,33 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:48.063652788 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:48.147654101 +0800
+@@ -246,11 +246,11 @@
+ 		if (!S_ISDIR(inode->i_mode))
+ 			newattrs.ia_valid |=
+ 				ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		error = security_path_chown(&path, newattrs.ia_uid, newattrs.ia_gid);
+ 		if (!error)
+ 			error = notify_change2(path.mnt, path.dentry, &newattrs);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		if (error)
+ 			pr_debug("sdcardfs: Failed to touch up lower fs gid/uid for %s\n", name);
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:48.063652788 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:48.247655663 +0800
+@@ -808,10 +808,10 @@
+ 	 * unlinked (no inode->i_sb and i_ino==0.  This happens if someone
+ 	 * tries to open(), unlink(), then ftruncate() a file.
+ 	 */
+-	mutex_lock(&d_inode(lower_dentry)->i_mutex);
++	inode_lock(d_inode(lower_dentry));
+ 	err = notify_change2(lower_mnt, lower_dentry, &lower_ia); /* note: lower_ia */
+ 
+-	mutex_unlock(&d_inode(lower_dentry)->i_mutex);
++	inode_unlock(d_inode(lower_dentry));
+ 	if (err)
+ 		goto out;
+ 

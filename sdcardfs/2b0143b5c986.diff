@@ -1,0 +1,419 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/dentry.c	2018-04-16 00:34:36.371470211 +0800
+@@ -105,7 +105,7 @@
+ 		goto out;
+ 
+ 	/* If our top's inode is gone, we may be out of date */
+-	inode = igrab(dentry->d_inode);
++	inode = igrab(d_inode(dentry));
+ 	if (inode) {
+ 		data = top_data_get(SDCARDFS_I(inode));
+ 		if (!data || data->abandoned) {
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/derived_perm.c	2018-04-16 00:34:36.439471272 +0800
+@@ -57,9 +57,9 @@
+ void get_derived_permission_new(struct dentry *parent, struct dentry *dentry,
+ 				const struct qstr *name)
+ {
+-	struct sdcardfs_inode_info *info = SDCARDFS_I(dentry->d_inode);
++	struct sdcardfs_inode_info *info = SDCARDFS_I(d_inode(dentry));
+ 	struct sdcardfs_inode_data *parent_data =
+-			SDCARDFS_I(parent->d_inode)->data;
++			SDCARDFS_I(d_inode(parent))->data;
+ 	appid_t appid;
+ 	unsigned long user_num;
+ 	int err;
+@@ -77,7 +77,7 @@
+ 	 * of using the inode permissions.
+ 	 */
+ 
+-	inherit_derived_state(parent->d_inode, dentry->d_inode);
++	inherit_derived_state(d_inode(parent), d_inode(dentry));
+ 
+ 	/* Files don't get special labels */
+ 	if (!d_is_dir(dentry))
+@@ -178,7 +178,7 @@
+ 	if (!sbi->options.gid_derivation)
+ 		return;
+ 
+-	info = SDCARDFS_I(dentry->d_inode);
++	info = SDCARDFS_I(d_inode(dentry));
+ 	info_d = info->data;
+ 	perm = info_d->perm;
+ 	if (info_d->under_obb) {
+@@ -238,8 +238,8 @@
+ 	}
+ 
+ 	sdcardfs_get_lower_path(dentry, &path);
+-	inode = path.dentry->d_inode;
+-	if (path.dentry->d_inode->i_gid != gid || path.dentry->d_inode->i_uid != uid) {
++	inode = d_inode(path.dentry);
++	if (d_inode(path.dentry)->i_gid != gid || d_inode(path.dentry)->i_uid != uid) {
+ 		newattrs.ia_valid = ATTR_GID | ATTR_UID | ATTR_FORCE;
+ 		newattrs.ia_uid = make_kuid(current_user_ns(), uid);
+ 		newattrs.ia_gid = make_kgid(current_user_ns(), gid);
+@@ -288,19 +288,19 @@
+ 	 */
+ 	WARN(depth > 3, "%s: Max expected depth exceeded!\n", __func__);
+ 	spin_lock_nested(&dentry->d_lock, depth);
+-	if (!dentry->d_inode) {
++	if (!d_inode(dentry)) {
+ 		spin_unlock(&dentry->d_lock);
+ 		return;
+ 	}
+-	info = SDCARDFS_I(dentry->d_inode);
++	info = SDCARDFS_I(d_inode(dentry));
+ 
+ 	if (needs_fixup(info->data->perm)) {
+ 		list_for_each_entry(child, &dentry->d_subdirs, d_u.d_child) {
+ 			spin_lock_nested(&child->d_lock, depth + 1);
+ 			if (!(limit->flags & BY_NAME) || qstr_case_eq(&child->d_name, &limit->name)) {
+-				if (child->d_inode) {
++				if (d_inode(child)) {
+ 					get_derived_permission(dentry, child);
+-					fixup_tmp_permissions(child->d_inode);
++					fixup_tmp_permissions(d_inode(child));
+ 					spin_unlock(&child->d_lock);
+ 					break;
+ 				}
+@@ -325,7 +325,7 @@
+ {
+ 	struct dentry *parent;
+ 
+-	if (!dentry || !dentry->d_inode) {
++	if (!dentry || !d_inode(dentry)) {
+ 		pr_err("sdcardfs: %s: invalid dentry\n", __func__);
+ 		return;
+ 	}
+@@ -340,14 +340,14 @@
+ 			dput(parent);
+ 		}
+ 	}
+-	fixup_tmp_permissions(dentry->d_inode);
++	fixup_tmp_permissions(d_inode(dentry));
+ }
+ 
+ int need_graft_path(struct dentry *dentry)
+ {
+ 	int ret = 0;
+ 	struct dentry *parent = dget_parent(dentry);
+-	struct sdcardfs_inode_info *parent_info = SDCARDFS_I(parent->d_inode);
++	struct sdcardfs_inode_info *parent_info = SDCARDFS_I(d_inode(parent));
+ 	struct sdcardfs_sb_info *sbi = SDCARDFS_SB(dentry->d_sb);
+ 	struct qstr obb = QSTR_LITERAL("obb");
+ 
+@@ -411,7 +411,7 @@
+ {
+ 	int ret = 0;
+ 	struct dentry *parent = dget_parent(dentry);
+-	struct sdcardfs_inode_info *parent_info = SDCARDFS_I(parent->d_inode);
++	struct sdcardfs_inode_info *parent_info = SDCARDFS_I(d_inode(parent));
+ 	struct sdcardfs_sb_info *sbi = SDCARDFS_SB(dentry->d_sb);
+ 	struct qstr q_obb = QSTR_LITERAL("obb");
+ 
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:36.487472021 +0800
+@@ -51,8 +51,8 @@
+ 	err = vfs_read(lower_file, buf, count, ppos);
+ 	/* update our inode atime upon a successful lower read */
+ 	if (err >= 0)
+-		fsstack_copy_attr_atime(dentry->d_inode,
+-					lower_file->f_path.dentry->d_inode);
++		fsstack_copy_attr_atime(d_inode(dentry),
++					d_inode(lower_file->f_path.dentry));
+ 
+ 	return err;
+ }
+@@ -74,10 +74,10 @@
+ 	err = vfs_write(lower_file, buf, count, ppos);
+ 	/* update our inode times+sizes upon a successful lower write */
+ 	if (err >= 0) {
+-		fsstack_copy_inode_size(dentry->d_inode,
+-					lower_file->f_path.dentry->d_inode);
+-		fsstack_copy_attr_times(dentry->d_inode,
+-					lower_file->f_path.dentry->d_inode);
++		fsstack_copy_inode_size(d_inode(dentry),
++					d_inode(lower_file->f_path.dentry));
++		fsstack_copy_attr_times(d_inode(dentry),
++					d_inode(lower_file->f_path.dentry));
+ 	}
+ 
+ 	return err;
+@@ -95,8 +95,8 @@
+ 	err = iterate_dir(lower_file, ctx);
+ 	file->f_pos = lower_file->f_pos;
+ 	if (err >= 0)		/* copy the atime */
+-		fsstack_copy_attr_atime(dentry->d_inode,
+-					lower_file->f_path.dentry->d_inode);
++		fsstack_copy_attr_atime(d_inode(dentry),
++					d_inode(lower_file->f_path.dentry));
+ 	return err;
+ }
+ 
+@@ -233,7 +233,7 @@
+ 		goto out_err;
+ 	}
+ 
+-	if (!check_caller_access_to_name(parent->d_inode, &dentry->d_name)) {
++	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+ 		err = -EACCES;
+ 		goto out_err;
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:36.583473520 +0800
+@@ -97,7 +97,8 @@
+ 	}
+ 	current->fs = copied_fs;
+ 	current->fs->umask = 0;
+-	err = vfs_create2(lower_dentry_mnt, lower_parent_dentry->d_inode, lower_dentry, mode, want_excl);
++	err = vfs_create2(lower_dentry_mnt, d_inode(lower_parent_dentry),
++			  lower_dentry, mode, want_excl);
+ 	if (err)
+ 		goto out;
+ 
+@@ -106,7 +107,7 @@
+ 	if (err)
+ 		goto out;
+ 	fsstack_copy_attr_times(dir, sdcardfs_lower_inode(dir));
+-	fsstack_copy_inode_size(dir, lower_parent_dentry->d_inode);
++	fsstack_copy_inode_size(dir, d_inode(lower_parent_dentry));
+ 	fixup_lower_ownership(dentry, dentry->d_name.name);
+ 
+ out:
+@@ -201,9 +202,9 @@
+ 		goto out;
+ 	fsstack_copy_attr_times(dir, lower_dir_inode);
+ 	fsstack_copy_inode_size(dir, lower_dir_inode);
+-	set_nlink(dentry->d_inode,
+-		  sdcardfs_lower_inode(dentry->d_inode)->i_nlink);
+-	dentry->d_inode->i_ctime = dir->i_ctime;
++	set_nlink(d_inode(dentry),
++		  sdcardfs_lower_inode(d_inode(dentry))->i_nlink);
++	d_inode(dentry)->i_ctime = dir->i_ctime;
+ 	d_drop(dentry); /* this is needed, else LTP fails (VFS won't do it) */
+ out:
+ 	unlock_dir(lower_dir_dentry);
+@@ -314,7 +315,8 @@
+ 	}
+ 	current->fs = copied_fs;
+ 	current->fs->umask = 0;
+-	err = vfs_mkdir2(lower_mnt, lower_parent_dentry->d_inode, lower_dentry, mode);
++	err = vfs_mkdir2(lower_mnt, d_inode(lower_parent_dentry),
++			 lower_dentry, mode);
+ 
+ 	if (err) {
+ 		unlock_dir(lower_parent_dentry);
+@@ -349,7 +351,7 @@
+ 	}
+ 
+ 	fsstack_copy_attr_times(dir, sdcardfs_lower_inode(dir));
+-	fsstack_copy_inode_size(dir, lower_parent_dentry->d_inode);
++	fsstack_copy_inode_size(dir, d_inode(lower_parent_dentry));
+ 	/* update number of links on parent directory */
+ 	set_nlink(dir, sdcardfs_lower_inode(dir)->i_nlink);
+ 	fixup_lower_ownership(dentry, dentry->d_name.name);
+@@ -363,7 +365,8 @@
+ 		((pd->perm == PERM_ANDROID)
+ 				&& (qstr_case_eq(&dentry->d_name, &q_data)))) {
+ 		REVERT_CRED(saved_cred);
+-		OVERRIDE_CRED(SDCARDFS_SB(dir->i_sb), saved_cred, SDCARDFS_I(dentry->d_inode));
++		OVERRIDE_CRED(SDCARDFS_SB(dir->i_sb), saved_cred,
++			      SDCARDFS_I(d_inode(dentry)));
+ 		set_fs_pwd(current->fs, &lower_path);
+ 		touch_err = touch(".nomedia", 0664);
+ 		if (touch_err) {
+@@ -409,16 +412,16 @@
+ 	lower_mnt = lower_path.mnt;
+ 	lower_dir_dentry = lock_parent(lower_dentry);
+ 
+-	err = vfs_rmdir2(lower_mnt, lower_dir_dentry->d_inode, lower_dentry);
++	err = vfs_rmdir2(lower_mnt, d_inode(lower_dir_dentry), lower_dentry);
+ 	if (err)
+ 		goto out;
+ 
+ 	d_drop(dentry);	/* drop our dentry on success (why not VFS's job?) */
+-	if (dentry->d_inode)
+-		clear_nlink(dentry->d_inode);
+-	fsstack_copy_attr_times(dir, lower_dir_dentry->d_inode);
+-	fsstack_copy_inode_size(dir, lower_dir_dentry->d_inode);
+-	set_nlink(dir, lower_dir_dentry->d_inode->i_nlink);
++	if (d_inode(dentry))
++		clear_nlink(d_inode(dentry));
++	fsstack_copy_attr_times(dir, d_inode(lower_dir_dentry));
++	fsstack_copy_inode_size(dir, d_inode(lower_dir_dentry));
++	set_nlink(dir, d_inode(lower_dir_dentry)->i_nlink);
+ 
+ out:
+ 	unlock_dir(lower_dir_dentry);
+@@ -508,21 +511,23 @@
+ 	}
+ 
+ 	err = vfs_rename2(lower_mnt,
+-			 lower_old_dir_dentry->d_inode, lower_old_dentry,
+-			 lower_new_dir_dentry->d_inode, lower_new_dentry);
++			 d_inode(lower_old_dir_dentry), lower_old_dentry,
++			 d_inode(lower_new_dir_dentry), lower_new_dentry);
+ 	if (err)
+ 		goto out;
+ 
+ 	/* Copy attrs from lower dir, but i_uid/i_gid */
+-	sdcardfs_copy_and_fix_attrs(new_dir, lower_new_dir_dentry->d_inode);
+-	fsstack_copy_inode_size(new_dir, lower_new_dir_dentry->d_inode);
++	sdcardfs_copy_and_fix_attrs(new_dir, d_inode(lower_new_dir_dentry));
++	fsstack_copy_inode_size(new_dir, d_inode(lower_new_dir_dentry));
+ 
+ 	if (new_dir != old_dir) {
+-		sdcardfs_copy_and_fix_attrs(old_dir, lower_old_dir_dentry->d_inode);
+-		fsstack_copy_inode_size(old_dir, lower_old_dir_dentry->d_inode);
++		sdcardfs_copy_and_fix_attrs(old_dir,
++					    d_inode(lower_old_dir_dentry));
++		fsstack_copy_inode_size(old_dir,
++					d_inode(lower_old_dir_dentry));
+ 	}
+ 	get_derived_permission_new(new_dentry->d_parent, old_dentry, &new_dentry->d_name);
+-	fixup_tmp_permissions(old_dentry->d_inode);
++	fixup_tmp_permissions(d_inode(old_dentry));
+ 	fixup_lower_ownership(old_dentry, new_dentry->d_name.name);
+ 	d_invalidate(old_dentry); /* Can't fixup ownership recursively :( */
+ out:
+@@ -712,7 +717,7 @@
+ 	struct sdcardfs_inode_data *top;
+ 	const struct cred *saved_cred = NULL;
+ 
+-	inode = dentry->d_inode;
++	inode = d_inode(dentry);
+ 	top = top_data_get(SDCARDFS_I(inode));
+ 
+ 	if (!top)
+@@ -755,7 +760,7 @@
+ 	if (!err) {
+ 		/* check the Android group ID */
+ 		parent = dget_parent(dentry);
+-		if (!check_caller_access_to_name(parent->d_inode, &dentry->d_name))
++		if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name))
+ 			err = -EACCES;
+ 		dput(parent);
+ 	}
+@@ -805,10 +810,10 @@
+ 	 * unlinked (no inode->i_sb and i_ino==0.  This happens if someone
+ 	 * tries to open(), unlink(), then ftruncate() a file.
+ 	 */
+-	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	mutex_lock(&d_inode(lower_dentry)->i_mutex);
+ 	err = notify_change2(lower_mnt, lower_dentry, &lower_ia); /* note: lower_ia */
+ 
+-	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++	mutex_unlock(&d_inode(lower_dentry)->i_mutex);
+ 	if (err)
+ 		goto out;
+ 
+@@ -864,7 +869,7 @@
+ 	int err;
+ 
+ 	parent = dget_parent(dentry);
+-	if (!check_caller_access_to_name(parent->d_inode, &dentry->d_name)) {
++	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+ 		dput(parent);
+ 		return -EACCES;
+ 	}
+@@ -874,9 +879,9 @@
+ 	err = vfs_getattr(&lower_path, &lower_stat);
+ 	if (err)
+ 		goto out;
+-	sdcardfs_copy_and_fix_attrs(dentry->d_inode,
+-			      lower_path.dentry->d_inode);
+-	err = sdcardfs_fillattr(mnt, dentry->d_inode, stat);
++	sdcardfs_copy_and_fix_attrs(d_inode(dentry),
++				    d_inode(lower_path.dentry));
++	err = sdcardfs_fillattr(mnt, d_inode(dentry), stat);
+ 	stat->blocks = lower_stat.blocks;
+ out:
+ 	sdcardfs_put_lower_path(dentry, &lower_path);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/lookup.c	2018-04-16 00:34:36.631474268 +0800
+@@ -176,7 +176,7 @@
+ 	struct super_block *lower_sb;
+ 	struct dentry *ret_dentry;
+ 
+-	lower_inode = lower_path->dentry->d_inode;
++	lower_inode = d_inode(lower_path->dentry);
+ 	lower_sb = sdcardfs_lower_super(sb);
+ 
+ 	/* check that the lower file system didn't cross a mount point */
+@@ -422,7 +422,7 @@
+ 
+ 	parent = dget_parent(dentry);
+ 
+-	if (!check_caller_access_to_name(parent->d_inode, &dentry->d_name)) {
++	if (!check_caller_access_to_name(d_inode(parent), &dentry->d_name)) {
+ 		ret = ERR_PTR(-EACCES);
+ 		goto out_err;
+ 	}
+@@ -445,17 +445,17 @@
+ 		goto out;
+ 	if (ret)
+ 		dentry = ret;
+-	if (dentry->d_inode) {
+-		fsstack_copy_attr_times(dentry->d_inode,
+-					sdcardfs_lower_inode(dentry->d_inode));
++	if (d_inode(dentry)) {
++		fsstack_copy_attr_times(d_inode(dentry),
++					sdcardfs_lower_inode(d_inode(dentry)));
+ 		/* get derived permission */
+ 		get_derived_permission(parent, dentry);
+-		fixup_tmp_permissions(dentry->d_inode);
++		fixup_tmp_permissions(d_inode(dentry));
+ 		fixup_lower_ownership(dentry, dentry->d_name.name);
+ 	}
+ 	/* update parent directory's atime */
+-	fsstack_copy_attr_atime(parent->d_inode,
+-				sdcardfs_lower_inode(parent->d_inode));
++	fsstack_copy_attr_atime(d_inode(parent),
++				sdcardfs_lower_inode(d_inode(parent)));
+ 
+ out:
+ 	sdcardfs_put_lower_path(parent, &lower_parent_path);
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:36.327469524 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:36.687475141 +0800
+@@ -308,7 +308,7 @@
+ 	sb->s_op = &sdcardfs_sops;
+ 
+ 	/* get a new inode and allocate our root dentry */
+-	inode = sdcardfs_iget(sb, lower_path.dentry->d_inode, 0);
++	inode = sdcardfs_iget(sb, d_inode(lower_path.dentry), 0);
+ 	if (IS_ERR(inode)) {
+ 		err = PTR_ERR(inode);
+ 		goto out_sput;
+@@ -340,17 +340,19 @@
+ 	sb_info->obbpath_s = kzalloc(PATH_MAX, GFP_KERNEL);
+ 	mutex_lock(&sdcardfs_super_list_lock);
+ 	if (sb_info->options.multiuser) {
+-		setup_derived_state(sb->s_root->d_inode, PERM_PRE_ROOT,
+-				sb_info->options.fs_user_id, AID_ROOT,
+-				false, SDCARDFS_I(sb->s_root->d_inode)->data);
++		setup_derived_state(d_inode(sb->s_root), PERM_PRE_ROOT,
++				    sb_info->options.fs_user_id, AID_ROOT,
++				    false,
++				    SDCARDFS_I(d_inode(sb->s_root))->data);
+ 		snprintf(sb_info->obbpath_s, PATH_MAX, "%s/obb", dev_name);
+ 	} else {
+-		setup_derived_state(sb->s_root->d_inode, PERM_ROOT,
+-				sb_info->options.fs_user_id, AID_ROOT,
+-				false, SDCARDFS_I(sb->s_root->d_inode)->data);
++		setup_derived_state(d_inode(sb->s_root), PERM_ROOT,
++				    sb_info->options.fs_user_id, AID_ROOT,
++				    false,
++				    SDCARDFS_I(d_inode(sb->s_root))->data);
+ 		snprintf(sb_info->obbpath_s, PATH_MAX, "%s/Android/obb", dev_name);
+ 	}
+-	fixup_tmp_permissions(sb->s_root->d_inode);
++	fixup_tmp_permissions(d_inode(sb->s_root));
+ 	sb_info->sb = sb;
+ 	list_add(&sb_info->list, &sdcardfs_super_list);
+ 	mutex_unlock(&sdcardfs_super_list_lock);

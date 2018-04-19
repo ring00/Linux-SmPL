@@ -1,0 +1,24 @@
+[33mbase commit: dbe6ec815641^1
+[0m[33mtarget commit: dbe6ec815641
+[0m[33mchecking out base commit... [0m[33mok (2s)
+[0m[33mformatting diff... [0m[33mok (2s)
+[0m3 source file(s) touched in the old version
+`-- fs/ext2/file.c
+`-- fs/ext4/file.c
+`-- fs/xfs/xfs_file.c
+3 source file(s) touched in the new version
+`-- fs/ext2/file.c
+`-- fs/ext4/file.c
+`-- fs/xfs/xfs_file.c
+[33mcompile base commit... [0m[33mok (22s)
+[0m[33mapply [0m[33mdbe6ec815641... [0m[33mok (22s)
+[0m[33mcompile target commit... [0m[33mok (32s)
+[0m[33mcollect AST for functions: ext4_file_operations@fs_ext4_file.c,ext2_file_operations@fs_ext2_file.c,xfs_file_operations@fs_xfs_xfs_file.c
+[0m[33m1s
+[0m//# pattern-1, witnesses: 3
+@@
+identifier s;
+@@
+ const struct file_operations s = {
++    .get_unmapped_area = thp_get_unmapped_area,
+ };

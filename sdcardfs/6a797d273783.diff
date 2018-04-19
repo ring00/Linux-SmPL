@@ -1,0 +1,162 @@
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/file.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/file.c	2018-04-16 00:34:43.451580739 +0800
+@@ -180,7 +180,7 @@
+ 	 */
+ 	lower_file = sdcardfs_lower_file(file);
+ 	if (willwrite && !lower_file->f_mapping->a_ops->writepage) {
+-		err = -EINVAL;
++		err = -EFSBADCRC;
+ 		pr_err("sdcardfs: lower file system does not support writeable mmap\n");
+ 		goto out;
+ 	}
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/inode.c	2018-04-16 00:34:43.539582113 +0800
+@@ -499,7 +499,7 @@
+ 	trap = lock_rename(lower_old_dir_dentry, lower_new_dir_dentry);
+ 	/* source should not be ancestor of target */
+ 	if (trap == lower_old_dentry) {
+-		err = -EINVAL;
++		err = -EFSBADCRC;
+ 		goto out;
+ 	}
+ 	/* target should not be ancestor of source */
+@@ -612,7 +612,7 @@
+ static int sdcardfs_permission_wrn(struct inode *inode, int mask)
+ {
+ 	WARN_RATELIMIT(1, "sdcardfs does not support permission. Use permission2.\n");
+-	return -EINVAL;
++	return -EFSBADCRC;
+ }
+ 
+ void copy_attrs(struct inode *dest, const struct inode *src)
+@@ -643,7 +643,7 @@
+ 	if (IS_ERR(mnt))
+ 		return PTR_ERR(mnt);
+ 	if (!top)
+-		return -EINVAL;
++		return -EFSBADCRC;
+ 
+ 	/*
+ 	 * Permission check on sdcardfs inode.
+@@ -698,7 +698,7 @@
+ static int sdcardfs_setattr_wrn(struct dentry *dentry, struct iattr *ia)
+ {
+ 	WARN_RATELIMIT(1, "sdcardfs does not support setattr. User setattr2.\n");
+-	return -EINVAL;
++	return -EFSBADCRC;
+ }
+ 
+ static int sdcardfs_setattr(struct vfsmount *mnt, struct dentry *dentry, struct iattr *ia)
+@@ -719,7 +719,7 @@
+ 	top = top_data_get(SDCARDFS_I(inode));
+ 
+ 	if (!top)
+-		return -EINVAL;
++		return -EFSBADCRC;
+ 
+ 	/*
+ 	 * Permission check on sdcardfs inode.
+@@ -839,7 +839,7 @@
+ 	struct super_block *sb = inode->i_sb;
+ 
+ 	if (!top)
+-		return -EINVAL;
++		return -EFSBADCRC;
+ 
+ 	stat->dev = inode->i_sb->s_dev;
+ 	stat->ino = inode->i_ino;
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/main.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/main.c	2018-04-16 00:34:43.611583238 +0800
+@@ -132,7 +132,7 @@
+ 		default:
+ 			if (!silent)
+ 				pr_err("Unrecognized mount option \"%s\" or missing value", p);
+-			return -EINVAL;
++			return -EFSBADCRC;
+ 		}
+ 	}
+ 
+@@ -193,7 +193,7 @@
+ 		default:
+ 			if (!silent)
+ 				pr_err("Unrecognized mount option \"%s\" or missing value", p);
+-			return -EINVAL;
++			return -EFSBADCRC;
+ 		}
+ 	}
+ 
+@@ -258,7 +258,7 @@
+ 
+ 	if (!dev_name) {
+ 		pr_err("sdcardfs: read_super: missing dev_name argument\n");
+-		err = -EINVAL;
++		err = -EFSBADCRC;
+ 		goto out;
+ 	}
+ 
+@@ -416,7 +416,7 @@
+ 		    int flags, const char *dev_name, void *raw_data)
+ {
+ 	WARN(1, "sdcardfs does not support mount. Use mount2.\n");
+-	return ERR_PTR(-EINVAL);
++	return ERR_PTR(-EFSBADCRC);
+ }
+ 
+ void *sdcardfs_alloc_mnt_data(void)
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/mmap.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/mmap.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/mmap.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/mmap.c	2018-04-16 00:34:43.639583675 +0800
+@@ -75,7 +75,7 @@
+ 	 * to exist, to get past a check in open_check_o_direct(),
+ 	 * which is called from do_last().
+ 	 */
+-	return -EINVAL;
++	return -EFSBADCRC;
+ }
+ 
+ const struct address_space_operations sdcardfs_aops = {
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/packagelist.c	2018-04-16 00:34:43.715584862 +0800
+@@ -223,7 +223,7 @@
+ 	/* An extension can only belong to one gid */
+ 	hash_for_each_possible_rcu(ext_to_groupid, hash_cur, hlist, hash) {
+ 		if (qstr_case_eq(key, &hash_cur->key))
+-			return -EINVAL;
++			return -EFSBADCRC;
+ 	}
+ 	new_entry = alloc_hashtable_entry(key, value);
+ 	if (!new_entry)
+diff -U3 -r /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c
+--- /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/oldfile/sdcardfs-3.10/super.c	2018-04-16 00:34:43.367579427 +0800
++++ /home/zhenyanjie/myworkspace/seda/results/sdcardfs-diff/result-3.10-4.14/newfile/sdcardfs-3.10/super.c	2018-04-16 00:34:43.759585549 +0800
+@@ -82,7 +82,7 @@
+ 		/* Invalid statfs informations. */
+ 		if (buf->f_bsize == 0) {
+ 			pr_err("Returned block size is zero.\n");
+-			return -EINVAL;
++			return -EFSBADCRC;
+ 		}
+ 
+ 		min_blocks = ((sbi->options.reserved_mb * 1024 * 1024)/buf->f_bsize);
+@@ -118,7 +118,7 @@
+ 	 */
+ 	if ((*flags & ~(MS_RDONLY | MS_MANDLOCK | MS_SILENT)) != 0) {
+ 		pr_err("sdcardfs: remount flags 0x%x unsupported\n", *flags);
+-		err = -EINVAL;
++		err = -EFSBADCRC;
+ 	}
+ 
+ 	return err;
+@@ -142,7 +142,7 @@
+ 	 */
+ 	if ((*flags & ~(MS_RDONLY | MS_MANDLOCK | MS_SILENT | MS_REMOUNT)) != 0) {
+ 		pr_err("sdcardfs: remount flags 0x%x unsupported\n", *flags);
+-		err = -EINVAL;
++		err = -EFSBADCRC;
+ 	}
+ 	pr_info("Remount options were %s for vfsmnt %p.\n", options, mnt);
+ 	err = parse_options_remount(sb, options, *flags & ~MS_SILENT, mnt->data);

@@ -1,0 +1,88 @@
+[33mbase commit: 5d6c31910bc0^1
+[0m[33mtarget commit: 5d6c31910bc0
+[0m[33mchecking out base commit... [0m[33mok (1s)
+[0m[33mformatting diff... [0m[33mok (1s)
+[0m14 source file(s) touched in the old version
+`-- fs/cachefiles/bind.c
+`-- fs/cachefiles/namei.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ecryptfs/mmap.c
+`-- fs/overlayfs/copy_up.c
+`-- fs/overlayfs/super.c
+`-- fs/xattr.c
+`-- include/linux/xattr.h
+`-- security/commoncap.c
+`-- security/integrity/evm/evm_crypto.c
+`-- security/integrity/evm/evm_main.c
+`-- security/integrity/ima/ima_appraise.c
+`-- security/selinux/hooks.c
+`-- security/smack/smack_lsm.c
+14 source file(s) touched in the new version
+`-- fs/cachefiles/bind.c
+`-- fs/cachefiles/namei.c
+`-- fs/ecryptfs/inode.c
+`-- fs/ecryptfs/mmap.c
+`-- fs/overlayfs/copy_up.c
+`-- fs/overlayfs/super.c
+`-- fs/xattr.c
+`-- include/linux/xattr.h
+`-- security/commoncap.c
+`-- security/integrity/evm/evm_crypto.c
+`-- security/integrity/evm/evm_main.c
+`-- security/integrity/ima/ima_appraise.c
+`-- security/selinux/hooks.c
+`-- security/smack/smack_lsm.c
+[33mcompile base commit... [0m[33mok (16s)
+[0m[33mapply [0m[33m5d6c31910bc0... [0m[33mok (16s)
+[0m[33mcompile target commit... [0m[33mok (28s)
+[0m[33mcollect AST for functions: ovl_copy_xattr@fs_overlayfs_copy_up.c,ecryptfs_removexattr@fs_ecryptfs_inode.c,cap_inode_need_killpriv@security_commoncap.c,ima_read_xattr@security_integrity_ima_ima_appraise.c,vfs_removexattr@fs_xattr.c,ecryptfs_write_inode_size_to_xattr@fs_ecryptfs_mmap.c,cap_inode_killpriv@security_commoncap.c,ima_appraise_measurement@security_integrity_ima_ima_appraise.c,__vfs_setxattr_noperm@fs_xattr.c,inode_doinit_with_dentry@security_selinux_hooks.c,ovl_is_opaquedir@fs_overlayfs_super.c,smk_fetch@security_smack_smack_lsm.c,smack_d_instantiate@security_smack_smack_lsm.c,evm_calc_hmac_or_hash@security_integrity_evm_evm_crypto.c,ima_inode_post_setattr@security_integrity_ima_ima_appraise.c,cachefiles_daemon_add_cache@fs_cachefiles_bind.c,sb_finish_set_opts@security_selinux_hooks.c,ecryptfs_setxattr@fs_ecryptfs_inode.c,evm_find_protected_xattrs@security_integrity_evm_evm_main.c,get_vfs_caps_from_disk@security_commoncap.c,cachefiles_get_directory@fs_cachefiles_namei.c,ecryptfs_getxattr_lower@fs_ecryptfs_inode.c,evm_update_evmxattr@security_integrity_evm_evm_crypto.c
+[0m[33mTransforming and linking bitcode files...
+[0m[33m3s
+[0m//# pattern-8, witnesses: 11
+@@
+expression E0;
+expression list listE1;
+@@
+- E0->i_op->getxattr(listE1)
++ __vfs_getxattr(listE1)
+//# pattern-9, witnesses: 9
+@@
+expression E0;
+@@
+- !E0->i_op->getxattr
++ !E0->i_opflags & IOP_XATTR
+//# pattern-1, witnesses: 3
+@@
+expression V0;
+expression list listE1;
+@@
+- V0->i_op->removexattr(listE1)
++ __vfs_removexattr(listE1)
+//# pattern-10, witnesses: 3
+@@
+expression E0;
+expression list listE1;
+@@
+- E0->i_op->setxattr(listE1)
++ __vfs_setxattr(listE1)
+//# pattern-2, witnesses: 2
+@@
+identifier PV0;
+statement S1;
+@@
+- if (PV0->i_op->getxattr == NULL) { S1 }
++ if (!PV0->i_opflags & IOP_XATTR) { S1 }
+//# pattern-5, witnesses: 2
+@@
+expression E1;
+expression ME0;
+@@
+- if (!ME0) {
+- return E1;
+- }
+//# pattern-13, witnesses: 2
+@@
+expression V0;
+@@
+- !V0->i_op->removexattr
++ !V0->i_opflags & IOP_XATTR
