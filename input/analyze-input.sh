@@ -12,12 +12,9 @@
 # bd35133a7968 refs/tags/v4.9.94
 
 module="drivers/input"
-target="/home/oslab/Desktop/common/drivers/input/keyreset.c"
+target="/home/oslab/Desktop/common/drivers/input/keycombo.c"
 
-declare -a tag=("v3.0.101"
-                "v3.3.8"
-                "v3.4.113"
-                "v3.10.108"
+declare -a tag=("v3.10.108"
                 "v3.14.79"
                 "v3.18.105"
                 "v4.1.51"
@@ -25,10 +22,7 @@ declare -a tag=("v3.0.101"
                 "v4.9.94"
                 )
 
-declare -a sha=("4db98884a58f"
-                "380a3eab05a3"
-                "bf6ef2d36c86"
-                "a33927aa31fb"
+declare -a sha=("a33927aa31fb"
                 "ba23b989598b"
                 "605ca9bb6955"
                 "379cf381d110"
