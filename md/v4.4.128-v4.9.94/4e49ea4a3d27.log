@@ -1,0 +1,11 @@
+--- /home/oslab/Desktop/common/drivers/md/dm-android-verity.c
++++ /tmp/cocci-output-20462-1b18db-dm-android-verity.c
+@@ -230,7 +230,7 @@ static int read_block_dev(struct bio_rea
+ 		}
+ 	}
+ 
+-	if (!submit_bio_wait(READ, bio))
++	if (!submit_bio_wait(bio))
+ 		/* success */
+ 		goto free_bio;
+ 	DMERR("bio read failed");
