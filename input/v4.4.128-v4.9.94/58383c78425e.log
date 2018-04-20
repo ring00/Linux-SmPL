@@ -1,20 +1,11 @@
---- /home/oslab/Desktop/common/drivers/input/keyreset.c
-+++ /tmp/cocci-output-39155-85af90-keyreset.c
-@@ -121,7 +121,7 @@ static int keyreset_connect(struct input
+--- /home/oslab/Desktop/common/drivers/input/misc/keychord.c
++++ /tmp/cocci-output-98322-631d67-keychord.c
+@@ -162,7 +162,7 @@ static int keychord_connect(struct input
  	if (!handle)
  		return -ENOMEM;
  
 -	handle->dev = dev;
 +	handle->parent = dev;
  	handle->handler = handler;
- 	handle->name = "keyreset";
- 	handle->private = state;
-@@ -166,7 +166,7 @@ static int keyreset_probe(struct platfor
- 	int ret;
- 	int key, *keyp;
- 	struct keyreset_state *state;
--	struct keyreset_platform_data *pdata = pdev->dev.platform_data;
-+	struct keyreset_platform_data *pdata = pdev->parent.platform_data;
- 
- 	if (!pdata)
- 		return -EINVAL;
+ 	handle->name = KEYCHORD_NAME;
+ 	handle->private = kdev;

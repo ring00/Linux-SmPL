@@ -12,7 +12,7 @@
 # bd35133a7968 refs/tags/v4.9.94
 
 module="drivers/input"
-target="/home/oslab/Desktop/common/drivers/input/keyreset.c"
+target="/home/oslab/Desktop/common/drivers/input/misc/keychord.c"
 
 declare -a tag=("v3.0.101"
                 "v3.3.8"
@@ -49,7 +49,6 @@ do
         if [ -e ${file} ]
         then
             spatch --sp-file ${file} ${target} -o ${range}/${commit}.c > ${range}/${commit}.log
-            # diff -r -U3 ${target} ${range}/${commit}.c > ${range}/${commit}.patch
         fi
     done
 done

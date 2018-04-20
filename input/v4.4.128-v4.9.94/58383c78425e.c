@@ -1,6 +1,8 @@
-/* drivers/input/keyreset.c
+/*
+ *  drivers/input/misc/keychord.c
  *
  * Copyright (C) 2008 Google, Inc.
+ * Author: Mike Lockwood <lockwood@android.com>
  *
  * This software is licensed under the terms of the GNU General Public
  * License version 2, as published by the Free Software Foundation, and
@@ -11,107 +13,146 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  *
- */
+*/
 
-#include <linux/input.h>
-#include <linux/keyreset.h>
-#include <linux/module.h>
-#include <linux/platform_device.h>
-#include <linux/reboot.h>
-#include <linux/sched.h>
+#include <linux/poll.h>
 #include <linux/slab.h>
-#include <linux/syscalls.h>
+#include <linux/module.h>
+#include <linux/init.h>
+#include <linux/spinlock.h>
+#include <linux/fs.h>
+#include <linux/miscdevice.h>
+#include <linux/keychord.h>
+#include <linux/sched.h>
 
+#define KEYCHORD_NAME		"keychord"
+#define BUFFER_SIZE			16
 
-struct keyreset_state {
-	struct input_handler input_handler;
+MODULE_AUTHOR("Mike Lockwood <lockwood@android.com>");
+MODULE_DESCRIPTION("Key chord input driver");
+MODULE_SUPPORTED_DEVICE("keychord");
+MODULE_LICENSE("GPL");
+
+#define NEXT_KEYCHORD(kc) ((struct input_keychord *) \
+		((char *)kc + sizeof(struct input_keychord) + \
+		kc->count * sizeof(kc->keycodes[0])))
+
+struct keychord_device {
+	struct input_handler	input_handler;
+	int			registered;
+
+	/* list of keychords to monitor */
+	struct input_keychord	*keychords;
+	int			keychord_count;
+
+	/* bitmask of keys contained in our keychords */
 	unsigned long keybit[BITS_TO_LONGS(KEY_CNT)];
-	unsigned long upbit[BITS_TO_LONGS(KEY_CNT)];
-	unsigned long key[BITS_TO_LONGS(KEY_CNT)];
-	spinlock_t lock;
-	int key_down_target;
+	/* current state of the keys */
+	unsigned long keystate[BITS_TO_LONGS(KEY_CNT)];
+	/* number of keys that are currently pressed */
 	int key_down;
-	int key_up;
-	int restart_disabled;
-	int (*reset_fn)(void);
+
+	/* second input_device_id is needed for null termination */
+	struct input_device_id  device_ids[2];
+
+	spinlock_t		lock;
+	wait_queue_head_t	waitq;
+	unsigned char		head;
+	unsigned char		tail;
+	__u16			buff[BUFFER_SIZE];
+	/* Bit to serialize writes to this device */
+#define KEYCHORD_BUSY			0x01
+	unsigned long		flags;
+	wait_queue_head_t	write_waitq;
 };
 
-int restart_requested;
-static void deferred_restart(struct work_struct *dummy)
+static int check_keychord(struct keychord_device *kdev,
+		struct input_keychord *keychord)
 {
-	restart_requested = 2;
-	sys_sync();
-	restart_requested = 3;
-	kernel_restart(NULL);
-}
-static DECLARE_WORK(restart_work, deferred_restart);
+	int i;
 
-static void keyreset_event(struct input_handle *handle, unsigned int type,
+	if (keychord->count != kdev->key_down)
+		return 0;
+
+	for (i = 0; i < keychord->count; i++) {
+		if (!test_bit(keychord->keycodes[i], kdev->keystate))
+			return 0;
+	}
+
+	/* we have a match */
+	return 1;
+}
+
+static void keychord_event(struct input_handle *handle, unsigned int type,
 			   unsigned int code, int value)
 {
+	struct keychord_device *kdev = handle->private;
+	struct input_keychord *keychord;
 	unsigned long flags;
-	struct keyreset_state *state = handle->private;
+	int i, got_chord = 0;
 
-	if (type != EV_KEY)
+	if (type != EV_KEY || code >= KEY_MAX)
 		return;
 
-	if (code >= KEY_MAX)
-		return;
-
-	if (!test_bit(code, state->keybit))
-		return;
-
-	spin_lock_irqsave(&state->lock, flags);
-	if (!test_bit(code, state->key) == !value)
+	spin_lock_irqsave(&kdev->lock, flags);
+	/* do nothing if key state did not change */
+	if (!test_bit(code, kdev->keystate) == !value)
 		goto done;
-	__change_bit(code, state->key);
-	if (test_bit(code, state->upbit)) {
-		if (value) {
-			state->restart_disabled = 1;
-			state->key_up++;
-		} else
-			state->key_up--;
-	} else {
-		if (value)
-			state->key_down++;
-		else
-			state->key_down--;
-	}
-	if (state->key_down == 0 && state->key_up == 0)
-		state->restart_disabled = 0;
+	__change_bit(code, kdev->keystate);
+	if (value)
+		kdev->key_down++;
+	else
+		kdev->key_down--;
 
-	pr_debug("reset key changed %d %d new state %d-%d-%d\n", code, value,
-		 state->key_down, state->key_up, state->restart_disabled);
+	/* don't notify on key up */
+	if (!value)
+		goto done;
+	/* ignore this event if it is not one of the keys we are monitoring */
+	if (!test_bit(code, kdev->keybit))
+		goto done;
 
-	if (value && !state->restart_disabled &&
-	    state->key_down == state->key_down_target) {
-		state->restart_disabled = 1;
-		if (restart_requested)
-			panic("keyboard reset failed, %d", restart_requested);
-		if (state->reset_fn) {
-			restart_requested = state->reset_fn();
-		} else {
-			pr_info("keyboard reset\n");
-			schedule_work(&restart_work);
-			restart_requested = 1;
+	keychord = kdev->keychords;
+	if (!keychord)
+		goto done;
+
+	/* check to see if the keyboard state matches any keychords */
+	for (i = 0; i < kdev->keychord_count; i++) {
+		if (check_keychord(kdev, keychord)) {
+			kdev->buff[kdev->head] = keychord->id;
+			kdev->head = (kdev->head + 1) % BUFFER_SIZE;
+			got_chord = 1;
+			break;
 		}
+		/* skip to next keychord */
+		keychord = NEXT_KEYCHORD(keychord);
 	}
+
 done:
-	spin_unlock_irqrestore(&state->lock, flags);
+	spin_unlock_irqrestore(&kdev->lock, flags);
+
+	if (got_chord) {
+		pr_info("keychord: got keychord id %d. Any tasks: %d\n",
+			keychord->id,
+			!list_empty_careful(&kdev->waitq.head));
+		wake_up_interruptible(&kdev->waitq);
+	}
 }
 
-static int keyreset_connect(struct input_handler *handler,
+static int keychord_connect(struct input_handler *handler,
 					  struct input_dev *dev,
 					  const struct input_device_id *id)
 {
-	int i;
-	int ret;
+	int i, ret;
 	struct input_handle *handle;
-	struct keyreset_state *state =
-		container_of(handler, struct keyreset_state, input_handler);
+	struct keychord_device *kdev =
+		container_of(handler, struct keychord_device, input_handler);
 
+	/*
+	 * ignore this input device if it does not contain any keycodes
+	 * that we are monitoring
+	 */
 	for (i = 0; i < KEY_MAX; i++) {
-		if (test_bit(i, state->keybit) && test_bit(i, dev->keybit))
+		if (test_bit(i, kdev->keybit) && test_bit(i, dev->keybit))
 			break;
 	}
 	if (i == KEY_MAX)
@@ -123,8 +164,8 @@ static int keyreset_connect(struct input_handler *handler,
 
 	handle->parent = dev;
 	handle->handler = handler;
-	handle->name = "keyreset";
-	handle->private = state;
+	handle->name = KEYCHORD_NAME;
+	handle->private = kdev;
 
 	ret = input_register_handle(handle);
 	if (ret)
@@ -134,8 +175,7 @@ static int keyreset_connect(struct input_handler *handler,
 	if (ret)
 		goto err_input_open_device;
 
-	pr_info("using input dev %s for key reset\n", dev->name);
-
+	pr_info("keychord: using input dev %s for fevent\n", dev->name);
 	return 0;
 
 err_input_open_device:
@@ -145,95 +185,283 @@ err_input_register_handle:
 	return ret;
 }
 
-static void keyreset_disconnect(struct input_handle *handle)
+static void keychord_disconnect(struct input_handle *handle)
 {
 	input_close_device(handle);
 	input_unregister_handle(handle);
 	kfree(handle);
 }
 
-static const struct input_device_id keyreset_ids[] = {
-	{
-		.flags = INPUT_DEVICE_ID_MATCH_EVBIT,
-		.evbit = { BIT_MASK(EV_KEY) },
-	},
-	{ },
-};
-MODULE_DEVICE_TABLE(input, keyreset_ids);
+/*
+ * keychord_read is used to read keychord events from the driver
+ */
+static ssize_t keychord_read(struct file *file, char __user *buffer,
+		size_t count, loff_t *ppos)
+{
+	struct keychord_device *kdev = file->private_data;
+	__u16   id;
+	int retval;
+	unsigned long flags;
 
-static int keyreset_probe(struct platform_device *pdev)
+	if (count < sizeof(id))
+		return -EINVAL;
+	count = sizeof(id);
+
+	if (kdev->head == kdev->tail && (file->f_flags & O_NONBLOCK))
+		return -EAGAIN;
+
+	retval = wait_event_interruptible(kdev->waitq,
+			kdev->head != kdev->tail);
+	if (retval)
+		return retval;
+
+	spin_lock_irqsave(&kdev->lock, flags);
+	/* pop a keychord ID off the queue */
+	id = kdev->buff[kdev->tail];
+	kdev->tail = (kdev->tail + 1) % BUFFER_SIZE;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+
+	if (copy_to_user(buffer, &id, count))
+		return -EFAULT;
+
+	return count;
+}
+
+/*
+ * serializes writes on a device. can use mutex_lock_interruptible()
+ * for this particular use case as well - a matter of preference.
+ */
+static int
+keychord_write_lock(struct keychord_device *kdev)
 {
 	int ret;
-	int key, *keyp;
-	struct keyreset_state *state;
-	struct keyreset_platform_data *pdata = pdev->parent.platform_data;
+	unsigned long flags;
 
-	if (!pdata)
+	spin_lock_irqsave(&kdev->lock, flags);
+	while (kdev->flags & KEYCHORD_BUSY) {
+		spin_unlock_irqrestore(&kdev->lock, flags);
+		ret = wait_event_interruptible(kdev->write_waitq,
+			       ((kdev->flags & KEYCHORD_BUSY) == 0));
+		if (ret)
+			return ret;
+		spin_lock_irqsave(&kdev->lock, flags);
+	}
+	kdev->flags |= KEYCHORD_BUSY;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+	return 0;
+}
+
+static void
+keychord_write_unlock(struct keychord_device *kdev)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&kdev->lock, flags);
+	kdev->flags &= ~KEYCHORD_BUSY;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+	wake_up_interruptible(&kdev->write_waitq);
+}
+
+/*
+ * keychord_write is used to configure the driver
+ */
+static ssize_t keychord_write(struct file *file, const char __user *buffer,
+		size_t count, loff_t *ppos)
+{
+	struct keychord_device *kdev = file->private_data;
+	struct input_keychord *keychords = 0;
+	struct input_keychord *keychord;
+	int ret, i, key;
+	unsigned long flags;
+	size_t resid = count;
+	size_t key_bytes;
+
+	if (count < sizeof(struct input_keychord))
 		return -EINVAL;
-
-	state = kzalloc(sizeof(*state), GFP_KERNEL);
-	if (!state)
+	keychords = kzalloc(count, GFP_KERNEL);
+	if (!keychords)
 		return -ENOMEM;
 
-	spin_lock_init(&state->lock);
-	keyp = pdata->keys_down;
-	while ((key = *keyp++)) {
-		if (key >= KEY_MAX)
-			continue;
-		state->key_down_target++;
-		__set_bit(key, state->keybit);
-	}
-	if (pdata->keys_up) {
-		keyp = pdata->keys_up;
-		while ((key = *keyp++)) {
-			if (key >= KEY_MAX)
-				continue;
-			__set_bit(key, state->keybit);
-			__set_bit(key, state->upbit);
-		}
+	/* read list of keychords from userspace */
+	if (copy_from_user(keychords, buffer, count)) {
+		kfree(keychords);
+		return -EFAULT;
 	}
 
-	if (pdata->reset_fn)
-		state->reset_fn = pdata->reset_fn;
-
-	state->input_handler.event = keyreset_event;
-	state->input_handler.connect = keyreset_connect;
-	state->input_handler.disconnect = keyreset_disconnect;
-	state->input_handler.name = KEYRESET_NAME;
-	state->input_handler.id_table = keyreset_ids;
-	ret = input_register_handler(&state->input_handler);
+	/*
+	 * Serialize writes to this device to prevent various races.
+	 * 1) writers racing here could do duplicate input_unregister_handler()
+	 *    calls, resulting in attempting to unlink a node from a list that
+	 *    does not exist.
+	 * 2) writers racing here could do duplicate input_register_handler() calls
+	 *    below, resulting in a duplicate insertion of a node into the list.
+	 * 3) a double kfree of keychords can occur (in the event that
+	 *    input_register_handler() fails below.
+	 */
+	ret = keychord_write_lock(kdev);
 	if (ret) {
-		kfree(state);
+		kfree(keychords);
 		return ret;
 	}
-	platform_set_drvdata(pdev, state);
-	return 0;
+
+	/* unregister handler before changing configuration */
+	if (kdev->registered) {
+		input_unregister_handler(&kdev->input_handler);
+		kdev->registered = 0;
+	}
+
+	spin_lock_irqsave(&kdev->lock, flags);
+	/* clear any existing configuration */
+	kfree(kdev->keychords);
+	kdev->keychords = 0;
+	kdev->keychord_count = 0;
+	kdev->key_down = 0;
+	memset(kdev->keybit, 0, sizeof(kdev->keybit));
+	memset(kdev->keystate, 0, sizeof(kdev->keystate));
+	kdev->head = kdev->tail = 0;
+
+	keychord = keychords;
+
+	while (resid > 0) {
+		/* Is the entire keychord entry header present ? */
+		if (resid < sizeof(struct input_keychord)) {
+			pr_err("keychord: Insufficient bytes present for header %zu\n",
+			       resid);
+			goto err_unlock_return;
+		}
+		resid -= sizeof(struct input_keychord);
+		if (keychord->count <= 0) {
+			pr_err("keychord: invalid keycode count %d\n",
+				keychord->count);
+			goto err_unlock_return;
+		}
+		key_bytes = keychord->count * sizeof(keychord->keycodes[0]);
+		/* Do we have all the expected keycodes ? */
+		if (resid < key_bytes) {
+			pr_err("keychord: Insufficient bytes present for keycount %zu\n",
+			       resid);
+			goto err_unlock_return;
+		}
+		resid -= key_bytes;
+
+		if (keychord->version != KEYCHORD_VERSION) {
+			pr_err("keychord: unsupported version %d\n",
+				keychord->version);
+			goto err_unlock_return;
+		}
+
+		/* keep track of the keys we are monitoring in keybit */
+		for (i = 0; i < keychord->count; i++) {
+			key = keychord->keycodes[i];
+			if (key < 0 || key >= KEY_CNT) {
+				pr_err("keychord: keycode %d out of range\n",
+					key);
+				goto err_unlock_return;
+			}
+			__set_bit(key, kdev->keybit);
+		}
+
+		kdev->keychord_count++;
+		keychord = NEXT_KEYCHORD(keychord);
+	}
+
+	kdev->keychords = keychords;
+	spin_unlock_irqrestore(&kdev->lock, flags);
+
+	ret = input_register_handler(&kdev->input_handler);
+	if (ret) {
+		kfree(keychords);
+		kdev->keychords = 0;
+		keychord_write_unlock(kdev);
+		return ret;
+	}
+	kdev->registered = 1;
+
+	keychord_write_unlock(kdev);
+
+	return count;
+
+err_unlock_return:
+	spin_unlock_irqrestore(&kdev->lock, flags);
+	kfree(keychords);
+	keychord_write_unlock(kdev);
+	return -EINVAL;
 }
 
-int keyreset_remove(struct platform_device *pdev)
+static unsigned int keychord_poll(struct file *file, poll_table *wait)
 {
-	struct keyreset_state *state = platform_get_drvdata(pdev);
-	input_unregister_handler(&state->input_handler);
-	kfree(state);
+	struct keychord_device *kdev = file->private_data;
+
+	poll_wait(file, &kdev->waitq, wait);
+
+	if (kdev->head != kdev->tail)
+		return POLLIN | POLLRDNORM;
+
 	return 0;
 }
 
+static int keychord_open(struct inode *inode, struct file *file)
+{
+	struct keychord_device *kdev;
 
-struct platform_driver keyreset_driver = {
-	.driver.name = KEYRESET_NAME,
-	.probe = keyreset_probe,
-	.remove = keyreset_remove,
+	kdev = kzalloc(sizeof(struct keychord_device), GFP_KERNEL);
+	if (!kdev)
+		return -ENOMEM;
+
+	spin_lock_init(&kdev->lock);
+	init_waitqueue_head(&kdev->waitq);
+	init_waitqueue_head(&kdev->write_waitq);
+
+	kdev->input_handler.event = keychord_event;
+	kdev->input_handler.connect = keychord_connect;
+	kdev->input_handler.disconnect = keychord_disconnect;
+	kdev->input_handler.name = KEYCHORD_NAME;
+	kdev->input_handler.id_table = kdev->device_ids;
+
+	kdev->device_ids[0].flags = INPUT_DEVICE_ID_MATCH_EVBIT;
+	__set_bit(EV_KEY, kdev->device_ids[0].evbit);
+
+	file->private_data = kdev;
+
+	return 0;
+}
+
+static int keychord_release(struct inode *inode, struct file *file)
+{
+	struct keychord_device *kdev = file->private_data;
+
+	if (kdev->registered)
+		input_unregister_handler(&kdev->input_handler);
+	kfree(kdev->keychords);
+	kfree(kdev);
+
+	return 0;
+}
+
+static const struct file_operations keychord_fops = {
+	.owner		= THIS_MODULE,
+	.open		= keychord_open,
+	.release	= keychord_release,
+	.read		= keychord_read,
+	.write		= keychord_write,
+	.poll		= keychord_poll,
 };
 
-static int __init keyreset_init(void)
+static struct miscdevice keychord_misc = {
+	.fops		= &keychord_fops,
+	.name		= KEYCHORD_NAME,
+	.minor		= MISC_DYNAMIC_MINOR,
+};
+
+static int __init keychord_init(void)
 {
-	return platform_driver_register(&keyreset_driver);
+	return misc_register(&keychord_misc);
 }
 
-static void __exit keyreset_exit(void)
+static void __exit keychord_exit(void)
 {
-	return platform_driver_unregister(&keyreset_driver);
+	misc_deregister(&keychord_misc);
 }
 
-module_init(keyreset_init);
-module_exit(keyreset_exit);
+module_init(keychord_init);
+module_exit(keychord_exit);
