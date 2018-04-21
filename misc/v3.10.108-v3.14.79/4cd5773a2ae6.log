@@ -1,0 +1,10 @@
+--- /home/oslab/Desktop/common/drivers/misc/memory_state_time.c
++++ /tmp/cocci-output-103763-8050ae-memory_state_time.c
+@@ -19,6 +19,7 @@
+ #include <linux/hashtable.h>
+ #include <linux/kconfig.h>
+ #include <linux/kernel.h>
++#include <linux/kernel.h>
+ #include <linux/kobject.h>
+ #include <linux/memory-state-time.h>
+ #include <linux/module.h>
