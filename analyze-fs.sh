@@ -12,7 +12,8 @@
 # bd35133a7968 refs/tags/v4.9.94
 # acdaec7baa3d regs/tags/v4.14.34
 
-module="fs"
+module="fs/btrfs"
+target="/home/oslab/Desktop/linux/fs/btrfs"
 
 declare -a tag=("v3.0.101"
                 "v3.3.8"
@@ -40,25 +41,15 @@ declare -a sha=("4db98884a58f"
 
 for (( i=0; i<${#tag[@]}-1; i++ ));
 do
-    name=${module##*/}
-
+    name=${module##/*}
     range=${tag[$i]}-${tag[$i+1]}
-    mkdir ${range}
 
-    start_commit=${sha[$i]}
-    end_commit=${sha[$i+1]}
-
-    python lib/collateral_evolution.py --range ${start_commit} ${end_commit} --path ${module} | tee ${name}-${range}.txt
-
-    while read line
+    tac ${module%%/*}-${range}.txt | while read line
     do
-        commit=${line:0:12}
-        file=${range}/${commit}.cocci
-
-        seda build ${commit}
-        seda prepare ${commit}
-        seda analyze ${commit}
-        seda coccigen ${commit} | tee -a ${file}
-    done < ${name}-${range}.txt
+        file=${range}/${line:0:12}.cocci
+        if [ -e ${file} ]
+        then
+            spatch --sp-file ${file} --dir ${target} # > ${range}/${commit}.log
+        fi
+    done
 done
-
