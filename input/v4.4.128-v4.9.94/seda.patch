@@ -1,6 +1,8 @@
---- /home/oslab/Desktop/common/drivers/input/keyreset.c
-+++ /tmp/cocci-output-90589-838b63-keyreset.c
-@@ -53,14 +53,14 @@ static int keyreset_probe(struct platfor
+diff --git a/drivers/input/keyreset.c b/drivers/input/keyreset.c
+index 7e5222aec7c1..2777f45f7f17 100644
+--- a/drivers/input/keyreset.c
++++ b/drivers/input/keyreset.c
+@@ -53,14 +53,14 @@ static int keyreset_probe(struct platform_device *pdev)
  {
  	int ret = -ENOMEM;
  	struct keycombo_platform_data *pdata_child;
@@ -17,7 +19,7 @@
  	if (!state)
  		return -ENOMEM;
  
-@@ -68,7 +68,7 @@ static int keyreset_probe(struct platfor
+@@ -68,7 +68,7 @@ static int keyreset_probe(struct platform_device *pdev)
  							PLATFORM_DEVID_AUTO);
  	if (!state->pdev_child)
  		return -ENOMEM;
@@ -26,7 +28,7 @@
  	INIT_WORK(&state->restart_work, do_restart);
  
  	keyp = pdata->keys_down;
-@@ -87,13 +87,14 @@ static int keyreset_probe(struct platfor
+@@ -87,13 +87,14 @@ static int keyreset_probe(struct platform_device *pdev)
  	}
  	size = sizeof(struct keycombo_platform_data)
  			+ sizeof(int) * (down_size + 1);

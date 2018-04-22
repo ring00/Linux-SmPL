@@ -1,0 +1,14 @@
+diff --git a/drivers/input/keyreset.c b/drivers/input/keyreset.c
+index 7fbf7247e65f..7e5222aec7c1 100644
+--- a/drivers/input/keyreset.c
++++ b/drivers/input/keyreset.c
+@@ -32,8 +32,7 @@ struct keyreset_state {
+ 
+ static void do_restart(struct work_struct *unused)
+ {
+-	sys_sync();
+-	kernel_restart(NULL);
++	orderly_reboot();
+ }
+ 
+ static void do_reset_fn(void *priv)
