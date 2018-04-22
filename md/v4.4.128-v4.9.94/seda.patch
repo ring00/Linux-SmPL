@@ -1,0 +1,13 @@
+diff --git a/drivers/md/dm-android-verity.c b/drivers/md/dm-android-verity.c
+index c521df010ee3..571e8c3f5106 100644
+--- a/drivers/md/dm-android-verity.c
++++ b/drivers/md/dm-android-verity.c
+@@ -230,7 +230,7 @@ static int read_block_dev(struct bio_read *payload, struct block_device *bdev,
+ 		}
+ 	}
+ 
+-	if (!submit_bio_wait(READ, bio))
++	if (!submit_bio_wait(bio))
+ 		/* success */
+ 		goto free_bio;
+ 	DMERR("bio read failed");

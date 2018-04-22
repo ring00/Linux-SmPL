@@ -1,0 +1,54 @@
+diff --git a/drivers/md/dm-android-verity.c b/drivers/md/dm-android-verity.c
+index c677d2f885d2..3d9e69b388a4 100644
+--- a/drivers/md/dm-android-verity.c
++++ b/drivers/md/dm-android-verity.c
+@@ -65,7 +65,6 @@ static struct target_type android_verity_target = {
+ 	.io_hints               = verity_io_hints,
+ };
+ 
+-#ifndef MODULE
+ static int __init verified_boot_state_param(char *line)
+ {
+ 	strlcpy(verifiedbootstate, line, sizeof(verifiedbootstate));
+@@ -97,7 +96,6 @@ static int __init verity_buildvariant(char *line)
+ }
+ 
+ __setup("buildvariant=", verity_buildvariant);
+-#endif
+ 
+ static inline bool default_verity_key_id(void)
+ {
+@@ -647,8 +645,6 @@ static int add_as_linear_device(struct dm_target *ti, char *dev)
+ 	android_verity_target.iterate_devices = dm_linear_iterate_devices,
+ 	android_verity_target.io_hints = NULL;
+ 
+-	set_disk_ro(dm_disk(dm_table_get_md(ti->table)), 0);
+-
+ 	err = dm_linear_ctr(ti, DM_LINEAR_ARGS, linear_table_args);
+ 
+ 	if (!err) {
+@@ -727,21 +723,9 @@ static int android_verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
+ 
+ 	dev = name_to_dev_t(target_device);
+ 	if (!dev) {
+-		const unsigned int timeout_ms = DM_VERITY_WAIT_DEV_TIMEOUT_MS;
+-		unsigned int wait_time_ms = 0;
+-
+-		DMERR("android_verity_ctr: retry %s\n", target_device);
+-		while (driver_probe_done() != 0 ||
+-			(dev = name_to_dev_t(target_device)) == 0) {
+-			msleep(100);
+-			wait_time_ms += 100;
+-			if (wait_time_ms > timeout_ms) {
+-				DMERR("android_verity_ctr: retry timeout(%dms)\n", timeout_ms);
+-				DMERR("no dev found for %s", target_device);
+-				handle_error();
+-				return -EINVAL;
+-			}
+-		}
++		DMERR("no dev found for %s", target_device);
++		handle_error();
++		return -EINVAL;
+ 	}
+ 
+ 	if (is_eng())

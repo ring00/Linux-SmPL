@@ -6,7 +6,7 @@ expression V0;
 expression V1;
 expression V2;
 @@
-- int  = V0;
+//- int  = V0;
 - V1 = misc_deregister(&V2);
 - if (E3) {
 - E4;

@@ -1,6 +1,6 @@
 --- /home/oslab/Desktop/common/drivers/md/dm-android-verity.c
-+++ /tmp/cocci-output-18790-4a3a69-dm-android-verity.c
-@@ -273,7 +273,7 @@ static inline int validate_fec_header(st
++++ /tmp/cocci-output-13901-e126fc-dm-android-verity.c
+@@ -274,7 +274,7 @@ static inline int validate_fec_header(st
  		le32_to_cpu(header->size) != sizeof(struct fec_header) ||
  		le32_to_cpu(header->roots) == 0 ||
  		le32_to_cpu(header->roots) >= FEC_RSM)
@@ -9,7 +9,7 @@
  
  	return 0;
  }
-@@ -714,14 +714,12 @@ static int android_verity_ctr(struct dm_
+@@ -709,14 +709,12 @@ static int android_verity_ctr(struct dm_
  		else if (!is_eng()) {
  			DMERR("veritykeyid= is not set");
  			handle_error();
@@ -24,7 +24,7 @@
  	}
  
  	target_device = argv[0];
-@@ -730,7 +728,6 @@ static int android_verity_ctr(struct dm_
+@@ -725,7 +723,6 @@ static int android_verity_ctr(struct dm_
  	if (!dev) {
  		DMERR("no dev found for %s", target_device);
  		handle_error();
@@ -32,7 +32,7 @@
  	}
  
  	if (is_eng())
-@@ -743,7 +740,6 @@ static int android_verity_ctr(struct dm_
+@@ -738,7 +735,6 @@ static int android_verity_ctr(struct dm_
  	if (extract_fec_header(dev, &fec, &ecc)) {
  		DMERR("Error while extracting fec header");
  		handle_error();

@@ -59,7 +59,9 @@ identifier wbc;
  int __block_write_full_page(struct inode * inode, struct page * page, get_block_t * get_block, struct writeback_control * wbc, bh_end_io_t * handler)
  {
      <...
-- int write_op = ;
-+ int write_flags = ;
+//- int write_op = ;
+//+ int write_flags = ;
+- int write_op = (wbc->sync_mode == WB_SYNC_ALL ? WRITE_SYNC : WRITE);
++ int write_flags = (wbc->sync_mode == WB_SYNC_ALL ? WRITE_SYNC : 0);
      ...>
  }

@@ -1,0 +1,52 @@
+diff --git a/drivers/md/dm-android-verity.c b/drivers/md/dm-android-verity.c
+index 3d9e69b388a4..a0caac42115e 100644
+--- a/drivers/md/dm-android-verity.c
++++ b/drivers/md/dm-android-verity.c
+@@ -60,7 +60,6 @@ static struct target_type android_verity_target = {
+ 	.map                    = verity_map,
+ 	.status                 = verity_status,
+ 	.ioctl                  = verity_ioctl,
+-	.merge                  = verity_merge,
+ 	.iterate_devices        = verity_iterate_devices,
+ 	.io_hints               = verity_io_hints,
+ };
+@@ -274,7 +273,7 @@ static inline int validate_fec_header(struct fec_header *header, u64 offset)
+ 		le32_to_cpu(header->size) != sizeof(struct fec_header) ||
+ 		le32_to_cpu(header->roots) == 0 ||
+ 		le32_to_cpu(header->roots) >= FEC_RSM)
+-		return -EINVAL;
++		{}
+ 
+ 	return 0;
+ }
+@@ -709,14 +708,12 @@ static int android_verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
+ 		else if (!is_eng()) {
+ 			DMERR("veritykeyid= is not set");
+ 			handle_error();
+-			return -EINVAL;
+ 		}
+ 	} else if (argc == 2)
+ 		key_id = argv[1];
+ 	else {
+ 		DMERR("Incorrect number of arguments");
+ 		handle_error();
+-		return -EINVAL;
+ 	}
+ 
+ 	target_device = argv[0];
+@@ -725,7 +722,6 @@ static int android_verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
+ 	if (!dev) {
+ 		DMERR("no dev found for %s", target_device);
+ 		handle_error();
+-		return -EINVAL;
+ 	}
+ 
+ 	if (is_eng())
+@@ -738,7 +734,6 @@ static int android_verity_ctr(struct dm_target *ti, unsigned argc, char **argv)
+ 	if (extract_fec_header(dev, &fec, &ecc)) {
+ 		DMERR("Error while extracting fec header");
+ 		handle_error();
+-		return -EINVAL;
+ 	}
+ 
+ 	err = extract_metadata(dev, &fec, &metadata, &verity_enabled);

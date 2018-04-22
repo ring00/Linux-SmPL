@@ -1,0 +1,10 @@
+--- /home/oslab/Desktop/common/drivers/md/dm-android-verity.c
++++ /tmp/cocci-output-13919-9f8067-dm-android-verity.c
+@@ -60,7 +60,6 @@ static struct target_type android_verity
+ 	.map                    = verity_map,
+ 	.status                 = verity_status,
+ 	.ioctl                  = verity_ioctl,
+-	.merge                  = verity_merge,
+ 	.iterate_devices        = verity_iterate_devices,
+ 	.io_hints               = verity_io_hints,
+ };
