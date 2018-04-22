@@ -1,0 +1,13 @@
+diff --git a/drivers/input/misc/keychord.c b/drivers/input/misc/keychord.c
+index 82fefdff366a..54cd0e9c213d 100644
+--- a/drivers/input/misc/keychord.c
++++ b/drivers/input/misc/keychord.c
+@@ -162,7 +162,7 @@ static int keychord_connect(struct input_handler *handler,
+ 	if (!handle)
+ 		return -ENOMEM;
+ 
+-	handle->dev = dev;
++	handle->parent = dev;
+ 	handle->handler = handler;
+ 	handle->name = KEYCHORD_NAME;
+ 	handle->private = kdev;

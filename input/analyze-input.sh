@@ -13,8 +13,8 @@
 # acdaec7baa3d refs/tags/v4.14.34
 
 repo="/home/oslab/Desktop/common"
-module="drivers/input/misc"
-target="${repo}/${module}/keychord.c"
+module="drivers/input"
+target="${repo}/${module}/misc/keychord.c"
 
 declare -a tag=(
                 "3.0.101"
@@ -64,7 +64,7 @@ do
     done
 
     git -C ${repo} diff --diff-algorithm=minimal android-${start_version} -- ${target} > "seda.patch"
-    git -C ${repo} checkout -- ${target}
+    git -C ${repo} checkout android-${start_version} -- ${target}
 
     git -C ${repo} diff --diff-algorithm=minimal android-${start_version} android-${end_version} -- ${target} > "develop.patch"
     # git -C ${repo} format-patch --stdout android-${start_version} android-${end_version} > "complete.patch"

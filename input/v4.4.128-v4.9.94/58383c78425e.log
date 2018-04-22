@@ -1,0 +1,11 @@
+--- /home/oslab/Desktop/common/drivers/input/misc/keychord.c
++++ /tmp/cocci-output-74662-b984e1-keychord.c
+@@ -162,7 +162,7 @@ static int keychord_connect(struct input
+ 	if (!handle)
+ 		return -ENOMEM;
+ 
+-	handle->dev = dev;
++	handle->parent = dev;
+ 	handle->handler = handler;
+ 	handle->name = KEYCHORD_NAME;
+ 	handle->private = kdev;
