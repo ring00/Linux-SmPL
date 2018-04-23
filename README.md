@@ -8,7 +8,7 @@ Author: Daniel Campello <campello@google.com>
 Date:   Mon Jul 20 16:27:37 2015 -0700
 
     Port of sdcardfs to 3.18
-    
+
     Change-Id: Idef6cae51c765f4cae3fa9d9a3419425827400db
     Signed-off-by: Daniel Campello <campello@google.com>
 ---
@@ -43,7 +43,7 @@ In file included from ../fs/sdcardfs/file.c:22:0:
 #### grep result
 
 ```shell
-➜  linux git:(master) grep -nr "make_kuid"                                      
+➜  linux git:(master) grep -nr "make_kuid"
 security/commoncap.c:420:	kroot = make_kuid(fs_ns, root);
 security/commoncap.c:467:	return make_kuid(task_ns, rootid);
 security/commoncap.c:607:	rootkuid = make_kuid(fs_ns, 0);
@@ -206,7 +206,7 @@ Author: Eric W. Biederman <ebiederm@xmission.com>
 Date:   Thu Nov 17 00:11:58 2011 -0800
 
     userns: Rework the user_namespace adding uid/gid mapping support
-    
+
     - Convert the old uid mapping functions into compatibility wrappers
     - Add a uid/gid mapping layer from user space uid and gids to kernel
       internal uids and gids that is extent based for simplicty and speed.
@@ -234,35 +234,35 @@ Date:   Thu Nov 17 00:11:58 2011 -0800
       gid mappings.  We only allow the mappings to be set once
       and there are no pointers involved so the requirments are
       trivial but a little atypical.
-    
+
     Performance:
-    
+
     In this scheme for the permission checks the performance is expected to
     stay the same as the actuall machine instructions should remain the same.
-    
+
     The worst case I could think of is ls -l on a large directory where
     all of the stat results need to be translated with from kuids and
     kgids to uids and gids.  So I benchmarked that case on my laptop
     with a dual core hyperthread Intel i5-2520M cpu with 3M of cpu cache.
-    
+
     My benchmark consisted of going to single user mode where nothing else
     was running. On an ext4 filesystem opening 1,000,000 files and looping
     through all of the files 1000 times and calling fstat on the
     individuals files.  This was to ensure I was benchmarking stat times
     where the inodes were in the kernels cache, but the inode values were
     not in the processors cache.  My results:
-    
+
     v3.4-rc1:         ~= 156ns (unmodified v3.4-rc1 with user namespace support disabled)
     v3.4-rc1-userns-: ~= 155ns (v3.4-rc1 with my user namespace patches and user namespace support disabled)
     v3.4-rc1-userns+: ~= 164ns (v3.4-rc1 with my user namespace patches and user namespace support enabled)
-    
+
     All of the configurations ran in roughly 120ns when I performed tests
     that ran in the cpu cache.
-    
+
     So in summary the performance impact is:
     1ns improvement in the worst case with user namespace support compiled out.
     8ns aka 5% slowdown in the worst case with user namespace support compiled in.
-    
+
     Acked-by: Serge Hallyn <serge.hallyn@canonical.com>
     Signed-off-by: Eric W. Biederman <ebiederm@xmission.com>
 ---
@@ -314,12 +314,12 @@ Author: Daniel Rosenberg <drosen@google.com>
 Date:   Wed Oct 26 16:33:11 2016 -0700
 
     vfs: Add setattr2 for filesystems with per mount permissions
-    
+
     This allows filesystems to use their mount private data to
     influence the permssions they use in setattr2. It has
     been separated into a new call to avoid disrupting current
     setattr users.
-    
+
     Change-Id: I19959038309284448f1b7f232d579674ef546385
     Signed-off-by: Daniel Rosenberg <drosen@google.com>
 ---
@@ -747,6 +747,7 @@ Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
  security/tomoyo/util.c                          |  2 +-
  38 files changed, 99 insertions(+), 89 deletions(-)
 ```
+
 Dentry_operations->d_compare no longer needs the `parent` argument.
 
 ```
@@ -781,4 +782,104 @@ Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
  include/linux/dcache.h                       |  2 +-
  22 files changed, 40 insertions(+), 38 deletions(-)
 ```
+
+address_space_operations->direct_IO no longer needs the last parameter
+
+```diff
+From c8b8e32d700fe943a935e435ae251364d016c497 Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Thu, 7 Apr 2016 08:51:58 -0700
+Subject: [PATCH] direct-io: eliminate the offset argument to ->direct_IO
+
+Including blkdev_direct_IO and dax_do_io.  It has to be ki_pos to actually
+work, so eliminate the superflous argument.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking          |  2 +-
+ Documentation/filesystems/vfs.txt          |  2 +-
+ drivers/staging/lustre/lustre/llite/rw26.c |  4 ++--
+ fs/9p/vfs_addr.c                           |  3 ++-
+ fs/affs/file.c                             |  5 +++--
+ fs/block_dev.c                             |  6 +++---
+ fs/btrfs/inode.c                           |  6 +++---
+ fs/ceph/addr.c                             |  3 +--
+ fs/cifs/file.c                             |  2 +-
+ fs/dax.c                                   |  4 ++--
+ fs/direct-io.c                             |  7 ++++---
+ fs/exofs/inode.c                           |  3 +--
+ fs/ext2/inode.c                            |  8 ++++----
+ fs/ext4/ext4.h                             |  3 +--
+ fs/ext4/indirect.c                         | 12 ++++++------
+ fs/ext4/inode.c                            | 18 +++++++++---------
+ fs/f2fs/data.c                             |  6 +++---
+ fs/fat/inode.c                             |  6 +++---
+ fs/fuse/file.c                             |  3 ++-
+ fs/gfs2/aops.c                             |  6 +++---
+ fs/hfs/inode.c                             |  7 +++----
+ fs/hfsplus/inode.c                         |  7 +++----
+ fs/jfs/inode.c                             |  7 +++----
+ fs/nfs/direct.c                            | 17 +++++++----------
+ fs/nfs/file.c                              |  2 +-
+ fs/nilfs2/inode.c                          |  4 ++--
+ fs/ocfs2/aops.c                            |  9 ++++-----
+ fs/reiserfs/inode.c                        |  7 +++----
+ fs/udf/file.c                              |  3 +--
+ fs/udf/inode.c                             |  7 +++----
+ fs/xfs/xfs_aops.c                          |  7 +++----
+ fs/xfs/xfs_file.c                          |  2 +-
+ include/linux/dax.h                        |  2 +-
+ include/linux/fs.h                         |  9 ++++-----
+ include/linux/nfs_fs.h                     |  5 ++---
+ mm/filemap.c                               |  5 ++---
+ mm/page_io.c                               |  2 +-
+ 37 files changed, 99 insertions(+), 112 deletions(-)
+```
+
+
+config_group->list_head is no longer a pointer to NULL-terminated array
+
+```diff
+From 1ae1602de028acaa42a0f6ff18d19756f8e825c6 Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Fri, 26 Feb 2016 11:02:14 +0100
+Subject: [PATCH] configfs: switch ->default groups to a linked list
+
+Replace the current NULL-terminated array of default groups with a linked
+list.  This gets rid of lots of nasty code to size and/or dynamically
+allocate the array.
+
+While we're at it also provide a conveniant helper to remove the default
+groups.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Acked-by: Felipe Balbi <balbi@kernel.org>   [drivers/usb/gadget]
+Acked-by: Joel Becker <jlbec@evilplan.org>
+Acked-by: Nicholas Bellinger <nab@linux-iscsi.org>
+Reviewed-by: Sagi Grimberg <sagig@mellanox.com>
+---
+ Documentation/filesystems/configfs/configfs.txt |  11 +-
+ drivers/infiniband/core/cma_configfs.c          |  31 ++--
+ drivers/target/iscsi/iscsi_target_configfs.c    |  75 +++------
+ drivers/target/target_core_configfs.c           | 203 +++++-------------------
+ drivers/target/target_core_fabric_configfs.c    | 194 ++++++----------------
+ drivers/target/target_core_internal.h           |   1 -
+ drivers/target/target_core_stat.c               |  41 ++---
+ drivers/usb/gadget/configfs.c                   |  36 ++---
+ drivers/usb/gadget/function/f_mass_storage.c    |   6 +-
+ drivers/usb/gadget/function/f_rndis.c           |   5 +-
+ drivers/usb/gadget/function/uvc_configfs.c      | 198 +++++++++--------------
+ fs/configfs/dir.c                               |  44 +++--
+ fs/configfs/item.c                              |   1 +
+ fs/dlm/config.c                                 |  38 +----
+ fs/ocfs2/cluster/nodemanager.c                  |  22 +--
+ include/linux/configfs.h                        |  11 +-
+ include/target/target_core_base.h               |   3 -
+ 17 files changed, 286 insertions(+), 634 deletions(-)
+```
+
+# 4.9-4.14
+
+sdcardfs@android-4.9 can be built directly on android-4.14.
 
