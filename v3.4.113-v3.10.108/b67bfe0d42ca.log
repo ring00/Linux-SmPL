@@ -1,0 +1,10 @@
+--- /home/oslab/Desktop/common/net/netfilter/xt_qtaguid.c
++++ /tmp/cocci-output-17635-c9390d-xt_qtaguid.c
+@@ -24,6 +24,7 @@
+ #include <linux/workqueue.h>
+ #include <net/addrconf.h>
+ #include <net/sock.h>
++#include <linux/rculist.h>
+ #include <net/tcp.h>
+ #include <net/udp.h>
+ 

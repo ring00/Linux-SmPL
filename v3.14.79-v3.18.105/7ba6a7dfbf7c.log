@@ -1,0 +1,131 @@
+--- /home/oslab/Desktop/common/net/netfilter/xt_qtaguid.c
++++ /tmp/cocci-output-17827-9011f0-xt_qtaguid.c
+@@ -772,7 +772,7 @@ static int iface_stat_fmt_proc_show(stru
+ 	} else {
+ 		pp_iface_stat_line(m, iface_entry);
+ 	}
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 
+@@ -1490,7 +1490,7 @@ static int proc_iface_stat_fmt_open(stru
+ 		return -ENOMEM;
+ 
+ 	s->fmt = (uintptr_t)PDE_DATA(inode);
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 
+@@ -1556,7 +1556,7 @@ static int __init iface_stat_init(struct
+ 		       "failed to register ipv6 dev event handler\n");
+ 		goto err_unreg_ip4_addr;
+ 	}
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ 
+ err_unreg_ip4_addr:
+@@ -1982,7 +1982,7 @@ static int qtaguid_ctrl_proc_show(struct
+ 		prdebug_full_state(0, "proc ctrl");
+ 	}
+ 
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 
+@@ -2351,7 +2351,7 @@ static int ctrl_cmd_tag(const char *inpu
+ 	CT_DEBUG("qtaguid: ctrl_tag(%s): done st@%p ...->f_count=%ld\n",
+ 		 input, sock_tag_entry,
+ 		 atomic_long_read(&el_socket->file->f_count));
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ 
+ err_tag_unref_put:
+@@ -2450,7 +2450,7 @@ static int ctrl_cmd_untag(const char *in
+ 	kfree(sock_tag_entry);
+ 	atomic64_inc(&qtu_events.sockets_untagged);
+ 
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ 
+ err_put:
+@@ -2561,7 +2561,8 @@ static int pp_stats_line(struct seq_file
+ 			 get_atag_from_tag(tag), stat_uid,
+ 			 current->pid, current->tgid, from_kuid(&init_user_ns, current_fsuid()),
+ 			 from_kgid(&init_user_ns,xt_qtaguid_stats_file->gid));
+-		return xt_compat_check_entry_offsets(e, e->target_offset,
++		return xt_compat_check_entry_offsets(e, e->elems,
++						     e->target_offset,
+ 						     e->next_offset);
+ 	}
+ 	ppi->item_index++;
+@@ -2747,7 +2748,7 @@ static int qtaguid_stats_proc_show(struc
+ 	else
+ 		pp_sets(m, ts_entry);
+ 
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 
+@@ -2761,7 +2762,8 @@ static int qtudev_open(struct inode *ino
+ 	bool utd_entry_found;
+ 
+ 	if (unlikely(qtu_proc_handling_passive))
+-		return xt_compat_check_entry_offsets(e, e->target_offset,
++		return xt_compat_check_entry_offsets(e, e->elems,
++						     e->target_offset,
+ 						     e->next_offset);
+ 
+ 	DR_DEBUG("qtaguid: qtudev_open(): pid=%u tgid=%u uid=%u\n",
+@@ -2808,7 +2810,7 @@ static int qtudev_open(struct inode *ino
+ 	DR_DEBUG("qtaguid: tracking data for uid=%u in pqd=%p\n",
+ 		 from_kuid(&init_user_ns, current_fsuid()), new_pqd_entry);
+ 	file->private_data = new_pqd_entry;
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ 
+ err_unlock_free_utd:
+@@ -2831,7 +2833,8 @@ static int qtudev_release(struct inode *
+ 	struct tag_ref *tr;
+ 
+ 	if (unlikely(qtu_proc_handling_passive))
+-		return xt_compat_check_entry_offsets(e, e->target_offset,
++		return xt_compat_check_entry_offsets(e, e->elems,
++						     e->target_offset,
+ 						     e->next_offset);
+ 
+ 	/*
+@@ -2899,7 +2902,7 @@ static int qtudev_release(struct inode *
+ 
+ 	prdebug_full_state(0, "%s(): pid=%u tgid=%u", __func__,
+ 			   current->pid, current->tgid);
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 
+@@ -2994,7 +2997,7 @@ static int __init qtaguid_proc_register(
+ 	 * TODO: add support counter hacking
+ 	 * xt_qtaguid_stats_file->write_proc = qtaguid_stats_proc_write;
+ 	 */
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ 
+ no_stats_entry:
+@@ -3025,7 +3028,7 @@ static int __init qtaguid_mt_init(void)
+ 	    || xt_register_match(&qtaguid_mt_reg)
+ 	    || misc_register(&qtu_device))
+ 		return -1;
+-	return xt_compat_check_entry_offsets(e, e->target_offset,
++	return xt_compat_check_entry_offsets(e, e->elems, e->target_offset,
+ 					     e->next_offset);
+ }
+ 

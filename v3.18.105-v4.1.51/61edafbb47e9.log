@@ -1,0 +1,108 @@
+--- /home/oslab/Desktop/common/net/netfilter/xt_qtaguid.c
++++ /tmp/cocci-output-17936-464af6-xt_qtaguid.c
+@@ -321,7 +321,6 @@ static void sock_tag_tree_erase(struct r
+ 			 get_uid_from_tag(st_entry->tag));
+ 		rb_erase(&st_entry->sock_node, st_to_free_tree);
+ 		sock_put(st_entry->sk);
+-		kfree(st_entry);
+ 	}
+ }
+ 
+@@ -543,7 +542,6 @@ static void put_utd_entry(struct uid_tag
+ 			 current->pid, current->tgid, from_kuid(&init_user_ns, current_fsuid()));
+ 		BUG_ON(utd_entry->num_active_tags);
+ 		rb_erase(&utd_entry->node, &uid_tag_data_tree);
+-		kfree(utd_entry);
+ 	} else {
+ 		DR_DEBUG("qtaguid: %s(): "
+ 			 "utd_entry=%p still has %d tags %d proc_qtu_data\n",
+@@ -570,7 +568,6 @@ static void free_tag_ref_from_utd_entry(
+ 		utd_entry->num_active_tags--;
+ 		rb_erase(&tr_entry->tn.node, &utd_entry->tag_ref_tree);
+ 		DR_DEBUG("qtaguid: %s(): erased %p\n", __func__, tr_entry);
+-		kfree(tr_entry);
+ 	}
+ }
+ 
+@@ -794,7 +791,6 @@ static void iface_create_proc_worker(str
+ 	proc_entry = proc_mkdir(new_iface->ifname, iface_stat_procdir);
+ 	if (IS_ERR_OR_NULL(proc_entry)) {
+ 		pr_err("qtaguid: iface_stat: create_proc(): alloc failed.\n");
+-		kfree(isw);
+ 		return;
+ 	}
+ 
+@@ -817,7 +813,6 @@ static void iface_create_proc_worker(str
+ 
+ 	IF_DEBUG("qtaguid: iface_stat: create_proc(): done "
+ 		 "entry=%p dev=%s\n", new_iface, new_iface->ifname);
+-	kfree(isw);
+ }
+ 
+ /*
+@@ -862,7 +857,6 @@ static struct iface_stat *iface_alloc(st
+ 	if (new_iface->ifname == NULL) {
+ 		pr_err("qtaguid: iface_stat: create(%s): "
+ 		       "ifname alloc failed\n", net_dev->name);
+-		kfree(new_iface);
+ 		return NULL;
+ 	}
+ 	spin_lock_init(&new_iface->tag_stat_list_lock);
+@@ -878,8 +872,6 @@ static struct iface_stat *iface_alloc(st
+ 		pr_err("qtaguid: iface_stat: create(%s): "
+ 		       "work alloc failed\n", new_iface->ifname);
+ 		_iface_stat_set_active(new_iface, net_dev, false);
+-		kfree(new_iface->ifname);
+-		kfree(new_iface);
+ 		return NULL;
+ 	}
+ 	isw->iface_entry = new_iface;
+@@ -1813,8 +1805,6 @@ static void prdebug_full_state_locked(in
+ 			  fmt_buff, args);
+ 	BUG_ON(!buff);
+ 	pr_debug("%s", buff);
+-	kfree(fmt_buff);
+-	kfree(buff);
+ 	va_end(args);
+ 
+ 	prdebug_sock_tag_tree(indent_level, &sock_tag_tree);
+@@ -2065,7 +2055,6 @@ static int ctrl_cmd_delete(const char *i
+ 			 get_uid_from_tag(tcs_entry->tn.tag),
+ 			 tcs_entry->active_set);
+ 		rb_erase(&tcs_entry->tn.node, &tag_counter_set_tree);
+-		kfree(tcs_entry);
+ 	}
+ 	spin_unlock_bh(&tag_counter_set_list_lock);
+ 
+@@ -2096,7 +2085,6 @@ static int ctrl_cmd_delete(const char *i
+ 					 entry_uid);
+ 				rb_erase(&ts_entry->tn.node,
+ 					 &iface_entry->tag_stat_tree);
+-				kfree(ts_entry);
+ 			}
+ 		}
+ 		spin_unlock_bh(&iface_entry->tag_stat_list_lock);
+@@ -2440,7 +2428,6 @@ int qtaguid_untag(struct socket *el_sock
+ 		 sock_tag_entry,
+ 		 atomic_read(&el_socket->sk->sk_refcnt));
+ 
+-	kfree(sock_tag_entry);
+ 	atomic64_inc(&qtu_events.sockets_untagged);
+ 
+ 	return 0;
+@@ -2791,7 +2778,6 @@ static int qtudev_open(struct inode *ino
+ err_unlock_free_utd:
+ 	if (!utd_entry_found) {
+ 		rb_erase(&utd_entry->node, &uid_tag_data_tree);
+-		kfree(utd_entry);
+ 	}
+ err_unlock:
+ 	spin_unlock_bh(&uid_tag_data_tree_lock);
+@@ -2864,7 +2850,6 @@ static int qtudev_release(struct inode *
+ 	BUG_ON(pqd_entry->parent_tag_data->num_pqd < 1);
+ 	pqd_entry->parent_tag_data->num_pqd--;
+ 	put_utd_entry(pqd_entry->parent_tag_data);
+-	kfree(pqd_entry);
+ 	file->private_data = NULL;
+ 
+ 	spin_unlock_bh(&uid_tag_data_tree_lock);

@@ -1,0 +1,12 @@
+diff --git a/net/netfilter/xt_qtaguid.c b/net/netfilter/xt_qtaguid.c
+index aa5f0919a1b5..368ef8848d83 100644
+--- a/net/netfilter/xt_qtaguid.c
++++ b/net/netfilter/xt_qtaguid.c
+@@ -24,6 +24,7 @@
+ #include <linux/workqueue.h>
+ #include <net/addrconf.h>
+ #include <net/sock.h>
++#include <linux/rculist.h>
+ #include <net/tcp.h>
+ #include <net/udp.h>
+ 

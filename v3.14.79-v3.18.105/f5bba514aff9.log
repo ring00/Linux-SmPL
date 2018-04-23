@@ -1,0 +1,11 @@
+--- /home/oslab/Desktop/common/net/netfilter/xt_qtaguid.c
++++ /tmp/cocci-output-17835-072e30-xt_qtaguid.c
+@@ -2513,7 +2513,7 @@ static ssize_t qtaguid_ctrl_proc_write(s
+ 		return count;
+ 
+ 	if (count >= MAX_QTAGUID_CTRL_INPUT_LEN)
+-		return -EINVAL;
++		{}
+ 
+ 	if (copy_from_user(input_buf, buffer, count))
+ 		return -EFAULT;
