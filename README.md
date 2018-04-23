@@ -338,3 +338,447 @@ Date:   Wed Oct 26 16:33:11 2016 -0700
 -	notify_change2(parent.mnt, dent, &attrs);
 +	notify_change2(parent.mnt, dent, &attrs, NULL);
 ```
+
+## 4.1-4.4
+
+## error message
+
+```
+../fs/sdcardfs/packagelist.c:488:1: warning: data definition has no type or storage class
+ CONFIGFS_ATTR_STRUCT(package_details);
+  ^
+../fs/sdcardfs/packagelist.c:488:1: error: type defaults to ‘int’ in declaration of ‘CONFIGFS_ATTR_STRUCT’ [-Werror=implicit-int]
+../fs/sdcardfs/packagelist.c:488:1: warning: parameter names (without types) in function declaration
+../fs/sdcardfs/packagelist.c:490:8: error: variable ‘package_details_attr_appid’ has initializer but incomplete type
+ struct package_details_attribute package_details_attr_##_name = __CONFIGFS_ATTR(_name, _mode, )
+```
+### API changing commit
+
+The `CONFIG_ATTR_STRUCT` marco is removed in this commit.
+
+```diff
+From 517982229f78b2aebf00a8a337e84e8eeea70b8e Mon Sep 17 00:00:00 2001
+From: Christoph Hellwig <hch@lst.de>
+Date: Sat, 3 Oct 2015 15:32:59 +0200
+Subject: [PATCH] configfs: remove old API
+
+Remove the old show_attribute and store_attribute methods and update
+the documentation.  Also replace the two C samples with a single new
+one in the proper samples directory where people expect to find it.
+
+Signed-off-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Nicholas Bellinger <nab@linux-iscsi.org>
+---
+ Documentation/filesystems/Makefile                 |   2 -
+ Documentation/filesystems/configfs/Makefile        |   3 -
+ Documentation/filesystems/configfs/configfs.txt    |  38 +-
+ .../configfs/configfs_example_explicit.c           | 483 ---------------------
+ .../filesystems/configfs/configfs_example_macros.c | 446 -------------------
+ fs/configfs/file.c                                 |  15 +-
+ include/linux/configfs.h                           |  82 ----
+ samples/Kconfig                                    |   6 +
+ samples/Makefile                                   |   3 +-
+ samples/configfs/Makefile                          |   2 +
+ samples/configfs/configfs_sample.c                 | 404 +++++++++++++++++
+ 11 files changed, 428 insertions(+), 1056 deletions(-)
+```
+# 4.4-4.9
+
+## error message
+
+## API changing commit
+
+A set of wrapper functions are provided for locking on inode.
+
+```diff
+From 5955102c9984fa081b2d570cfac75c97eecf8f3b Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Fri, 22 Jan 2016 15:40:57 -0500
+Subject: [PATCH] wrappers for ->i_mutex access
+
+parallel to mutex_{lock,unlock,trylock,is_locked,lock_nested},
+inode_foo(inode) being mutex_foo(&inode->i_mutex).
+
+Please, use those for access to ->i_mutex; over the coming cycle
+->i_mutex will become rwsem, with ->lookup() done with it held
+only shared.
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ arch/powerpc/platforms/cell/spufs/file.c        |  4 +-
+ arch/powerpc/platforms/cell/spufs/inode.c       | 12 ++--
+ arch/s390/hypfs/inode.c                         |  8 +--
+ block/ioctl.c                                   |  4 +-
+ drivers/base/devtmpfs.c                         | 12 ++--
+ drivers/block/aoe/aoecmd.c                      |  4 +-
+ drivers/block/drbd/drbd_debugfs.c               |  4 +-
+ drivers/char/mem.c                              |  4 +-
+ drivers/char/ps3flash.c                         |  4 +-
+ drivers/infiniband/hw/qib/qib_fs.c              | 12 ++--
+ drivers/mtd/ubi/cdev.c                          |  4 +-
+ drivers/oprofile/oprofilefs.c                   | 16 +++---
+ drivers/staging/lustre/lustre/llite/dir.c       |  4 +-
+ drivers/staging/lustre/lustre/llite/file.c      | 16 +++---
+ drivers/staging/lustre/lustre/llite/llite_lib.c |  4 +-
+ drivers/staging/lustre/lustre/llite/llite_nfs.c |  4 +-
+ drivers/staging/lustre/lustre/llite/lloop.c     |  4 +-
+ drivers/staging/lustre/lustre/llite/rw.c        |  4 +-
+ drivers/staging/lustre/lustre/llite/rw26.c      |  4 +-
+ drivers/staging/lustre/lustre/llite/vvp_io.c    |  4 +-
+ drivers/staging/lustre/lustre/llite/vvp_page.c  | 10 ++--
+ drivers/staging/rdma/ipath/ipath_fs.c           |  8 +--
+ drivers/usb/gadget/function/f_printer.c         |  4 +-
+ drivers/usb/gadget/legacy/inode.c               |  4 +-
+ drivers/usb/gadget/udc/atmel_usba_udc.c         | 12 ++--
+ drivers/video/fbdev/core/fb_defio.c             |  4 +-
+ fs/9p/vfs_file.c                                |  8 +--
+ fs/affs/file.c                                  |  8 +--
+ fs/afs/flock.c                                  |  4 +-
+ fs/afs/write.c                                  |  4 +-
+ fs/attr.c                                       |  2 +-
+ fs/binfmt_misc.c                                | 12 ++--
+ fs/block_dev.c                                  | 20 +++----
+ fs/btrfs/file.c                                 | 42 +++++++-------
+ fs/btrfs/inode.c                                |  4 +-
+ fs/btrfs/ioctl.c                                | 38 ++++++-------
+ fs/btrfs/relocation.c                           |  4 +-
+ fs/btrfs/scrub.c                                |  4 +-
+ fs/btrfs/xattr.c                                |  2 +-
+ fs/cachefiles/interface.c                       |  4 +-
+ fs/cachefiles/namei.c                           | 40 ++++++-------
+ fs/ceph/cache.c                                 |  4 +-
+ fs/ceph/caps.c                                  |  4 +-
+ fs/ceph/dir.c                                   |  4 +-
+ fs/ceph/export.c                                |  4 +-
+ fs/ceph/file.c                                  | 18 +++---
+ fs/cifs/cifsfs.c                                |  4 +-
+ fs/cifs/file.c                                  | 12 ++--
+ fs/coda/dir.c                                   |  4 +-
+ fs/coda/file.c                                  |  8 +--
+ fs/configfs/dir.c                               | 58 +++++++++----------
+ fs/configfs/file.c                              |  8 +--
+ fs/configfs/inode.c                             |  4 +-
+ fs/dax.c                                        |  6 +-
+ fs/dcache.c                                     |  4 +-
+ fs/debugfs/inode.c                              | 22 ++++----
+ fs/devpts/inode.c                               | 12 ++--
+ fs/direct-io.c                                  |  8 +--
+ fs/ecryptfs/inode.c                             | 32 +++++------
+ fs/ecryptfs/mmap.c                              |  4 +-
+ fs/efivarfs/file.c                              |  4 +-
+ fs/efivarfs/super.c                             |  4 +-
+ fs/exec.c                                       |  4 +-
+ fs/exofs/file.c                                 |  4 +-
+ fs/exportfs/expfs.c                             | 12 ++--
+ fs/ext2/ioctl.c                                 | 12 ++--
+ fs/ext4/ext4.h                                  |  2 +-
+ fs/ext4/extents.c                               | 20 +++----
+ fs/ext4/file.c                                  | 18 +++---
+ fs/ext4/inode.c                                 | 12 ++--
+ fs/ext4/ioctl.c                                 | 20 +++----
+ fs/ext4/namei.c                                 |  4 +-
+ fs/ext4/super.c                                 |  4 +-
+ fs/f2fs/data.c                                  |  4 +-
+ fs/f2fs/file.c                                  | 20 +++----
+ fs/fat/dir.c                                    |  4 +-
+ fs/fat/file.c                                   | 12 ++--
+ fs/fuse/dir.c                                   | 10 ++--
+ fs/fuse/file.c                                  | 36 ++++++------
+ fs/gfs2/file.c                                  |  4 +-
+ fs/gfs2/inode.c                                 |  4 +-
+ fs/gfs2/quota.c                                 |  8 +--
+ fs/hfs/dir.c                                    |  4 +-
+ fs/hfs/inode.c                                  |  8 +--
+ fs/hfsplus/dir.c                                |  4 +-
+ fs/hfsplus/inode.c                              |  8 +--
+ fs/hfsplus/ioctl.c                              |  4 +-
+ fs/hostfs/hostfs_kern.c                         |  4 +-
+ fs/hpfs/dir.c                                   |  6 +-
+ fs/hugetlbfs/inode.c                            | 12 ++--
+ fs/inode.c                                      |  8 +--
+ fs/ioctl.c                                      |  4 +-
+ fs/jffs2/file.c                                 |  4 +-
+ fs/jfs/file.c                                   |  6 +-
+ fs/jfs/ioctl.c                                  |  6 +-
+ fs/jfs/super.c                                  |  6 +-
+ fs/kernfs/dir.c                                 |  4 +-
+ fs/libfs.c                                      | 10 ++--
+ fs/locks.c                                      |  6 +-
+ fs/logfs/file.c                                 |  8 +--
+ fs/namei.c                                      | 74 ++++++++++++-------------
+ fs/namespace.c                                  | 10 ++--
+ fs/ncpfs/dir.c                                  |  8 +--
+ fs/ncpfs/file.c                                 |  4 +-
+ fs/nfs/dir.c                                    |  8 +--
+ fs/nfs/direct.c                                 | 12 ++--
+ fs/nfs/file.c                                   |  4 +-
+ fs/nfs/inode.c                                  |  8 +--
+ fs/nfs/nfs42proc.c                              |  8 +--
+ fs/nfs/nfs4file.c                               | 24 ++++----
+ fs/nfsd/nfs4proc.c                              |  4 +-
+ fs/nfsd/nfs4recover.c                           | 12 ++--
+ fs/nfsd/nfsfh.h                                 |  4 +-
+ fs/nfsd/vfs.c                                   |  4 +-
+ fs/nilfs2/inode.c                               |  4 +-
+ fs/nilfs2/ioctl.c                               |  4 +-
+ fs/ntfs/dir.c                                   |  4 +-
+ fs/ntfs/file.c                                  |  8 +--
+ fs/ntfs/quota.c                                 |  6 +-
+ fs/ntfs/super.c                                 | 12 ++--
+ fs/ocfs2/alloc.c                                | 32 +++++------
+ fs/ocfs2/aops.c                                 |  4 +-
+ fs/ocfs2/dir.c                                  |  4 +-
+ fs/ocfs2/file.c                                 | 12 ++--
+ fs/ocfs2/inode.c                                | 12 ++--
+ fs/ocfs2/ioctl.c                                | 12 ++--
+ fs/ocfs2/journal.c                              |  8 +--
+ fs/ocfs2/localalloc.c                           | 16 +++---
+ fs/ocfs2/move_extents.c                         | 16 +++---
+ fs/ocfs2/namei.c                                | 28 +++++-----
+ fs/ocfs2/quota_global.c                         |  4 +-
+ fs/ocfs2/refcounttree.c                         | 12 ++--
+ fs/ocfs2/resize.c                               |  8 +--
+ fs/ocfs2/suballoc.c                             | 12 ++--
+ fs/ocfs2/xattr.c                                | 14 ++---
+ fs/open.c                                       | 12 ++--
+ fs/overlayfs/copy_up.c                          |  4 +-
+ fs/overlayfs/dir.c                              | 12 ++--
+ fs/overlayfs/inode.c                            |  4 +-
+ fs/overlayfs/readdir.c                          | 20 +++----
+ fs/overlayfs/super.c                            | 14 ++---
+ fs/proc/kcore.c                                 |  4 +-
+ fs/proc/self.c                                  |  4 +-
+ fs/proc/thread_self.c                           |  4 +-
+ fs/pstore/inode.c                               |  6 +-
+ fs/quota/dquot.c                                | 20 +++----
+ fs/read_write.c                                 |  4 +-
+ fs/readdir.c                                    |  2 +-
+ fs/reiserfs/dir.c                               |  4 +-
+ fs/reiserfs/file.c                              |  4 +-
+ fs/reiserfs/ioctl.c                             |  2 +-
+ fs/reiserfs/xattr.c                             | 64 ++++++++++-----------
+ fs/tracefs/inode.c                              | 34 ++++++------
+ fs/ubifs/dir.c                                  | 18 +++---
+ fs/ubifs/file.c                                 |  4 +-
+ fs/ubifs/xattr.c                                |  4 +-
+ fs/udf/file.c                                   | 10 ++--
+ fs/udf/inode.c                                  |  2 +-
+ fs/utimes.c                                     |  4 +-
+ fs/xattr.c                                      |  8 +--
+ fs/xfs/xfs_file.c                               |  6 +-
+ fs/xfs/xfs_pnfs.c                               |  4 +-
+ include/linux/fs.h                              | 29 +++++++++-
+ ipc/mqueue.c                                    |  8 +--
+ kernel/audit_fsnotify.c                         |  2 +-
+ kernel/audit_watch.c                            |  2 +-
+ kernel/events/core.c                            |  4 +-
+ kernel/relay.c                                  |  4 +-
+ kernel/sched/core.c                             |  4 +-
+ mm/filemap.c                                    |  4 +-
+ mm/shmem.c                                      | 12 ++--
+ mm/swapfile.c                                   | 12 ++--
+ net/sunrpc/cache.c                              | 10 ++--
+ net/sunrpc/rpc_pipe.c                           | 60 ++++++++++----------
+ security/inode.c                                | 10 ++--
+ security/integrity/ima/ima_main.c               |  8 +--
+ security/selinux/selinuxfs.c                    |  4 +-
+ 177 files changed, 908 insertions(+), 883 deletions(-)
+```
+Add a new parameter to `vfs_rename`.
+
+```
+From 520c8b16505236fc82daa352e6c5e73cd9870cff Mon Sep 17 00:00:00 2001
+From: Miklos Szeredi <mszeredi@suse.cz>
+Date: Tue, 1 Apr 2014 17:08:42 +0200
+Subject: [PATCH] vfs: add renameat2 syscall
+
+Add new renameat2 syscall, which is the same as renameat with an added
+flags argument.
+
+Pass flags to vfs_rename() and to i_op->rename() as well.
+
+Signed-off-by: Miklos Szeredi <mszeredi@suse.cz>
+Reviewed-by: J. Bruce Fields <bfields@redhat.com>
+---
+ Documentation/filesystems/Locking                  |  6 +++-
+ Documentation/filesystems/vfs.txt                  | 16 ++++++++++
+ arch/x86/syscalls/syscall_64.tbl                   |  1 +
+ .../lustre/lustre/include/linux/lustre_compat25.h  |  4 +--
+ drivers/staging/lustre/lustre/lvfs/lvfs_linux.c    |  2 +-
+ fs/cachefiles/namei.c                              |  2 +-
+ fs/ecryptfs/inode.c                                |  2 +-
+ fs/namei.c                                         | 34 +++++++++++++++++-----
+ fs/nfsd/vfs.c                                      |  2 +-
+ include/linux/fs.h                                 |  4 ++-
+ 10 files changed, 58 insertions(+), 15 deletions(-)
+```
+Rename `inode_change_ok` to `setattr_prpare`.
+
+```
+From 31051c85b5e2aaaf6315f74c72a732673632a905 Mon Sep 17 00:00:00 2001
+From: Jan Kara <jack@suse.cz>
+Date: Thu, 26 May 2016 16:55:18 +0200
+Subject: [PATCH] fs: Give dentry to inode_change_ok() instead of inode
+
+inode_change_ok() will be resposible for clearing capabilities and IMA
+extended attributes and as such will need dentry. Give it as an argument
+to inode_change_ok() instead of an inode. Also rename inode_change_ok()
+to setattr_prepare() to better relect that it does also some
+modifications in addition to checks.
+
+Reviewed-by: Christoph Hellwig <hch@lst.de>
+Signed-off-by: Jan Kara <jack@suse.cz>
+---
+ Documentation/filesystems/porting               |  4 ++--
+ drivers/staging/lustre/lustre/llite/llite_lib.c |  2 +-
+ fs/9p/vfs_inode.c                               |  2 +-
+ fs/9p/vfs_inode_dotl.c                          |  2 +-
+ fs/adfs/inode.c                                 |  2 +-
+ fs/affs/inode.c                                 |  2 +-
+ fs/attr.c                                       | 15 +++++++++------
+ fs/btrfs/inode.c                                |  2 +-
+ fs/ceph/inode.c                                 |  2 +-
+ fs/cifs/inode.c                                 |  4 ++--
+ fs/ecryptfs/inode.c                             |  2 +-
+ fs/exofs/inode.c                                |  2 +-
+ fs/ext2/inode.c                                 |  2 +-
+ fs/ext4/inode.c                                 |  2 +-
+ fs/f2fs/file.c                                  |  2 +-
+ fs/fat/file.c                                   |  2 +-
+ fs/fuse/dir.c                                   |  2 +-
+ fs/gfs2/inode.c                                 |  2 +-
+ fs/hfs/inode.c                                  |  2 +-
+ fs/hfsplus/inode.c                              |  2 +-
+ fs/hostfs/hostfs_kern.c                         |  2 +-
+ fs/hpfs/inode.c                                 |  2 +-
+ fs/hugetlbfs/inode.c                            |  2 +-
+ fs/jffs2/fs.c                                   |  2 +-
+ fs/jfs/file.c                                   |  2 +-
+ fs/kernfs/inode.c                               |  2 +-
+ fs/libfs.c                                      |  2 +-
+ fs/logfs/file.c                                 |  2 +-
+ fs/minix/file.c                                 |  2 +-
+ fs/ncpfs/inode.c                                |  2 +-
+ fs/nfsd/nfsproc.c                               |  8 +++-----
+ fs/nilfs2/inode.c                               |  2 +-
+ fs/ntfs/inode.c                                 |  2 +-
+ fs/ocfs2/dlmfs/dlmfs.c                          |  2 +-
+ fs/ocfs2/file.c                                 |  2 +-
+ fs/omfs/file.c                                  |  2 +-
+ fs/orangefs/inode.c                             |  2 +-
+ fs/overlayfs/inode.c                            |  2 +-
+ fs/proc/base.c                                  |  2 +-
+ fs/proc/generic.c                               |  2 +-
+ fs/proc/proc_sysctl.c                           |  2 +-
+ fs/ramfs/file-nommu.c                           |  2 +-
+ fs/reiserfs/inode.c                             |  2 +-
+ fs/sysv/file.c                                  |  2 +-
+ fs/ubifs/file.c                                 |  2 +-
+ fs/udf/file.c                                   |  2 +-
+ fs/ufs/inode.c                                  |  2 +-
+ fs/utimes.c                                     |  4 ++--
+ fs/xfs/xfs_iops.c                               | 10 ++++------
+ include/linux/fs.h                              |  2 +-
+ mm/shmem.c                                      |  2 +-
+ 51 files changed, 67 insertions(+), 68 deletions(-)
+```
+
+String hash functions now taks an extra parameter.
+
+```
+From 8387ff2577eb9ed245df9a39947f66976c6bcd02 Mon Sep 17 00:00:00 2001
+From: Linus Torvalds <torvalds@linux-foundation.org>
+Date: Fri, 10 Jun 2016 07:51:30 -0700
+Subject: [PATCH] vfs: make the string hashes salt the hash
+
+We always mixed in the parent pointer into the dentry name hash, but we
+did it late at lookup time.  It turns out that we can simplify that
+lookup-time action by salting the hash with the parent pointer early
+instead of late.
+
+A few other users of our string hashes also wanted to mix in their own
+pointers into the hash, and those are updated to use the same mechanism.
+
+Hash users that don't have any particular initial salt can just use the
+NULL pointer as a no-salt.
+
+Cc: Vegard Nossum <vegard.nossum@oracle.com>
+Cc: George Spelvin <linux@sciencehorizons.net>
+Cc: Al Viro <viro@zeniv.linux.org.uk>
+Signed-off-by: Linus Torvalds <torvalds@linux-foundation.org>
+---
+ drivers/staging/lustre/lustre/llite/statahead.c |  8 +++--
+ fs/adfs/dir.c                                   |  2 +-
+ fs/affs/namei.c                                 |  8 ++---
+ fs/autofs4/waitq.c                              |  2 +-
+ fs/ceph/inode.c                                 |  4 +--
+ fs/ceph/mds_client.c                            |  2 +-
+ fs/cifs/dir.c                                   |  2 +-
+ fs/dcache.c                                     | 21 ++++++-------
+ fs/efivarfs/super.c                             |  4 +--
+ fs/fat/namei_msdos.c                            |  2 +-
+ fs/fat/namei_vfat.c                             |  4 +--
+ fs/fuse/dev.c                                   |  2 --
+ fs/fuse/dir.c                                   |  3 +-
+ fs/hfs/string.c                                 |  2 +-
+ fs/hfsplus/unicode.c                            |  2 +-
+ fs/hpfs/dentry.c                                |  2 +-
+ fs/isofs/inode.c                                | 14 ++++-----
+ fs/jffs2/dir.c                                  |  8 +++--
+ fs/jffs2/readinode.c                            |  2 +-
+ fs/jffs2/scan.c                                 |  2 +-
+ fs/jffs2/summary.c                              |  2 +-
+ fs/jffs2/write.c                                |  4 +--
+ fs/jfs/namei.c                                  |  2 +-
+ fs/kernfs/dir.c                                 |  4 +--
+ fs/namei.c                                      | 42 +++++++++++++++----------
+ fs/ncpfs/dir.c                                  |  2 +-
+ fs/nfs/dir.c                                    |  4 +--
+ fs/ntfs/namei.c                                 |  2 +-
+ fs/ocfs2/dlm/dlmcommon.h                        |  2 +-
+ fs/proc/proc_sysctl.c                           |  2 +-
+ fs/sysv/namei.c                                 |  2 +-
+ include/linux/stringhash.h                      |  6 ++--
+ include/linux/sunrpc/svcauth.h                  |  4 +--
+ lib/test_hash.c                                 |  4 +--
+ net/core/dev.c                                  |  2 +-
+ security/smack/smack_access.c                   |  4 +--
+ security/tomoyo/memory.c                        |  2 +-
+ security/tomoyo/util.c                          |  2 +-
+ 38 files changed, 99 insertions(+), 89 deletions(-)
+```
+Dentry_operations->d_compare no longer needs the `parent` argument.
+
+```
+From 6fa67e707559303e086303aeecc9e8b91ef497d5 Mon Sep 17 00:00:00 2001
+From: Al Viro <viro@zeniv.linux.org.uk>
+Date: Sun, 31 Jul 2016 16:37:25 -0400
+Subject: [PATCH] get rid of 'parent' argument of ->d_compare()
+
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking            |  2 +-
+ Documentation/filesystems/porting            |  7 +++++++
+ Documentation/filesystems/vfs.txt            |  2 +-
+ drivers/staging/lustre/lustre/llite/dcache.c |  2 +-
+ fs/adfs/dir.c                                |  2 +-
+ fs/affs/namei.c                              |  8 ++++----
+ fs/cifs/dir.c                                |  2 +-
+ fs/dcache.c                                  |  4 ++--
+ fs/efivarfs/super.c                          |  3 +--
+ fs/fat/namei_msdos.c                         |  2 +-
+ fs/fat/namei_vfat.c                          |  4 ++--
+ fs/hfs/hfs_fs.h                              |  2 +-
+ fs/hfs/string.c                              |  2 +-
+ fs/hfsplus/hfsplus_fs.h                      |  3 +--
+ fs/hfsplus/unicode.c                         |  2 +-
+ fs/hpfs/dentry.c                             |  2 +-
+ fs/isofs/inode.c                             | 15 ++++++---------
+ fs/isofs/namei.c                             |  2 +-
+ fs/jfs/namei.c                               |  2 +-
+ fs/ncpfs/dir.c                               |  6 +++---
+ fs/proc/proc_sysctl.c                        |  2 +-
+ include/linux/dcache.h                       |  2 +-
+ 22 files changed, 40 insertions(+), 38 deletions(-)
+```
+

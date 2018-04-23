@@ -1,0 +1,223 @@
+diff --git a/fs/sdcardfs/dentry.c b/fs/sdcardfs/dentry.c
+index 13da7e5245bd..e9426a61d04a 100644
+--- a/fs/sdcardfs/dentry.c
++++ b/fs/sdcardfs/dentry.c
+@@ -154,7 +154,7 @@ static int sdcardfs_hash_ci(const struct dentry *dentry,
+ 	name = qstr->name;
+ 	len = qstr->len;
+ 
+-	hash = init_name_hash();
++	hash = init_name_hash(dentry);
+ 	while (len--)
+ 		hash = partial_name_hash(tolower(*name++), hash);
+ 	qstr->hash = end_name_hash(hash);
+@@ -165,8 +165,7 @@ static int sdcardfs_hash_ci(const struct dentry *dentry,
+ /*
+  * Case insensitive compare of two vfat names.
+  */
+-static int sdcardfs_cmp_ci(const struct dentry *parent,
+-		const struct dentry *dentry,
++static int sdcardfs_cmp_ci(const struct dentry *dentry,
+ 		unsigned int len, const char *str, const struct qstr *name)
+ {
+ 	/* FIXME Should we support national language? */
+diff --git a/fs/sdcardfs/derived_perm.c b/fs/sdcardfs/derived_perm.c
+index 85126ec6533c..0b3b22334e54 100644
+--- a/fs/sdcardfs/derived_perm.c
++++ b/fs/sdcardfs/derived_perm.c
+@@ -246,11 +246,11 @@ void fixup_lower_ownership(struct dentry *dentry, const char *name)
+ 		if (!S_ISDIR(inode->i_mode))
+ 			newattrs.ia_valid |=
+ 				ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		error = security_path_chown(&path, newattrs.ia_uid, newattrs.ia_gid);
+ 		if (!error)
+ 			error = notify_change2(path.mnt, path.dentry, &newattrs, &delegated_inode);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		if (delegated_inode) {
+ 			error = break_deleg_wait(&delegated_inode);
+ 			if (!error)
+diff --git a/fs/sdcardfs/inode.c b/fs/sdcardfs/inode.c
+index 2a4520a63993..9cdb396d9d37 100644
+--- a/fs/sdcardfs/inode.c
++++ b/fs/sdcardfs/inode.c
+@@ -466,7 +466,8 @@ static int sdcardfs_mknod(struct inode *dir, struct dentry *dentry, umode_t mode
+  * superblock-level name-space lock for renames and copy-ups.
+  */
+ static int sdcardfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+-			 struct inode *new_dir, struct dentry *new_dentry)
++			 struct inode *new_dir, struct dentry *new_dentry,
++			 unsigned int flags)
+ {
+ 	int err = 0;
+ 	struct dentry *lower_old_dentry = NULL;
+@@ -478,6 +479,9 @@ static int sdcardfs_rename(struct inode *old_dir, struct dentry *old_dentry,
+ 	struct path lower_old_path, lower_new_path;
+ 	const struct cred *saved_cred = NULL;
+ 
++	if (flags)
++		return -EINVAL;
++
+ 	if (!check_caller_access_to_name(old_dir, &old_dentry->d_name) ||
+ 		!check_caller_access_to_name(new_dir, &new_dentry->d_name)) {
+ 		err = -EACCES;
+@@ -697,7 +701,9 @@ static int sdcardfs_setattr(struct vfsmount *mnt, struct dentry *dentry, struct
+ 	struct iattr lower_ia;
+ 	struct dentry *parent;
+ 	struct inode tmp;
++	struct dentry tmp_d;
+ 	struct sdcardfs_inode_data *top;
++
+ 	const struct cred *saved_cred = NULL;
+ 
+ 	inode = d_inode(dentry);
+@@ -726,9 +732,10 @@ static int sdcardfs_setattr(struct vfsmount *mnt, struct dentry *dentry, struct
+ 	tmp.i_size = i_size_read(inode);
+ 	data_put(top);
+ 	tmp.i_sb = inode->i_sb;
++	tmp_d.d_inode = &tmp;
+ 
+ 	/*
+-	 * Check if user has permission to change inode.  We don't check if
++	 * Check if user has permission to change dentry.  We don't check if
+ 	 * this user can change the lower inode: that should happen when
+ 	 * calling notify_change on the lower inode.
+ 	 */
+@@ -738,7 +745,7 @@ static int sdcardfs_setattr(struct vfsmount *mnt, struct dentry *dentry, struct
+ 	 * we have write access. Changes to mode, owner, and group are ignored
+ 	 */
+ 	ia->ia_valid |= ATTR_FORCE;
+-	err = inode_change_ok(&tmp, ia);
++	err = setattr_prepare(&tmp_d, ia);
+ 
+ 	if (!err) {
+ 		/* check the Android group ID */
+@@ -793,10 +800,10 @@ static int sdcardfs_setattr(struct vfsmount *mnt, struct dentry *dentry, struct
+ 	 * unlinked (no inode->i_sb and i_ino==0.  This happens if someone
+ 	 * tries to open(), unlink(), then ftruncate() a file.
+ 	 */
+-	mutex_lock(&d_inode(lower_dentry)->i_mutex);
++	inode_lock(d_inode(lower_dentry));
+ 	err = notify_change2(lower_mnt, lower_dentry, &lower_ia, /* note: lower_ia */
+ 			NULL);
+-	mutex_unlock(&d_inode(lower_dentry)->i_mutex);
++	inode_unlock(d_inode(lower_dentry));
+ 	if (err)
+ 		goto out;
+ 
+diff --git a/fs/sdcardfs/lookup.c b/fs/sdcardfs/lookup.c
+index 676e394e07be..843fcd216116 100644
+--- a/fs/sdcardfs/lookup.c
++++ b/fs/sdcardfs/lookup.c
+@@ -407,7 +407,7 @@ static struct dentry *__sdcardfs_lookup(struct dentry *dentry,
+  * On fail (== error)
+  * returns error ptr
+  *
+- * @dir : Parent inode. It is locked (dir->i_mutex)
++ * @dir : Parent inode.
+  * @dentry : Target dentry to lookup. we should set each of fields.
+  *	     (dentry->d_name is initialized already)
+  * @nd : nameidata of parent inode
+diff --git a/fs/sdcardfs/mmap.c b/fs/sdcardfs/mmap.c
+index b61f82275e7d..391d2a7d10e9 100644
+--- a/fs/sdcardfs/mmap.c
++++ b/fs/sdcardfs/mmap.c
+@@ -66,8 +66,7 @@ static int sdcardfs_page_mkwrite(struct vm_area_struct *vma,
+ 	return err;
+ }
+ 
+-static ssize_t sdcardfs_direct_IO(struct kiocb *iocb,
+-		struct iov_iter *iter, loff_t pos)
++static ssize_t sdcardfs_direct_IO(struct kiocb *iocb, struct iov_iter *iter)
+ {
+ 	/*
+ 	 * This function should never be called directly.  We need it
+diff --git a/fs/sdcardfs/packagelist.c b/fs/sdcardfs/packagelist.c
+index 947388294a07..4b9a5635f1e0 100644
+--- a/fs/sdcardfs/packagelist.c
++++ b/fs/sdcardfs/packagelist.c
+@@ -45,9 +45,9 @@ static DEFINE_HASHTABLE(ext_to_groupid, 8);
+ 
+ static struct kmem_cache *hashtable_entry_cachep;
+ 
+-static unsigned int full_name_case_hash(const unsigned char *name, unsigned int len)
++static unsigned int full_name_case_hash(const void *salt, const unsigned char *name, unsigned int len)
+ {
+-	unsigned long hash = init_name_hash();
++	unsigned long hash = init_name_hash(salt);
+ 
+ 	while (len--)
+ 		hash = partial_name_hash(tolower(*name++), hash);
+@@ -58,7 +58,7 @@ static inline void qstr_init(struct qstr *q, const char *name)
+ {
+ 	q->name = name;
+ 	q->len = strlen(q->name);
+-	q->hash = full_name_case_hash(q->name, q->len);
++	q->hash = full_name_case_hash(0, q->name, q->len);
+ }
+ 
+ static inline int qstr_copy(const struct qstr *src, struct qstr *dest)
+@@ -832,7 +832,6 @@ static struct configfs_subsystem sdcardfs_packages = {
+ 			.ci_namebuf = "sdcardfs",
+ 			.ci_type = &packages_type,
+ 		},
+-		.default_groups = sd_default_groups,
+ 	},
+ };
+ 
+@@ -841,9 +840,11 @@ static int configfs_sdcardfs_init(void)
+ 	int ret, i;
+ 	struct configfs_subsystem *subsys = &sdcardfs_packages;
+ 
+-	for (i = 0; sd_default_groups[i]; i++)
+-		config_group_init(sd_default_groups[i]);
+ 	config_group_init(&subsys->su_group);
++	for (i = 0; sd_default_groups[i]; i++) {
++		config_group_init(sd_default_groups[i]);
++		configfs_add_default_group(sd_default_groups[i], &subsys->su_group);
++	}
+ 	mutex_init(&subsys->su_mutex);
+ 	ret = configfs_register_subsystem(subsys);
+ 	if (ret) {
+diff --git a/fs/sdcardfs/sdcardfs.h b/fs/sdcardfs/sdcardfs.h
+index 055e413509e4..826afb5c7e88 100644
+--- a/fs/sdcardfs/sdcardfs.h
++++ b/fs/sdcardfs/sdcardfs.h
+@@ -544,13 +544,13 @@ static inline struct dentry *lock_parent(struct dentry *dentry)
+ {
+ 	struct dentry *dir = dget_parent(dentry);
+ 
+-	mutex_lock_nested(&d_inode(dir)->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(d_inode(dir), I_MUTEX_PARENT);
+ 	return dir;
+ }
+ 
+ static inline void unlock_dir(struct dentry *dir)
+ {
+-	mutex_unlock(&d_inode(dir)->i_mutex);
++	inode_unlock(d_inode(dir));
+ 	dput(dir);
+ }
+ 
+@@ -579,16 +579,16 @@ static inline int prepare_dir(const char *path_s, uid_t uid, gid_t gid, mode_t m
+ 	attrs.ia_uid = make_kuid(&init_user_ns, uid);
+ 	attrs.ia_gid = make_kgid(&init_user_ns, gid);
+ 	attrs.ia_valid = ATTR_UID | ATTR_GID;
+-	mutex_lock(&d_inode(dent)->i_mutex);
++	inode_lock(d_inode(dent));
+ 	notify_change2(parent.mnt, dent, &attrs, NULL);
+-	mutex_unlock(&d_inode(dent)->i_mutex);
++	inode_unlock(d_inode(dent));
+ 
+ out_dput:
+ 	dput(dent);
+ 
+ out_unlock:
+ 	/* parent dentry locked by lookup_create */
+-	mutex_unlock(&d_inode(parent.dentry)->i_mutex);
++	inode_unlock(d_inode(parent.dentry));
+ 	path_put(&parent);
+ 	return err;
+ }
