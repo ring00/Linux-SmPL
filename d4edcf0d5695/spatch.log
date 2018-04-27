@@ -1,0 +1,53 @@
+diff -u -p a/aio.c b/aio.c
+--- a/aio.c
++++ b/aio.c
+@@ -146,9 +146,8 @@ static int aio_setup_ring(struct kioctx
+ 	}
+ 
+ 	dprintk("mmap address: 0x%08lx\n", info->mmap_base);
+-	info->nr_pages = get_user_pages(current, ctx->mm,
+-					info->mmap_base, nr_pages, 
+-					1, 0, info->ring_pages, NULL);
++	info->nr_pages = get_user_pages(info->mmap_base, nr_pages, 1, 0,
++					info->ring_pages, NULL);
+ 	up_write(&ctx->mm->mmap_sem);
+ 
+ 	if (unlikely(info->nr_pages != nr_pages)) {
+diff -u -p a/nfs/direct.c b/nfs/direct.c
+--- a/nfs/direct.c
++++ b/nfs/direct.c
+@@ -316,8 +316,8 @@ static ssize_t nfs_direct_read_schedule_
+ 			break;
+ 
+ 		down_read(&current->mm->mmap_sem);
+-		result = get_user_pages(current, current->mm, user_addr,
+-					data->npages, 1, 0, data->pagevec, NULL);
++		result = get_user_pages(user_addr, data->npages, 1, 0,
++					data->pagevec, NULL);
+ 		up_read(&current->mm->mmap_sem);
+ 		if (result < 0) {
+ 			nfs_readdata_free(data);
+@@ -747,8 +747,8 @@ static ssize_t nfs_direct_write_schedule
+ 			break;
+ 
+ 		down_read(&current->mm->mmap_sem);
+-		result = get_user_pages(current, current->mm, user_addr,
+-					data->npages, 0, 0, data->pagevec, NULL);
++		result = get_user_pages(user_addr, data->npages, 0, 0,
++					data->pagevec, NULL);
+ 		up_read(&current->mm->mmap_sem);
+ 		if (result < 0) {
+ 			nfs_writedata_free(data);
+diff -u -p a/exec.c b/exec.c
+--- a/exec.c
++++ b/exec.c
+@@ -204,8 +204,7 @@ static struct page *get_arg_page(struct
+ 			return NULL;
+ 	}
+ #endif
+-	ret = get_user_pages(current, bprm->mm, pos,
+-			1, write, 1, &page, NULL);
++	ret = get_user_pages(pos, 1, write, 1, &page, NULL);
+ 	if (ret <= 0)
+ 		return NULL;
+ 

@@ -1,0 +1,13 @@
+diff --git a/fs/debugfs/inode.c b/fs/debugfs/inode.c
+index e7a7a2f07324..aab32417deb7 100644
+--- a/fs/debugfs/inode.c
++++ b/fs/debugfs/inode.c
+@@ -311,7 +311,7 @@ static int __debugfs_remove(struct dentry *dentry, struct dentry *parent)
+ {
+ 	int ret = 0;
+ 
+-	if (debugfs_positive(dentry)) {
++	if (simple_positive(dentry)) {
+ 		if (dentry->d_inode) {
+ 			dget(dentry);
+ 			switch (dentry->d_inode->i_mode & S_IFMT) {

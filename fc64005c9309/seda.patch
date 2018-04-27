@@ -1,0 +1,316 @@
+diff --git a/fs/9p/vfs_inode.c b/fs/9p/vfs_inode.c
+index 7f6c67703195..a50815cc5a53 100644
+--- a/fs/9p/vfs_inode.c
++++ b/fs/9p/vfs_inode.c
+@@ -949,7 +949,7 @@ v9fs_vfs_getattr(struct vfsmount *mnt, struct dentry *dentry,
+ 	if (IS_ERR(st))
+ 		return PTR_ERR(st);
+ 
+-	v9fs_stat2inode(st, dentry->d_inode, dentry->d_inode->i_sb);
++	v9fs_stat2inode(st, dentry->d_inode, dentry->d_sb);
+ 		generic_fillattr(dentry->d_inode, stat);
+ 
+ 	p9stat_free(st);
+diff --git a/fs/btrfs/tree-log.c b/fs/btrfs/tree-log.c
+index 4ce8a9f41d1e..8b3801573846 100644
+--- a/fs/btrfs/tree-log.c
++++ b/fs/btrfs/tree-log.c
+@@ -2941,7 +2941,7 @@ static noinline int check_parent_dirs_for_sync(struct btrfs_trans_handle *trans,
+ 			goto out;
+ 
+ 	if (!S_ISDIR(inode->i_mode)) {
+-		if (!parent || !parent->d_inode || sb != parent->d_inode->i_sb)
++		if (!parent || !parent->d_inode || sb != parent->d_sb)
+ 			goto out;
+ 		inode = parent->d_inode;
+ 	}
+@@ -2963,7 +2963,7 @@ static noinline int check_parent_dirs_for_sync(struct btrfs_trans_handle *trans,
+ 			break;
+ 		}
+ 
+-		if (!parent || !parent->d_inode || sb != parent->d_inode->i_sb)
++		if (!parent || !parent->d_inode || sb != parent->d_sb)
+ 			break;
+ 
+ 		if (IS_ROOT(parent))
+@@ -3063,7 +3063,7 @@ int btrfs_log_inode_parent(struct btrfs_trans_handle *trans,
+ 
+ 	inode_only = LOG_INODE_EXISTS;
+ 	while (1) {
+-		if (!parent || !parent->d_inode || sb != parent->d_inode->i_sb)
++		if (!parent || !parent->d_inode || sb != parent->d_sb)
+ 			break;
+ 
+ 		inode = parent->d_inode;
+diff --git a/fs/cifs/cifs_dfs_ref.c b/fs/cifs/cifs_dfs_ref.c
+index 8d8f28c94c0f..2d4f55b95ca4 100644
+--- a/fs/cifs/cifs_dfs_ref.c
++++ b/fs/cifs/cifs_dfs_ref.c
+@@ -293,7 +293,7 @@ static struct vfsmount *cifs_dfs_do_automount(struct dentry *mntpt)
+ 	if (full_path == NULL)
+ 		goto cdda_exit;
+ 
+-	cifs_sb = CIFS_SB(mntpt->d_inode->i_sb);
++	cifs_sb = CIFS_SB(mntpt->d_sb);
+ 	tlink = cifs_sb_tlink(cifs_sb);
+ 	if (IS_ERR(tlink)) {
+ 		mnt = ERR_CAST(tlink);
+diff --git a/fs/cifs/readdir.c b/fs/cifs/readdir.c
+index 6751e745bbc6..fb44190c3194 100644
+--- a/fs/cifs/readdir.c
++++ b/fs/cifs/readdir.c
+@@ -74,7 +74,7 @@ cifs_readdir_lookup(struct dentry *parent, struct qstr *name,
+ {
+ 	struct dentry *dentry, *alias;
+ 	struct inode *inode;
+-	struct super_block *sb = parent->d_inode->i_sb;
++	struct super_block *sb = parent->d_sb;
+ 
+ 	cFYI(1, "For %s", name->name);
+ 
+diff --git a/fs/cifs/xattr.c b/fs/cifs/xattr.c
+index 2a22fb2989e4..ee056000e205 100644
+--- a/fs/cifs/xattr.c
++++ b/fs/cifs/xattr.c
+@@ -57,7 +57,7 @@ int cifs_removexattr(struct dentry *direntry, const char *ea_name)
+ 		return -EIO;
+ 	if (direntry->d_inode == NULL)
+ 		return -EIO;
+-	sb = direntry->d_inode->i_sb;
++	sb = direntry->d_sb;
+ 	if (sb == NULL)
+ 		return -EIO;
+ 
+@@ -118,7 +118,7 @@ int cifs_setxattr(struct dentry *direntry, const char *ea_name,
+ 		return -EIO;
+ 	if (direntry->d_inode == NULL)
+ 		return -EIO;
+-	sb = direntry->d_inode->i_sb;
++	sb = direntry->d_sb;
+ 	if (sb == NULL)
+ 		return -EIO;
+ 
+@@ -248,7 +248,7 @@ ssize_t cifs_getxattr(struct dentry *direntry, const char *ea_name,
+ 		return -EIO;
+ 	if (direntry->d_inode == NULL)
+ 		return -EIO;
+-	sb = direntry->d_inode->i_sb;
++	sb = direntry->d_sb;
+ 	if (sb == NULL)
+ 		return -EIO;
+ 
+@@ -380,7 +380,7 @@ ssize_t cifs_listxattr(struct dentry *direntry, char *data, size_t buf_size)
+ 		return -EIO;
+ 	if (direntry->d_inode == NULL)
+ 		return -EIO;
+-	sb = direntry->d_inode->i_sb;
++	sb = direntry->d_sb;
+ 	if (sb == NULL)
+ 		return -EIO;
+ 
+diff --git a/fs/efs/namei.c b/fs/efs/namei.c
+index 1511bf9e5f80..0bfc1201330a 100644
+--- a/fs/efs/namei.c
++++ b/fs/efs/namei.c
+@@ -112,7 +112,7 @@ struct dentry *efs_get_parent(struct dentry *child)
+ 
+ 	ino = efs_find_entry(child->d_inode, "..", 2);
+ 	if (ino)
+-		parent = d_obtain_alias(efs_iget(child->d_inode->i_sb, ino));
++		parent = d_obtain_alias(efs_iget(child->d_sb, ino));
+ 
+ 	return parent;
+ }
+diff --git a/fs/exofs/super.c b/fs/exofs/super.c
+index c57beddcc217..c7a7fd5d341e 100644
+--- a/fs/exofs/super.c
++++ b/fs/exofs/super.c
+@@ -915,7 +915,7 @@ struct dentry *exofs_get_parent(struct dentry *child)
+ 	if (!ino)
+ 		return ERR_PTR(-ESTALE);
+ 
+-	return d_obtain_alias(exofs_iget(child->d_inode->i_sb, ino));
++	return d_obtain_alias(exofs_iget(child->d_sb, ino));
+ }
+ 
+ static struct inode *exofs_nfs_get_inode(struct super_block *sb,
+diff --git a/fs/ext2/namei.c b/fs/ext2/namei.c
+index ed5c5d496ee9..2b92d0057f49 100644
+--- a/fs/ext2/namei.c
++++ b/fs/ext2/namei.c
+@@ -87,7 +87,7 @@ struct dentry *ext2_get_parent(struct dentry *child)
+ 	unsigned long ino = ext2_inode_by_name(child->d_inode, &dotdot);
+ 	if (!ino)
+ 		return ERR_PTR(-ENOENT);
+-	return d_obtain_alias(ext2_iget(child->d_inode->i_sb, ino));
++	return d_obtain_alias(ext2_iget(child->d_sb, ino));
+ } 
+ 
+ /*
+diff --git a/fs/ext3/namei.c b/fs/ext3/namei.c
+index 34b6d9bfc48a..b1b78822a3c6 100644
+--- a/fs/ext3/namei.c
++++ b/fs/ext3/namei.c
+@@ -1066,13 +1066,13 @@ struct dentry *ext3_get_parent(struct dentry *child)
+ 	ino = le32_to_cpu(de->inode);
+ 	brelse(bh);
+ 
+-	if (!ext3_valid_inum(child->d_inode->i_sb, ino)) {
+-		ext3_error(child->d_inode->i_sb, "ext3_get_parent",
++	if (!ext3_valid_inum(child->d_sb, ino)) {
++		ext3_error(child->d_sb, "ext3_get_parent",
+ 			   "bad inode number: %lu", ino);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+-	return d_obtain_alias(ext3_iget(child->d_inode->i_sb, ino));
++	return d_obtain_alias(ext3_iget(child->d_sb, ino));
+ }
+ 
+ #define S_SHIFT 12
+diff --git a/fs/ext4/namei.c b/fs/ext4/namei.c
+index b754b7721f51..df983bd162b4 100644
+--- a/fs/ext4/namei.c
++++ b/fs/ext4/namei.c
+@@ -1068,13 +1068,13 @@ struct dentry *ext4_get_parent(struct dentry *child)
+ 	ino = le32_to_cpu(de->inode);
+ 	brelse(bh);
+ 
+-	if (!ext4_valid_inum(child->d_inode->i_sb, ino)) {
++	if (!ext4_valid_inum(child->d_sb, ino)) {
+ 		EXT4_ERROR_INODE(child->d_inode,
+ 				 "bad parent inode number: %u", ino);
+ 		return ERR_PTR(-EIO);
+ 	}
+ 
+-	return d_obtain_alias(ext4_iget(child->d_inode->i_sb, ino));
++	return d_obtain_alias(ext4_iget(child->d_sb, ino));
+ }
+ 
+ #define S_SHIFT 12
+diff --git a/fs/gfs2/super.c b/fs/gfs2/super.c
+index fb0edf735483..5086b53104bf 100644
+--- a/fs/gfs2/super.c
++++ b/fs/gfs2/super.c
+@@ -1119,7 +1119,7 @@ static int gfs2_statfs_i(struct gfs2_sbd *sdp, struct gfs2_statfs_change_host *s
+ 
+ static int gfs2_statfs(struct dentry *dentry, struct kstatfs *buf)
+ {
+-	struct super_block *sb = dentry->d_inode->i_sb;
++	struct super_block *sb = dentry->d_sb;
+ 	struct gfs2_sbd *sdp = sb->s_fs_info;
+ 	struct gfs2_statfs_change_host sc;
+ 	int error;
+diff --git a/fs/jffs2/dir.c b/fs/jffs2/dir.c
+index 4bca6a2e5c07..04f61b87fbed 100644
+--- a/fs/jffs2/dir.c
++++ b/fs/jffs2/dir.c
+@@ -257,7 +257,7 @@ static int jffs2_unlink(struct inode *dir_i, struct dentry *dentry)
+ 
+ static int jffs2_link (struct dentry *old_dentry, struct inode *dir_i, struct dentry *dentry)
+ {
+-	struct jffs2_sb_info *c = JFFS2_SB_INFO(old_dentry->d_inode->i_sb);
++	struct jffs2_sb_info *c = JFFS2_SB_INFO(old_dentry->d_sb);
+ 	struct jffs2_inode_info *f = JFFS2_INODE_INFO(old_dentry->d_inode);
+ 	struct jffs2_inode_info *dir_f = JFFS2_INODE_INFO(dir_i);
+ 	int ret;
+diff --git a/fs/jffs2/super.c b/fs/jffs2/super.c
+index 853b8e300084..d04fac3117c7 100644
+--- a/fs/jffs2/super.c
++++ b/fs/jffs2/super.c
+@@ -124,7 +124,7 @@ static struct dentry *jffs2_get_parent(struct dentry *child)
+ 	JFFS2_DEBUG("Parent of directory ino #%u is #%u\n",
+ 		    f->inocache->ino, pino);
+ 
+-	return d_obtain_alias(jffs2_iget(child->d_inode->i_sb, pino));
++	return d_obtain_alias(jffs2_iget(child->d_sb, pino));
+ }
+ 
+ static const struct export_operations jffs2_export_ops = {
+diff --git a/fs/jfs/namei.c b/fs/jfs/namei.c
+index eaaf2b511e89..c687792768cc 100644
+--- a/fs/jfs/namei.c
++++ b/fs/jfs/namei.c
+@@ -1529,7 +1529,7 @@ struct dentry *jfs_get_parent(struct dentry *dentry)
+ 	parent_ino =
+ 		le32_to_cpu(JFS_IP(dentry->d_inode)->i_dtroot.header.idotdot);
+ 
+-	return d_obtain_alias(jfs_iget(dentry->d_inode->i_sb, parent_ino));
++	return d_obtain_alias(jfs_iget(dentry->d_sb, parent_ino));
+ }
+ 
+ const struct inode_operations jfs_dir_inode_operations = {
+diff --git a/fs/namei.c b/fs/namei.c
+index 14ab8d3f2f0c..8ea6c4acc3b3 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1884,7 +1884,7 @@ struct dentry *lock_rename(struct dentry *p1, struct dentry *p2)
+ 		return NULL;
+ 	}
+ 
+-	mutex_lock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
++	mutex_lock(&p1->d_sb->s_vfs_rename_mutex);
+ 
+ 	p = d_ancestor(p2, p1);
+ 	if (p) {
+@@ -1910,7 +1910,7 @@ void unlock_rename(struct dentry *p1, struct dentry *p2)
+ 	mutex_unlock(&p1->d_inode->i_mutex);
+ 	if (p1 != p2) {
+ 		mutex_unlock(&p2->d_inode->i_mutex);
+-		mutex_unlock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
++		mutex_unlock(&p1->d_sb->s_vfs_rename_mutex);
+ 	}
+ }
+ 
+diff --git a/fs/nilfs2/namei.c b/fs/nilfs2/namei.c
+index 546849b3e88f..87c45250f876 100644
+--- a/fs/nilfs2/namei.c
++++ b/fs/nilfs2/namei.c
+@@ -466,7 +466,7 @@ static struct dentry *nilfs_get_parent(struct dentry *child)
+ 
+ 	root = NILFS_I(child->d_inode)->i_root;
+ 
+-	inode = nilfs_iget(child->d_inode->i_sb, root, ino);
++	inode = nilfs_iget(child->d_sb, root, ino);
+ 	if (IS_ERR(inode))
+ 		return ERR_CAST(inode);
+ 
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index b1e35a392ca5..08cd250878ab 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -1259,7 +1259,7 @@ int ocfs2_getattr(struct vfsmount *mnt,
+ 		  struct kstat *stat)
+ {
+ 	struct inode *inode = dentry->d_inode;
+-	struct super_block *sb = dentry->d_inode->i_sb;
++	struct super_block *sb = dentry->d_sb;
+ 	struct ocfs2_super *osb = sb->s_fs_info;
+ 	int err;
+ 
+diff --git a/fs/udf/namei.c b/fs/udf/namei.c
+index f1dce848ef96..3daf5d5f4d24 100644
+--- a/fs/udf/namei.c
++++ b/fs/udf/namei.c
+@@ -1222,7 +1222,7 @@ static struct dentry *udf_get_parent(struct dentry *child)
+ 	brelse(fibh.sbh);
+ 
+ 	tloc = lelb_to_cpu(cfi.icb.extLocation);
+-	inode = udf_iget(child->d_inode->i_sb, &tloc);
++	inode = udf_iget(child->d_sb, &tloc);
+ 	if (!inode)
+ 		goto out_unlock;
+ 
+diff --git a/fs/ufs/super.c b/fs/ufs/super.c
+index 3915ade6f9a8..a81d0b924e58 100644
+--- a/fs/ufs/super.c
++++ b/fs/ufs/super.c
+@@ -156,7 +156,7 @@ static struct dentry *ufs_get_parent(struct dentry *child)
+ 	ino = ufs_inode_by_name(child->d_inode, &dot_dot);
+ 	if (!ino)
+ 		return ERR_PTR(-ENOENT);
+-	return d_obtain_alias(ufs_iget(child->d_inode->i_sb, ino));
++	return d_obtain_alias(ufs_iget(child->d_sb, ino));
+ }
+ 
+ static const struct export_operations ufs_export_ops = {

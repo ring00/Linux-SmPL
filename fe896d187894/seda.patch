@@ -1,0 +1,13 @@
+diff --git a/fs/nilfs2/page.c b/fs/nilfs2/page.c
+index 65221a04c6f0..50d598df425b 100644
+--- a/fs/nilfs2/page.c
++++ b/fs/nilfs2/page.c
+@@ -181,7 +181,7 @@ void nilfs_page_bug(struct page *page)
+ 
+ 	printk(KERN_CRIT "NILFS_PAGE_BUG(%p): cnt=%d index#=%llu flags=0x%lx "
+ 	       "mapping=%p ino=%lu\n",
+-	       page, atomic_read(&page->_count),
++	       page, page_ref_count(page),
+ 	       (unsigned long long)page->index, page->flags, m, ino);
+ 
+ 	if (page_has_buffers(page)) {

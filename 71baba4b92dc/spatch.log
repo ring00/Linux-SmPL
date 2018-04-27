@@ -1,0 +1,114 @@
+diff -u -p a/bio.c b/bio.c
+--- a/bio.c
++++ b/bio.c
+@@ -207,7 +207,7 @@ fallback:
+ 		bvl = mempool_alloc(bs->bvec_pool, gfp_mask);
+ 	} else {
+ 		struct biovec_slab *bvs = bvec_slabs + *idx;
+-		gfp_t __gfp_mask = gfp_mask & ~(__GFP_WAIT | __GFP_IO);
++		gfp_t __gfp_mask = gfp_mask & ~(__GFP_RECLAIM | __GFP_IO);
+ 
+ 		/*
+ 		 * Make this allocation restricted and don't dump info on
+@@ -221,7 +221,7 @@ fallback:
+ 		 * is set, retry with the 1-entry mempool
+ 		 */
+ 		bvl = kmem_cache_alloc(bvs->slab, __gfp_mask);
+-		if (unlikely(!bvl && (gfp_mask & __GFP_WAIT))) {
++		if (unlikely(!bvl && (gfp_mask & __GFP_RECLAIM))) {
+ 			*idx = BIOVEC_MAX_IDX;
+ 			goto fallback;
+ 		}
+diff -u -p a/ext3/super.c b/ext3/super.c
+--- a/ext3/super.c
++++ b/ext3/super.c
+@@ -741,7 +741,7 @@ static int bdev_try_to_free_page(struct
+ 		return 0;
+ 	if (journal)
+ 		return journal_try_to_free_buffers(journal, page, 
+-						   wait & ~__GFP_WAIT);
++						   wait & ~__GFP_RECLAIM);
+ 	return try_to_free_buffers(page);
+ }
+ 
+diff -u -p a/ext4/super.c b/ext4/super.c
+--- a/ext4/super.c
++++ b/ext4/super.c
+@@ -1183,7 +1183,7 @@ static int bdev_try_to_free_page(struct
+ 		return 0;
+ 	if (journal)
+ 		return jbd2_journal_try_to_free_buffers(journal, page,
+-							wait & ~__GFP_WAIT);
++							wait & ~__GFP_RECLAIM);
+ 	return try_to_free_buffers(page);
+ }
+ 
+diff -u -p a/fscache/cookie.c b/fscache/cookie.c
+--- a/fscache/cookie.c
++++ b/fscache/cookie.c
+@@ -105,7 +105,7 @@ struct fscache_cookie *__fscache_acquire
+ 
+ 	/* radix tree insertion won't use the preallocation pool unless it's
+ 	 * told it may not wait */
+-	INIT_RADIX_TREE(&cookie->stores, GFP_NOFS & ~__GFP_WAIT);
++	INIT_RADIX_TREE(&cookie->stores, GFP_NOFS & ~__GFP_RECLAIM);
+ 
+ 	switch (cookie->def->type) {
+ 	case FSCACHE_COOKIE_TYPE_INDEX:
+diff -u -p a/btrfs/extent_io.c b/btrfs/extent_io.c
+--- a/btrfs/extent_io.c
++++ b/btrfs/extent_io.c
+@@ -485,7 +485,7 @@ int clear_extent_bit(struct extent_io_tr
+ 	if (bits & (EXTENT_IOBITS | EXTENT_BOUNDARY))
+ 		clear = 1;
+ again:
+-	if (!prealloc && (mask & __GFP_WAIT)) {
++	if (!prealloc && (mask & __GFP_RECLAIM)) {
+ 		prealloc = alloc_extent_state(mask);
+ 		if (!prealloc)
+ 			return -ENOMEM;
+@@ -603,7 +603,7 @@ search_again:
+ 	if (start > end)
+ 		goto out;
+ 	spin_unlock(&tree->lock);
+-	if (mask & __GFP_WAIT)
++	if (mask & __GFP_RECLAIM)
+ 		cond_resched();
+ 	goto again;
+ }
+@@ -734,7 +734,7 @@ int set_extent_bit(struct extent_io_tree
+ 
+ 	bits |= EXTENT_FIRST_DELALLOC;
+ again:
+-	if (!prealloc && (mask & __GFP_WAIT)) {
++	if (!prealloc && (mask & __GFP_RECLAIM)) {
+ 		prealloc = alloc_extent_state(mask);
+ 		BUG_ON(!prealloc);
+ 	}
+@@ -919,7 +919,7 @@ search_again:
+ 	if (start > end)
+ 		goto out;
+ 	spin_unlock(&tree->lock);
+-	if (mask & __GFP_WAIT)
++	if (mask & __GFP_RECLAIM)
+ 		cond_resched();
+ 	goto again;
+ }
+@@ -996,7 +996,7 @@ int lock_extent_bits(struct extent_io_tr
+ 		err = set_extent_bit(tree, start, end, EXTENT_LOCKED | bits,
+ 				     EXTENT_LOCKED, &failed_start,
+ 				     cached_state, mask);
+-		if (err == -EEXIST && (mask & __GFP_WAIT)) {
++		if (err == -EEXIST && (mask & __GFP_RECLAIM)) {
+ 			wait_extent_bit(tree, failed_start, end, EXTENT_LOCKED);
+ 			start = failed_start;
+ 		} else {
+@@ -2734,7 +2734,7 @@ int try_release_extent_mapping(struct ex
+ 	u64 start = (u64)page->index << PAGE_CACHE_SHIFT;
+ 	u64 end = start + PAGE_CACHE_SIZE - 1;
+ 
+-	if ((mask & __GFP_WAIT) &&
++	if ((mask & __GFP_RECLAIM) &&
+ 	    page->mapping->host->i_size > 16 * 1024 * 1024) {
+ 		u64 len;
+ 		while (start <= end) {

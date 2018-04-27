@@ -1,0 +1,4343 @@
+diff --git a/fs/9p/vfs_file.c b/fs/9p/vfs_file.c
+index ffed55817f0c..1bebc8e9645e 100644
+--- a/fs/9p/vfs_file.c
++++ b/fs/9p/vfs_file.c
+@@ -639,7 +639,7 @@ v9fs_direct_write(struct file *filp, const char __user * data,
+ 	if (!count)
+ 		return 0;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	retval = filemap_write_and_wait_range(mapping, offset,
+ 					      offset + count - 1);
+ 	if (retval)
+@@ -668,11 +668,11 @@ v9fs_direct_write(struct file *filp, const char __user * data,
+ 	}
+ 	retval = v9fs_file_write(filp, data, count, offsetp);
+ err_out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return retval;
+ 
+ buff_write:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return do_sync_write(filp, data, count, offsetp);
+ }
+ 
+diff --git a/fs/affs/file.c b/fs/affs/file.c
+index acf321b70fcd..76b0cd9552f0 100644
+--- a/fs/affs/file.c
++++ b/fs/affs/file.c
+@@ -59,11 +59,11 @@ affs_file_release(struct inode *inode, struct file *filp)
+ 		 inode->i_ino, atomic_read(&AFFS_I(inode)->i_opencnt));
+ 
+ 	if (atomic_dec_and_test(&AFFS_I(inode)->i_opencnt)) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		if (inode->i_size != AFFS_I(inode)->mmu_private)
+ 			affs_truncate(inode);
+ 		affs_free_prealloc(inode);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 
+ 	return 0;
+diff --git a/fs/binfmt_misc.c b/fs/binfmt_misc.c
+index 1befe2ec8186..45c2d5420f57 100644
+--- a/fs/binfmt_misc.c
++++ b/fs/binfmt_misc.c
+@@ -562,11 +562,11 @@ static ssize_t bm_entry_write(struct file *file, const char __user *buffer,
+ 		case 2: set_bit(Enabled, &e->flags);
+ 			break;
+ 		case 3: root = dget(file->f_path.mnt->mnt_sb->s_root);
+-			mutex_lock(&root->d_inode->i_mutex);
++			inode_lock(root->d_inode);
+ 
+ 			kill_node(e);
+ 
+-			mutex_unlock(&root->d_inode->i_mutex);
++			inode_unlock(root->d_inode);
+ 			dput(root);
+ 			break;
+ 		default: return res;
+@@ -597,7 +597,7 @@ static ssize_t bm_register_write(struct file *file, const char __user *buffer,
+ 		return PTR_ERR(e);
+ 
+ 	root = dget(sb->s_root);
+-	mutex_lock(&root->d_inode->i_mutex);
++	inode_lock(root->d_inode);
+ 	dentry = lookup_one_len(e->name, root, strlen(e->name));
+ 	err = PTR_ERR(dentry);
+ 	if (IS_ERR(dentry))
+@@ -633,7 +633,7 @@ static ssize_t bm_register_write(struct file *file, const char __user *buffer,
+ out2:
+ 	dput(dentry);
+ out:
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ 	dput(root);
+ 
+ 	if (err) {
+@@ -668,12 +668,12 @@ static ssize_t bm_status_write(struct file * file, const char __user * buffer,
+ 		case 1: enabled = 0; break;
+ 		case 2: enabled = 1; break;
+ 		case 3: root = dget(file->f_path.mnt->mnt_sb->s_root);
+-			mutex_lock(&root->d_inode->i_mutex);
++			inode_lock(root->d_inode);
+ 
+ 			while (!list_empty(&entries))
+ 				kill_node(list_entry(entries.next, Node, list));
+ 
+-			mutex_unlock(&root->d_inode->i_mutex);
++			inode_unlock(root->d_inode);
+ 			dput(root);
+ 		default: return res;
+ 	}
+diff --git a/fs/block_dev.c b/fs/block_dev.c
+index 610e8e0b04b8..fb30bcb776b3 100644
+--- a/fs/block_dev.c
++++ b/fs/block_dev.c
+@@ -352,7 +352,7 @@ static loff_t block_llseek(struct file *file, loff_t offset, int origin)
+ 	loff_t size;
+ 	loff_t retval;
+ 
+-	mutex_lock(&bd_inode->i_mutex);
++	inode_lock(bd_inode);
+ 	size = i_size_read(bd_inode);
+ 
+ 	switch (origin) {
+@@ -369,7 +369,7 @@ static loff_t block_llseek(struct file *file, loff_t offset, int origin)
+ 		}
+ 		retval = offset;
+ 	}
+-	mutex_unlock(&bd_inode->i_mutex);
++	inode_unlock(bd_inode);
+ 	return retval;
+ }
+ 	
+@@ -384,13 +384,13 @@ int blkdev_fsync(struct file *filp, int datasync)
+ 	 * i_mutex and doing so causes performance issues with concurrent
+ 	 * O_SYNC writers to a block device.
+ 	 */
+-	mutex_unlock(&bd_inode->i_mutex);
++	inode_unlock(bd_inode);
+ 
+ 	error = blkdev_issue_flush(bdev, GFP_KERNEL, NULL);
+ 	if (error == -EOPNOTSUPP)
+ 		error = 0;
+ 
+-	mutex_lock(&bd_inode->i_mutex);
++	inode_lock(bd_inode);
+ 
+ 	return error;
+ }
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index fa4ef18b66b1..398bbed401da 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1342,11 +1342,11 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 
+ 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	err = generic_segment_checks(iov, &nr_segs, &ocount, VERIFY_READ);
+ 	if (err) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		goto out;
+ 	}
+ 	count = ocount;
+@@ -1354,18 +1354,18 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 	current->backing_dev_info = inode->i_mapping->backing_dev_info;
+ 	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
+ 	if (err) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		goto out;
+ 	}
+ 
+ 	if (count == 0) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		goto out;
+ 	}
+ 
+ 	err = file_remove_suid(file);
+ 	if (err) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		goto out;
+ 	}
+ 
+@@ -1376,7 +1376,7 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 	 * to stop this write operation to ensure FS consistency.
+ 	 */
+ 	if (root->fs_info->fs_state & BTRFS_SUPER_FLAG_ERROR) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		err = -EROFS;
+ 		goto out;
+ 	}
+@@ -1397,7 +1397,7 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 			*ppos = pos + num_written;
+ 	}
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	/*
+ 	 * we want to make sure fsync finds this change
+@@ -1513,7 +1513,7 @@ int btrfs_sync_file(struct file *file, int datasync)
+ 	 * file again, but that will end up using the synchronization
+ 	 * inside btrfs_sync_log to keep things safe.
+ 	 */
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	if (ret != BTRFS_NO_LOG_SYNC) {
+ 		if (ret > 0) {
+@@ -1528,7 +1528,7 @@ int btrfs_sync_file(struct file *file, int datasync)
+ 	} else {
+ 		ret = btrfs_end_transaction(trans, root);
+ 	}
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ out:
+ 	return ret > 0 ? -EIO : ret;
+ }
+@@ -1580,7 +1580,7 @@ static long btrfs_fallocate(struct file *file, int mode,
+ 	 */
+ 	btrfs_wait_ordered_range(inode, alloc_start, alloc_end - alloc_start);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = inode_newsize_ok(inode, alloc_end);
+ 	if (ret)
+ 		goto out;
+@@ -1660,7 +1660,7 @@ static long btrfs_fallocate(struct file *file, int mode,
+ 
+ 	btrfs_free_reserved_data_space(inode, alloc_end - alloc_start);
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+diff --git a/fs/btrfs/ioctl.c b/fs/btrfs/ioctl.c
+index a3c4751e07db..8a15686a8f33 100644
+--- a/fs/btrfs/ioctl.c
++++ b/fs/btrfs/ioctl.c
+@@ -184,7 +184,7 @@ static int btrfs_ioctl_setflags(struct file *file, void __user *arg)
+ 	if (!inode_owner_or_capable(inode))
+ 		return -EACCES;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	flags = btrfs_mask_flags(inode->i_mode, flags);
+ 	oldflags = btrfs_flags_to_ioctl(ip->flags);
+@@ -257,7 +257,7 @@ static int btrfs_ioctl_setflags(struct file *file, void __user *arg)
+ 
+ 	ret = 0;
+  out_unlock:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+@@ -613,7 +613,7 @@ static noinline int btrfs_mksubvol(struct path *parent,
+ 	struct dentry *dentry;
+ 	int error;
+ 
+-	mutex_lock_nested(&dir->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 
+ 	dentry = lookup_one_len(name, parent->dentry, namelen);
+ 	error = PTR_ERR(dentry);
+@@ -653,7 +653,7 @@ out_drop_write:
+ out_dput:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&dir->i_mutex);
++	inode_unlock(dir);
+ 	return error;
+ }
+ 
+@@ -1128,9 +1128,9 @@ int btrfs_defrag_file(struct inode *inode, struct file *file,
+ 		}
+ 		atomic_dec(&root->fs_info->async_submit_draining);
+ 
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		BTRFS_I(inode)->force_compress = BTRFS_COMPRESS_NONE;
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 
+ 	disk_super = &root->fs_info->super_copy;
+@@ -1828,7 +1828,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 	if (err)
+ 		goto out;
+ 
+-	mutex_lock_nested(&dir->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir, I_MUTEX_PARENT);
+ 	dentry = lookup_one_len(vol_args->name, parent, namelen);
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+@@ -1886,7 +1886,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ 		goto out_dput;
+ 	}
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	err = d_invalidate(dentry);
+ 	if (err)
+ 		goto out_unlock;
+@@ -1930,7 +1930,7 @@ static noinline int btrfs_ioctl_snap_destroy(struct file *file,
+ out_up_write:
+ 	up_write(&root->fs_info->subvol_sem);
+ out_unlock:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (!err) {
+ 		shrink_dcache_sb(root->fs_info->sb);
+ 		btrfs_invalidate_inodes(dest);
+@@ -1939,7 +1939,7 @@ out_unlock:
+ out_dput:
+ 	dput(dentry);
+ out_unlock_dir:
+-	mutex_unlock(&dir->i_mutex);
++	inode_unlock(dir);
+ 	mnt_drop_write(file->f_path.mnt);
+ out:
+ 	kfree(vol_args);
+@@ -2205,11 +2205,11 @@ static noinline long btrfs_ioctl_clone(struct file *file, unsigned long srcfd,
+ 	path->reada = 2;
+ 
+ 	if (inode < src) {
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&src->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode, I_MUTEX_PARENT);
++		inode_lock_nested(src, I_MUTEX_CHILD);
+ 	} else {
+-		mutex_lock_nested(&src->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(src, I_MUTEX_PARENT);
++		inode_lock_nested(inode, I_MUTEX_CHILD);
+ 	}
+ 
+ 	/* determine range to clone */
+@@ -2446,8 +2446,8 @@ out:
+ 	btrfs_release_path(path);
+ 	unlock_extent(&BTRFS_I(src)->io_tree, off, off+len, GFP_NOFS);
+ out_unlock:
+-	mutex_unlock(&src->i_mutex);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(src);
++	inode_unlock(inode);
+ 	vfree(buf);
+ 	btrfs_free_path(path);
+ out_fput:
+diff --git a/fs/btrfs/relocation.c b/fs/btrfs/relocation.c
+index 5e0a3dc79a45..0468cd9a66e3 100644
+--- a/fs/btrfs/relocation.c
++++ b/fs/btrfs/relocation.c
+@@ -2846,7 +2846,7 @@ int prealloc_file_extent_cluster(struct inode *inode,
+ 	int ret = 0;
+ 
+ 	BUG_ON(cluster->start != cluster->boundary[0]);
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	ret = btrfs_check_data_free_space(inode, cluster->end +
+ 					  1 - cluster->start);
+@@ -2873,7 +2873,7 @@ int prealloc_file_extent_cluster(struct inode *inode,
+ 	btrfs_free_reserved_data_space(inode, cluster->end +
+ 				       1 - cluster->start);
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+diff --git a/fs/btrfs/super.c b/fs/btrfs/super.c
+index 15634d4648d7..ed66d517ae50 100644
+--- a/fs/btrfs/super.c
++++ b/fs/btrfs/super.c
+@@ -855,10 +855,10 @@ static struct dentry *btrfs_mount(struct file_system_type *fs_type, int flags,
+ 			goto error_free_subvol_name;
+ 		}
+ 
+-		mutex_lock(&root->d_inode->i_mutex);
++		inode_lock(root->d_inode);
+ 		new_root = lookup_one_len(subvol_name, root,
+ 				      strlen(subvol_name));
+-		mutex_unlock(&root->d_inode->i_mutex);
++		inode_unlock(root->d_inode);
+ 
+ 		if (IS_ERR(new_root)) {
+ 			dput(root);
+diff --git a/fs/cachefiles/interface.c b/fs/cachefiles/interface.c
+index 1064805e653b..1801563f81b5 100644
+--- a/fs/cachefiles/interface.c
++++ b/fs/cachefiles/interface.c
+@@ -409,7 +409,7 @@ static int cachefiles_attr_changed(struct fscache_object *_object)
+ 		return 0;
+ 
+ 	cachefiles_begin_secure(cache, &saved_cred);
+-	mutex_lock(&object->backer->d_inode->i_mutex);
++	inode_lock(object->backer->d_inode);
+ 
+ 	/* if there's an extension to a partial page at the end of the backing
+ 	 * file, we need to discard the partial page so that we pick up new
+@@ -428,7 +428,7 @@ static int cachefiles_attr_changed(struct fscache_object *_object)
+ 	ret = notify_change(object->backer, &newattrs);
+ 
+ truncate_failed:
+-	mutex_unlock(&object->backer->d_inode->i_mutex);
++	inode_unlock(object->backer->d_inode);
+ 	cachefiles_end_secure(cache, saved_cred);
+ 
+ 	if (ret == -EIO) {
+diff --git a/fs/cachefiles/namei.c b/fs/cachefiles/namei.c
+index a0358c2189cb..c84f6ae3dbf6 100644
+--- a/fs/cachefiles/namei.c
++++ b/fs/cachefiles/namei.c
+@@ -301,7 +301,7 @@ static int cachefiles_bury_object(struct cachefiles_cache *cache,
+ 				cachefiles_mark_object_buried(cache, rep);
+ 		}
+ 
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 
+ 		if (ret == -EIO)
+ 			cachefiles_io_error(cache, "Unlink failed");
+@@ -312,7 +312,7 @@ static int cachefiles_bury_object(struct cachefiles_cache *cache,
+ 
+ 	/* directories have to be moved to the graveyard */
+ 	_debug("move stale object to graveyard");
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 
+ try_again:
+ 	/* first step is to make up a grave dentry in the graveyard */
+@@ -429,13 +429,13 @@ int cachefiles_delete_object(struct cachefiles_cache *cache,
+ 
+ 	dir = dget_parent(object->dentry);
+ 
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir->d_inode, I_MUTEX_PARENT);
+ 
+ 	if (test_bit(CACHEFILES_OBJECT_BURIED, &object->flags)) {
+ 		/* object allocation for the same key preemptively deleted this
+ 		 * object's file so that it could create its own file */
+ 		_debug("object preemptively buried");
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 		ret = 0;
+ 	} else {
+ 		/* we need to check that our parent is _still_ our parent - it
+@@ -447,7 +447,7 @@ int cachefiles_delete_object(struct cachefiles_cache *cache,
+ 			/* it got moved, presumably by cachefilesd culling it,
+ 			 * so it's no longer in the key path and we can ignore
+ 			 * it */
+-			mutex_unlock(&dir->d_inode->i_mutex);
++			inode_unlock(dir->d_inode);
+ 			ret = 0;
+ 		}
+ 	}
+@@ -506,7 +506,7 @@ lookup_again:
+ 	/* search the current directory for the element name */
+ 	_debug("lookup '%s'", name);
+ 
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir->d_inode, I_MUTEX_PARENT);
+ 
+ 	start = jiffies;
+ 	next = lookup_one_len(name, dir, nlen);
+@@ -590,7 +590,7 @@ lookup_again:
+ 	/* process the next component */
+ 	if (key) {
+ 		_debug("advance");
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 		dput(dir);
+ 		dir = next;
+ 		next = NULL;
+@@ -627,7 +627,7 @@ lookup_again:
+ 	/* note that we're now using this object */
+ 	ret = cachefiles_mark_object_active(cache, object);
+ 
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(dir);
+ 	dir = NULL;
+ 
+@@ -704,7 +704,7 @@ lookup_error:
+ 		cachefiles_io_error(cache, "Lookup failed");
+ 	next = NULL;
+ error:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(next);
+ error_out2:
+ 	dput(dir);
+@@ -728,7 +728,7 @@ struct dentry *cachefiles_get_directory(struct cachefiles_cache *cache,
+ 	_enter(",,%s", dirname);
+ 
+ 	/* search the current directory for the element name */
+-	mutex_lock(&dir->d_inode->i_mutex);
++	inode_lock(dir->d_inode);
+ 
+ 	start = jiffies;
+ 	subdir = lookup_one_len(dirname, dir, strlen(dirname));
+@@ -767,7 +767,7 @@ struct dentry *cachefiles_get_directory(struct cachefiles_cache *cache,
+ 		       subdir->d_inode->i_ino);
+ 	}
+ 
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 
+ 	/* we need to make sure the subdir is a directory */
+ 	ASSERT(subdir->d_inode);
+@@ -799,19 +799,19 @@ check_error:
+ 	return ERR_PTR(ret);
+ 
+ mkdir_error:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(subdir);
+ 	kerror("mkdir %s failed with error %d", dirname, ret);
+ 	return ERR_PTR(ret);
+ 
+ lookup_error:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	ret = PTR_ERR(subdir);
+ 	kerror("Lookup %s failed with error %d", dirname, ret);
+ 	return ERR_PTR(ret);
+ 
+ nomem_d_alloc:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	_leave(" = -ENOMEM");
+ 	return ERR_PTR(-ENOMEM);
+ }
+@@ -836,7 +836,7 @@ static struct dentry *cachefiles_check_active(struct cachefiles_cache *cache,
+ 	//       dir->d_name.len, dir->d_name.len, dir->d_name.name, filename);
+ 
+ 	/* look up the victim */
+-	mutex_lock_nested(&dir->d_inode->i_mutex, 1);
++	inode_lock_nested(dir->d_inode, 1);
+ 
+ 	start = jiffies;
+ 	victim = lookup_one_len(filename, dir, strlen(filename));
+@@ -851,7 +851,7 @@ static struct dentry *cachefiles_check_active(struct cachefiles_cache *cache,
+ 	 * at the netfs's request whilst the cull was in progress
+ 	 */
+ 	if (!victim->d_inode) {
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 		dput(victim);
+ 		_leave(" = -ENOENT [absent]");
+ 		return ERR_PTR(-ENOENT);
+@@ -880,13 +880,13 @@ static struct dentry *cachefiles_check_active(struct cachefiles_cache *cache,
+ 
+ object_in_use:
+ 	read_unlock(&cache->active_lock);
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(victim);
+ 	//_leave(" = -EBUSY [in use]");
+ 	return ERR_PTR(-EBUSY);
+ 
+ lookup_error:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	ret = PTR_ERR(victim);
+ 	if (ret == -ENOENT) {
+ 		/* file or dir now absent - probably retired by netfs */
+@@ -946,7 +946,7 @@ int cachefiles_cull(struct cachefiles_cache *cache, struct dentry *dir,
+ 	return 0;
+ 
+ error_unlock:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ error:
+ 	dput(victim);
+ 	if (ret == -ENOENT) {
+@@ -981,7 +981,7 @@ int cachefiles_check_in_use(struct cachefiles_cache *cache, struct dentry *dir,
+ 	if (IS_ERR(victim))
+ 		return PTR_ERR(victim);
+ 
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(victim);
+ 	//_leave(" = 0");
+ 	return 0;
+diff --git a/fs/ceph/dir.c b/fs/ceph/dir.c
+index ef8f08c343e8..5a41aad73dda 100644
+--- a/fs/ceph/dir.c
++++ b/fs/ceph/dir.c
+@@ -445,7 +445,7 @@ static loff_t ceph_dir_llseek(struct file *file, loff_t offset, int origin)
+ 	loff_t old_offset = offset;
+ 	loff_t retval;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	switch (origin) {
+ 	case SEEK_END:
+ 		offset += inode->i_size + 2;   /* FIXME */
+@@ -477,7 +477,7 @@ static loff_t ceph_dir_llseek(struct file *file, loff_t offset, int origin)
+ 		if (offset > old_offset)
+ 			fi->dir_release_count--;
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return retval;
+ }
+ 
+diff --git a/fs/ceph/file.c b/fs/ceph/file.c
+index 4698a5c553dc..8b14886f46ec 100644
+--- a/fs/ceph/file.c
++++ b/fs/ceph/file.c
+@@ -766,7 +766,7 @@ static loff_t ceph_llseek(struct file *file, loff_t offset, int origin)
+ 	struct inode *inode = file->f_mapping->host;
+ 	int ret;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	__ceph_do_pending_vmtruncate(inode);
+ 	switch (origin) {
+ 	case SEEK_END:
+@@ -804,7 +804,7 @@ static loff_t ceph_llseek(struct file *file, loff_t offset, int origin)
+ 	}
+ 
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return offset;
+ }
+ 
+diff --git a/fs/ceph/inode.c b/fs/ceph/inode.c
+index d8858e96ab18..a8eb51635bf7 100644
+--- a/fs/ceph/inode.c
++++ b/fs/ceph/inode.c
+@@ -1460,9 +1460,9 @@ static void ceph_vmtruncate_work(struct work_struct *work)
+ 	struct inode *inode = &ci->vfs_inode;
+ 
+ 	dout("vmtruncate_work %p\n", inode);
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	__ceph_do_pending_vmtruncate(inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	iput(inode);
+ }
+ 
+diff --git a/fs/cifs/cifsfs.c b/fs/cifs/cifsfs.c
+index bc4b12ca537b..fddb8e1624ca 100644
+--- a/fs/cifs/cifsfs.c
++++ b/fs/cifs/cifsfs.c
+@@ -576,9 +576,9 @@ cifs_get_root(struct smb_vol *vol, struct super_block *sb)
+ 		while (*s && *s != sep)
+ 			s++;
+ 
+-		mutex_lock(&dir->i_mutex);
++		inode_lock(dir);
+ 		child = lookup_one_len(p, dentry, s - p);
+-		mutex_unlock(&dir->i_mutex);
++		inode_unlock(dir);
+ 		dput(dentry);
+ 		dentry = child;
+ 	} while (!IS_ERR(dentry));
+diff --git a/fs/coda/dir.c b/fs/coda/dir.c
+index 2b8dae4d121e..3c12db4e7195 100644
+--- a/fs/coda/dir.c
++++ b/fs/coda/dir.c
+@@ -402,7 +402,7 @@ static int coda_readdir(struct file *coda_file, void *buf, filldir_t filldir)
+ 		 * and as such we need grab the inode mutex. */
+ 		struct inode *host_inode = host_file->f_path.dentry->d_inode;
+ 
+-		mutex_lock(&host_inode->i_mutex);
++		inode_lock(host_inode);
+ 		host_file->f_pos = coda_file->f_pos;
+ 
+ 		ret = -ENOENT;
+@@ -412,7 +412,7 @@ static int coda_readdir(struct file *coda_file, void *buf, filldir_t filldir)
+ 		}
+ 
+ 		coda_file->f_pos = host_file->f_pos;
+-		mutex_unlock(&host_inode->i_mutex);
++		inode_unlock(host_inode);
+ 	}
+ 	else /* Venus: we must read Venus dirents from a file */
+ 		ret = coda_venus_readdir(coda_file, buf, filldir);
+diff --git a/fs/coda/file.c b/fs/coda/file.c
+index 0433057be330..ddcb50bd0624 100644
+--- a/fs/coda/file.c
++++ b/fs/coda/file.c
+@@ -79,14 +79,14 @@ coda_file_write(struct file *coda_file, const char __user *buf, size_t count, lo
+ 		return -EINVAL;
+ 
+ 	host_inode = host_file->f_path.dentry->d_inode;
+-	mutex_lock(&coda_inode->i_mutex);
++	inode_lock(coda_inode);
+ 
+ 	ret = host_file->f_op->write(host_file, buf, count, ppos);
+ 
+ 	coda_inode->i_size = host_inode->i_size;
+ 	coda_inode->i_blocks = (coda_inode->i_size + 511) >> 9;
+ 	coda_inode->i_mtime = coda_inode->i_ctime = CURRENT_TIME_SEC;
+-	mutex_unlock(&coda_inode->i_mutex);
++	inode_unlock(coda_inode);
+ 
+ 	return ret;
+ }
+diff --git a/fs/configfs/dir.c b/fs/configfs/dir.c
+index 9a37a9b6de3a..7062a90d75f4 100644
+--- a/fs/configfs/dir.c
++++ b/fs/configfs/dir.c
+@@ -640,13 +640,13 @@ static void detach_groups(struct config_group *group)
+ 
+ 		child = sd->s_dentry;
+ 
+-		mutex_lock(&child->d_inode->i_mutex);
++		inode_lock(child->d_inode);
+ 
+ 		configfs_detach_group(sd->s_element);
+ 		child->d_inode->i_flags |= S_DEAD;
+ 		dont_mount(child);
+ 
+-		mutex_unlock(&child->d_inode->i_mutex);
++		inode_unlock(child->d_inode);
+ 
+ 		d_delete(child);
+ 		dput(child);
+@@ -838,11 +838,11 @@ static int configfs_attach_item(struct config_item *parent_item,
+ 			 * the VFS may already have hit and used them. Thus,
+ 			 * we must lock them as rmdir() would.
+ 			 */
+-			mutex_lock(&dentry->d_inode->i_mutex);
++			inode_lock(dentry->d_inode);
+ 			configfs_remove_dir(item);
+ 			dentry->d_inode->i_flags |= S_DEAD;
+ 			dont_mount(dentry);
+-			mutex_unlock(&dentry->d_inode->i_mutex);
++			inode_unlock(dentry->d_inode);
+ 			d_delete(dentry);
+ 		}
+ 	}
+@@ -878,7 +878,7 @@ static int configfs_attach_group(struct config_item *parent_item,
+ 		 * We must also lock the inode to remove it safely in case of
+ 		 * error, as rmdir() would.
+ 		 */
+-		mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(dentry->d_inode, I_MUTEX_CHILD);
+ 		configfs_adjust_dir_dirent_depth_before_populate(sd);
+ 		ret = populate_groups(to_config_group(item));
+ 		if (ret) {
+@@ -887,7 +887,7 @@ static int configfs_attach_group(struct config_item *parent_item,
+ 			dont_mount(dentry);
+ 		}
+ 		configfs_adjust_dir_dirent_depth_after_populate(sd);
+-		mutex_unlock(&dentry->d_inode->i_mutex);
++		inode_unlock(dentry->d_inode);
+ 		if (ret)
+ 			d_delete(dentry);
+ 	}
+@@ -1093,7 +1093,7 @@ int configfs_depend_item(struct configfs_subsystem *subsys,
+ 	 * subsystem is really registered, and so we need to lock out
+ 	 * configfs_[un]register_subsystem().
+ 	 */
+-	mutex_lock(&configfs_sb->s_root->d_inode->i_mutex);
++	inode_lock(configfs_sb->s_root->d_inode);
+ 
+ 	root_sd = configfs_sb->s_root->d_fsdata;
+ 
+@@ -1129,7 +1129,7 @@ int configfs_depend_item(struct configfs_subsystem *subsys,
+ out_unlock_dirent_lock:
+ 	spin_unlock(&configfs_dirent_lock);
+ out_unlock_fs:
+-	mutex_unlock(&configfs_sb->s_root->d_inode->i_mutex);
++	inode_unlock(configfs_sb->s_root->d_inode);
+ 
+ 	/*
+ 	 * If we succeeded, the fs is pinned via other methods.  If not,
+@@ -1503,7 +1503,7 @@ static int configfs_dir_open(struct inode *inode, struct file *file)
+ 	struct configfs_dirent * parent_sd = dentry->d_fsdata;
+ 	int err;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	/*
+ 	 * Fake invisibility if dir belongs to a group/default groups hierarchy
+ 	 * being attached
+@@ -1516,7 +1516,7 @@ static int configfs_dir_open(struct inode *inode, struct file *file)
+ 		else
+ 			err = 0;
+ 	}
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	return err;
+ }
+@@ -1526,11 +1526,11 @@ static int configfs_dir_close(struct inode *inode, struct file *file)
+ 	struct dentry * dentry = file->f_path.dentry;
+ 	struct configfs_dirent * cursor = file->private_data;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	spin_lock(&configfs_dirent_lock);
+ 	list_del_init(&cursor->s_sibling);
+ 	spin_unlock(&configfs_dirent_lock);
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	release_configfs_dirent(cursor);
+ 
+@@ -1628,7 +1628,7 @@ static loff_t configfs_dir_lseek(struct file * file, loff_t offset, int origin)
+ {
+ 	struct dentry * dentry = file->f_path.dentry;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	switch (origin) {
+ 		case 1:
+ 			offset += file->f_pos;
+@@ -1636,7 +1636,7 @@ static loff_t configfs_dir_lseek(struct file * file, loff_t offset, int origin)
+ 			if (offset >= 0)
+ 				break;
+ 		default:
+-			mutex_unlock(&file->f_path.dentry->d_inode->i_mutex);
++			inode_unlock(file->f_path.dentry->d_inode);
+ 			return -EINVAL;
+ 	}
+ 	if (offset != file->f_pos) {
+@@ -1662,7 +1662,7 @@ static loff_t configfs_dir_lseek(struct file * file, loff_t offset, int origin)
+ 			spin_unlock(&configfs_dirent_lock);
+ 		}
+ 	}
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 	return offset;
+ }
+ 
+@@ -1692,8 +1692,7 @@ int configfs_register_subsystem(struct configfs_subsystem *subsys)
+ 	sd = configfs_sb->s_root->d_fsdata;
+ 	link_group(to_config_group(sd->s_element), group);
+ 
+-	mutex_lock_nested(&configfs_sb->s_root->d_inode->i_mutex,
+-			I_MUTEX_PARENT);
++	inode_lock_nested(configfs_sb->s_root->d_inode, I_MUTEX_PARENT);
+ 
+ 	name.name = group->cg_item.ci_name;
+ 	name.len = strlen(name.name);
+@@ -1717,7 +1716,7 @@ int configfs_register_subsystem(struct configfs_subsystem *subsys)
+ 		}
+ 	}
+ 
+-	mutex_unlock(&configfs_sb->s_root->d_inode->i_mutex);
++	inode_unlock(configfs_sb->s_root->d_inode);
+ 
+ 	if (err) {
+ 		unlink_group(group);
+@@ -1737,9 +1736,8 @@ void configfs_unregister_subsystem(struct configfs_subsystem *subsys)
+ 		return;
+ 	}
+ 
+-	mutex_lock_nested(&configfs_sb->s_root->d_inode->i_mutex,
+-			  I_MUTEX_PARENT);
+-	mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_CHILD);
++	inode_lock_nested(configfs_sb->s_root->d_inode, I_MUTEX_PARENT);
++	inode_lock_nested(dentry->d_inode, I_MUTEX_CHILD);
+ 	mutex_lock(&configfs_symlink_mutex);
+ 	spin_lock(&configfs_dirent_lock);
+ 	if (configfs_detach_prep(dentry, NULL)) {
+@@ -1750,11 +1748,11 @@ void configfs_unregister_subsystem(struct configfs_subsystem *subsys)
+ 	configfs_detach_group(&group->cg_item);
+ 	dentry->d_inode->i_flags |= S_DEAD;
+ 	dont_mount(dentry);
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	d_delete(dentry);
+ 
+-	mutex_unlock(&configfs_sb->s_root->d_inode->i_mutex);
++	inode_unlock(configfs_sb->s_root->d_inode);
+ 
+ 	dput(dentry);
+ 
+diff --git a/fs/configfs/file.c b/fs/configfs/file.c
+index 2b6cb23dd14e..f5b90c1c5020 100644
+--- a/fs/configfs/file.c
++++ b/fs/configfs/file.c
+@@ -320,9 +320,9 @@ int configfs_add_file(struct dentry * dir, const struct configfs_attribute * att
+ 	umode_t mode = (attr->ca_mode & S_IALLUGO) | S_IFREG;
+ 	int error = 0;
+ 
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_NORMAL);
++	inode_lock_nested(dir->d_inode, I_MUTEX_NORMAL);
+ 	error = configfs_make_dirent(parent_sd, NULL, (void *) attr, mode, type);
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 
+ 	return error;
+ }
+diff --git a/fs/configfs/inode.c b/fs/configfs/inode.c
+index c83f4768eeaa..04c9b9ce87da 100644
+--- a/fs/configfs/inode.c
++++ b/fs/configfs/inode.c
+@@ -270,7 +270,7 @@ void configfs_hash_and_remove(struct dentry * dir, const char * name)
+ 		/* no inode means this hasn't been made visible yet */
+ 		return;
+ 
+-	mutex_lock(&dir->d_inode->i_mutex);
++	inode_lock(dir->d_inode);
+ 	list_for_each_entry(sd, &parent_sd->s_children, s_sibling) {
+ 		if (!sd->s_element)
+ 			continue;
+@@ -283,7 +283,7 @@ void configfs_hash_and_remove(struct dentry * dir, const char * name)
+ 			break;
+ 		}
+ 	}
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ }
+ 
+ int __init configfs_inode_init(void)
+diff --git a/fs/dcache.c b/fs/dcache.c
+index fbdcbca40725..c1e017a4b9ee 100644
+--- a/fs/dcache.c
++++ b/fs/dcache.c
+@@ -2333,7 +2333,7 @@ static struct dentry *__d_unalias(struct inode *inode,
+ 	if (!mutex_trylock(&dentry->d_sb->s_vfs_rename_mutex))
+ 		goto out_err;
+ 	m1 = &dentry->d_sb->s_vfs_rename_mutex;
+-	if (!mutex_trylock(&alias->d_parent->d_inode->i_mutex))
++	if (!inode_trylock(alias->d_parent->d_inode))
+ 		goto out_err;
+ 	m2 = &alias->d_parent->d_inode->i_mutex;
+ out_unalias:
+diff --git a/fs/debugfs/inode.c b/fs/debugfs/inode.c
+index e7a7a2f07324..70e15c796e87 100644
+--- a/fs/debugfs/inode.c
++++ b/fs/debugfs/inode.c
+@@ -163,7 +163,7 @@ static int debugfs_create_by_name(const char *name, mode_t mode,
+ 		parent = debugfs_mount->mnt_sb->s_root;
+ 
+ 	*dentry = NULL;
+-	mutex_lock(&parent->d_inode->i_mutex);
++	inode_lock(parent->d_inode);
+ 	*dentry = lookup_one_len(name, parent, strlen(name));
+ 	if (!IS_ERR(*dentry)) {
+ 		switch (mode & S_IFMT) {
+@@ -183,7 +183,7 @@ static int debugfs_create_by_name(const char *name, mode_t mode,
+ 		dput(*dentry);
+ 	} else
+ 		error = PTR_ERR(*dentry);
+-	mutex_unlock(&parent->d_inode->i_mutex);
++	inode_unlock(parent->d_inode);
+ 
+ 	return error;
+ }
+@@ -358,9 +358,9 @@ void debugfs_remove(struct dentry *dentry)
+ 	if (!parent || !parent->d_inode)
+ 		return;
+ 
+-	mutex_lock(&parent->d_inode->i_mutex);
++	inode_lock(parent->d_inode);
+ 	ret = __debugfs_remove(dentry, parent);
+-	mutex_unlock(&parent->d_inode->i_mutex);
++	inode_unlock(parent->d_inode);
+ 	if (!ret)
+ 		simple_release_fs(&debugfs_mount, &debugfs_mount_count);
+ }
+@@ -391,7 +391,7 @@ void debugfs_remove_recursive(struct dentry *dentry)
+ 		return;
+ 
+ 	parent = dentry;
+-	mutex_lock(&parent->d_inode->i_mutex);
++	inode_lock(parent->d_inode);
+ 
+ 	while (1) {
+ 		/*
+@@ -399,11 +399,11 @@ void debugfs_remove_recursive(struct dentry *dentry)
+ 		 * walk up the tree until we reach our starting point.
+ 		 */
+ 		if (list_empty(&parent->d_subdirs)) {
+-			mutex_unlock(&parent->d_inode->i_mutex);
++			inode_unlock(parent->d_inode);
+ 			if (parent == dentry)
+ 				break;
+ 			parent = parent->d_parent;
+-			mutex_lock(&parent->d_inode->i_mutex);
++			inode_lock(parent->d_inode);
+ 		}
+ 		child = list_entry(parent->d_subdirs.next, struct dentry,
+ 				d_u.d_child);
+@@ -414,9 +414,9 @@ void debugfs_remove_recursive(struct dentry *dentry)
+ 		 * remove all its descendants first.
+ 		 */
+ 		if (!list_empty(&child->d_subdirs)) {
+-			mutex_unlock(&parent->d_inode->i_mutex);
++			inode_unlock(parent->d_inode);
+ 			parent = child;
+-			mutex_lock(&parent->d_inode->i_mutex);
++			inode_lock(parent->d_inode);
+ 			continue;
+ 		}
+ 		__debugfs_remove(child, parent);
+@@ -435,16 +435,16 @@ void debugfs_remove_recursive(struct dentry *dentry)
+ 			 * Avoid infinite loop if we fail to remove
+ 			 * one dentry.
+ 			 */
+-			mutex_unlock(&parent->d_inode->i_mutex);
++			inode_unlock(parent->d_inode);
+ 			break;
+ 		}
+ 		simple_release_fs(&debugfs_mount, &debugfs_mount_count);
+ 	}
+ 
+ 	parent = dentry->d_parent;
+-	mutex_lock(&parent->d_inode->i_mutex);
++	inode_lock(parent->d_inode);
+ 	__debugfs_remove(dentry, parent);
+-	mutex_unlock(&parent->d_inode->i_mutex);
++	inode_unlock(parent->d_inode);
+ 	simple_release_fs(&debugfs_mount, &debugfs_mount_count);
+ }
+ EXPORT_SYMBOL_GPL(debugfs_remove_recursive);
+diff --git a/fs/devpts/inode.c b/fs/devpts/inode.c
+index 2f27e578d466..9b3465a2db4e 100644
+--- a/fs/devpts/inode.c
++++ b/fs/devpts/inode.c
+@@ -173,7 +173,7 @@ static int mknod_ptmx(struct super_block *sb)
+ 	struct pts_fs_info *fsi = DEVPTS_SB(sb);
+ 	struct pts_mount_opts *opts = &fsi->mount_opts;
+ 
+-	mutex_lock(&root->d_inode->i_mutex);
++	inode_lock(root->d_inode);
+ 
+ 	/* If we have already created ptmx node, return */
+ 	if (fsi->ptmx_dentry) {
+@@ -208,7 +208,7 @@ static int mknod_ptmx(struct super_block *sb)
+ 	fsi->ptmx_dentry = dentry;
+ 	rc = 0;
+ out:
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ 	return rc;
+ }
+ 
+@@ -499,7 +499,7 @@ int devpts_pty_new(struct inode *ptmx_inode, struct tty_struct *tty)
+ 
+ 	sprintf(s, "%d", number);
+ 
+-	mutex_lock(&root->d_inode->i_mutex);
++	inode_lock(root->d_inode);
+ 
+ 	dentry = d_alloc_name(root, s);
+ 	if (dentry) {
+@@ -510,7 +510,7 @@ int devpts_pty_new(struct inode *ptmx_inode, struct tty_struct *tty)
+ 		ret = -ENOMEM;
+ 	}
+ 
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ 
+ 	return ret;
+ }
+@@ -545,7 +545,7 @@ void devpts_pty_kill(struct tty_struct *tty)
+ 
+ 	BUG_ON(inode->i_rdev == MKDEV(TTYAUX_MAJOR, PTMX_MINOR));
+ 
+-	mutex_lock(&root->d_inode->i_mutex);
++	inode_lock(root->d_inode);
+ 
+ 	dentry = d_find_alias(inode);
+ 
+@@ -554,7 +554,7 @@ void devpts_pty_kill(struct tty_struct *tty)
+ 	dput(dentry);	/* d_alloc_name() in devpts_pty_new() */
+ 	dput(dentry);		/* d_find_alias above */
+ 
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ }
+ 
+ static int __init init_devpts_fs(void)
+diff --git a/fs/direct-io.c b/fs/direct-io.c
+index ac5f164170e3..fb78758b32b8 100644
+--- a/fs/direct-io.c
++++ b/fs/direct-io.c
+@@ -1096,7 +1096,7 @@ direct_io_worker(int rw, struct kiocb *iocb, struct inode *inode,
+ 	 * of protecting us from looking up uninitialized blocks.
+ 	 */
+ 	if (rw == READ && (dio->flags & DIO_LOCKING))
+-		mutex_unlock(&dio->inode->i_mutex);
++		inode_unlock(dio->inode);
+ 
+ 	/*
+ 	 * The only time we want to leave bios in flight is when a successful
+@@ -1219,12 +1219,12 @@ __blockdev_direct_IO(int rw, struct kiocb *iocb, struct inode *inode,
+ 					iocb->ki_filp->f_mapping;
+ 
+ 			/* will be released by direct_io_worker */
+-			mutex_lock(&inode->i_mutex);
++			inode_lock(inode);
+ 
+ 			retval = filemap_write_and_wait_range(mapping, offset,
+ 							      end - 1);
+ 			if (retval) {
+-				mutex_unlock(&inode->i_mutex);
++				inode_unlock(inode);
+ 				kfree(dio);
+ 				goto out;
+ 			}
+diff --git a/fs/ecryptfs/inode.c b/fs/ecryptfs/inode.c
+index 7349ade17de6..f4c45d193fea 100644
+--- a/fs/ecryptfs/inode.c
++++ b/fs/ecryptfs/inode.c
+@@ -47,7 +47,7 @@ static struct dentry *lock_parent(struct dentry *dentry)
+ 
+ static void unlock_dir(struct dentry *dir)
+ {
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	dput(dir);
+ }
+ 
+@@ -420,11 +420,11 @@ static struct dentry *ecryptfs_lookup(struct inode *ecryptfs_dir_inode,
+ 		goto out_d_drop;
+ 	}
+ 	lower_dir_dentry = ecryptfs_dentry_to_lower(ecryptfs_dentry->d_parent);
+-	mutex_lock(&lower_dir_dentry->d_inode->i_mutex);
++	inode_lock(lower_dir_dentry->d_inode);
+ 	lower_dentry = lookup_one_len(ecryptfs_dentry->d_name.name,
+ 				      lower_dir_dentry,
+ 				      ecryptfs_dentry->d_name.len);
+-	mutex_unlock(&lower_dir_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dir_dentry->d_inode);
+ 	if (IS_ERR(lower_dentry)) {
+ 		rc = PTR_ERR(lower_dentry);
+ 		ecryptfs_printk(KERN_DEBUG, "%s: lookup_one_len() returned "
+@@ -449,11 +449,11 @@ static struct dentry *ecryptfs_lookup(struct inode *ecryptfs_dir_inode,
+ 		       "filename; rc = [%d]\n", __func__, rc);
+ 		goto out_d_drop;
+ 	}
+-	mutex_lock(&lower_dir_dentry->d_inode->i_mutex);
++	inode_lock(lower_dir_dentry->d_inode);
+ 	lower_dentry = lookup_one_len(encrypted_and_encoded_name,
+ 				      lower_dir_dentry,
+ 				      encrypted_and_encoded_name_size);
+-	mutex_unlock(&lower_dir_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dir_dentry->d_inode);
+ 	if (IS_ERR(lower_dentry)) {
+ 		rc = PTR_ERR(lower_dentry);
+ 		ecryptfs_printk(KERN_DEBUG, "%s: lookup_one_len() returned "
+@@ -934,9 +934,9 @@ int ecryptfs_truncate(struct dentry *dentry, loff_t new_length)
+ 	if (!rc && lower_ia.ia_valid & ATTR_SIZE) {
+ 		struct dentry *lower_dentry = ecryptfs_dentry_to_lower(dentry);
+ 
+-		mutex_lock(&lower_dentry->d_inode->i_mutex);
++		inode_lock(lower_dentry->d_inode);
+ 		rc = notify_change(lower_dentry, &lower_ia);
+-		mutex_unlock(&lower_dentry->d_inode->i_mutex);
++		inode_unlock(lower_dentry->d_inode);
+ 	}
+ 	return rc;
+ }
+@@ -1033,9 +1033,9 @@ static int ecryptfs_setattr(struct dentry *dentry, struct iattr *ia)
+ 	if (lower_ia.ia_valid & (ATTR_KILL_SUID | ATTR_KILL_SGID))
+ 		lower_ia.ia_valid &= ~ATTR_MODE;
+ 
+-	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	inode_lock(lower_dentry->d_inode);
+ 	rc = notify_change(lower_dentry, &lower_ia);
+-	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dentry->d_inode);
+ out:
+ 	fsstack_copy_attr_all(inode, lower_inode);
+ 	return rc;
+@@ -1108,10 +1108,10 @@ ecryptfs_getxattr_lower(struct dentry *lower_dentry, const char *name,
+ 		rc = -EOPNOTSUPP;
+ 		goto out;
+ 	}
+-	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	inode_lock(lower_dentry->d_inode);
+ 	rc = lower_dentry->d_inode->i_op->getxattr(lower_dentry, name, value,
+ 						   size);
+-	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dentry->d_inode);
+ out:
+ 	return rc;
+ }
+@@ -1135,9 +1135,9 @@ ecryptfs_listxattr(struct dentry *dentry, char *list, size_t size)
+ 		rc = -EOPNOTSUPP;
+ 		goto out;
+ 	}
+-	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	inode_lock(lower_dentry->d_inode);
+ 	rc = lower_dentry->d_inode->i_op->listxattr(lower_dentry, list, size);
+-	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dentry->d_inode);
+ out:
+ 	return rc;
+ }
+@@ -1152,9 +1152,9 @@ static int ecryptfs_removexattr(struct dentry *dentry, const char *name)
+ 		rc = -EOPNOTSUPP;
+ 		goto out;
+ 	}
+-	mutex_lock(&lower_dentry->d_inode->i_mutex);
++	inode_lock(lower_dentry->d_inode);
+ 	rc = lower_dentry->d_inode->i_op->removexattr(lower_dentry, name);
+-	mutex_unlock(&lower_dentry->d_inode->i_mutex);
++	inode_unlock(lower_dentry->d_inode);
+ out:
+ 	return rc;
+ }
+diff --git a/fs/ecryptfs/mmap.c b/fs/ecryptfs/mmap.c
+index 6a44148c5fb9..69b9180ec45f 100644
+--- a/fs/ecryptfs/mmap.c
++++ b/fs/ecryptfs/mmap.c
+@@ -443,7 +443,7 @@ static int ecryptfs_write_inode_size_to_xattr(struct inode *ecryptfs_inode)
+ 		rc = -ENOMEM;
+ 		goto out;
+ 	}
+-	mutex_lock(&lower_inode->i_mutex);
++	inode_lock(lower_inode);
+ 	size = lower_inode->i_op->getxattr(lower_dentry, ECRYPTFS_XATTR_NAME,
+ 					   xattr_virt, PAGE_CACHE_SIZE);
+ 	if (size < 0)
+@@ -451,7 +451,7 @@ static int ecryptfs_write_inode_size_to_xattr(struct inode *ecryptfs_inode)
+ 	put_unaligned_be64(i_size_read(ecryptfs_inode), xattr_virt);
+ 	rc = lower_inode->i_op->setxattr(lower_dentry, ECRYPTFS_XATTR_NAME,
+ 					 xattr_virt, size, 0);
+-	mutex_unlock(&lower_inode->i_mutex);
++	inode_unlock(lower_inode);
+ 	if (rc)
+ 		printk(KERN_ERR "Error whilst attempting to write inode size "
+ 		       "to lower file xattr; rc = [%d]\n", rc);
+diff --git a/fs/exportfs/expfs.c b/fs/exportfs/expfs.c
+index b05acb796135..650878222eca 100644
+--- a/fs/exportfs/expfs.c
++++ b/fs/exportfs/expfs.c
+@@ -143,10 +143,10 @@ reconnect_path(struct vfsmount *mnt, struct dentry *target_dir, char *nbuf)
+ 			struct dentry *ppd = ERR_PTR(-EACCES);
+ 			struct dentry *npd;
+ 
+-			mutex_lock(&pd->d_inode->i_mutex);
++			inode_lock(pd->d_inode);
+ 			if (mnt->mnt_sb->s_export_op->get_parent)
+ 				ppd = mnt->mnt_sb->s_export_op->get_parent(pd);
+-			mutex_unlock(&pd->d_inode->i_mutex);
++			inode_unlock(pd->d_inode);
+ 
+ 			if (IS_ERR(ppd)) {
+ 				err = PTR_ERR(ppd);
+@@ -170,9 +170,9 @@ reconnect_path(struct vfsmount *mnt, struct dentry *target_dir, char *nbuf)
+ 				break;
+ 			}
+ 			dprintk("%s: found name: %s\n", __func__, nbuf);
+-			mutex_lock(&ppd->d_inode->i_mutex);
++			inode_lock(ppd->d_inode);
+ 			npd = lookup_one_len(nbuf, ppd, strlen(nbuf));
+-			mutex_unlock(&ppd->d_inode->i_mutex);
++			inode_unlock(ppd->d_inode);
+ 			if (IS_ERR(npd)) {
+ 				err = PTR_ERR(npd);
+ 				dprintk("%s: lookup failed: %d\n",
+@@ -456,10 +456,10 @@ struct dentry *exportfs_decode_fh(struct vfsmount *mnt, struct fid *fid,
+ 		 */
+ 		err = exportfs_get_name(mnt, target_dir, nbuf, result);
+ 		if (!err) {
+-			mutex_lock(&target_dir->d_inode->i_mutex);
++			inode_lock(target_dir->d_inode);
+ 			nresult = lookup_one_len(nbuf, target_dir,
+ 						 strlen(nbuf));
+-			mutex_unlock(&target_dir->d_inode->i_mutex);
++			inode_unlock(target_dir->d_inode);
+ 			if (!IS_ERR(nresult)) {
+ 				if (nresult->d_inode) {
+ 					dput(result);
+diff --git a/fs/ext2/ioctl.c b/fs/ext2/ioctl.c
+index f81e250ac5c4..10489eb1d467 100644
+--- a/fs/ext2/ioctl.c
++++ b/fs/ext2/ioctl.c
+@@ -51,10 +51,10 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 		flags = ext2_mask_flags(inode->i_mode, flags);
+ 
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		/* Is it quota file? Do not allow user to mess with it */
+ 		if (IS_NOQUOTA(inode)) {
+-			mutex_unlock(&inode->i_mutex);
++			inode_unlock(inode);
+ 			ret = -EPERM;
+ 			goto setflags_out;
+ 		}
+@@ -68,7 +68,7 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		 */
+ 		if ((flags ^ oldflags) & (EXT2_APPEND_FL | EXT2_IMMUTABLE_FL)) {
+ 			if (!capable(CAP_LINUX_IMMUTABLE)) {
+-				mutex_unlock(&inode->i_mutex);
++				inode_unlock(inode);
+ 				ret = -EPERM;
+ 				goto setflags_out;
+ 			}
+@@ -77,7 +77,7 @@ long ext2_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		flags = flags & EXT2_FL_USER_MODIFIABLE;
+ 		flags |= oldflags & ~EXT2_FL_USER_MODIFIABLE;
+ 		ei->i_flags = flags;
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 
+ 		ext2_set_inode_flags(inode);
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+diff --git a/fs/ext2/super.c b/fs/ext2/super.c
+index 1dd62ed35b85..bc2c873c6111 100644
+--- a/fs/ext2/super.c
++++ b/fs/ext2/super.c
+@@ -1442,7 +1442,7 @@ static ssize_t ext2_quota_write(struct super_block *sb, int type,
+ 	struct buffer_head tmp_bh;
+ 	struct buffer_head *bh;
+ 
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++	inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 	while (towrite > 0) {
+ 		tocopy = sb->s_blocksize - offset < towrite ?
+ 				sb->s_blocksize - offset : towrite;
+@@ -1473,7 +1473,7 @@ static ssize_t ext2_quota_write(struct super_block *sb, int type,
+ 	}
+ out:
+ 	if (len == towrite) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return err;
+ 	}
+ 	if (inode->i_size < off+len-towrite)
+@@ -1481,7 +1481,7 @@ out:
+ 	inode->i_version++;
+ 	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 	mark_inode_dirty(inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return len - towrite;
+ }
+ 
+diff --git a/fs/ext3/ioctl.c b/fs/ext3/ioctl.c
+index f4090bd2f345..72a48373f2cb 100644
+--- a/fs/ext3/ioctl.c
++++ b/fs/ext3/ioctl.c
+@@ -50,7 +50,7 @@ long ext3_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 		flags = ext3_mask_flags(inode->i_mode, flags);
+ 
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 
+ 		/* Is it quota file? Do not allow user to mess with it */
+ 		err = -EPERM;
+@@ -109,7 +109,7 @@ flags_err:
+ 		if ((jflag ^ oldflags) & (EXT3_JOURNAL_DATA_FL))
+ 			err = ext3_change_inode_journal_flag(inode, jflag);
+ flags_out:
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		return err;
+ 	}
+diff --git a/fs/ext3/super.c b/fs/ext3/super.c
+index aad153ef6b78..2e2595ba6a46 100644
+--- a/fs/ext3/super.c
++++ b/fs/ext3/super.c
+@@ -2996,7 +2996,7 @@ static ssize_t ext3_quota_write(struct super_block *sb, int type,
+ 			(unsigned long long)off, (unsigned long long)len);
+ 		return -EIO;
+ 	}
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++	inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 	bh = ext3_bread(handle, inode, blk, 1, &err);
+ 	if (!bh)
+ 		goto out;
+@@ -3021,7 +3021,7 @@ static ssize_t ext3_quota_write(struct super_block *sb, int type,
+ 	brelse(bh);
+ out:
+ 	if (err) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return err;
+ 	}
+ 	if (inode->i_size < off + len) {
+@@ -3031,7 +3031,7 @@ out:
+ 	inode->i_version++;
+ 	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 	ext3_mark_inode_dirty(handle, inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return len;
+ }
+ 
+diff --git a/fs/ext4/extents.c b/fs/ext4/extents.c
+index f815cc81e7a2..a7046a6a56a9 100644
+--- a/fs/ext4/extents.c
++++ b/fs/ext4/extents.c
+@@ -3800,10 +3800,10 @@ long ext4_fallocate(struct file *file, int mode, loff_t offset, loff_t len)
+ 	 * credits to insert 1 extent into extent tree
+ 	 */
+ 	credits = ext4_chunk_trans_blocks(inode, max_blocks);
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = inode_newsize_ok(inode, (len + offset));
+ 	if (ret) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		trace_ext4_fallocate_exit(inode, offset, max_blocks, ret);
+ 		return ret;
+ 	}
+@@ -3849,7 +3849,7 @@ retry:
+ 		ret = 0;
+ 		goto retry;
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	trace_ext4_fallocate_exit(inode, offset, max_blocks,
+ 				ret > 0 ? ret2 : ret);
+ 	return ret > 0 ? ret2 : ret;
+diff --git a/fs/ext4/file.c b/fs/ext4/file.c
+index 2c0972322009..9279c2a5fe52 100644
+--- a/fs/ext4/file.c
++++ b/fs/ext4/file.c
+@@ -224,14 +224,14 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int origin)
+ 		maxbytes = EXT4_SB(inode->i_sb)->s_bitmap_maxbytes;
+ 	else
+ 		maxbytes = inode->i_sb->s_maxbytes;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	switch (origin) {
+ 	case SEEK_END:
+ 		offset += inode->i_size;
+ 		break;
+ 	case SEEK_CUR:
+ 		if (offset == 0) {
+-			mutex_unlock(&inode->i_mutex);
++			inode_unlock(inode);
+ 			return file->f_pos;
+ 		}
+ 		offset += file->f_pos;
+@@ -239,7 +239,7 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int origin)
+ 	}
+ 
+ 	if (offset < 0 || offset > maxbytes) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return -EINVAL;
+ 	}
+ 
+@@ -247,7 +247,7 @@ loff_t ext4_llseek(struct file *file, loff_t offset, int origin)
+ 		file->f_pos = offset;
+ 		file->f_version = 0;
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return offset;
+ }
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index 808c554e773f..21a37c7dbf3e 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -51,7 +51,7 @@ long ext4_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		flags = ext4_mask_flags(inode->i_mode, flags);
+ 
+ 		err = -EPERM;
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		/* Is it quota file? Do not allow user to mess with it */
+ 		if (IS_NOQUOTA(inode))
+ 			goto flags_out;
+@@ -132,7 +132,7 @@ flags_err:
+ 		if (migrate)
+ 			err = ext4_ext_migrate(inode);
+ flags_out:
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		return err;
+ 	}
+diff --git a/fs/ext4/move_extent.c b/fs/ext4/move_extent.c
+index f57455a1b1b2..9325febaf116 100644
+--- a/fs/ext4/move_extent.c
++++ b/fs/ext4/move_extent.c
+@@ -1088,16 +1088,16 @@ mext_inode_double_lock(struct inode *inode1, struct inode *inode2)
+ 		goto out;
+ 
+ 	if (inode1 == inode2) {
+-		mutex_lock(&inode1->i_mutex);
++		inode_lock(inode1);
+ 		goto out;
+ 	}
+ 
+ 	if (inode1->i_ino < inode2->i_ino) {
+-		mutex_lock_nested(&inode1->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&inode2->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode1, I_MUTEX_PARENT);
++		inode_lock_nested(inode2, I_MUTEX_CHILD);
+ 	} else {
+-		mutex_lock_nested(&inode2->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&inode1->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode2, I_MUTEX_PARENT);
++		inode_lock_nested(inode1, I_MUTEX_CHILD);
+ 	}
+ 
+ out:
+@@ -1125,10 +1125,10 @@ mext_inode_double_unlock(struct inode *inode1, struct inode *inode2)
+ 		goto out;
+ 
+ 	if (inode1)
+-		mutex_unlock(&inode1->i_mutex);
++		inode_unlock(inode1);
+ 
+ 	if (inode2 && inode2 != inode1)
+-		mutex_unlock(&inode2->i_mutex);
++		inode_unlock(inode2);
+ 
+ out:
+ 	return ret;
+diff --git a/fs/ext4/page-io.c b/fs/ext4/page-io.c
+index 7bb8f76d470a..4ee857c783d5 100644
+--- a/fs/ext4/page-io.c
++++ b/fs/ext4/page-io.c
+@@ -142,10 +142,10 @@ static void ext4_end_io_work(struct work_struct *work)
+ 	unsigned long		flags;
+ 	int			ret;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = ext4_end_io_nolock(io);
+ 	if (ret < 0) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return;
+ 	}
+ 
+@@ -153,7 +153,7 @@ static void ext4_end_io_work(struct work_struct *work)
+ 	if (!list_empty(&io->list))
+ 		list_del_init(&io->list);
+ 	spin_unlock_irqrestore(&ei->i_completed_io_lock, flags);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	ext4_free_io_end(io);
+ }
+ 
+diff --git a/fs/ext4/super.c b/fs/ext4/super.c
+index 9ea71aa864b3..8528f3a73ee5 100644
+--- a/fs/ext4/super.c
++++ b/fs/ext4/super.c
+@@ -4793,7 +4793,7 @@ static ssize_t ext4_quota_write(struct super_block *sb, int type,
+ 		return -EIO;
+ 	}
+ 
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++	inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 	bh = ext4_bread(handle, inode, blk, 1, &err);
+ 	if (!bh)
+ 		goto out;
+@@ -4810,7 +4810,7 @@ static ssize_t ext4_quota_write(struct super_block *sb, int type,
+ 	brelse(bh);
+ out:
+ 	if (err) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return err;
+ 	}
+ 	if (inode->i_size < off + len) {
+@@ -4818,7 +4818,7 @@ out:
+ 		EXT4_I(inode)->i_disksize = inode->i_size;
+ 		ext4_mark_inode_dirty(handle, inode);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return len;
+ }
+ 
+diff --git a/fs/fat/dir.c b/fs/fat/dir.c
+index 4ad64732cbce..e3a98edb0212 100644
+--- a/fs/fat/dir.c
++++ b/fs/fat/dir.c
+@@ -742,13 +742,13 @@ static int fat_ioctl_readdir(struct inode *inode, struct file *filp,
+ 
+ 	buf.dirent = dirent;
+ 	buf.result = 0;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = -ENOENT;
+ 	if (!IS_DEADDIR(inode)) {
+ 		ret = __fat_readdir(inode, filp, &buf, filldir,
+ 				    short_only, both);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (ret >= 0)
+ 		ret = buf.result;
+ 	return ret;
+diff --git a/fs/fat/file.c b/fs/fat/file.c
+index 7018e1d8902d..df3ffd8e14ed 100644
+--- a/fs/fat/file.c
++++ b/fs/fat/file.c
+@@ -23,9 +23,9 @@ static int fat_ioctl_get_attributes(struct inode *inode, u32 __user *user_attr)
+ {
+ 	u32 attr;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	attr = fat_make_attrs(inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return put_user(attr, user_attr);
+ }
+@@ -43,7 +43,7 @@ static int fat_ioctl_set_attributes(struct file *file, u32 __user *user_attr)
+ 	if (err)
+ 		goto out;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	err = mnt_want_write(file->f_path.mnt);
+ 	if (err)
+ 		goto out_unlock_inode;
+@@ -110,7 +110,7 @@ static int fat_ioctl_set_attributes(struct file *file, u32 __user *user_attr)
+ out_drop_write:
+ 	mnt_drop_write(file->f_path.mnt);
+ out_unlock_inode:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ out:
+ 	return err;
+ }
+diff --git a/fs/fifo.c b/fs/fifo.c
+index b1a524d798e7..d2037eca132e 100644
+--- a/fs/fifo.c
++++ b/fs/fifo.c
+@@ -35,7 +35,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
+ 	struct pipe_inode_info *pipe;
+ 	int ret;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	pipe = inode->i_pipe;
+ 	if (!pipe) {
+ 		ret = -ENOMEM;
+@@ -119,7 +119,7 @@ static int fifo_open(struct inode *inode, struct file *filp)
+ 	}
+ 
+ 	/* Ok! */
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return 0;
+ 
+ err_rd:
+@@ -139,7 +139,7 @@ err:
+ 		free_pipe_info(inode);
+ 
+ err_nocleanup:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+diff --git a/fs/fuse/dir.c b/fs/fuse/dir.c
+index d50160714595..aef0a77828d4 100644
+--- a/fs/fuse/dir.c
++++ b/fs/fuse/dir.c
+@@ -879,7 +879,7 @@ int fuse_reverse_inval_entry(struct super_block *sb, u64 parent_nodeid,
+ 	if (!parent)
+ 		return -ENOENT;
+ 
+-	mutex_lock(&parent->i_mutex);
++	inode_lock(parent);
+ 	if (!S_ISDIR(parent->i_mode))
+ 		goto unlock;
+ 
+@@ -899,7 +899,7 @@ int fuse_reverse_inval_entry(struct super_block *sb, u64 parent_nodeid,
+ 	err = 0;
+ 
+  unlock:
+-	mutex_unlock(&parent->i_mutex);
++	inode_unlock(parent);
+ 	iput(parent);
+ 	return err;
+ }
+@@ -1235,7 +1235,7 @@ void fuse_set_nowrite(struct inode *inode)
+ 	struct fuse_conn *fc = get_fuse_conn(inode);
+ 	struct fuse_inode *fi = get_fuse_inode(inode);
+ 
+-	BUG_ON(!mutex_is_locked(&inode->i_mutex));
++	BUG_ON(!inode_is_locked(inode));
+ 
+ 	spin_lock(&fc->lock);
+ 	BUG_ON(fi->writectr < 0);
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 82a66466a24c..4c9f924fb600 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -990,7 +990,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 	if (err)
+ 		return err;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	vfs_check_frozen(inode->i_sb, SB_FREEZE_WRITE);
+ 
+ 	/* We can write back this queue in page reclaim */
+@@ -1016,7 +1016,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 
+ out:
+ 	current->backing_dev_info = NULL;
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return written ? written : err;
+ }
+@@ -1158,14 +1158,14 @@ static ssize_t fuse_direct_write(struct file *file, const char __user *buf,
+ 		return -EIO;
+ 
+ 	/* Don't allow parallel writes to the same file */
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	res = generic_write_checks(file, ppos, &count, 0);
+ 	if (!res) {
+ 		res = fuse_direct_io(file, buf, count, ppos, 1);
+ 		if (res > 0)
+ 			fuse_write_update_size(inode, *ppos);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	fuse_invalidate_attr(inode);
+ 
+@@ -1599,7 +1599,7 @@ static loff_t fuse_file_llseek(struct file *file, loff_t offset, int origin)
+ 	loff_t retval;
+ 	struct inode *inode = file->f_path.dentry->d_inode;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	switch (origin) {
+ 	case SEEK_END:
+ 		retval = fuse_update_attributes(inode, NULL, file, NULL);
+@@ -1619,7 +1619,7 @@ static loff_t fuse_file_llseek(struct file *file, loff_t offset, int origin)
+ 		retval = offset;
+ 	}
+ exit:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return retval;
+ }
+ 
+diff --git a/fs/gfs2/inode.c b/fs/gfs2/inode.c
+index 03e0c529063e..8887045d5d8c 100644
+--- a/fs/gfs2/inode.c
++++ b/fs/gfs2/inode.c
+@@ -1814,7 +1814,7 @@ static int gfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 	if (ret)
+ 		return ret;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	ret = gfs2_glock_nq_init(ip->i_gl, LM_ST_SHARED, 0, &gh);
+ 	if (ret)
+@@ -1841,7 +1841,7 @@ static int gfs2_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 
+ 	gfs2_glock_dq_uninit(&gh);
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+diff --git a/fs/hfs/inode.c b/fs/hfs/inode.c
+index fff16c968e67..420321c7ae9e 100644
+--- a/fs/hfs/inode.c
++++ b/fs/hfs/inode.c
+@@ -554,13 +554,13 @@ static int hfs_file_release(struct inode *inode, struct file *file)
+ 	if (HFS_IS_RSRC(inode))
+ 		inode = HFS_I(inode)->rsrc_inode;
+ 	if (atomic_dec_and_test(&HFS_I(inode)->opencnt)) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		hfs_file_truncate(inode);
+ 		//if (inode->i_flags & S_DEAD) {
+ 		//	hfs_delete_cat(inode->i_ino, HFSPLUS_SB(sb).hidden_dir, NULL);
+ 		//	hfs_delete_inode(inode);
+ 		//}
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	return 0;
+ }
+diff --git a/fs/hfsplus/dir.c b/fs/hfsplus/dir.c
+index 4df5059c25da..085e1e92f495 100644
+--- a/fs/hfsplus/dir.c
++++ b/fs/hfsplus/dir.c
+@@ -241,9 +241,9 @@ static int hfsplus_dir_release(struct inode *inode, struct file *file)
+ {
+ 	struct hfsplus_readdir_data *rd = file->private_data;
+ 	if (rd) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		list_del(&rd->list);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		kfree(rd);
+ 	}
+ 	return 0;
+diff --git a/fs/hfsplus/inode.c b/fs/hfsplus/inode.c
+index b248a6cfcad9..3eff27cfde47 100644
+--- a/fs/hfsplus/inode.c
++++ b/fs/hfsplus/inode.c
+@@ -273,14 +273,14 @@ static int hfsplus_file_release(struct inode *inode, struct file *file)
+ 	if (HFSPLUS_IS_RSRC(inode))
+ 		inode = HFSPLUS_I(inode)->rsrc_inode;
+ 	if (atomic_dec_and_test(&HFSPLUS_I(inode)->opencnt)) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		hfsplus_file_truncate(inode);
+ 		if (inode->i_flags & S_DEAD) {
+ 			hfsplus_delete_cat(inode->i_ino,
+ 					   HFSPLUS_SB(sb)->hidden_dir, NULL);
+ 			hfsplus_delete_inode(inode);
+ 		}
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	return 0;
+ }
+diff --git a/fs/hfsplus/ioctl.c b/fs/hfsplus/ioctl.c
+index fbaa6690c8e0..ada90f7e393b 100644
+--- a/fs/hfsplus/ioctl.c
++++ b/fs/hfsplus/ioctl.c
+@@ -57,7 +57,7 @@ static int hfsplus_ioctl_setflags(struct file *file, int __user *user_flags)
+ 		goto out_drop_write;
+ 	}
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	if ((flags & (FS_IMMUTABLE_FL|FS_APPEND_FL)) ||
+ 	    inode->i_flags & (S_IMMUTABLE|S_APPEND)) {
+@@ -92,7 +92,7 @@ static int hfsplus_ioctl_setflags(struct file *file, int __user *user_flags)
+ 	mark_inode_dirty(inode);
+ 
+ out_unlock_inode:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ out_drop_write:
+ 	mnt_drop_write(file->f_path.mnt);
+ out:
+diff --git a/fs/hpfs/dir.c b/fs/hpfs/dir.c
+index f46ae025bfb5..ebf1a884963f 100644
+--- a/fs/hpfs/dir.c
++++ b/fs/hpfs/dir.c
+@@ -33,19 +33,19 @@ static loff_t hpfs_dir_lseek(struct file *filp, loff_t off, int whence)
+ 
+ 	/*printk("dir lseek\n");*/
+ 	if (new_off == 0 || new_off == 1 || new_off == 11 || new_off == 12 || new_off == 13) goto ok;
+-	mutex_lock(&i->i_mutex);
++	inode_lock(i);
+ 	pos = ((loff_t) hpfs_de_as_down_as_possible(s, hpfs_inode->i_dno) << 4) + 1;
+ 	while (pos != new_off) {
+ 		if (map_pos_dirent(i, &pos, &qbh)) hpfs_brelse4(&qbh);
+ 		else goto fail;
+ 		if (pos == 12) goto fail;
+ 	}
+-	mutex_unlock(&i->i_mutex);
++	inode_unlock(i);
+ ok:
+ 	hpfs_unlock(s);
+ 	return filp->f_pos = new_off;
+ fail:
+-	mutex_unlock(&i->i_mutex);
++	inode_unlock(i);
+ 	/*printk("illegal lseek: %016llx\n", new_off);*/
+ 	hpfs_unlock(s);
+ 	return -ESPIPE;
+diff --git a/fs/hppfs/hppfs.c b/fs/hppfs/hppfs.c
+index 85c098a499f3..0f2be7065743 100644
+--- a/fs/hppfs/hppfs.c
++++ b/fs/hppfs/hppfs.c
+@@ -151,9 +151,9 @@ static struct dentry *hppfs_lookup(struct inode *ino, struct dentry *dentry,
+ 		return ERR_PTR(-ENOENT);
+ 
+ 	parent = HPPFS_I(ino)->proc_dentry;
+-	mutex_lock(&parent->d_inode->i_mutex);
++	inode_lock(parent->d_inode);
+ 	proc_dentry = lookup_one_len(name->name, parent, name->len);
+-	mutex_unlock(&parent->d_inode->i_mutex);
++	inode_unlock(parent->d_inode);
+ 
+ 	if (IS_ERR(proc_dentry))
+ 		return proc_dentry;
+diff --git a/fs/hugetlbfs/inode.c b/fs/hugetlbfs/inode.c
+index 7aafeb8fa300..99df899e2116 100644
+--- a/fs/hugetlbfs/inode.c
++++ b/fs/hugetlbfs/inode.c
+@@ -99,7 +99,7 @@ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 
+ 	vma_len = (loff_t)(vma->vm_end - vma->vm_start);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	file_accessed(file);
+ 
+ 	ret = -ENOMEM;
+@@ -116,7 +116,7 @@ static int hugetlbfs_file_mmap(struct file *file, struct vm_area_struct *vma)
+ 	if (vma->vm_flags & VM_WRITE && inode->i_size < len)
+ 		inode->i_size = len;
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return ret;
+ }
+@@ -238,7 +238,7 @@ static ssize_t hugetlbfs_read(struct file *filp, char __user *buf,
+ 	loff_t isize;
+ 	ssize_t retval = 0;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	/* validate length */
+ 	if (len == 0)
+@@ -308,7 +308,7 @@ static ssize_t hugetlbfs_read(struct file *filp, char __user *buf,
+ 	}
+ out:
+ 	*ppos = ((loff_t)index << huge_page_shift(h)) + offset;
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return retval;
+ }
+ 
+diff --git a/fs/ioctl.c b/fs/ioctl.c
+index 1d9b9fcb2db4..db126af5b87e 100644
+--- a/fs/ioctl.c
++++ b/fs/ioctl.c
+@@ -406,9 +406,9 @@ int generic_block_fiemap(struct inode *inode,
+ 			 u64 len, get_block_t *get_block)
+ {
+ 	int ret;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = __generic_block_fiemap(inode, fieinfo, start, len, get_block);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ EXPORT_SYMBOL(generic_block_fiemap);
+diff --git a/fs/jfs/ioctl.c b/fs/jfs/ioctl.c
+index 6f98a1866776..491d4cba71f4 100644
+--- a/fs/jfs/ioctl.c
++++ b/fs/jfs/ioctl.c
+@@ -92,7 +92,7 @@ long jfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		}
+ 
+ 		/* Lock against other parallel changes of flags */
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 
+ 		jfs_get_inode_flags(jfs_inode);
+ 		oldflags = jfs_inode->mode2;
+@@ -105,7 +105,7 @@ long jfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 			((flags ^ oldflags) &
+ 			(JFS_APPEND_FL | JFS_IMMUTABLE_FL))) {
+ 			if (!capable(CAP_LINUX_IMMUTABLE)) {
+-				mutex_unlock(&inode->i_mutex);
++				inode_unlock(inode);
+ 				err = -EPERM;
+ 				goto setflags_out;
+ 			}
+@@ -116,7 +116,7 @@ long jfs_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 		jfs_inode->mode2 = flags;
+ 
+ 		jfs_set_inode_flags(inode);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		inode->i_ctime = CURRENT_TIME_SEC;
+ 		mark_inode_dirty(inode);
+ setflags_out:
+diff --git a/fs/jfs/super.c b/fs/jfs/super.c
+index 06c8a67cbe76..74025a530041 100644
+--- a/fs/jfs/super.c
++++ b/fs/jfs/super.c
+@@ -703,7 +703,7 @@ static ssize_t jfs_quota_write(struct super_block *sb, int type,
+ 	struct buffer_head tmp_bh;
+ 	struct buffer_head *bh;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	while (towrite > 0) {
+ 		tocopy = sb->s_blocksize - offset < towrite ?
+ 				sb->s_blocksize - offset : towrite;
+@@ -735,7 +735,7 @@ static ssize_t jfs_quota_write(struct super_block *sb, int type,
+ 	}
+ out:
+ 	if (len == towrite) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return err;
+ 	}
+ 	if (inode->i_size < off+len-towrite)
+@@ -743,7 +743,7 @@ out:
+ 	inode->i_version++;
+ 	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 	mark_inode_dirty(inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return len - towrite;
+ }
+ 
+diff --git a/fs/libfs.c b/fs/libfs.c
+index 275ca4749a2e..5956e306eab2 100644
+--- a/fs/libfs.c
++++ b/fs/libfs.c
+@@ -82,7 +82,7 @@ int dcache_dir_close(struct inode *inode, struct file *file)
+ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int origin)
+ {
+ 	struct dentry *dentry = file->f_path.dentry;
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	switch (origin) {
+ 		case 1:
+ 			offset += file->f_pos;
+@@ -90,7 +90,7 @@ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int origin)
+ 			if (offset >= 0)
+ 				break;
+ 		default:
+-			mutex_unlock(&dentry->d_inode->i_mutex);
++			inode_unlock(dentry->d_inode);
+ 			return -EINVAL;
+ 	}
+ 	if (offset != file->f_pos) {
+@@ -117,7 +117,7 @@ loff_t dcache_dir_lseek(struct file *file, loff_t offset, int origin)
+ 			spin_unlock(&dentry->d_lock);
+ 		}
+ 	}
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 	return offset;
+ }
+ 
+diff --git a/fs/logfs/file.c b/fs/logfs/file.c
+index c2ad7028def4..e21d8411ff70 100644
+--- a/fs/logfs/file.c
++++ b/fs/logfs/file.c
+@@ -203,12 +203,12 @@ long logfs_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+ 		if (err)
+ 			return err;
+ 
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		oldflags = li->li_flags;
+ 		flags &= LOGFS_FL_USER_MODIFIABLE;
+ 		flags |= oldflags & ~LOGFS_FL_USER_MODIFIABLE;
+ 		li->li_flags = flags;
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 
+ 		inode->i_ctime = CURRENT_TIME;
+ 		mark_inode_dirty_sync(inode);
+diff --git a/fs/namei.c b/fs/namei.c
+index 14ab8d3f2f0c..25fc8e102632 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -1191,19 +1191,19 @@ retry:
+ 		struct inode *dir = parent->d_inode;
+ 		BUG_ON(nd->inode != dir);
+ 
+-		mutex_lock(&dir->i_mutex);
++		inode_lock(dir);
+ 		dentry = d_lookup(parent, name);
+ 		if (likely(!dentry)) {
+ 			dentry = d_alloc_and_lookup(parent, name, nd);
+ 			if (IS_ERR(dentry)) {
+-				mutex_unlock(&dir->i_mutex);
++				inode_unlock(dir);
+ 				return PTR_ERR(dentry);
+ 			}
+ 			/* known good */
+ 			need_reval = 0;
+ 			status = 1;
+ 		}
+-		mutex_unlock(&dir->i_mutex);
++		inode_unlock(dir);
+ 	}
+ 	if (unlikely(dentry->d_flags & DCACHE_OP_REVALIDATE) && need_reval)
+ 		status = d_revalidate(dentry, nd);
+@@ -1880,7 +1880,7 @@ struct dentry *lock_rename(struct dentry *p1, struct dentry *p2)
+ 	struct dentry *p;
+ 
+ 	if (p1 == p2) {
+-		mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
++		inode_lock_nested(p1->d_inode, I_MUTEX_PARENT);
+ 		return NULL;
+ 	}
+ 
+@@ -1888,28 +1888,28 @@ struct dentry *lock_rename(struct dentry *p1, struct dentry *p2)
+ 
+ 	p = d_ancestor(p2, p1);
+ 	if (p) {
+-		mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(p2->d_inode, I_MUTEX_PARENT);
++		inode_lock_nested(p1->d_inode, I_MUTEX_CHILD);
+ 		return p;
+ 	}
+ 
+ 	p = d_ancestor(p1, p2);
+ 	if (p) {
+-		mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
+-		mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(p1->d_inode, I_MUTEX_PARENT);
++		inode_lock_nested(p2->d_inode, I_MUTEX_CHILD);
+ 		return p;
+ 	}
+ 
+-	mutex_lock_nested(&p1->d_inode->i_mutex, I_MUTEX_PARENT);
+-	mutex_lock_nested(&p2->d_inode->i_mutex, I_MUTEX_CHILD);
++	inode_lock_nested(p1->d_inode, I_MUTEX_PARENT);
++	inode_lock_nested(p2->d_inode, I_MUTEX_CHILD);
+ 	return NULL;
+ }
+ 
+ void unlock_rename(struct dentry *p1, struct dentry *p2)
+ {
+-	mutex_unlock(&p1->d_inode->i_mutex);
++	inode_unlock(p1->d_inode);
+ 	if (p1 != p2) {
+-		mutex_unlock(&p2->d_inode->i_mutex);
++		inode_unlock(p2->d_inode);
+ 		mutex_unlock(&p1->d_inode->i_sb->s_vfs_rename_mutex);
+ 	}
+ }
+@@ -2117,12 +2117,12 @@ static struct file *do_last(struct nameidata *nd, struct path *path,
+ 	if (nd->last.name[nd->last.len])
+ 		goto exit;
+ 
+-	mutex_lock(&dir->d_inode->i_mutex);
++	inode_lock(dir->d_inode);
+ 
+ 	dentry = lookup_hash(nd);
+ 	error = PTR_ERR(dentry);
+ 	if (IS_ERR(dentry)) {
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 		goto exit;
+ 	}
+ 
+@@ -2155,7 +2155,7 @@ static struct file *do_last(struct nameidata *nd, struct path *path,
+ 		error = vfs_create(dir->d_inode, dentry, mode, nd);
+ 		if (error)
+ 			goto exit_mutex_unlock;
+-		mutex_unlock(&dir->d_inode->i_mutex);
++		inode_unlock(dir->d_inode);
+ 		dput(nd->path.dentry);
+ 		nd->path.dentry = dentry;
+ 		goto common;
+@@ -2164,7 +2164,7 @@ static struct file *do_last(struct nameidata *nd, struct path *path,
+ 	/*
+ 	 * It already exists.
+ 	 */
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	audit_inode(pathname, path->dentry);
+ 
+ 	error = -EEXIST;
+@@ -2225,7 +2225,7 @@ out:
+ 	return filp;
+ 
+ exit_mutex_unlock:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ exit_dput:
+ 	path_put_conditional(path, nd);
+ exit:
+@@ -2341,7 +2341,7 @@ struct dentry *lookup_create(struct nameidata *nd, int is_dir)
+ {
+ 	struct dentry *dentry = ERR_PTR(-EEXIST);
+ 
+-	mutex_lock_nested(&nd->path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(nd->path.dentry->d_inode, I_MUTEX_PARENT);
+ 	/*
+ 	 * Yucky last component or no last component at all?
+ 	 * (foo/., foo/.., /////)
+@@ -2473,7 +2473,7 @@ out_drop_write:
+ out_dput:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ 	path_put(&nd.path);
+ 	putname(tmp);
+ 
+@@ -2536,7 +2536,7 @@ out_drop_write:
+ out_dput:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ 	path_put(&nd.path);
+ 	putname(tmp);
+ out_err:
+@@ -2582,7 +2582,7 @@ int vfs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	if (!dir->i_op->rmdir)
+ 		return -EPERM;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 
+ 	error = -EBUSY;
+ 	if (d_mountpoint(dentry))
+@@ -2601,7 +2601,7 @@ int vfs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	dont_mount(dentry);
+ 
+ out:
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 	if (!error)
+ 		d_delete(dentry);
+ 	return error;
+@@ -2632,7 +2632,7 @@ static long do_rmdir(int dfd, const char __user *pathname)
+ 
+ 	nd.flags &= ~LOOKUP_PARENT;
+ 
+-	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(nd.path.dentry->d_inode, I_MUTEX_PARENT);
+ 	dentry = lookup_hash(&nd);
+ 	error = PTR_ERR(dentry);
+ 	if (IS_ERR(dentry))
+@@ -2653,7 +2653,7 @@ exit4:
+ exit3:
+ 	dput(dentry);
+ exit2:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ exit1:
+ 	path_put(&nd.path);
+ 	putname(name);
+@@ -2675,7 +2675,7 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry)
+ 	if (!dir->i_op->unlink)
+ 		return -EPERM;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	if (d_mountpoint(dentry))
+ 		error = -EBUSY;
+ 	else {
+@@ -2686,7 +2686,7 @@ int vfs_unlink(struct inode *dir, struct dentry *dentry)
+ 				dont_mount(dentry);
+ 		}
+ 	}
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	/* We don't d_delete() NFS sillyrenamed files--they still exist. */
+ 	if (!error && !(dentry->d_flags & DCACHE_NFSFS_RENAMED)) {
+@@ -2721,7 +2721,7 @@ static long do_unlinkat(int dfd, const char __user *pathname)
+ 
+ 	nd.flags &= ~LOOKUP_PARENT;
+ 
+-	mutex_lock_nested(&nd.path.dentry->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(nd.path.dentry->d_inode, I_MUTEX_PARENT);
+ 	dentry = lookup_hash(&nd);
+ 	error = PTR_ERR(dentry);
+ 	if (!IS_ERR(dentry)) {
+@@ -2744,7 +2744,7 @@ exit3:
+ 	exit2:
+ 		dput(dentry);
+ 	}
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ 	if (inode)
+ 		iput(inode);	/* truncate the inode here */
+ exit1:
+@@ -2828,7 +2828,7 @@ out_drop_write:
+ out_dput:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ 	path_put(&nd.path);
+ 	putname(to);
+ out_putname:
+@@ -2870,13 +2870,13 @@ int vfs_link(struct dentry *old_dentry, struct inode *dir, struct dentry *new_de
+ 	if (error)
+ 		return error;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	/* Make sure we don't allow creating hardlink to an unlinked file */
+ 	if (inode->i_nlink == 0)
+ 		error =  -ENOENT;
+ 	else
+ 		error = dir->i_op->link(old_dentry, dir, new_dentry);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (!error)
+ 		fsnotify_link(dir, inode, new_dentry);
+ 	return error;
+@@ -2943,7 +2943,7 @@ out_drop_write:
+ out_dput:
+ 	dput(new_dentry);
+ out_unlock:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ out_release:
+ 	path_put(&nd.path);
+ 	putname(to);
+@@ -3006,7 +3006,7 @@ static int vfs_rename_dir(struct inode *old_dir, struct dentry *old_dentry,
+ 		return error;
+ 
+ 	if (target)
+-		mutex_lock(&target->i_mutex);
++		inode_lock(target);
+ 
+ 	error = -EBUSY;
+ 	if (d_mountpoint(old_dentry) || d_mountpoint(new_dentry))
+@@ -3024,7 +3024,7 @@ static int vfs_rename_dir(struct inode *old_dir, struct dentry *old_dentry,
+ 	}
+ out:
+ 	if (target)
+-		mutex_unlock(&target->i_mutex);
++		inode_unlock(target);
+ 	if (!error)
+ 		if (!(old_dir->i_sb->s_type->fs_flags & FS_RENAME_DOES_D_MOVE))
+ 			d_move(old_dentry,new_dentry);
+@@ -3043,7 +3043,7 @@ static int vfs_rename_other(struct inode *old_dir, struct dentry *old_dentry,
+ 
+ 	dget(new_dentry);
+ 	if (target)
+-		mutex_lock(&target->i_mutex);
++		inode_lock(target);
+ 
+ 	error = -EBUSY;
+ 	if (d_mountpoint(old_dentry)||d_mountpoint(new_dentry))
+@@ -3059,7 +3059,7 @@ static int vfs_rename_other(struct inode *old_dir, struct dentry *old_dentry,
+ 		d_move(old_dentry, new_dentry);
+ out:
+ 	if (target)
+-		mutex_unlock(&target->i_mutex);
++		inode_unlock(target);
+ 	dput(new_dentry);
+ 	return error;
+ }
+diff --git a/fs/namespace.c b/fs/namespace.c
+index fe59bd145d21..f0d44b4d8302 100644
+--- a/fs/namespace.c
++++ b/fs/namespace.c
+@@ -1651,9 +1651,9 @@ static int lock_mount(struct path *path)
+ {
+ 	struct vfsmount *mnt;
+ retry:
+-	mutex_lock(&path->dentry->d_inode->i_mutex);
++	inode_lock(path->dentry->d_inode);
+ 	if (unlikely(cant_mount(path->dentry))) {
+-		mutex_unlock(&path->dentry->d_inode->i_mutex);
++		inode_unlock(path->dentry->d_inode);
+ 		return -ENOENT;
+ 	}
+ 	down_write(&namespace_sem);
+@@ -1661,7 +1661,7 @@ retry:
+ 	if (likely(!mnt))
+ 		return 0;
+ 	up_write(&namespace_sem);
+-	mutex_unlock(&path->dentry->d_inode->i_mutex);
++	inode_unlock(path->dentry->d_inode);
+ 	path_put(path);
+ 	path->mnt = mnt;
+ 	path->dentry = dget(mnt->mnt_root);
+@@ -1671,7 +1671,7 @@ retry:
+ static void unlock_mount(struct path *path)
+ {
+ 	up_write(&namespace_sem);
+-	mutex_unlock(&path->dentry->d_inode->i_mutex);
++	inode_unlock(path->dentry->d_inode);
+ }
+ 
+ static int graft_tree(struct vfsmount *mnt, struct path *path)
+diff --git a/fs/ncpfs/dir.c b/fs/ncpfs/dir.c
+index 9c51f621e901..2ea35eb0555b 100644
+--- a/fs/ncpfs/dir.c
++++ b/fs/ncpfs/dir.c
+@@ -352,7 +352,7 @@ ncp_lookup_validate(struct dentry *dentry, struct nameidata *nd)
+ 	if (!res) {
+ 		struct inode *inode = dentry->d_inode;
+ 
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		if (finfo.i.dirEntNum == NCP_FINFO(inode)->dirEntNum) {
+ 			ncp_new_dentry(dentry);
+ 			val=1;
+@@ -360,7 +360,7 @@ ncp_lookup_validate(struct dentry *dentry, struct nameidata *nd)
+ 			DDPRINTK("ncp_lookup_validate: found, but dirEntNum changed\n");
+ 
+ 		ncp_update_inode2(inode, &finfo);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 
+ finished:
+@@ -637,9 +637,9 @@ ncp_fill_cache(struct file *filp, void *dirent, filldir_t filldir,
+ 	} else {
+ 		struct inode *inode = newdent->d_inode;
+ 
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode, I_MUTEX_CHILD);
+ 		ncp_update_inode2(inode, entry);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 
+ 	if (newdent->d_inode) {
+diff --git a/fs/ncpfs/file.c b/fs/ncpfs/file.c
+index 0ed65e0c3dfe..fe0efa815051 100644
+--- a/fs/ncpfs/file.c
++++ b/fs/ncpfs/file.c
+@@ -258,10 +258,10 @@ ncp_file_write(struct file *file, const char __user *buf, size_t count, loff_t *
+ 	*ppos = pos;
+ 
+ 	if (pos > i_size_read(inode)) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		if (pos > i_size_read(inode))
+ 			i_size_write(inode, pos);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	DPRINTK("ncp_file_write: exit %s/%s\n",
+ 		dentry->d_parent->d_name.name, dentry->d_name.name);
+diff --git a/fs/nfs/dir.c b/fs/nfs/dir.c
+index ededdbd0db38..41b7bbac2ba2 100644
+--- a/fs/nfs/dir.c
++++ b/fs/nfs/dir.c
+@@ -920,7 +920,7 @@ static loff_t nfs_llseek_dir(struct file *filp, loff_t offset, int origin)
+ 			dentry->d_name.name,
+ 			offset, origin);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	switch (origin) {
+ 		case 1:
+ 			offset += filp->f_pos;
+@@ -937,7 +937,7 @@ static loff_t nfs_llseek_dir(struct file *filp, loff_t offset, int origin)
+ 		dir_ctx->duped = 0;
+ 	}
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return offset;
+ }
+ 
+diff --git a/fs/nfsd/nfs4recover.c b/fs/nfsd/nfs4recover.c
+index ffb59ef6f82f..f2aeb1f777b1 100644
+--- a/fs/nfsd/nfs4recover.c
++++ b/fs/nfsd/nfs4recover.c
+@@ -135,7 +135,7 @@ nfsd4_create_clid_dir(struct nfs4_client *clp)
+ 
+ 	dir = rec_file->f_path.dentry;
+ 	/* lock the parent */
+-	mutex_lock(&dir->d_inode->i_mutex);
++	inode_lock(dir->d_inode);
+ 
+ 	dentry = lookup_one_len(dname, dir, HEXDIR_LEN-1);
+ 	if (IS_ERR(dentry)) {
+@@ -155,7 +155,7 @@ nfsd4_create_clid_dir(struct nfs4_client *clp)
+ out_put:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	if (status == 0) {
+ 		clp->cl_firststate = 1;
+ 		vfs_fsync(rec_file, 0);
+@@ -214,7 +214,7 @@ nfsd4_list_rec_dir(struct dentry *dir, recdir_func *f)
+ 		goto out;
+ 	status = vfs_readdir(filp, nfsd4_build_namelist, &names);
+ 	fput(filp);
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir->d_inode, I_MUTEX_PARENT);
+ 	while (!list_empty(&names)) {
+ 		entry = list_entry(names.next, struct name_list, list);
+ 
+@@ -230,7 +230,7 @@ nfsd4_list_rec_dir(struct dentry *dir, recdir_func *f)
+ 		list_del(&entry->list);
+ 		kfree(entry);
+ 	}
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ out:
+ 	while (!list_empty(&names)) {
+ 		entry = list_entry(names.next, struct name_list, list);
+@@ -250,7 +250,7 @@ nfsd4_unlink_clid_dir(char *name, int namlen)
+ 	dprintk("NFSD: nfsd4_unlink_clid_dir. name %.*s\n", namlen, name);
+ 
+ 	dir = rec_file->f_path.dentry;
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_PARENT);
++	inode_lock_nested(dir->d_inode, I_MUTEX_PARENT);
+ 	dentry = lookup_one_len(name, dir, namlen);
+ 	if (IS_ERR(dentry)) {
+ 		status = PTR_ERR(dentry);
+@@ -263,7 +263,7 @@ nfsd4_unlink_clid_dir(char *name, int namlen)
+ out:
+ 	dput(dentry);
+ out_unlock:
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 	return status;
+ }
+ 
+diff --git a/fs/nfsd/vfs.c b/fs/nfsd/vfs.c
+index fd0acca5370a..02c5a0d64555 100644
+--- a/fs/nfsd/vfs.c
++++ b/fs/nfsd/vfs.c
+@@ -915,9 +915,9 @@ static void kill_suid(struct dentry *dentry)
+ 	struct iattr	ia;
+ 	ia.ia_valid = ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	notify_change(dentry, &ia);
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ }
+ 
+ /*
+@@ -1962,7 +1962,7 @@ static __be32 nfsd_buffered_readdir(struct file *file, filldir_t func,
+ 			size -= reclen;
+ 			de = (struct buffered_dirent *)((char *)de + reclen);
+ 		}
+-		mutex_unlock(&dir_inode->i_mutex);
++		inode_unlock(dir_inode);
+ 		if (size > 0) /* We bailed out early */
+ 			break;
+ 
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index b9b45fc2903e..fc9081de65e6 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -949,7 +949,7 @@ int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 	if (ret)
+ 		return ret;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	isize = i_size_read(inode);
+ 
+@@ -1059,6 +1059,6 @@ int nilfs_fiemap(struct inode *inode, struct fiemap_extent_info *fieinfo,
+ 	if (ret == 1)
+ 		ret = 0;
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+diff --git a/fs/nilfs2/ioctl.c b/fs/nilfs2/ioctl.c
+index 41d6743d303c..59a1043f384b 100644
+--- a/fs/nilfs2/ioctl.c
++++ b/fs/nilfs2/ioctl.c
+@@ -125,7 +125,7 @@ static int nilfs_ioctl_setflags(struct inode *inode, struct file *filp,
+ 
+ 	flags = nilfs_mask_flags(inode->i_mode, flags);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	oldflags = NILFS_I(inode)->i_flags;
+ 
+@@ -153,7 +153,7 @@ static int nilfs_ioctl_setflags(struct inode *inode, struct file *filp,
+ 	nilfs_mark_inode_dirty(inode);
+ 	ret = nilfs_transaction_commit(inode->i_sb);
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	mnt_drop_write(filp->f_path.mnt);
+ 	return ret;
+ }
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index f4b1057abdd2..c8a477231e62 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -2118,9 +2118,9 @@ static ssize_t ntfs_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 
+ 	BUG_ON(iocb->ki_pos != pos);
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	ret = ntfs_file_aio_write_nolock(iocb, iov, nr_segs, &iocb->ki_pos);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (ret > 0) {
+ 		int err = generic_write_sync(file, pos, ret);
+ 		if (err < 0)
+diff --git a/fs/ntfs/quota.c b/fs/ntfs/quota.c
+index d80e3315cab0..9793e68ba1dd 100644
+--- a/fs/ntfs/quota.c
++++ b/fs/ntfs/quota.c
+@@ -48,7 +48,7 @@ bool ntfs_mark_quotas_out_of_date(ntfs_volume *vol)
+ 		ntfs_error(vol->sb, "Quota inodes are not open.");
+ 		return false;
+ 	}
+-	mutex_lock(&vol->quota_q_ino->i_mutex);
++	inode_lock(vol->quota_q_ino);
+ 	ictx = ntfs_index_ctx_get(NTFS_I(vol->quota_q_ino));
+ 	if (!ictx) {
+ 		ntfs_error(vol->sb, "Failed to get index context.");
+@@ -98,7 +98,7 @@ bool ntfs_mark_quotas_out_of_date(ntfs_volume *vol)
+ 	ntfs_index_entry_mark_dirty(ictx);
+ set_done:
+ 	ntfs_index_ctx_put(ictx);
+-	mutex_unlock(&vol->quota_q_ino->i_mutex);
++	inode_unlock(vol->quota_q_ino);
+ 	/*
+ 	 * We set the flag so we do not try to mark the quotas out of date
+ 	 * again on remount.
+@@ -110,7 +110,7 @@ done:
+ err_out:
+ 	if (ictx)
+ 		ntfs_index_ctx_put(ictx);
+-	mutex_unlock(&vol->quota_q_ino->i_mutex);
++	inode_unlock(vol->quota_q_ino);
+ 	return false;
+ }
+ 
+diff --git a/fs/ntfs/super.c b/fs/ntfs/super.c
+index b52706da4645..e2613b21af81 100644
+--- a/fs/ntfs/super.c
++++ b/fs/ntfs/super.c
+@@ -1257,10 +1257,10 @@ static int check_windows_hibernation_status(ntfs_volume *vol)
+ 	 * Find the inode number for the hibernation file by looking up the
+ 	 * filename hiberfil.sys in the root directory.
+ 	 */
+-	mutex_lock(&vol->root_ino->i_mutex);
++	inode_lock(vol->root_ino);
+ 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->root_ino), hiberfil, 12,
+ 			&name);
+-	mutex_unlock(&vol->root_ino->i_mutex);
++	inode_unlock(vol->root_ino);
+ 	if (IS_ERR_MREF(mref)) {
+ 		ret = MREF_ERR(mref);
+ 		/* If the file does not exist, Windows is not hibernated. */
+@@ -1351,10 +1351,10 @@ static bool load_and_init_quota(ntfs_volume *vol)
+ 	 * Find the inode number for the quota file by looking up the filename
+ 	 * $Quota in the extended system files directory $Extend.
+ 	 */
+-	mutex_lock(&vol->extend_ino->i_mutex);
++	inode_lock(vol->extend_ino);
+ 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->extend_ino), Quota, 6,
+ 			&name);
+-	mutex_unlock(&vol->extend_ino->i_mutex);
++	inode_unlock(vol->extend_ino);
+ 	if (IS_ERR_MREF(mref)) {
+ 		/*
+ 		 * If the file does not exist, quotas are disabled and have
+@@ -1434,10 +1434,10 @@ static bool load_and_init_usnjrnl(ntfs_volume *vol)
+ 	 * Find the inode number for the transaction log file by looking up the
+ 	 * filename $UsnJrnl in the extended system files directory $Extend.
+ 	 */
+-	mutex_lock(&vol->extend_ino->i_mutex);
++	inode_lock(vol->extend_ino);
+ 	mref = ntfs_lookup_inode_by_name(NTFS_I(vol->extend_ino), UsnJrnl, 8,
+ 			&name);
+-	mutex_unlock(&vol->extend_ino->i_mutex);
++	inode_unlock(vol->extend_ino);
+ 	if (IS_ERR_MREF(mref)) {
+ 		/*
+ 		 * If the file does not exist, transaction logging is disabled,
+diff --git a/fs/ocfs2/alloc.c b/fs/ocfs2/alloc.c
+index ed553c60de82..3912c1a1eda3 100644
+--- a/fs/ocfs2/alloc.c
++++ b/fs/ocfs2/alloc.c
+@@ -5677,7 +5677,7 @@ int ocfs2_remove_btree_range(struct inode *inode,
+ 		return ret;
+ 	}
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	if (ocfs2_truncate_log_needs_flush(osb)) {
+ 		ret = __ocfs2_flush_truncate_log(osb);
+@@ -5733,7 +5733,7 @@ int ocfs2_remove_btree_range(struct inode *inode,
+ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ out:
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	if (meta_ac)
+ 		ocfs2_free_alloc_context(meta_ac);
+@@ -5789,7 +5789,7 @@ int ocfs2_truncate_log_append(struct ocfs2_super *osb,
+ 	struct ocfs2_dinode *di;
+ 	struct ocfs2_truncate_log *tl;
+ 
+-	BUG_ON(mutex_trylock(&tl_inode->i_mutex));
++	BUG_ON(inode_trylock(tl_inode));
+ 
+ 	start_cluster = ocfs2_blocks_to_clusters(osb->sb, start_blk);
+ 
+@@ -5937,7 +5937,7 @@ int __ocfs2_flush_truncate_log(struct ocfs2_super *osb)
+ 	struct ocfs2_dinode *di;
+ 	struct ocfs2_truncate_log *tl;
+ 
+-	BUG_ON(mutex_trylock(&tl_inode->i_mutex));
++	BUG_ON(inode_trylock(tl_inode));
+ 
+ 	di = (struct ocfs2_dinode *) tl_bh->b_data;
+ 
+@@ -5965,7 +5965,7 @@ int __ocfs2_flush_truncate_log(struct ocfs2_super *osb)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&data_alloc_inode->i_mutex);
++	inode_lock(data_alloc_inode);
+ 
+ 	status = ocfs2_inode_lock(data_alloc_inode, &data_alloc_bh, 1);
+ 	if (status < 0) {
+@@ -5992,7 +5992,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(data_alloc_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&data_alloc_inode->i_mutex);
++	inode_unlock(data_alloc_inode);
+ 	iput(data_alloc_inode);
+ 
+ out:
+@@ -6004,9 +6004,9 @@ int ocfs2_flush_truncate_log(struct ocfs2_super *osb)
+ 	int status;
+ 	struct inode *tl_inode = osb->osb_tl_inode;
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 	status = __ocfs2_flush_truncate_log(osb);
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	return status;
+ }
+@@ -6165,7 +6165,7 @@ int ocfs2_complete_truncate_log_recovery(struct ocfs2_super *osb,
+ 		(unsigned long long)le64_to_cpu(tl_copy->i_blkno),
+ 		num_recs);
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 	for(i = 0; i < num_recs; i++) {
+ 		if (ocfs2_truncate_log_needs_flush(osb)) {
+ 			status = __ocfs2_flush_truncate_log(osb);
+@@ -6196,7 +6196,7 @@ int ocfs2_complete_truncate_log_recovery(struct ocfs2_super *osb,
+ 	}
+ 
+ bail_up:
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	return status;
+ }
+@@ -6300,7 +6300,7 @@ static int ocfs2_free_cached_blocks(struct ocfs2_super *osb,
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	ret = ocfs2_inode_lock(inode, &di_bh, 1);
+ 	if (ret) {
+@@ -6349,7 +6349,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(inode, 1);
+ 	brelse(di_bh);
+ out_mutex:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	iput(inode);
+ out:
+ 	while(head) {
+@@ -6393,7 +6393,7 @@ static int ocfs2_free_cached_clusters(struct ocfs2_super *osb,
+ 	handle_t *handle;
+ 	int ret = 0;
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	while (head) {
+ 		if (ocfs2_truncate_log_needs_flush(osb)) {
+@@ -6425,7 +6425,7 @@ static int ocfs2_free_cached_clusters(struct ocfs2_super *osb,
+ 		}
+ 	}
+ 
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	while (head) {
+ 		/* Premature exit may have left some dangling items. */
+@@ -7280,7 +7280,7 @@ int ocfs2_trim_fs(struct super_block *sb, struct fstrim_range *range)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&main_bm_inode->i_mutex);
++	inode_lock(main_bm_inode);
+ 
+ 	ret = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 0);
+ 	if (ret < 0) {
+@@ -7345,7 +7345,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 0);
+ 	brelse(main_bm_bh);
+ out_mutex:
+-	mutex_unlock(&main_bm_inode->i_mutex);
++	inode_unlock(main_bm_inode);
+ 	iput(main_bm_inode);
+ out:
+ 	return ret;
+diff --git a/fs/ocfs2/aops.c b/fs/ocfs2/aops.c
+index ac97bca282d2..31c796cda7e1 100644
+--- a/fs/ocfs2/aops.c
++++ b/fs/ocfs2/aops.c
+@@ -1637,9 +1637,9 @@ static int ocfs2_try_to_free_truncate_log(struct ocfs2_super *osb,
+ 	int ret = 0;
+ 	unsigned int truncated_clusters;
+ 
+-	mutex_lock(&osb->osb_tl_inode->i_mutex);
++	inode_lock(osb->osb_tl_inode);
+ 	truncated_clusters = osb->truncated_clusters;
+-	mutex_unlock(&osb->osb_tl_inode->i_mutex);
++	inode_unlock(osb->osb_tl_inode);
+ 
+ 	/*
+ 	 * Check whether we can succeed in allocating if we free
+diff --git a/fs/ocfs2/dir.c b/fs/ocfs2/dir.c
+index 8582e3f4f120..1ec400ea7494 100644
+--- a/fs/ocfs2/dir.c
++++ b/fs/ocfs2/dir.c
+@@ -4429,7 +4429,7 @@ static int ocfs2_dx_dir_remove_index(struct inode *dir,
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+-	mutex_lock(&dx_alloc_inode->i_mutex);
++	inode_lock(dx_alloc_inode);
+ 
+ 	ret = ocfs2_inode_lock(dx_alloc_inode, &dx_alloc_bh, 1);
+ 	if (ret) {
+@@ -4477,7 +4477,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(dx_alloc_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&dx_alloc_inode->i_mutex);
++	inode_unlock(dx_alloc_inode);
+ 	brelse(dx_alloc_bh);
+ out:
+ 	iput(dx_alloc_inode);
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index b1e35a392ca5..d2122e997c05 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -1830,7 +1830,7 @@ static int __ocfs2_change_file_space(struct file *file, struct inode *inode,
+ 	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb))
+ 		return -EROFS;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	/*
+ 	 * This prevents concurrent writes on other nodes
+@@ -1945,7 +1945,7 @@ out_rw_unlock:
+ 	ocfs2_rw_unlock(inode, 1);
+ 
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return ret;
+ }
+ 
+@@ -2231,7 +2231,7 @@ static ssize_t ocfs2_file_aio_write(struct kiocb *iocb,
+ 	appending = file->f_flags & O_APPEND ? 1 : 0;
+ 	direct_io = file->f_flags & O_DIRECT ? 1 : 0;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	ocfs2_iocb_clear_sem_locked(iocb);
+ 
+@@ -2383,7 +2383,7 @@ out_sems:
+ 		ocfs2_iocb_clear_sem_locked(iocb);
+ 	}
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	if (written)
+ 		ret = written;
+@@ -2429,7 +2429,7 @@ static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
+ 			out->f_path.dentry->d_name.name, len);
+ 
+ 	if (pipe->inode)
+-		mutex_lock_nested(&pipe->inode->i_mutex, I_MUTEX_PARENT);
++		inode_lock_nested(pipe->inode, I_MUTEX_PARENT);
+ 
+ 	splice_from_pipe_begin(&sd);
+ 	do {
+@@ -2437,7 +2437,7 @@ static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
+ 		if (ret <= 0)
+ 			break;
+ 
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode, I_MUTEX_CHILD);
+ 		ret = ocfs2_rw_lock(inode, 1);
+ 		if (ret < 0)
+ 			mlog_errno(ret);
+@@ -2445,12 +2445,12 @@ static ssize_t ocfs2_file_splice_write(struct pipe_inode_info *pipe,
+ 			ret = ocfs2_splice_to_file(pipe, out, &sd);
+ 			ocfs2_rw_unlock(inode, 1);
+ 		}
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	} while (ret > 0);
+ 	splice_from_pipe_end(pipe, &sd);
+ 
+ 	if (pipe->inode)
+-		mutex_unlock(&pipe->inode->i_mutex);
++		inode_unlock(pipe->inode);
+ 
+ 	if (sd.num_spliced)
+ 		ret = sd.num_spliced;
+diff --git a/fs/ocfs2/inode.c b/fs/ocfs2/inode.c
+index b4c8bb6b8d28..27eda641c03e 100644
+--- a/fs/ocfs2/inode.c
++++ b/fs/ocfs2/inode.c
+@@ -614,10 +614,10 @@ static int ocfs2_remove_inode(struct inode *inode,
+ 		goto bail;
+ 	}
+ 
+-	mutex_lock(&inode_alloc_inode->i_mutex);
++	inode_lock(inode_alloc_inode);
+ 	status = ocfs2_inode_lock(inode_alloc_inode, &inode_alloc_bh, 1);
+ 	if (status < 0) {
+-		mutex_unlock(&inode_alloc_inode->i_mutex);
++		inode_unlock(inode_alloc_inode);
+ 
+ 		mlog_errno(status);
+ 		goto bail;
+@@ -664,7 +664,7 @@ bail_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ bail_unlock:
+ 	ocfs2_inode_unlock(inode_alloc_inode, 1);
+-	mutex_unlock(&inode_alloc_inode->i_mutex);
++	inode_unlock(inode_alloc_inode);
+ 	brelse(inode_alloc_bh);
+ bail:
+ 	iput(inode_alloc_inode);
+@@ -735,10 +735,10 @@ static int ocfs2_wipe_inode(struct inode *inode,
+ 		/* Lock the orphan dir. The lock will be held for the entire
+ 		 * delete_inode operation. We do this now to avoid races with
+ 		 * recovery completion on other nodes. */
+-		mutex_lock(&orphan_dir_inode->i_mutex);
++		inode_lock(orphan_dir_inode);
+ 		status = ocfs2_inode_lock(orphan_dir_inode, &orphan_dir_bh, 1);
+ 		if (status < 0) {
+-			mutex_unlock(&orphan_dir_inode->i_mutex);
++			inode_unlock(orphan_dir_inode);
+ 
+ 			mlog_errno(status);
+ 			goto bail;
+@@ -787,7 +787,7 @@ bail_unlock_dir:
+ 		return status;
+ 
+ 	ocfs2_inode_unlock(orphan_dir_inode, 1);
+-	mutex_unlock(&orphan_dir_inode->i_mutex);
++	inode_unlock(orphan_dir_inode);
+ 	brelse(orphan_dir_bh);
+ bail:
+ 	iput(orphan_dir_inode);
+diff --git a/fs/ocfs2/ioctl.c b/fs/ocfs2/ioctl.c
+index bc91072b7219..c47e475b72e5 100644
+--- a/fs/ocfs2/ioctl.c
++++ b/fs/ocfs2/ioctl.c
+@@ -88,7 +88,7 @@ static int ocfs2_set_inode_attr(struct inode *inode, unsigned flags,
+ 	unsigned oldflags;
+ 	int status;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	status = ocfs2_inode_lock(inode, &bh, 1);
+ 	if (status < 0) {
+@@ -136,7 +136,7 @@ static int ocfs2_set_inode_attr(struct inode *inode, unsigned flags,
+ bail_unlock:
+ 	ocfs2_inode_unlock(inode, 1);
+ bail:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	brelse(bh);
+ 
+@@ -329,7 +329,7 @@ int ocfs2_info_scan_inode_alloc(struct ocfs2_super *osb,
+ 	struct ocfs2_dinode *dinode_alloc = NULL;
+ 
+ 	if (inode_alloc)
+-		mutex_lock(&inode_alloc->i_mutex);
++		inode_lock(inode_alloc);
+ 
+ 	if (o2info_coherent(&fi->ifi_req)) {
+ 		status = ocfs2_inode_lock(inode_alloc, &bh, 0);
+@@ -359,7 +359,7 @@ bail:
+ 		ocfs2_inode_unlock(inode_alloc, 0);
+ 
+ 	if (inode_alloc)
+-		mutex_unlock(&inode_alloc->i_mutex);
++		inode_unlock(inode_alloc);
+ 
+ 	brelse(bh);
+ 
+@@ -584,7 +584,7 @@ int ocfs2_info_freefrag_scan_bitmap(struct ocfs2_super *osb,
+ 	struct ocfs2_dinode *gb_dinode = NULL;
+ 
+ 	if (gb_inode)
+-		mutex_lock(&gb_inode->i_mutex);
++		inode_lock(gb_inode);
+ 
+ 	if (o2info_coherent(&ffg->iff_req)) {
+ 		status = ocfs2_inode_lock(gb_inode, &bh, 0);
+@@ -641,7 +641,7 @@ bail:
+ 		ocfs2_inode_unlock(gb_inode, 0);
+ 
+ 	if (gb_inode)
+-		mutex_unlock(&gb_inode->i_mutex);
++		inode_unlock(gb_inode);
+ 
+ 	if (gb_inode)
+ 		iput(gb_inode);
+diff --git a/fs/ocfs2/journal.c b/fs/ocfs2/journal.c
+index 295d56454e8b..cf0d72555f65 100644
+--- a/fs/ocfs2/journal.c
++++ b/fs/ocfs2/journal.c
+@@ -1974,7 +1974,7 @@ static int ocfs2_queue_orphans(struct ocfs2_super *osb,
+ 		return status;
+ 	}
+ 
+-	mutex_lock(&orphan_dir_inode->i_mutex);
++	inode_lock(orphan_dir_inode);
+ 	status = ocfs2_inode_lock(orphan_dir_inode, NULL, 0);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+@@ -1993,7 +1993,7 @@ static int ocfs2_queue_orphans(struct ocfs2_super *osb,
+ out_cluster:
+ 	ocfs2_inode_unlock(orphan_dir_inode, 0);
+ out:
+-	mutex_unlock(&orphan_dir_inode->i_mutex);
++	inode_unlock(orphan_dir_inode);
+ 	iput(orphan_dir_inode);
+ 	return status;
+ }
+diff --git a/fs/ocfs2/localalloc.c b/fs/ocfs2/localalloc.c
+index 210c35237548..f93cdb5b547e 100644
+--- a/fs/ocfs2/localalloc.c
++++ b/fs/ocfs2/localalloc.c
+@@ -415,7 +415,7 @@ void ocfs2_shutdown_local_alloc(struct ocfs2_super *osb)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&main_bm_inode->i_mutex);
++	inode_lock(main_bm_inode);
+ 
+ 	status = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
+ 	if (status < 0) {
+@@ -469,7 +469,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&main_bm_inode->i_mutex);
++	inode_unlock(main_bm_inode);
+ 	iput(main_bm_inode);
+ 
+ out:
+@@ -509,7 +509,7 @@ int ocfs2_begin_local_alloc_recovery(struct ocfs2_super *osb,
+ 		goto bail;
+ 	}
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	status = ocfs2_read_inode_block_full(inode, &alloc_bh,
+ 					     OCFS2_BH_IGNORE_CACHE);
+@@ -542,7 +542,7 @@ bail:
+ 	brelse(alloc_bh);
+ 
+ 	if (inode) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		iput(inode);
+ 	}
+ 
+@@ -574,7 +574,7 @@ int ocfs2_complete_local_alloc_recovery(struct ocfs2_super *osb,
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&main_bm_inode->i_mutex);
++	inode_lock(main_bm_inode);
+ 
+ 	status = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
+ 	if (status < 0) {
+@@ -604,7 +604,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&main_bm_inode->i_mutex);
++	inode_unlock(main_bm_inode);
+ 
+ 	brelse(main_bm_bh);
+ 
+@@ -646,7 +646,7 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
+ 		goto bail;
+ 	}
+ 
+-	mutex_lock(&local_alloc_inode->i_mutex);
++	inode_lock(local_alloc_inode);
+ 
+ 	/*
+ 	 * We must double check state and allocator bits because
+@@ -713,7 +713,7 @@ int ocfs2_reserve_local_alloc_bits(struct ocfs2_super *osb,
+ 	status = 0;
+ bail:
+ 	if (status < 0 && local_alloc_inode) {
+-		mutex_unlock(&local_alloc_inode->i_mutex);
++		inode_unlock(local_alloc_inode);
+ 		iput(local_alloc_inode);
+ 	}
+ 
+diff --git a/fs/ocfs2/move_extents.c b/fs/ocfs2/move_extents.c
+index cd9427023d2e..de79bfc01785 100644
+--- a/fs/ocfs2/move_extents.c
++++ b/fs/ocfs2/move_extents.c
+@@ -278,7 +278,7 @@ static int ocfs2_defrag_extent(struct ocfs2_move_extents_context *context,
+ 	 *	context->data_ac->ac_resv = &OCFS2_I(inode)->ip_la_data_resv;
+ 	 */
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	if (ocfs2_truncate_log_needs_flush(osb)) {
+ 		ret = __ocfs2_flush_truncate_log(osb);
+@@ -340,7 +340,7 @@ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ 
+ out_unlock_mutex:
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	if (context->data_ac) {
+ 		ocfs2_free_alloc_context(context->data_ac);
+@@ -711,7 +711,7 @@ static int ocfs2_move_extent(struct ocfs2_move_extents_context *context,
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&gb_inode->i_mutex);
++	inode_lock(gb_inode);
+ 
+ 	ret = ocfs2_inode_lock(gb_inode, &gb_bh, 1);
+ 	if (ret) {
+@@ -719,7 +719,7 @@ static int ocfs2_move_extent(struct ocfs2_move_extents_context *context,
+ 		goto out_unlock_gb_mutex;
+ 	}
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	handle = ocfs2_start_trans(osb, credits);
+ 	if (IS_ERR(handle)) {
+@@ -784,11 +784,11 @@ out_commit:
+ 	brelse(gd_bh);
+ 
+ out_unlock_tl_inode:
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	ocfs2_inode_unlock(gb_inode, 1);
+ out_unlock_gb_mutex:
+-	mutex_unlock(&gb_inode->i_mutex);
++	inode_unlock(gb_inode);
+ 	brelse(gb_bh);
+ 	iput(gb_inode);
+ 
+@@ -984,7 +984,7 @@ static int ocfs2_move_extents(struct ocfs2_move_extents_context *context)
+ 	if (ocfs2_is_hard_readonly(osb) || ocfs2_is_soft_readonly(osb))
+ 		return -EROFS;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	/*
+ 	 * This prevents concurrent writes from other nodes
+@@ -1047,7 +1047,7 @@ out_inode_unlock:
+ out_rw_unlock:
+ 	ocfs2_rw_unlock(inode, 1);
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return status;
+ }
+diff --git a/fs/ocfs2/namei.c b/fs/ocfs2/namei.c
+index e5d738cd9cc0..701b8bccac0a 100644
+--- a/fs/ocfs2/namei.c
++++ b/fs/ocfs2/namei.c
+@@ -939,7 +939,7 @@ leave:
+ 	if (orphan_dir) {
+ 		/* This was locked for us in ocfs2_prepare_orphan_dir() */
+ 		ocfs2_inode_unlock(orphan_dir, 1);
+-		mutex_unlock(&orphan_dir->i_mutex);
++		inode_unlock(orphan_dir);
+ 		iput(orphan_dir);
+ 	}
+ 
+@@ -1451,7 +1451,7 @@ bail:
+ 	if (orphan_dir) {
+ 		/* This was locked for us in ocfs2_prepare_orphan_dir() */
+ 		ocfs2_inode_unlock(orphan_dir, 1);
+-		mutex_unlock(&orphan_dir->i_mutex);
++		inode_unlock(orphan_dir);
+ 		iput(orphan_dir);
+ 	}
+ 
+@@ -1885,11 +1885,11 @@ static int ocfs2_lookup_lock_orphan_dir(struct ocfs2_super *osb,
+ 		return ret;
+ 	}
+ 
+-	mutex_lock(&orphan_dir_inode->i_mutex);
++	inode_lock(orphan_dir_inode);
+ 
+ 	ret = ocfs2_inode_lock(orphan_dir_inode, &orphan_dir_bh, 1);
+ 	if (ret < 0) {
+-		mutex_unlock(&orphan_dir_inode->i_mutex);
++		inode_unlock(orphan_dir_inode);
+ 		iput(orphan_dir_inode);
+ 
+ 		mlog_errno(ret);
+@@ -1973,7 +1973,7 @@ out:
+ 
+ 	if (ret) {
+ 		ocfs2_inode_unlock(orphan_dir_inode, 1);
+-		mutex_unlock(&orphan_dir_inode->i_mutex);
++		inode_unlock(orphan_dir_inode);
+ 		iput(orphan_dir_inode);
+ 	}
+ 
+@@ -2210,7 +2210,7 @@ out:
+ 			ocfs2_free_alloc_context(inode_ac);
+ 
+ 		/* Unroll orphan dir locking */
+-		mutex_unlock(&orphan_dir->i_mutex);
++		inode_unlock(orphan_dir);
+ 		ocfs2_inode_unlock(orphan_dir, 1);
+ 		iput(orphan_dir);
+ 	}
+@@ -2316,7 +2316,7 @@ leave:
+ 	if (orphan_dir) {
+ 		/* This was locked for us in ocfs2_prepare_orphan_dir() */
+ 		ocfs2_inode_unlock(orphan_dir, 1);
+-		mutex_unlock(&orphan_dir->i_mutex);
++		inode_unlock(orphan_dir);
+ 		iput(orphan_dir);
+ 	}
+ 
+@@ -2396,12 +2396,12 @@ int ocfs2_mv_orphaned_inode_to_new(struct inode *dir,
+ 		goto leave;
+ 	}
+ 
+-	mutex_lock(&orphan_dir_inode->i_mutex);
++	inode_lock(orphan_dir_inode);
+ 
+ 	status = ocfs2_inode_lock(orphan_dir_inode, &orphan_dir_bh, 1);
+ 	if (status < 0) {
+ 		mlog_errno(status);
+-		mutex_unlock(&orphan_dir_inode->i_mutex);
++		inode_unlock(orphan_dir_inode);
+ 		iput(orphan_dir_inode);
+ 		goto leave;
+ 	}
+@@ -2462,7 +2462,7 @@ out_commit:
+ 	ocfs2_commit_trans(osb, handle);
+ orphan_unlock:
+ 	ocfs2_inode_unlock(orphan_dir_inode, 1);
+-	mutex_unlock(&orphan_dir_inode->i_mutex);
++	inode_unlock(orphan_dir_inode);
+ 	iput(orphan_dir_inode);
+ leave:
+ 
+diff --git a/fs/ocfs2/quota_global.c b/fs/ocfs2/quota_global.c
+index 92fcd575775a..418aae6e2f13 100644
+--- a/fs/ocfs2/quota_global.c
++++ b/fs/ocfs2/quota_global.c
+@@ -304,7 +304,7 @@ int ocfs2_lock_global_qf(struct ocfs2_mem_dqinfo *oinfo, int ex)
+ 		WARN_ON(bh != oinfo->dqi_gqi_bh);
+ 	spin_unlock(&dq_data_lock);
+ 	if (ex) {
+-		mutex_lock(&oinfo->dqi_gqinode->i_mutex);
++		inode_lock(oinfo->dqi_gqinode);
+ 		down_write(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
+ 	} else {
+ 		down_read(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
+@@ -316,7 +316,7 @@ void ocfs2_unlock_global_qf(struct ocfs2_mem_dqinfo *oinfo, int ex)
+ {
+ 	if (ex) {
+ 		up_write(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
+-		mutex_unlock(&oinfo->dqi_gqinode->i_mutex);
++		inode_unlock(oinfo->dqi_gqinode);
+ 	} else {
+ 		up_read(&OCFS2_I(oinfo->dqi_gqinode)->ip_alloc_sem);
+ 	}
+diff --git a/fs/ocfs2/refcounttree.c b/fs/ocfs2/refcounttree.c
+index ebfd3825f12a..02ca6490937b 100644
+--- a/fs/ocfs2/refcounttree.c
++++ b/fs/ocfs2/refcounttree.c
+@@ -804,7 +804,7 @@ int ocfs2_remove_refcount_tree(struct inode *inode, struct buffer_head *di_bh)
+ 			mlog_errno(ret);
+ 			goto out;
+ 		}
+-		mutex_lock(&alloc_inode->i_mutex);
++		inode_lock(alloc_inode);
+ 
+ 		ret = ocfs2_inode_lock(alloc_inode, &alloc_bh, 1);
+ 		if (ret) {
+@@ -864,7 +864,7 @@ out_unlock:
+ 	}
+ out_mutex:
+ 	if (alloc_inode) {
+-		mutex_unlock(&alloc_inode->i_mutex);
++		inode_unlock(alloc_inode);
+ 		iput(alloc_inode);
+ 	}
+ out:
+@@ -4241,7 +4241,7 @@ static int __ocfs2_reflink(struct dentry *old_dentry,
+ 		goto out;
+ 	}
+ 
+-	mutex_lock_nested(&new_inode->i_mutex, I_MUTEX_CHILD);
++	inode_lock_nested(new_inode, I_MUTEX_CHILD);
+ 	ret = ocfs2_inode_lock_nested(new_inode, &new_bh, 1,
+ 				      OI_LS_REFLINK_TARGET);
+ 	if (ret) {
+@@ -4275,7 +4275,7 @@ inode_unlock:
+ 	ocfs2_inode_unlock(new_inode, 1);
+ 	brelse(new_bh);
+ out_unlock:
+-	mutex_unlock(&new_inode->i_mutex);
++	inode_unlock(new_inode);
+ out:
+ 	if (!ret) {
+ 		ret = filemap_fdatawait(inode->i_mapping);
+@@ -4443,10 +4443,10 @@ static int ocfs2_vfs_reflink(struct dentry *old_dentry, struct inode *dir,
+ 			return error;
+ 	}
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	dquot_initialize(dir);
+ 	error = ocfs2_reflink(old_dentry, dir, new_dentry, preserve);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (!error)
+ 		fsnotify_create(dir, new_dentry);
+ 	return error;
+@@ -4503,7 +4503,7 @@ int ocfs2_reflink_ioctl(struct inode *inode,
+ out_dput:
+ 	dput(new_dentry);
+ out_unlock:
+-	mutex_unlock(&nd.path.dentry->d_inode->i_mutex);
++	inode_unlock(nd.path.dentry->d_inode);
+ out_release:
+ 	path_put(&nd.path);
+ 	putname(to);
+diff --git a/fs/ocfs2/resize.c b/fs/ocfs2/resize.c
+index ec55add7604a..0ae7ad9dadb8 100644
+--- a/fs/ocfs2/resize.c
++++ b/fs/ocfs2/resize.c
+@@ -298,7 +298,7 @@ int ocfs2_group_extend(struct inode * inode, int new_clusters)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&main_bm_inode->i_mutex);
++	inode_lock(main_bm_inode);
+ 
+ 	ret = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
+ 	if (ret < 0) {
+@@ -372,7 +372,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&main_bm_inode->i_mutex);
++	inode_unlock(main_bm_inode);
+ 	iput(main_bm_inode);
+ 
+ out:
+@@ -482,7 +482,7 @@ int ocfs2_group_add(struct inode *inode, struct ocfs2_new_group_input *input)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock(&main_bm_inode->i_mutex);
++	inode_lock(main_bm_inode);
+ 
+ 	ret = ocfs2_inode_lock(main_bm_inode, &main_bm_bh, 1);
+ 	if (ret < 0) {
+@@ -581,7 +581,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(main_bm_inode, 1);
+ 
+ out_mutex:
+-	mutex_unlock(&main_bm_inode->i_mutex);
++	inode_unlock(main_bm_inode);
+ 	iput(main_bm_inode);
+ 
+ out:
+diff --git a/fs/ocfs2/suballoc.c b/fs/ocfs2/suballoc.c
+index ba5d97e4a73e..f63a1bb01fed 100644
+--- a/fs/ocfs2/suballoc.c
++++ b/fs/ocfs2/suballoc.c
+@@ -147,7 +147,7 @@ void ocfs2_free_ac_resource(struct ocfs2_alloc_context *ac)
+ 		if (ac->ac_which != OCFS2_AC_USE_LOCAL)
+ 			ocfs2_inode_unlock(inode, 1);
+ 
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 
+ 		iput(inode);
+ 		ac->ac_inode = NULL;
+@@ -818,11 +818,11 @@ static int ocfs2_reserve_suballoc_bits(struct ocfs2_super *osb,
+ 		return -EINVAL;
+ 	}
+ 
+-	mutex_lock(&alloc_inode->i_mutex);
++	inode_lock(alloc_inode);
+ 
+ 	status = ocfs2_inode_lock(alloc_inode, &bh, 1);
+ 	if (status < 0) {
+-		mutex_unlock(&alloc_inode->i_mutex);
++		inode_unlock(alloc_inode);
+ 		iput(alloc_inode);
+ 
+ 		mlog_errno(status);
+@@ -2882,10 +2882,10 @@ int ocfs2_test_inode_bit(struct ocfs2_super *osb, u64 blkno, int *res)
+ 		goto bail;
+ 	}
+ 
+-	mutex_lock(&inode_alloc_inode->i_mutex);
++	inode_lock(inode_alloc_inode);
+ 	status = ocfs2_inode_lock(inode_alloc_inode, &alloc_bh, 0);
+ 	if (status < 0) {
+-		mutex_unlock(&inode_alloc_inode->i_mutex);
++		inode_unlock(inode_alloc_inode);
+ 		mlog(ML_ERROR, "lock on alloc inode on slot %u failed %d\n",
+ 		     (u32)suballoc_slot, status);
+ 		goto bail;
+@@ -2897,7 +2897,7 @@ int ocfs2_test_inode_bit(struct ocfs2_super *osb, u64 blkno, int *res)
+ 		mlog(ML_ERROR, "test suballoc bit failed %d\n", status);
+ 
+ 	ocfs2_inode_unlock(inode_alloc_inode, 0);
+-	mutex_unlock(&inode_alloc_inode->i_mutex);
++	inode_unlock(inode_alloc_inode);
+ 
+ 	iput(inode_alloc_inode);
+ 	brelse(alloc_bh);
+diff --git a/fs/ocfs2/xattr.c b/fs/ocfs2/xattr.c
+index 81ecf9c0bf0a..ee4dba9cc1d2 100644
+--- a/fs/ocfs2/xattr.c
++++ b/fs/ocfs2/xattr.c
+@@ -2497,7 +2497,7 @@ static int ocfs2_xattr_free_block(struct inode *inode,
+ 		mlog_errno(ret);
+ 		goto out;
+ 	}
+-	mutex_lock(&xb_alloc_inode->i_mutex);
++	inode_lock(xb_alloc_inode);
+ 
+ 	ret = ocfs2_inode_lock(xb_alloc_inode, &xb_alloc_bh, 1);
+ 	if (ret < 0) {
+@@ -2522,7 +2522,7 @@ out_unlock:
+ 	ocfs2_inode_unlock(xb_alloc_inode, 1);
+ 	brelse(xb_alloc_bh);
+ out_mutex:
+-	mutex_unlock(&xb_alloc_inode->i_mutex);
++	inode_unlock(xb_alloc_inode);
+ 	iput(xb_alloc_inode);
+ out:
+ 	brelse(blk_bh);
+@@ -3590,17 +3590,17 @@ int ocfs2_xattr_set(struct inode *inode,
+ 		}
+ 	}
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	if (ocfs2_truncate_log_needs_flush(osb)) {
+ 		ret = __ocfs2_flush_truncate_log(osb);
+ 		if (ret < 0) {
+-			mutex_unlock(&tl_inode->i_mutex);
++			inode_unlock(tl_inode);
+ 			mlog_errno(ret);
+ 			goto cleanup;
+ 		}
+ 	}
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	ret = ocfs2_init_xattr_set_ctxt(inode, di, &xi, &xis,
+ 					&xbs, &ctxt, ref_meta, &credits);
+@@ -5443,7 +5443,7 @@ static int ocfs2_rm_xattr_cluster(struct inode *inode,
+ 		return ret;
+ 	}
+ 
+-	mutex_lock(&tl_inode->i_mutex);
++	inode_lock(tl_inode);
+ 
+ 	if (ocfs2_truncate_log_needs_flush(osb)) {
+ 		ret = __ocfs2_flush_truncate_log(osb);
+@@ -5486,7 +5486,7 @@ out_commit:
+ out:
+ 	ocfs2_schedule_truncate_log_flush(osb, 1);
+ 
+-	mutex_unlock(&tl_inode->i_mutex);
++	inode_unlock(tl_inode);
+ 
+ 	if (meta_ac)
+ 		ocfs2_free_alloc_context(meta_ac);
+diff --git a/fs/open.c b/fs/open.c
+index b52cf013ffa1..47b2c6469e91 100644
+--- a/fs/open.c
++++ b/fs/open.c
+@@ -55,9 +55,9 @@ int do_truncate(struct dentry *dentry, loff_t length, unsigned int time_attrs,
+ 	if (ret)
+ 		newattrs.ia_valid |= ret | ATTR_FORCE;
+ 
+-	mutex_lock(&dentry->d_inode->i_mutex);
++	inode_lock(dentry->d_inode);
+ 	ret = notify_change(dentry, &newattrs);
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 	return ret;
+ }
+ 
+@@ -466,7 +466,7 @@ SYSCALL_DEFINE2(fchmod, unsigned int, fd, mode_t, mode)
+ 	err = mnt_want_write_file(file);
+ 	if (err)
+ 		goto out_putf;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	err = security_path_chmod(dentry, file->f_vfsmnt, mode);
+ 	if (err)
+ 		goto out_unlock;
+@@ -476,7 +476,7 @@ SYSCALL_DEFINE2(fchmod, unsigned int, fd, mode_t, mode)
+ 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
+ 	err = notify_change(dentry, &newattrs);
+ out_unlock:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	mnt_drop_write(file->f_path.mnt);
+ out_putf:
+ 	fput(file);
+@@ -499,7 +499,7 @@ SYSCALL_DEFINE3(fchmodat, int, dfd, const char __user *, filename, mode_t, mode)
+ 	error = mnt_want_write(path.mnt);
+ 	if (error)
+ 		goto dput_and_out;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	error = security_path_chmod(path.dentry, path.mnt, mode);
+ 	if (error)
+ 		goto out_unlock;
+@@ -509,7 +509,7 @@ SYSCALL_DEFINE3(fchmodat, int, dfd, const char __user *, filename, mode_t, mode)
+ 	newattrs.ia_valid = ATTR_MODE | ATTR_CTIME;
+ 	error = notify_change(path.dentry, &newattrs);
+ out_unlock:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	mnt_drop_write(path.mnt);
+ dput_and_out:
+ 	path_put(&path);
+@@ -540,11 +540,11 @@ static int chown_common(struct path *path, uid_t user, gid_t group)
+ 	if (!S_ISDIR(inode->i_mode))
+ 		newattrs.ia_valid |=
+ 			ATTR_KILL_SUID | ATTR_KILL_SGID | ATTR_KILL_PRIV;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	error = security_path_chown(path, user, group);
+ 	if (!error)
+ 		error = notify_change(path->dentry, &newattrs);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return error;
+ }
+diff --git a/fs/pipe.c b/fs/pipe.c
+index da42f7db50de..3def61e72e4d 100644
+--- a/fs/pipe.c
++++ b/fs/pipe.c
+@@ -53,7 +53,7 @@ unsigned int pipe_min_size = PAGE_SIZE;
+ static void pipe_lock_nested(struct pipe_inode_info *pipe, int subclass)
+ {
+ 	if (pipe->inode)
+-		mutex_lock_nested(&pipe->inode->i_mutex, subclass);
++		inode_lock_nested(pipe->inode, subclass);
+ }
+ 
+ void pipe_lock(struct pipe_inode_info *pipe)
+@@ -68,7 +68,7 @@ EXPORT_SYMBOL(pipe_lock);
+ void pipe_unlock(struct pipe_inode_info *pipe)
+ {
+ 	if (pipe->inode)
+-		mutex_unlock(&pipe->inode->i_mutex);
++		inode_unlock(pipe->inode);
+ }
+ EXPORT_SYMBOL(pipe_unlock);
+ 
+@@ -364,7 +364,7 @@ pipe_read(struct kiocb *iocb, const struct iovec *_iov,
+ 
+ 	do_wakeup = 0;
+ 	ret = 0;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	pipe = inode->i_pipe;
+ 	for (;;) {
+ 		int bufs = pipe->nrbufs;
+@@ -446,7 +446,7 @@ redo:
+ 		}
+ 		pipe_wait(pipe);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	/* Signal writers asynchronously that there is more room. */
+ 	if (do_wakeup) {
+@@ -478,7 +478,7 @@ pipe_write(struct kiocb *iocb, const struct iovec *_iov,
+ 
+ 	do_wakeup = 0;
+ 	ret = 0;
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	pipe = inode->i_pipe;
+ 
+ 	if (!pipe->readers) {
+@@ -621,7 +621,7 @@ redo2:
+ 		pipe->waiting_writers--;
+ 	}
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	if (do_wakeup) {
+ 		wake_up_interruptible_sync_poll(&pipe->wait, POLLIN | POLLRDNORM);
+ 		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
+@@ -652,7 +652,7 @@ static long pipe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 
+ 	switch (cmd) {
+ 		case FIONREAD:
+-			mutex_lock(&inode->i_mutex);
++			inode_lock(inode);
+ 			pipe = inode->i_pipe;
+ 			count = 0;
+ 			buf = pipe->curbuf;
+@@ -661,7 +661,7 @@ static long pipe_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+ 				count += pipe->bufs[buf].len;
+ 				buf = (buf+1) & (pipe->buffers - 1);
+ 			}
+-			mutex_unlock(&inode->i_mutex);
++			inode_unlock(inode);
+ 
+ 			return put_user(count, (int __user *)arg);
+ 		default:
+@@ -707,7 +707,7 @@ pipe_release(struct inode *inode, int decr, int decw)
+ {
+ 	struct pipe_inode_info *pipe;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	pipe = inode->i_pipe;
+ 	pipe->readers -= decr;
+ 	pipe->writers -= decw;
+@@ -719,7 +719,7 @@ pipe_release(struct inode *inode, int decr, int decw)
+ 		kill_fasync(&pipe->fasync_readers, SIGIO, POLL_IN);
+ 		kill_fasync(&pipe->fasync_writers, SIGIO, POLL_OUT);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return 0;
+ }
+@@ -730,9 +730,9 @@ pipe_read_fasync(int fd, struct file *filp, int on)
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	int retval;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	retval = fasync_helper(fd, filp, on, &inode->i_pipe->fasync_readers);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return retval;
+ }
+@@ -744,9 +744,9 @@ pipe_write_fasync(int fd, struct file *filp, int on)
+ 	struct inode *inode = filp->f_path.dentry->d_inode;
+ 	int retval;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	retval = fasync_helper(fd, filp, on, &inode->i_pipe->fasync_writers);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return retval;
+ }
+@@ -759,14 +759,14 @@ pipe_rdwr_fasync(int fd, struct file *filp, int on)
+ 	struct pipe_inode_info *pipe = inode->i_pipe;
+ 	int retval;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	retval = fasync_helper(fd, filp, on, &pipe->fasync_readers);
+ 	if (retval >= 0) {
+ 		retval = fasync_helper(fd, filp, on, &pipe->fasync_writers);
+ 		if (retval < 0) /* this can happen only if on == T */
+ 			fasync_helper(-1, filp, 0, &pipe->fasync_readers);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return retval;
+ }
+ 
+@@ -798,14 +798,14 @@ pipe_read_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret = -ENOENT;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	if (inode->i_pipe) {
+ 		ret = 0;
+ 		inode->i_pipe->readers++;
+ 	}
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return ret;
+ }
+@@ -815,14 +815,14 @@ pipe_write_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret = -ENOENT;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	if (inode->i_pipe) {
+ 		ret = 0;
+ 		inode->i_pipe->writers++;
+ 	}
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return ret;
+ }
+@@ -832,7 +832,7 @@ pipe_rdwr_open(struct inode *inode, struct file *filp)
+ {
+ 	int ret = -ENOENT;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 
+ 	if (inode->i_pipe) {
+ 		ret = 0;
+@@ -842,7 +842,7 @@ pipe_rdwr_open(struct inode *inode, struct file *filp)
+ 			inode->i_pipe->writers++;
+ 	}
+ 
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	return ret;
+ }
+@@ -1219,7 +1219,7 @@ long pipe_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	if (!pipe)
+ 		return -EBADF;
+ 
+-	mutex_lock(&pipe->inode->i_mutex);
++	inode_lock(pipe->inode);
+ 
+ 	switch (cmd) {
+ 	case F_SETPIPE_SZ: {
+@@ -1248,7 +1248,7 @@ long pipe_fcntl(struct file *file, unsigned int cmd, unsigned long arg)
+ 	}
+ 
+ out:
+-	mutex_unlock(&pipe->inode->i_mutex);
++	inode_unlock(pipe->inode);
+ 	return ret;
+ }
+ 
+diff --git a/fs/proc/kcore.c b/fs/proc/kcore.c
+index d245cb23dd72..1a3a5d2dcb46 100644
+--- a/fs/proc/kcore.c
++++ b/fs/proc/kcore.c
+@@ -547,9 +547,9 @@ static int open_kcore(struct inode *inode, struct file *filp)
+ 	if (kcore_need_update)
+ 		kcore_update_ram();
+ 	if (i_size_read(inode) != proc_root_kcore->size) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		i_size_write(inode, proc_root_kcore->size);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	return 0;
+ }
+diff --git a/fs/pstore/inode.c b/fs/pstore/inode.c
+index 977ed2723845..fab34aed91ad 100644
+--- a/fs/pstore/inode.c
++++ b/fs/pstore/inode.c
+@@ -210,7 +210,7 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id,
+ 		break;
+ 	}
+ 
+-	mutex_lock(&root->d_inode->i_mutex);
++	inode_lock(root->d_inode);
+ 
+ 	rc = -ENOSPC;
+ 	dentry = d_alloc_name(root, name);
+@@ -227,12 +227,12 @@ int pstore_mkfile(enum pstore_type_id type, char *psname, u64 id,
+ 
+ 	d_add(dentry, inode);
+ 
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ 
+ 	return 0;
+ 
+ fail_lockedalloc:
+-	mutex_unlock(&root->d_inode->i_mutex);
++	inode_unlock(root->d_inode);
+ 	kfree(private);
+ fail_alloc:
+ 	iput(inode);
+diff --git a/fs/quota/dquot.c b/fs/quota/dquot.c
+index 5b572c89e6c4..a25304c6ab1c 100644
+--- a/fs/quota/dquot.c
++++ b/fs/quota/dquot.c
+@@ -658,10 +658,9 @@ int dquot_quota_sync(struct super_block *sb, int type, int wait)
+ 			continue;
+ 		if (!sb_has_quota_active(sb, cnt))
+ 			continue;
+-		mutex_lock_nested(&sb_dqopt(sb)->files[cnt]->i_mutex,
+-				  I_MUTEX_QUOTA);
++		inode_lock_nested(sb_dqopt(sb)->files[cnt], I_MUTEX_QUOTA);
+ 		truncate_inode_pages(&sb_dqopt(sb)->files[cnt]->i_data, 0);
+-		mutex_unlock(&sb_dqopt(sb)->files[cnt]->i_mutex);
++		inode_unlock(sb_dqopt(sb)->files[cnt]);
+ 	}
+ 	mutex_unlock(&sb_dqopt(sb)->dqonoff_mutex);
+ 
+@@ -2000,13 +1999,13 @@ int dquot_disable(struct super_block *sb, int type, unsigned int flags)
+ 			/* If quota was reenabled in the meantime, we have
+ 			 * nothing to do */
+ 			if (!sb_has_quota_loaded(sb, cnt)) {
+-				mutex_lock_nested(&toputinode[cnt]->i_mutex,
++				inode_lock_nested(toputinode[cnt],
+ 						  I_MUTEX_QUOTA);
+ 				toputinode[cnt]->i_flags &= ~(S_IMMUTABLE |
+ 				  S_NOATIME | S_NOQUOTA);
+ 				truncate_inode_pages(&toputinode[cnt]->i_data,
+ 						     0);
+-				mutex_unlock(&toputinode[cnt]->i_mutex);
++				inode_unlock(toputinode[cnt]);
+ 				mark_inode_dirty_sync(toputinode[cnt]);
+ 			}
+ 			mutex_unlock(&dqopt->dqonoff_mutex);
+@@ -2096,11 +2095,11 @@ static int vfs_load_quota_inode(struct inode *inode, int type, int format_id,
+ 		/* We don't want quota and atime on quota files (deadlocks
+ 		 * possible) Also nobody should write to the file - we use
+ 		 * special IO operations which ignore the immutable bit. */
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++		inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 		oldflags = inode->i_flags & (S_NOATIME | S_IMMUTABLE |
+ 					     S_NOQUOTA);
+ 		inode->i_flags |= S_NOQUOTA | S_NOATIME | S_IMMUTABLE;
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		/*
+ 		 * When S_NOQUOTA is set, remove dquot references as no more
+ 		 * references can be added
+@@ -2141,12 +2140,12 @@ out_file_init:
+ 	iput(inode);
+ out_lock:
+ 	if (oldflags != -1) {
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++		inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 		/* Set the flags back (in the case of accidental quotaon()
+ 		 * on a wrong file we don't want to mess up the flags) */
+ 		inode->i_flags &= ~(S_NOATIME | S_NOQUOTA | S_IMMUTABLE);
+ 		inode->i_flags |= oldflags;
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	mutex_unlock(&dqopt->dqonoff_mutex);
+ out_fmt:
+@@ -2266,9 +2265,9 @@ int dquot_quota_on_mount(struct super_block *sb, char *qf_name,
+ 	struct dentry *dentry;
+ 	int error;
+ 
+-	mutex_lock(&sb->s_root->d_inode->i_mutex);
++	inode_lock(sb->s_root->d_inode);
+ 	dentry = lookup_one_len(qf_name, sb->s_root, strlen(qf_name));
+-	mutex_unlock(&sb->s_root->d_inode->i_mutex);
++	inode_unlock(sb->s_root->d_inode);
+ 	if (IS_ERR(dentry))
+ 		return PTR_ERR(dentry);
+ 
+diff --git a/fs/read_write.c b/fs/read_write.c
+index 5520f8ad5504..bd3c9ed5dd30 100644
+--- a/fs/read_write.c
++++ b/fs/read_write.c
+@@ -95,9 +95,9 @@ loff_t generic_file_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	loff_t rval;
+ 
+-	mutex_lock(&file->f_dentry->d_inode->i_mutex);
++	inode_lock(file->f_dentry->d_inode);
+ 	rval = generic_file_llseek_unlocked(file, offset, origin);
+-	mutex_unlock(&file->f_dentry->d_inode->i_mutex);
++	inode_unlock(file->f_dentry->d_inode);
+ 
+ 	return rval;
+ }
+@@ -130,7 +130,7 @@ loff_t default_llseek(struct file *file, loff_t offset, int origin)
+ {
+ 	loff_t retval;
+ 
+-	mutex_lock(&file->f_dentry->d_inode->i_mutex);
++	inode_lock(file->f_dentry->d_inode);
+ 	switch (origin) {
+ 		case SEEK_END:
+ 			offset += i_size_read(file->f_path.dentry->d_inode);
+@@ -151,7 +151,7 @@ loff_t default_llseek(struct file *file, loff_t offset, int origin)
+ 		retval = offset;
+ 	}
+ out:
+-	mutex_unlock(&file->f_dentry->d_inode->i_mutex);
++	inode_unlock(file->f_dentry->d_inode);
+ 	return retval;
+ }
+ EXPORT_SYMBOL(default_llseek);
+diff --git a/fs/readdir.c b/fs/readdir.c
+index 356f71528ad6..d95750ffceee 100644
+--- a/fs/readdir.c
++++ b/fs/readdir.c
+@@ -40,7 +40,7 @@ int vfs_readdir(struct file *file, filldir_t filler, void *buf)
+ 		res = file->f_op->readdir(file, buf, filler);
+ 		file_accessed(file);
+ 	}
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ out:
+ 	return res;
+ }
+diff --git a/fs/reiserfs/ioctl.c b/fs/reiserfs/ioctl.c
+index 4e153051bc75..4ef0a1873d6e 100644
+--- a/fs/reiserfs/ioctl.c
++++ b/fs/reiserfs/ioctl.c
+@@ -220,7 +220,7 @@ int reiserfs_unpack(struct inode *inode, struct file *filp)
+ 	page_cache_release(page);
+ 
+       out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	reiserfs_write_unlock_once(inode->i_sb, depth);
+ 	return retval;
+ }
+diff --git a/fs/reiserfs/super.c b/fs/reiserfs/super.c
+index aa91089162cb..209389d49662 100644
+--- a/fs/reiserfs/super.c
++++ b/fs/reiserfs/super.c
+@@ -2167,7 +2167,7 @@ static ssize_t reiserfs_quota_write(struct super_block *sb, int type,
+ 			(unsigned long long)off, (unsigned long long)len);
+ 		return -EIO;
+ 	}
+-	mutex_lock_nested(&inode->i_mutex, I_MUTEX_QUOTA);
++	inode_lock_nested(inode, I_MUTEX_QUOTA);
+ 	while (towrite > 0) {
+ 		tocopy = sb->s_blocksize - offset < towrite ?
+ 		    sb->s_blocksize - offset : towrite;
+@@ -2200,7 +2200,7 @@ static ssize_t reiserfs_quota_write(struct super_block *sb, int type,
+ 	}
+ out:
+ 	if (len == towrite) {
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 		return err;
+ 	}
+ 	if (inode->i_size < off + len - towrite)
+@@ -2208,7 +2208,7 @@ out:
+ 	inode->i_version++;
+ 	inode->i_mtime = inode->i_ctime = CURRENT_TIME;
+ 	mark_inode_dirty(inode);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return len - towrite;
+ }
+ 
+diff --git a/fs/reiserfs/xattr.c b/fs/reiserfs/xattr.c
+index d78089690965..11f440a3fef3 100644
+--- a/fs/reiserfs/xattr.c
++++ b/fs/reiserfs/xattr.c
+@@ -84,7 +84,7 @@ static int xattr_unlink(struct inode *dir, struct dentry *dentry)
+ 	reiserfs_mutex_lock_nested_safe(&dentry->d_inode->i_mutex,
+ 					I_MUTEX_CHILD, dir->i_sb);
+ 	error = dir->i_op->unlink(dir, dentry);
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 
+ 	if (!error)
+ 		d_delete(dentry);
+@@ -101,7 +101,7 @@ static int xattr_rmdir(struct inode *dir, struct dentry *dentry)
+ 	error = dir->i_op->rmdir(dir, dentry);
+ 	if (!error)
+ 		dentry->d_inode->i_flags |= S_DEAD;
+-	mutex_unlock(&dentry->d_inode->i_mutex);
++	inode_unlock(dentry->d_inode);
+ 	if (!error)
+ 		d_delete(dentry);
+ 
+@@ -117,7 +117,7 @@ static struct dentry *open_xa_root(struct super_block *sb, int flags)
+ 	if (!privroot->d_inode)
+ 		return ERR_PTR(-ENODATA);
+ 
+-	mutex_lock_nested(&privroot->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(privroot->d_inode, I_MUTEX_XATTR);
+ 
+ 	xaroot = dget(REISERFS_SB(sb)->xattr_root);
+ 	if (!xaroot)
+@@ -132,7 +132,7 @@ static struct dentry *open_xa_root(struct super_block *sb, int flags)
+ 		}
+ 	}
+ 
+-	mutex_unlock(&privroot->d_inode->i_mutex);
++	inode_unlock(privroot->d_inode);
+ 	return xaroot;
+ }
+ 
+@@ -149,7 +149,7 @@ static struct dentry *open_xa_dir(const struct inode *inode, int flags)
+ 		 le32_to_cpu(INODE_PKEY(inode)->k_objectid),
+ 		 inode->i_generation);
+ 
+-	mutex_lock_nested(&xaroot->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(xaroot->d_inode, I_MUTEX_XATTR);
+ 
+ 	xadir = lookup_one_len(namebuf, xaroot, strlen(namebuf));
+ 	if (!IS_ERR(xadir) && !xadir->d_inode) {
+@@ -162,7 +162,7 @@ static struct dentry *open_xa_dir(const struct inode *inode, int flags)
+ 		}
+ 	}
+ 
+-	mutex_unlock(&xaroot->d_inode->i_mutex);
++	inode_unlock(xaroot->d_inode);
+ 	dput(xaroot);
+ 	return xadir;
+ }
+@@ -244,7 +244,7 @@ static int reiserfs_for_each_xattr(struct inode *inode,
+ 		goto out_dir;
+ 	}
+ 
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(dir->d_inode, I_MUTEX_XATTR);
+ 
+ 	reiserfs_write_lock(inode->i_sb);
+ 
+@@ -269,7 +269,7 @@ static int reiserfs_for_each_xattr(struct inode *inode,
+ 			err = reiserfs_readdir_dentry(dir, &buf,
+ 						      fill_with_dentries, &pos);
+ 	}
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 
+ 	/* Clean up after a failed readdir */
+ 	cleanup_dentry_buf(&buf);
+@@ -291,7 +291,7 @@ static int reiserfs_for_each_xattr(struct inode *inode,
+ 					  I_MUTEX_XATTR, inode->i_sb);
+ 			err = action(dir, data);
+ 			jerror = journal_end(&th, inode->i_sb, blocks);
+-			mutex_unlock(&dir->d_parent->d_inode->i_mutex);
++			inode_unlock(dir->d_parent->d_inode);
+ 			err = jerror ?: err;
+ 		}
+ 	}
+@@ -355,7 +355,7 @@ static struct dentry *xattr_lookup(struct inode *inode, const char *name,
+ 	if (IS_ERR(xadir))
+ 		return ERR_CAST(xadir);
+ 
+-	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(xadir->d_inode, I_MUTEX_XATTR);
+ 	xafile = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(xafile)) {
+ 		err = PTR_ERR(xafile);
+@@ -375,7 +375,7 @@ static struct dentry *xattr_lookup(struct inode *inode, const char *name,
+ 	if (err)
+ 		dput(xafile);
+ out:
+-	mutex_unlock(&xadir->d_inode->i_mutex);
++	inode_unlock(xadir->d_inode);
+ 	dput(xadir);
+ 	if (err)
+ 		return ERR_PTR(err);
+@@ -437,7 +437,7 @@ static int lookup_and_delete_xattr(struct inode *inode, const char *name)
+ 	if (IS_ERR(xadir))
+ 		return PTR_ERR(xadir);
+ 
+-	mutex_lock_nested(&xadir->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(xadir->d_inode, I_MUTEX_XATTR);
+ 	dentry = lookup_one_len(name, xadir, strlen(name));
+ 	if (IS_ERR(dentry)) {
+ 		err = PTR_ERR(dentry);
+@@ -453,7 +453,7 @@ static int lookup_and_delete_xattr(struct inode *inode, const char *name)
+ 
+ 	dput(dentry);
+ out_dput:
+-	mutex_unlock(&xadir->d_inode->i_mutex);
++	inode_unlock(xadir->d_inode);
+ 	dput(xadir);
+ 	return err;
+ }
+@@ -554,13 +554,13 @@ reiserfs_xattr_set_handle(struct reiserfs_transaction_handle *th,
+ 		};
+ 
+ 		reiserfs_write_unlock(inode->i_sb);
+-		mutex_lock_nested(&dentry->d_inode->i_mutex, I_MUTEX_XATTR);
++		inode_lock_nested(dentry->d_inode, I_MUTEX_XATTR);
+ 		down_write(&dentry->d_inode->i_alloc_sem);
+ 		reiserfs_write_lock(inode->i_sb);
+ 
+ 		err = reiserfs_setattr(dentry, &newattrs);
+ 		up_write(&dentry->d_inode->i_alloc_sem);
+-		mutex_unlock(&dentry->d_inode->i_mutex);
++		inode_unlock(dentry->d_inode);
+ 	} else
+ 		update_ctime(inode);
+ out_unlock:
+@@ -856,9 +856,9 @@ ssize_t reiserfs_listxattr(struct dentry * dentry, char *buffer, size_t size)
+ 		goto out;
+ 	}
+ 
+-	mutex_lock_nested(&dir->d_inode->i_mutex, I_MUTEX_XATTR);
++	inode_lock_nested(dir->d_inode, I_MUTEX_XATTR);
+ 	err = reiserfs_readdir_dentry(dir, &buf, listxattr_filler, &pos);
+-	mutex_unlock(&dir->d_inode->i_mutex);
++	inode_unlock(dir->d_inode);
+ 
+ 	if (!err)
+ 		err = buf.pos;
+@@ -893,7 +893,7 @@ static int create_privroot(struct dentry *dentry)
+ {
+ 	int err;
+ 	struct inode *inode = dentry->d_parent->d_inode;
+-	WARN_ON_ONCE(!mutex_is_locked(&inode->i_mutex));
++	WARN_ON_ONCE(!inode_is_locked(inode));
+ 
+ 	err = xattr_mkdir(inode, dentry, 0700);
+ 	if (err || !dentry->d_inode) {
+@@ -997,7 +997,7 @@ int reiserfs_lookup_privroot(struct super_block *s)
+ 			dentry->d_inode->i_flags |= S_PRIVATE;
+ 	} else
+ 		err = PTR_ERR(dentry);
+-	mutex_unlock(&s->s_root->d_inode->i_mutex);
++	inode_unlock(s->s_root->d_inode);
+ 
+ 	return err;
+ }
+@@ -1017,7 +1017,7 @@ int reiserfs_xattr_init(struct super_block *s, int mount_flags)
+ 	if (!privroot->d_inode && !(mount_flags & MS_RDONLY)) {
+ 		reiserfs_mutex_lock_safe(&s->s_root->d_inode->i_mutex, s);
+ 		err = create_privroot(REISERFS_SB(s)->priv_root);
+-		mutex_unlock(&s->s_root->d_inode->i_mutex);
++		inode_unlock(s->s_root->d_inode);
+ 	}
+ 
+ 	if (privroot->d_inode) {
+@@ -1032,7 +1032,7 @@ int reiserfs_xattr_init(struct super_block *s, int mount_flags)
+ 			else
+ 				err = PTR_ERR(dentry);
+ 		}
+-		mutex_unlock(&privroot->d_inode->i_mutex);
++		inode_unlock(privroot->d_inode);
+ 	}
+ 
+ error:
+diff --git a/fs/splice.c b/fs/splice.c
+index aa866d309695..996b473ade1f 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -1001,13 +1001,13 @@ generic_file_splice_write(struct pipe_inode_info *pipe, struct file *out,
+ 		if (ret <= 0)
+ 			break;
+ 
+-		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
++		inode_lock_nested(inode, I_MUTEX_CHILD);
+ 		ret = file_remove_suid(out);
+ 		if (!ret) {
+ 			file_update_time(out);
+ 			ret = splice_from_pipe_feed(pipe, &sd, pipe_to_file);
+ 		}
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	} while (ret > 0);
+ 	splice_from_pipe_end(pipe, &sd);
+ 
+diff --git a/fs/sync.c b/fs/sync.c
+index c38ec163da6c..e2b156b213ff 100644
+--- a/fs/sync.c
++++ b/fs/sync.c
+@@ -179,11 +179,11 @@ int vfs_fsync_range(struct file *file, loff_t start, loff_t end, int datasync)
+ 	 * We need to protect against concurrent writers, which could cause
+ 	 * livelocks in fsync_buffers_list().
+ 	 */
+-	mutex_lock(&mapping->host->i_mutex);
++	inode_lock(mapping->host);
+ 	err = file->f_op->fsync(file, datasync);
+ 	if (!ret)
+ 		ret = err;
+-	mutex_unlock(&mapping->host->i_mutex);
++	inode_unlock(mapping->host);
+ 
+ out:
+ 	return ret;
+diff --git a/fs/ubifs/dir.c b/fs/ubifs/dir.c
+index ef5abd38f0bf..ac6da68e9f93 100644
+--- a/fs/ubifs/dir.c
++++ b/fs/ubifs/dir.c
+@@ -520,7 +520,7 @@ static int ubifs_link(struct dentry *old_dentry, struct inode *dir,
+ 		dentry->d_name.len, dentry->d_name.name, inode->i_ino,
+ 		inode->i_nlink, dir->i_ino);
+ 	ubifs_assert(mutex_is_locked(&dir->i_mutex));
+-	ubifs_assert(mutex_is_locked(&inode->i_mutex));
++	ubifs_assert(inode_is_locked(inode));
+ 
+ 	err = dbg_check_synced_i_size(inode);
+ 	if (err)
+@@ -576,7 +576,7 @@ static int ubifs_unlink(struct inode *dir, struct dentry *dentry)
+ 		dentry->d_name.len, dentry->d_name.name, inode->i_ino,
+ 		inode->i_nlink, dir->i_ino);
+ 	ubifs_assert(mutex_is_locked(&dir->i_mutex));
+-	ubifs_assert(mutex_is_locked(&inode->i_mutex));
++	ubifs_assert(inode_is_locked(inode));
+ 	err = dbg_check_synced_i_size(inode);
+ 	if (err)
+ 		return err;
+@@ -665,7 +665,7 @@ static int ubifs_rmdir(struct inode *dir, struct dentry *dentry)
+ 	dbg_gen("directory '%.*s', ino %lu in dir ino %lu", dentry->d_name.len,
+ 		dentry->d_name.name, inode->i_ino, dir->i_ino);
+ 	ubifs_assert(mutex_is_locked(&dir->i_mutex));
+-	ubifs_assert(mutex_is_locked(&inode->i_mutex));
++	ubifs_assert(inode_is_locked(inode));
+ 	err = check_dir_empty(c, dentry->d_inode);
+ 	if (err)
+ 		return err;
+diff --git a/fs/udf/file.c b/fs/udf/file.c
+index 2a346bb1d9f5..b5a6638b5f40 100644
+--- a/fs/udf/file.c
++++ b/fs/udf/file.c
+@@ -201,12 +201,12 @@ out:
+ static int udf_release_file(struct inode *inode, struct file *filp)
+ {
+ 	if (filp->f_mode & FMODE_WRITE) {
+-		mutex_lock(&inode->i_mutex);
++		inode_lock(inode);
+ 		down_write(&UDF_I(inode)->i_data_sem);
+ 		udf_discard_prealloc(inode);
+ 		udf_truncate_tail_extent(inode);
+ 		up_write(&UDF_I(inode)->i_data_sem);
+-		mutex_unlock(&inode->i_mutex);
++		inode_unlock(inode);
+ 	}
+ 	return 0;
+ }
+diff --git a/fs/utimes.c b/fs/utimes.c
+index ba653f3dc1bc..6ae4bf2425b3 100644
+--- a/fs/utimes.c
++++ b/fs/utimes.c
+@@ -101,9 +101,9 @@ static int utimes_common(struct path *path, struct timespec *times)
+ 				goto mnt_drop_write_and_out;
+ 		}
+ 	}
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	error = notify_change(path->dentry, &newattrs);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ mnt_drop_write_and_out:
+ 	mnt_drop_write(path->mnt);
+diff --git a/fs/xattr.c b/fs/xattr.c
+index f060663ab70c..f4238dd18d9c 100644
+--- a/fs/xattr.c
++++ b/fs/xattr.c
+@@ -126,7 +126,7 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
+ 	if (error)
+ 		return error;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	error = security_inode_setxattr(dentry, name, value, size, flags);
+ 	if (error)
+ 		goto out;
+@@ -134,7 +134,7 @@ vfs_setxattr(struct dentry *dentry, const char *name, const void *value,
+ 	error = __vfs_setxattr_noperm(dentry, name, value, size, flags);
+ 
+ out:
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 	return error;
+ }
+ EXPORT_SYMBOL_GPL(vfs_setxattr);
+@@ -239,9 +239,9 @@ vfs_removexattr(struct dentry *dentry, const char *name)
+ 	if (error)
+ 		return error;
+ 
+-	mutex_lock(&inode->i_mutex);
++	inode_lock(inode);
+ 	error = inode->i_op->removexattr(dentry, name);
+-	mutex_unlock(&inode->i_mutex);
++	inode_unlock(inode);
+ 
+ 	if (!error)
+ 		fsnotify_xattr(dentry);
+diff --git a/fs/xfs/linux-2.6/xfs_file.c b/fs/xfs/linux-2.6/xfs_file.c
+index 7f782af286bf..2a3ce4334972 100644
+--- a/fs/xfs/linux-2.6/xfs_file.c
++++ b/fs/xfs/linux-2.6/xfs_file.c
+@@ -51,7 +51,7 @@ xfs_rw_ilock(
+ 	int			type)
+ {
+ 	if (type & XFS_IOLOCK_EXCL)
+-		mutex_lock(&VFS_I(ip)->i_mutex);
++		inode_lock(VFS_I(ip));
+ 	xfs_ilock(ip, type);
+ }
+ 
+@@ -62,7 +62,7 @@ xfs_rw_iunlock(
+ {
+ 	xfs_iunlock(ip, type);
+ 	if (type & XFS_IOLOCK_EXCL)
+-		mutex_unlock(&VFS_I(ip)->i_mutex);
++		inode_unlock(VFS_I(ip));
+ }
+ 
+ static inline void
+@@ -72,7 +72,7 @@ xfs_rw_ilock_demote(
+ {
+ 	xfs_ilock_demote(ip, type);
+ 	if (type & XFS_IOLOCK_EXCL)
+-		mutex_unlock(&VFS_I(ip)->i_mutex);
++		inode_unlock(VFS_I(ip));
+ }
+ 
+ /*

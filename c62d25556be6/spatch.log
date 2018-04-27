@@ -1,0 +1,82 @@
+diff -u -p a/nilfs2/inode.c b/nilfs2/inode.c
+--- a/nilfs2/inode.c
++++ b/nilfs2/inode.c
+@@ -306,7 +306,7 @@ struct inode *nilfs_new_inode(struct ino
+ 		goto failed;
+ 
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ 
+ 	root = NILFS_I(dir)->i_root;
+ 	ii = NILFS_I(inode);
+@@ -384,7 +384,7 @@ void nilfs_set_inode_flags(struct inode
+ 	if (flags & FS_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ }
+ 
+ int nilfs_read_inode_common(struct inode *inode,
+diff -u -p a/namei.c b/namei.c
+--- a/namei.c
++++ b/namei.c
+@@ -3329,7 +3329,7 @@ fail:
+ int page_symlink(struct inode *inode, const char *symname, int len)
+ {
+ 	return __page_symlink(inode, symname, len,
+-			!(mapping_gfp_mask(inode->i_mapping) & __GFP_FS));
++			!(mapping_gfp_constraint(inode->i_mapping, __GFP_FS)));
+ }
+ 
+ const struct inode_operations page_symlink_inode_operations = {
+diff -u -p a/logfs/segment.c b/logfs/segment.c
+--- a/logfs/segment.c
++++ b/logfs/segment.c
+@@ -57,7 +57,7 @@ static struct page *get_mapping_page(str
+ 	filler_t *filler = super->s_devops->readpage;
+ 	struct page *page;
+ 
+-	BUG_ON(mapping_gfp_mask(mapping) & __GFP_FS);
++	BUG_ON(mapping_gfp_constraint(mapping, __GFP_FS));
+ 	if (use_filler)
+ 		page = read_cache_page(mapping, index, filler, sb);
+ 	else {
+diff -u -p a/ext4/inode.c b/ext4/inode.c
+--- a/ext4/inode.c
++++ b/ext4/inode.c
+@@ -3945,7 +3945,7 @@ int ext4_block_zero_page_range(handle_t
+ 	int err = 0;
+ 
+ 	page = find_or_create_page(mapping, from >> PAGE_CACHE_SHIFT,
+-				   mapping_gfp_mask(mapping) & ~__GFP_FS);
++				   mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 	if (!page)
+ 		return -EINVAL;
+ 
+diff -u -p a/buffer.c b/buffer.c
+--- a/buffer.c
++++ b/buffer.c
+@@ -997,7 +997,7 @@ grow_dev_page(struct block_device *bdev,
+ 	struct buffer_head *bh;
+ 
+ 	page = find_or_create_page(inode->i_mapping, index,
+-		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
++		(mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS))|__GFP_MOVABLE);
+ 	if (!page)
+ 		return NULL;
+ 
+diff -u -p a/btrfs/compression.c b/btrfs/compression.c
+--- a/btrfs/compression.c
++++ b/btrfs/compression.c
+@@ -472,8 +472,7 @@ static noinline int add_ra_bio_pages(str
+ 			goto next;
+ 		}
+ 
+-		page = __page_cache_alloc(mapping_gfp_mask(mapping) &
+-								~__GFP_FS);
++		page = __page_cache_alloc(mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 		if (!page)
+ 			break;
+ 

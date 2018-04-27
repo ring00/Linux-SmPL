@@ -1,0 +1,39 @@
+diff -u -p a/bio.c b/bio.c
+--- a/bio.c
++++ b/bio.c
+@@ -256,7 +256,7 @@ void bio_init(struct bio *bio)
+ 	memset(bio, 0, sizeof(*bio));
+ 	bio->bi_flags = 1 << BIO_UPTODATE;
+ 	bio->bi_comp_cpu = -1;
+-	atomic_set(&bio->bi_cnt, 1);
++	atomic_set(&bio->__bi_cnt, 1);
+ }
+ EXPORT_SYMBOL(bio_init);
+ 
+@@ -413,12 +413,12 @@ EXPORT_SYMBOL(zero_fill_bio);
+  **/
+ void bio_put(struct bio *bio)
+ {
+-	BIO_BUG_ON(!atomic_read(&bio->bi_cnt));
++	BIO_BUG_ON(!atomic_read(&bio->__bi_cnt));
+ 
+ 	/*
+ 	 * last put frees it
+ 	 */
+-	if (atomic_dec_and_test(&bio->bi_cnt)) {
++	if (atomic_dec_and_test(&bio->__bi_cnt)) {
+ 		bio->bi_next = NULL;
+ 		bio->bi_destructor(bio);
+ 	}
+diff -u -p a/btrfs/volumes.c b/btrfs/volumes.c
+--- a/btrfs/volumes.c
++++ b/btrfs/volumes.c
+@@ -227,7 +227,7 @@ loop_lock:
+ 		    waitqueue_active(&fs_info->async_submit_wait))
+ 			wake_up(&fs_info->async_submit_wait);
+ 
+-		BUG_ON(atomic_read(&cur->bi_cnt) == 0);
++		BUG_ON(atomic_read(&cur->__bi_cnt) == 0);
+ 
+ 		submit_bio(cur->bi_rw, cur);
+ 		num_run++;

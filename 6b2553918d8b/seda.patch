@@ -1,0 +1,246 @@
+diff --git a/fs/affs/symlink.c b/fs/affs/symlink.c
+index ee00f08c4f53..b9e72991cc04 100644
+--- a/fs/affs/symlink.c
++++ b/fs/affs/symlink.c
+@@ -75,7 +75,7 @@ const struct address_space_operations affs_symlink_aops = {
+ 
+ const struct inode_operations affs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= affs_notify_change,
+ };
+diff --git a/fs/btrfs/inode.c b/fs/btrfs/inode.c
+index 3601f0aebddf..71a12fb76a48 100644
+--- a/fs/btrfs/inode.c
++++ b/fs/btrfs/inode.c
+@@ -7443,7 +7443,7 @@ static const struct inode_operations btrfs_special_inode_operations = {
+ };
+ static const struct inode_operations btrfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.getattr	= btrfs_getattr,
+ 	.permission	= btrfs_permission,
+diff --git a/fs/coda/cnode.c b/fs/coda/cnode.c
+index 6475877b0763..541da7de1f35 100644
+--- a/fs/coda/cnode.c
++++ b/fs/coda/cnode.c
+@@ -17,7 +17,7 @@ static inline int coda_fideq(struct CodaFid *fid1, struct CodaFid *fid2)
+ 
+ static const struct inode_operations coda_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= coda_setattr,
+ };
+diff --git a/fs/exofs/symlink.c b/fs/exofs/symlink.c
+index 4dd687c3e747..22e07db5b2b4 100644
+--- a/fs/exofs/symlink.c
++++ b/fs/exofs/symlink.c
+@@ -45,7 +45,7 @@ static void *exofs_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 
+ const struct inode_operations exofs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ };
+ 
+diff --git a/fs/ext2/symlink.c b/fs/ext2/symlink.c
+index 565cf817bbf1..b544add789ac 100644
+--- a/fs/ext2/symlink.c
++++ b/fs/ext2/symlink.c
+@@ -30,7 +30,7 @@ static void *ext2_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 
+ const struct inode_operations ext2_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= ext2_setattr,
+ #ifdef CONFIG_EXT2_FS_XATTR
+diff --git a/fs/ext3/symlink.c b/fs/ext3/symlink.c
+index 7c4898207776..62f39f5942b1 100644
+--- a/fs/ext3/symlink.c
++++ b/fs/ext3/symlink.c
+@@ -32,7 +32,7 @@ static void * ext3_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 
+ const struct inode_operations ext3_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= ext3_setattr,
+ #ifdef CONFIG_EXT3_FS_XATTR
+diff --git a/fs/ext4/symlink.c b/fs/ext4/symlink.c
+index ed9354aff279..1aa33f703cd7 100644
+--- a/fs/ext4/symlink.c
++++ b/fs/ext4/symlink.c
+@@ -32,7 +32,7 @@ static void *ext4_follow_link(struct dentry *dentry, struct nameidata *nd)
+ 
+ const struct inode_operations ext4_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= ext4_setattr,
+ #ifdef CONFIG_EXT4_FS_XATTR
+diff --git a/fs/jfs/symlink.c b/fs/jfs/symlink.c
+index 205b946d8e0d..42868740c1f1 100644
+--- a/fs/jfs/symlink.c
++++ b/fs/jfs/symlink.c
+@@ -41,7 +41,7 @@ const struct inode_operations jfs_fast_symlink_inode_operations = {
+ 
+ const struct inode_operations jfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= jfs_setattr,
+ 	.setxattr	= jfs_setxattr,
+diff --git a/fs/logfs/dir.c b/fs/logfs/dir.c
+index 1afae26cf236..e8d45560d78e 100644
+--- a/fs/logfs/dir.c
++++ b/fs/logfs/dir.c
+@@ -802,7 +802,7 @@ fail:
+ 
+ const struct inode_operations logfs_symlink_iops = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ };
+ 
+ const struct inode_operations logfs_dir_iops = {
+diff --git a/fs/minix/inode.c b/fs/minix/inode.c
+index adcdc0a4e182..fc35a2b23201 100644
+--- a/fs/minix/inode.c
++++ b/fs/minix/inode.c
+@@ -406,7 +406,7 @@ static const struct address_space_operations minix_aops = {
+ 
+ static const struct inode_operations minix_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.getattr	= minix_getattr,
+ };
+diff --git a/fs/namei.c b/fs/namei.c
+index 14ab8d3f2f0c..d2743224bc03 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -3334,7 +3334,7 @@ int page_symlink(struct inode *inode, const char *symname, int len)
+ 
+ const struct inode_operations page_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ };
+ 
+diff --git a/fs/ncpfs/inode.c b/fs/ncpfs/inode.c
+index 202f370526a7..2b8fa80351be 100644
+--- a/fs/ncpfs/inode.c
++++ b/fs/ncpfs/inode.c
+@@ -239,7 +239,7 @@ static void ncp_set_attr(struct inode *inode, struct ncp_entry_info *nwinfo)
+ #if defined(CONFIG_NCPFS_EXTRAS) || defined(CONFIG_NCPFS_NFS_NS)
+ static const struct inode_operations ncp_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= ncp_notify_change,
+ };
+diff --git a/fs/nilfs2/namei.c b/fs/nilfs2/namei.c
+index 546849b3e88f..6086f8f7c670 100644
+--- a/fs/nilfs2/namei.c
++++ b/fs/nilfs2/namei.c
+@@ -581,7 +581,7 @@ const struct inode_operations nilfs_special_inode_operations = {
+ 
+ const struct inode_operations nilfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.permission     = nilfs_permission,
+ };
+diff --git a/fs/ocfs2/symlink.c b/fs/ocfs2/symlink.c
+index 5d22872e2bb3..10120b73a413 100644
+--- a/fs/ocfs2/symlink.c
++++ b/fs/ocfs2/symlink.c
+@@ -149,7 +149,7 @@ static void ocfs2_fast_put_link(struct dentry *dentry, struct nameidata *nd, voi
+ 
+ const struct inode_operations ocfs2_symlink_inode_operations = {
+ 	.readlink	= page_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.getattr	= ocfs2_getattr,
+ 	.setattr	= ocfs2_setattr,
+diff --git a/fs/reiserfs/namei.c b/fs/reiserfs/namei.c
+index 118662690cdf..7804bb3cc987 100644
+--- a/fs/reiserfs/namei.c
++++ b/fs/reiserfs/namei.c
+@@ -1537,7 +1537,7 @@ const struct inode_operations reiserfs_dir_inode_operations = {
+  */
+ const struct inode_operations reiserfs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+-	.follow_link = page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link = page_put_link,
+ 	.setattr = reiserfs_setattr,
+ 	.setxattr = reiserfs_setxattr,
+diff --git a/fs/squashfs/symlink.c b/fs/squashfs/symlink.c
+index 1191817264cc..10f8570b5346 100644
+--- a/fs/squashfs/symlink.c
++++ b/fs/squashfs/symlink.c
+@@ -119,7 +119,7 @@ const struct address_space_operations squashfs_symlink_aops = {
+ 
+ const struct inode_operations squashfs_symlink_inode_ops = {
+ 	.readlink = generic_readlink,
+-	.follow_link = page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link = page_put_link,
+ 	.getxattr = generic_getxattr,
+ 	.listxattr = squashfs_listxattr
+diff --git a/fs/sysv/inode.c b/fs/sysv/inode.c
+index 0630eb969a28..7ff16b7fd0f1 100644
+--- a/fs/sysv/inode.c
++++ b/fs/sysv/inode.c
+@@ -160,7 +160,7 @@ static inline void write3byte(struct sysv_sb_info *sbi,
+ 
+ static const struct inode_operations sysv_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.getattr	= sysv_getattr,
+ };
+diff --git a/fs/udf/namei.c b/fs/udf/namei.c
+index f1dce848ef96..7218bb90a0f6 100644
+--- a/fs/udf/namei.c
++++ b/fs/udf/namei.c
+@@ -1334,6 +1334,6 @@ const struct inode_operations udf_dir_inode_operations = {
+ };
+ const struct inode_operations udf_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ };
+diff --git a/fs/ufs/symlink.c b/fs/ufs/symlink.c
+index d283628b4778..ad2ad362735d 100644
+--- a/fs/ufs/symlink.c
++++ b/fs/ufs/symlink.c
+@@ -47,7 +47,7 @@ const struct inode_operations ufs_fast_symlink_inode_operations = {
+ 
+ const struct inode_operations ufs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+-	.follow_link	= page_follow_link_light,
++	.get_link = page_get_link,
+ 	.put_link	= page_put_link,
+ 	.setattr	= ufs_setattr,
+ };

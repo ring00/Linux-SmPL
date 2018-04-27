@@ -1,0 +1,102 @@
+diff -u -p a/ext2/acl.c b/ext2/acl.c
+--- a/ext2/acl.c
++++ b/ext2/acl.c
+@@ -168,9 +168,6 @@ ext2_get_acl(struct inode *inode, int ty
+ 		acl = ERR_PTR(retval);
+ 	kfree(value);
+ 
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+-
+ 	return acl;
+ }
+ 
+diff -u -p a/jffs2/acl.c b/jffs2/acl.c
+--- a/jffs2/acl.c
++++ b/jffs2/acl.c
+@@ -192,8 +192,6 @@ static struct posix_acl *jffs2_get_acl(s
+ 	}
+ 	if (value)
+ 		kfree(value);
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+ 	return acl;
+ }
+ 
+diff -u -p a/inode.c b/inode.c
+--- a/inode.c
++++ b/inode.c
+@@ -251,9 +251,9 @@ void __destroy_inode(struct inode *inode
+ 	security_inode_free(inode);
+ 	fsnotify_inode_delete(inode);
+ #ifdef CONFIG_FS_POSIX_ACL
+-	if (inode->i_acl && inode->i_acl != ACL_NOT_CACHED)
++	if (inode->i_acl && !is_uncached_acl(inode->i_acl))
+ 		posix_acl_release(inode->i_acl);
+-	if (inode->i_default_acl && inode->i_default_acl != ACL_NOT_CACHED)
++	if (inode->i_default_acl && !is_uncached_acl(inode->i_default_acl))
+ 		posix_acl_release(inode->i_default_acl);
+ #endif
+ 	this_cpu_dec(nr_inodes);
+diff -u -p a/ext3/acl.c b/ext3/acl.c
+--- a/ext3/acl.c
++++ b/ext3/acl.c
+@@ -172,9 +172,6 @@ ext3_get_acl(struct inode *inode, int ty
+ 		acl = ERR_PTR(retval);
+ 	kfree(value);
+ 
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+-
+ 	return acl;
+ }
+ 
+diff -u -p a/ext4/acl.c b/ext4/acl.c
+--- a/ext4/acl.c
++++ b/ext4/acl.c
+@@ -171,9 +171,6 @@ ext4_get_acl(struct inode *inode, int ty
+ 		acl = ERR_PTR(retval);
+ 	kfree(value);
+ 
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+-
+ 	return acl;
+ }
+ 
+diff -u -p a/9p/acl.c b/9p/acl.c
+--- a/9p/acl.c
++++ b/9p/acl.c
+@@ -92,7 +92,7 @@ static struct posix_acl *v9fs_get_cached
+ 	 * instantiating the inode (v9fs_inode_from_fid)
+ 	 */
+ 	acl = get_cached_acl(inode, type);
+-	BUG_ON(acl == ACL_NOT_CACHED);
++	BUG_ON(is_uncached_acl(acl));
+ 	return acl;
+ }
+ 
+diff -u -p a/reiserfs/xattr_acl.c b/reiserfs/xattr_acl.c
+--- a/reiserfs/xattr_acl.c
++++ b/reiserfs/xattr_acl.c
+@@ -243,8 +243,6 @@ struct posix_acl *reiserfs_get_acl(struc
+ 	} else {
+ 		acl = posix_acl_from_disk(value, retval);
+ 	}
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+ 
+ 	kfree(value);
+ 	return acl;
+diff -u -p a/jfs/acl.c b/jfs/acl.c
+--- a/jfs/acl.c
++++ b/jfs/acl.c
+@@ -67,8 +67,6 @@ static struct posix_acl *jfs_get_acl(str
+ 		acl = posix_acl_from_xattr(value, size);
+ 	}
+ 	kfree(value);
+-	if (!IS_ERR(acl))
+-		set_cached_acl(inode, type, acl);
+ 	return acl;
+ }
+ 

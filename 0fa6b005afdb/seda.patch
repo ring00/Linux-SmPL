@@ -1,0 +1,101 @@
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index fa4ef18b66b1..9be2e55a4b84 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1352,7 +1352,7 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 	count = ocount;
+ 
+ 	current->backing_dev_info = inode->i_mapping->backing_dev_info;
+-	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
++	err = generic_write_checks(file, &pos, &count);
+ 	if (err) {
+ 		mutex_unlock(&inode->i_mutex);
+ 		goto out;
+diff --git a/fs/cifs/file.c b/fs/cifs/file.c
+index a9b4a24f2a16..2648d63dd4c5 100644
+--- a/fs/cifs/file.c
++++ b/fs/cifs/file.c
+@@ -1536,7 +1536,7 @@ cifs_iovec_write(struct file *file, const struct iovec *iov,
+ 	if (!len)
+ 		return 0;
+ 
+-	rc = generic_write_checks(file, poffset, &len, 0);
++	rc = generic_write_checks(file, poffset, &len);
+ 	if (rc)
+ 		return rc;
+ 
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 82a66466a24c..1f3ce61ea5b9 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -996,7 +996,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 	/* We can write back this queue in page reclaim */
+ 	current->backing_dev_info = mapping->backing_dev_info;
+ 
+-	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
++	err = generic_write_checks(file, &pos, &count);
+ 	if (err)
+ 		goto out;
+ 
+@@ -1159,7 +1159,7 @@ static ssize_t fuse_direct_write(struct file *file, const char __user *buf,
+ 
+ 	/* Don't allow parallel writes to the same file */
+ 	mutex_lock(&inode->i_mutex);
+-	res = generic_write_checks(file, ppos, &count, 0);
++	res = generic_write_checks(file, ppos, &count);
+ 	if (!res) {
+ 		res = fuse_direct_io(file, buf, count, ppos, 1);
+ 		if (res > 0)
+diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
+index 8eea25366717..65271725ccf0 100644
+--- a/fs/nfs/direct.c
++++ b/fs/nfs/direct.c
+@@ -986,7 +986,7 @@ ssize_t nfs_file_direct_write(struct kiocb *iocb, const struct iovec *iov,
+ 		file->f_path.dentry->d_name.name,
+ 		count, (long long) pos);
+ 
+-	retval = generic_write_checks(file, &pos, &count, 0);
++	retval = generic_write_checks(file, &pos, &count);
+ 	if (retval)
+ 		goto out;
+ 
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index f4b1057abdd2..123ba3b70035 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -2089,7 +2089,7 @@ static ssize_t ntfs_file_aio_write_nolock(struct kiocb *iocb,
+ 	/* We can write back this queue in page reclaim. */
+ 	current->backing_dev_info = mapping->backing_dev_info;
+ 	written = 0;
+-	err = generic_write_checks(file, &pos, &count, S_ISBLK(inode->i_mode));
++	err = generic_write_checks(file, &pos, &count);
+ 	if (err)
+ 		goto out;
+ 	if (!count)
+diff --git a/fs/ocfs2/file.c b/fs/ocfs2/file.c
+index b1e35a392ca5..369849fd6b4f 100644
+--- a/fs/ocfs2/file.c
++++ b/fs/ocfs2/file.c
+@@ -2315,8 +2315,7 @@ relock:
+ 		goto out_dio;
+ 
+ 	count = ocount;
+-	ret = generic_write_checks(file, ppos, &count,
+-				   S_ISBLK(inode->i_mode));
++	ret = generic_write_checks(file, ppos, &count);
+ 	if (ret)
+ 		goto out_dio;
+ 
+diff --git a/fs/xfs/linux-2.6/xfs_file.c b/fs/xfs/linux-2.6/xfs_file.c
+index 7f782af286bf..9b2dc84fd56f 100644
+--- a/fs/xfs/linux-2.6/xfs_file.c
++++ b/fs/xfs/linux-2.6/xfs_file.c
+@@ -658,7 +658,7 @@ xfs_file_aio_write_checks(
+ 	xfs_fsize_t		new_size;
+ 	int			error = 0;
+ 
+-	error = generic_write_checks(file, pos, count, S_ISBLK(inode->i_mode));
++	error = generic_write_checks(file, pos, count);
+ 	if (error) {
+ 		xfs_rw_iunlock(ip, XFS_ILOCK_EXCL | *iolock);
+ 		*iolock = 0;

@@ -1,0 +1,56 @@
+diff --git a/fs/aio.c b/fs/aio.c
+index e29ec485af25..2daf3b2df2c3 100644
+--- a/fs/aio.c
++++ b/fs/aio.c
+@@ -146,9 +146,8 @@ static int aio_setup_ring(struct kioctx *ctx)
+ 	}
+ 
+ 	dprintk("mmap address: 0x%08lx\n", info->mmap_base);
+-	info->nr_pages = get_user_pages(current, ctx->mm,
+-					info->mmap_base, nr_pages, 
+-					1, 0, info->ring_pages, NULL);
++	info->nr_pages = get_user_pages(info->mmap_base, nr_pages, 1, 0,
++					info->ring_pages, NULL);
+ 	up_write(&ctx->mm->mmap_sem);
+ 
+ 	if (unlikely(info->nr_pages != nr_pages)) {
+diff --git a/fs/exec.c b/fs/exec.c
+index 6075a1e727ae..219917d5b014 100644
+--- a/fs/exec.c
++++ b/fs/exec.c
+@@ -204,8 +204,7 @@ static struct page *get_arg_page(struct linux_binprm *bprm, unsigned long pos,
+ 			return NULL;
+ 	}
+ #endif
+-	ret = get_user_pages(current, bprm->mm, pos,
+-			1, write, 1, &page, NULL);
++	ret = get_user_pages(pos, 1, write, 1, &page, NULL);
+ 	if (ret <= 0)
+ 		return NULL;
+ 
+diff --git a/fs/nfs/direct.c b/fs/nfs/direct.c
+index 8eea25366717..572f71f69cf0 100644
+--- a/fs/nfs/direct.c
++++ b/fs/nfs/direct.c
+@@ -316,8 +316,8 @@ static ssize_t nfs_direct_read_schedule_segment(struct nfs_direct_req *dreq,
+ 			break;
+ 
+ 		down_read(&current->mm->mmap_sem);
+-		result = get_user_pages(current, current->mm, user_addr,
+-					data->npages, 1, 0, data->pagevec, NULL);
++		result = get_user_pages(user_addr, data->npages, 1, 0,
++					data->pagevec, NULL);
+ 		up_read(&current->mm->mmap_sem);
+ 		if (result < 0) {
+ 			nfs_readdata_free(data);
+@@ -747,8 +747,8 @@ static ssize_t nfs_direct_write_schedule_segment(struct nfs_direct_req *dreq,
+ 			break;
+ 
+ 		down_read(&current->mm->mmap_sem);
+-		result = get_user_pages(current, current->mm, user_addr,
+-					data->npages, 0, 0, data->pagevec, NULL);
++		result = get_user_pages(user_addr, data->npages, 0, 0,
++					data->pagevec, NULL);
+ 		up_read(&current->mm->mmap_sem);
+ 		if (result < 0) {
+ 			nfs_writedata_free(data);

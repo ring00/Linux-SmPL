@@ -1,0 +1,746 @@
+diff -u -p a/ocfs2/acl.c b/ocfs2/acl.c
+--- a/ocfs2/acl.c
++++ b/ocfs2/acl.c
+@@ -432,13 +432,13 @@ static size_t ocfs2_xattr_list_acl_acces
+ 					  int type)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(dentry->d_sb);
+-	const size_t size = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return 0;
+ 
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_ACCESS, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_ACCESS, size);
+ 	return size;
+ }
+ 
+@@ -450,13 +450,13 @@ static size_t ocfs2_xattr_list_acl_defau
+ 					   int type)
+ {
+ 	struct ocfs2_super *osb = OCFS2_SB(dentry->d_sb);
+-	const size_t size = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ 	if (!(osb->s_mount_opt & OCFS2_MOUNT_POSIX_ACL))
+ 		return 0;
+ 
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_DEFAULT, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT, size);
+ 	return size;
+ }
+ 
+@@ -519,7 +519,7 @@ cleanup:
+ }
+ 
+ const struct xattr_handler ocfs2_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.list	= ocfs2_xattr_list_acl_access,
+ 	.get	= ocfs2_xattr_get_acl,
+@@ -527,7 +527,7 @@ const struct xattr_handler ocfs2_xattr_a
+ };
+ 
+ const struct xattr_handler ocfs2_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= ocfs2_xattr_list_acl_default,
+ 	.get	= ocfs2_xattr_get_acl,
+diff -u -p a/ext2/acl.c b/ext2/acl.c
+--- a/ext2/acl.c
++++ b/ext2/acl.c
+@@ -350,12 +350,12 @@ static size_t
+ ext2_xattr_list_acl_access(struct dentry *dentry, char *list, size_t list_size,
+ 			   const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_size)
+-		memcpy(list, POSIX_ACL_XATTR_ACCESS, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_ACCESS, size);
+ 	return size;
+ }
+ 
+@@ -363,12 +363,12 @@ static size_t
+ ext2_xattr_list_acl_default(struct dentry *dentry, char *list, size_t list_size,
+ 			    const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_size)
+-		memcpy(list, POSIX_ACL_XATTR_DEFAULT, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT, size);
+ 	return size;
+ }
+ 
+@@ -429,7 +429,7 @@ release_and_out:
+ }
+ 
+ const struct xattr_handler ext2_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.list	= ext2_xattr_list_acl_access,
+ 	.get	= ext2_xattr_get_acl,
+@@ -437,7 +437,7 @@ const struct xattr_handler ext2_xattr_ac
+ };
+ 
+ const struct xattr_handler ext2_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= ext2_xattr_list_acl_default,
+ 	.get	= ext2_xattr_get_acl,
+diff -u -p a/jffs2/acl.c b/jffs2/acl.c
+--- a/jffs2/acl.c
++++ b/jffs2/acl.c
+@@ -357,20 +357,20 @@ int jffs2_acl_chmod(struct inode *inode)
+ static size_t jffs2_acl_access_listxattr(struct dentry *dentry, char *list,
+ 		size_t list_size, const char *name, size_t name_len, int type)
+ {
+-	const int retlen = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const int retlen = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (list && retlen <= list_size)
+-		strcpy(list, POSIX_ACL_XATTR_ACCESS);
++		strcpy(list, XATTR_NAME_POSIX_ACL_ACCESS);
+ 	return retlen;
+ }
+ 
+ static size_t jffs2_acl_default_listxattr(struct dentry *dentry, char *list,
+ 		size_t list_size, const char *name, size_t name_len, int type)
+ {
+-	const int retlen = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const int retlen = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ 	if (list && retlen <= list_size)
+-		strcpy(list, POSIX_ACL_XATTR_DEFAULT);
++		strcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT);
+ 	return retlen;
+ }
+ 
+@@ -424,7 +424,7 @@ static int jffs2_acl_setxattr(struct den
+ }
+ 
+ const struct xattr_handler jffs2_acl_access_xattr_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= jffs2_acl_access_listxattr,
+ 	.get	= jffs2_acl_getxattr,
+@@ -432,7 +432,7 @@ const struct xattr_handler jffs2_acl_acc
+ };
+ 
+ const struct xattr_handler jffs2_acl_default_xattr_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= jffs2_acl_default_listxattr,
+ 	.get	= jffs2_acl_getxattr,
+diff -u -p a/nfs/nfs3acl.c b/nfs/nfs3acl.c
+--- a/nfs/nfs3acl.c
++++ b/nfs/nfs3acl.c
+@@ -56,9 +56,9 @@ ssize_t nfs3_getxattr(struct dentry *den
+ 	struct posix_acl *acl;
+ 	int type, error = 0;
+ 
+-	if (strcmp(name, POSIX_ACL_XATTR_ACCESS) == 0)
++	if (strcmp(name, XATTR_NAME_POSIX_ACL_ACCESS) == 0)
+ 		type = ACL_TYPE_ACCESS;
+-	else if (strcmp(name, POSIX_ACL_XATTR_DEFAULT) == 0)
++	else if (strcmp(name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0)
+ 		type = ACL_TYPE_DEFAULT;
+ 	else
+ 		return -EOPNOTSUPP;
+@@ -85,9 +85,9 @@ int nfs3_setxattr(struct dentry *dentry,
+ 	struct posix_acl *acl;
+ 	int type, error;
+ 
+-	if (strcmp(name, POSIX_ACL_XATTR_ACCESS) == 0)
++	if (strcmp(name, XATTR_NAME_POSIX_ACL_ACCESS) == 0)
+ 		type = ACL_TYPE_ACCESS;
+-	else if (strcmp(name, POSIX_ACL_XATTR_DEFAULT) == 0)
++	else if (strcmp(name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0)
+ 		type = ACL_TYPE_DEFAULT;
+ 	else
+ 		return -EOPNOTSUPP;
+@@ -106,9 +106,9 @@ int nfs3_removexattr(struct dentry *dent
+ 	struct inode *inode = dentry->d_inode;
+ 	int type;
+ 
+-	if (strcmp(name, POSIX_ACL_XATTR_ACCESS) == 0)
++	if (strcmp(name, XATTR_NAME_POSIX_ACL_ACCESS) == 0)
+ 		type = ACL_TYPE_ACCESS;
+-	else if (strcmp(name, POSIX_ACL_XATTR_DEFAULT) == 0)
++	else if (strcmp(name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0)
+ 		type = ACL_TYPE_DEFAULT;
+ 	else
+ 		return -EOPNOTSUPP;
+diff -u -p a/xfs/linux-2.6/xfs_xattr.c b/xfs/linux-2.6/xfs_xattr.c
+--- a/xfs/linux-2.6/xfs_xattr.c
++++ b/xfs/linux-2.6/xfs_xattr.c
+@@ -222,17 +222,17 @@ xfs_vn_listxattr(struct dentry *dentry,
+ 	 * Then add the two synthetic ACL attributes.
+ 	 */
+ 	if (posix_acl_access_exists(inode)) {
+-		error = list_one_attr(POSIX_ACL_XATTR_ACCESS,
+-				strlen(POSIX_ACL_XATTR_ACCESS) + 1,
+-				data, size, &context.count);
++		error = list_one_attr(XATTR_NAME_POSIX_ACL_ACCESS,
++				      strlen(XATTR_NAME_POSIX_ACL_ACCESS) + 1,
++				      data, size, &context.count);
+ 		if (error)
+ 			return error;
+ 	}
+ 
+ 	if (posix_acl_default_exists(inode)) {
+-		error = list_one_attr(POSIX_ACL_XATTR_DEFAULT,
+-				strlen(POSIX_ACL_XATTR_DEFAULT) + 1,
+-				data, size, &context.count);
++		error = list_one_attr(XATTR_NAME_POSIX_ACL_DEFAULT,
++				      strlen(XATTR_NAME_POSIX_ACL_DEFAULT) + 1,
++				      data, size, &context.count);
+ 		if (error)
+ 			return error;
+ 	}
+diff -u -p a/xfs/linux-2.6/xfs_acl.c b/xfs/linux-2.6/xfs_acl.c
+--- a/xfs/linux-2.6/xfs_acl.c
++++ b/xfs/linux-2.6/xfs_acl.c
+@@ -448,14 +448,14 @@ xfs_xattr_acl_set(struct dentry *dentry,
+ }
+ 
+ const struct xattr_handler xfs_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.get	= xfs_xattr_acl_get,
+ 	.set	= xfs_xattr_acl_set,
+ };
+ 
+ const struct xattr_handler xfs_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.get	= xfs_xattr_acl_get,
+ 	.set	= xfs_xattr_acl_set,
+diff -u -p a/generic_acl.c b/generic_acl.c
+--- a/generic_acl.c
++++ b/generic_acl.c
+@@ -29,10 +29,10 @@ generic_acl_list(struct dentry *dentry,
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		xname = POSIX_ACL_XATTR_ACCESS;
++		xname = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		xname = POSIX_ACL_XATTR_DEFAULT;
++		xname = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		return 0;
+@@ -209,7 +209,7 @@ generic_check_acl(struct inode *inode, i
+ }
+ 
+ const struct xattr_handler generic_acl_access_handler = {
+-	.prefix = POSIX_ACL_XATTR_ACCESS,
++	.prefix = XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.list	= generic_acl_list,
+ 	.get	= generic_acl_get,
+@@ -217,7 +217,7 @@ const struct xattr_handler generic_acl_a
+ };
+ 
+ const struct xattr_handler generic_acl_default_handler = {
+-	.prefix = POSIX_ACL_XATTR_DEFAULT,
++	.prefix = XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= generic_acl_list,
+ 	.get	= generic_acl_get,
+diff -u -p a/ext3/acl.c b/ext3/acl.c
+--- a/ext3/acl.c
++++ b/ext3/acl.c
+@@ -377,12 +377,12 @@ static size_t
+ ext3_xattr_list_acl_access(struct dentry *dentry, char *list, size_t list_len,
+ 			   const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_ACCESS, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_ACCESS, size);
+ 	return size;
+ }
+ 
+@@ -390,12 +390,12 @@ static size_t
+ ext3_xattr_list_acl_default(struct dentry *dentry, char *list, size_t list_len,
+ 			    const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_DEFAULT, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT, size);
+ 	return size;
+ }
+ 
+@@ -465,7 +465,7 @@ release_and_out:
+ }
+ 
+ const struct xattr_handler ext3_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.list	= ext3_xattr_list_acl_access,
+ 	.get	= ext3_xattr_get_acl,
+@@ -473,7 +473,7 @@ const struct xattr_handler ext3_xattr_ac
+ };
+ 
+ const struct xattr_handler ext3_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= ext3_xattr_list_acl_default,
+ 	.get	= ext3_xattr_get_acl,
+diff -u -p a/cifs/xattr.c b/cifs/xattr.c
+--- a/cifs/xattr.c
++++ b/cifs/xattr.c
+@@ -188,8 +188,8 @@ int cifs_setxattr(struct dentry *direntr
+ 		}
+ 	} else {
+ 		int temp;
+-		temp = strncmp(ea_name, POSIX_ACL_XATTR_ACCESS,
+-			strlen(POSIX_ACL_XATTR_ACCESS));
++		temp = strncmp(ea_name, XATTR_NAME_POSIX_ACL_ACCESS,
++			       strlen(XATTR_NAME_POSIX_ACL_ACCESS));
+ 		if (temp == 0) {
+ #ifdef CONFIG_CIFS_POSIX
+ 			if (sb->s_flags & MS_POSIXACL)
+@@ -202,8 +202,8 @@ int cifs_setxattr(struct dentry *direntr
+ #else
+ 			cFYI(1, "set POSIX ACL not supported");
+ #endif
+-		} else if (strncmp(ea_name, POSIX_ACL_XATTR_DEFAULT,
+-				   strlen(POSIX_ACL_XATTR_DEFAULT)) == 0) {
++		} else if (strncmp(ea_name, XATTR_NAME_POSIX_ACL_DEFAULT,
++				   strlen(XATTR_NAME_POSIX_ACL_DEFAULT)) == 0) {
+ #ifdef CONFIG_CIFS_POSIX
+ 			if (sb->s_flags & MS_POSIXACL)
+ 				rc = CIFSSMBSetPosixACL(xid, pTcon, full_path,
+@@ -289,8 +289,8 @@ ssize_t cifs_getxattr(struct dentry *dir
+ 		rc = CIFSSMBQAllEAs(xid, pTcon, full_path, ea_name, ea_value,
+ 			buf_size, cifs_sb->local_nls,
+ 			cifs_sb->mnt_cifs_flags & CIFS_MOUNT_MAP_SPECIAL_CHR);
+-	} else if (strncmp(ea_name, POSIX_ACL_XATTR_ACCESS,
+-			  strlen(POSIX_ACL_XATTR_ACCESS)) == 0) {
++	} else if (strncmp(ea_name, XATTR_NAME_POSIX_ACL_ACCESS,
++			   strlen(XATTR_NAME_POSIX_ACL_ACCESS)) == 0) {
+ #ifdef CONFIG_CIFS_POSIX
+ 		if (sb->s_flags & MS_POSIXACL)
+ 			rc = CIFSSMBGetPosixACL(xid, pTcon, full_path,
+@@ -301,8 +301,8 @@ ssize_t cifs_getxattr(struct dentry *dir
+ #else
+ 		cFYI(1, "Query POSIX ACL not supported yet");
+ #endif /* CONFIG_CIFS_POSIX */
+-	} else if (strncmp(ea_name, POSIX_ACL_XATTR_DEFAULT,
+-			  strlen(POSIX_ACL_XATTR_DEFAULT)) == 0) {
++	} else if (strncmp(ea_name, XATTR_NAME_POSIX_ACL_DEFAULT,
++			   strlen(XATTR_NAME_POSIX_ACL_DEFAULT)) == 0) {
+ #ifdef CONFIG_CIFS_POSIX
+ 		if (sb->s_flags & MS_POSIXACL)
+ 			rc = CIFSSMBGetPosixACL(xid, pTcon, full_path,
+diff -u -p a/ext4/acl.c b/ext4/acl.c
+--- a/ext4/acl.c
++++ b/ext4/acl.c
+@@ -375,12 +375,12 @@ static size_t
+ ext4_xattr_list_acl_access(struct dentry *dentry, char *list, size_t list_len,
+ 			   const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_ACCESS, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_ACCESS, size);
+ 	return size;
+ }
+ 
+@@ -388,12 +388,12 @@ static size_t
+ ext4_xattr_list_acl_default(struct dentry *dentry, char *list, size_t list_len,
+ 			    const char *name, size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ 	if (!test_opt(dentry->d_sb, POSIX_ACL))
+ 		return 0;
+ 	if (list && size <= list_len)
+-		memcpy(list, POSIX_ACL_XATTR_DEFAULT, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT, size);
+ 	return size;
+ }
+ 
+@@ -463,7 +463,7 @@ release_and_out:
+ }
+ 
+ const struct xattr_handler ext4_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.list	= ext4_xattr_list_acl_access,
+ 	.get	= ext4_xattr_get_acl,
+@@ -471,7 +471,7 @@ const struct xattr_handler ext4_xattr_ac
+ };
+ 
+ const struct xattr_handler ext4_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.list	= ext4_xattr_list_acl_default,
+ 	.get	= ext4_xattr_get_acl,
+diff -u -p a/9p/acl.c b/9p/acl.c
+--- a/9p/acl.c
++++ b/9p/acl.c
+@@ -66,8 +66,8 @@ int v9fs_get_acl(struct inode *inode, st
+ 		return 0;
+ 	}
+ 	/* get the default/access acl values and cache them */
+-	dacl = __v9fs_get_acl(fid, POSIX_ACL_XATTR_DEFAULT);
+-	pacl = __v9fs_get_acl(fid, POSIX_ACL_XATTR_ACCESS);
++	dacl = __v9fs_get_acl(fid, XATTR_NAME_POSIX_ACL_DEFAULT);
++	pacl = __v9fs_get_acl(fid, XATTR_NAME_POSIX_ACL_ACCESS);
+ 
+ 	if (!IS_ERR(dacl) && !IS_ERR(pacl)) {
+ 		set_cached_acl(inode, ACL_TYPE_DEFAULT, dacl);
+@@ -148,10 +148,10 @@ static int v9fs_set_acl(struct dentry *d
+ 		goto err_free_out;
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -241,10 +241,10 @@ static int v9fs_remote_get_acl(struct de
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		full_name =  POSIX_ACL_XATTR_ACCESS;
++		full_name =  XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		full_name = POSIX_ACL_XATTR_DEFAULT;
++		full_name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -288,10 +288,10 @@ static int v9fs_remote_set_acl(struct de
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		full_name =  POSIX_ACL_XATTR_ACCESS;
++		full_name =  XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		full_name = POSIX_ACL_XATTR_DEFAULT;
++		full_name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -340,7 +340,7 @@ static int v9fs_xattr_set_acl(struct den
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		if (acl) {
+ 			mode_t mode = inode->i_mode;
+ 			retval = posix_acl_equiv_mode(acl, &mode);
+@@ -371,7 +371,7 @@ static int v9fs_xattr_set_acl(struct den
+ 		}
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		if (!S_ISDIR(inode->i_mode)) {
+ 			retval = acl ? -EINVAL : 0;
+ 			goto err_out;
+@@ -389,14 +389,14 @@ err_out:
+ }
+ 
+ const struct xattr_handler v9fs_xattr_acl_access_handler = {
+-	.prefix	= POSIX_ACL_XATTR_ACCESS,
++	.prefix	= XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.get	= v9fs_xattr_get_acl,
+ 	.set	= v9fs_xattr_set_acl,
+ };
+ 
+ const struct xattr_handler v9fs_xattr_acl_default_handler = {
+-	.prefix	= POSIX_ACL_XATTR_DEFAULT,
++	.prefix	= XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.get	= v9fs_xattr_get_acl,
+ 	.set	= v9fs_xattr_set_acl,
+diff -u -p a/nfsd/vfs.c b/nfsd/vfs.c
+--- a/nfsd/vfs.c
++++ b/nfsd/vfs.c
+@@ -517,12 +517,14 @@ nfsd4_set_nfs4_acl(struct svc_rqst *rqst
+ 	} else if (host_error < 0)
+ 		goto out_nfserr;
+ 
+-	host_error = set_nfsv4_acl_one(dentry, pacl, POSIX_ACL_XATTR_ACCESS);
++	host_error = set_nfsv4_acl_one(dentry, pacl,
++				       XATTR_NAME_POSIX_ACL_ACCESS);
+ 	if (host_error < 0)
+ 		goto out_release;
+ 
+ 	if (S_ISDIR(inode->i_mode))
+-		host_error = set_nfsv4_acl_one(dentry, dpacl, POSIX_ACL_XATTR_DEFAULT);
++		host_error = set_nfsv4_acl_one(dentry, dpacl,
++				               XATTR_NAME_POSIX_ACL_DEFAULT);
+ 
+ out_release:
+ 	posix_acl_release(pacl);
+@@ -560,7 +562,7 @@ nfsd4_get_nfs4_acl(struct svc_rqst *rqst
+ 	struct posix_acl *pacl = NULL, *dpacl = NULL;
+ 	unsigned int flags = 0;
+ 
+-	pacl = _get_posix_acl(dentry, POSIX_ACL_XATTR_ACCESS);
++	pacl = _get_posix_acl(dentry, XATTR_NAME_POSIX_ACL_ACCESS);
+ 	if (IS_ERR(pacl) && PTR_ERR(pacl) == -ENODATA)
+ 		pacl = posix_acl_from_mode(inode->i_mode, GFP_KERNEL);
+ 	if (IS_ERR(pacl)) {
+@@ -570,7 +572,7 @@ nfsd4_get_nfs4_acl(struct svc_rqst *rqst
+ 	}
+ 
+ 	if (S_ISDIR(inode->i_mode)) {
+-		dpacl = _get_posix_acl(dentry, POSIX_ACL_XATTR_DEFAULT);
++		dpacl = _get_posix_acl(dentry, XATTR_NAME_POSIX_ACL_DEFAULT);
+ 		if (IS_ERR(dpacl) && PTR_ERR(dpacl) == -ENODATA)
+ 			dpacl = NULL;
+ 		else if (IS_ERR(dpacl)) {
+@@ -2196,10 +2198,10 @@ nfsd_get_posix_acl(struct svc_fh *fhp, i
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		return ERR_PTR(-EOPNOTSUPP);
+@@ -2228,10 +2230,10 @@ nfsd_set_posix_acl(struct svc_fh *fhp, i
+ 		return -EOPNOTSUPP;
+ 	switch(type) {
+ 		case ACL_TYPE_ACCESS:
+-			name = POSIX_ACL_XATTR_ACCESS;
++			name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 			break;
+ 		case ACL_TYPE_DEFAULT:
+-			name = POSIX_ACL_XATTR_DEFAULT;
++			name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 			break;
+ 		default:
+ 			return -EOPNOTSUPP;
+diff -u -p a/btrfs/acl.c b/btrfs/acl.c
+--- a/btrfs/acl.c
++++ b/btrfs/acl.c
+@@ -46,10 +46,10 @@ static struct posix_acl *btrfs_get_acl(s
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -123,7 +123,7 @@ static int btrfs_set_acl(struct btrfs_tr
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+ 		mode = inode->i_mode;
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		if (acl) {
+ 			ret = posix_acl_equiv_mode(acl, &mode);
+ 			if (ret < 0)
+@@ -135,7 +135,7 @@ static int btrfs_set_acl(struct btrfs_tr
+ 	case ACL_TYPE_DEFAULT:
+ 		if (!S_ISDIR(inode->i_mode))
+ 			return acl ? -EINVAL : 0;
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		return -EINVAL;
+@@ -306,14 +306,14 @@ int btrfs_acl_chmod(struct inode *inode)
+ }
+ 
+ const struct xattr_handler btrfs_xattr_acl_default_handler = {
+-	.prefix = POSIX_ACL_XATTR_DEFAULT,
++	.prefix = XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags	= ACL_TYPE_DEFAULT,
+ 	.get	= btrfs_xattr_acl_get,
+ 	.set	= btrfs_xattr_acl_set,
+ };
+ 
+ const struct xattr_handler btrfs_xattr_acl_access_handler = {
+-	.prefix = POSIX_ACL_XATTR_ACCESS,
++	.prefix = XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags	= ACL_TYPE_ACCESS,
+ 	.get	= btrfs_xattr_acl_get,
+ 	.set	= btrfs_xattr_acl_set,
+diff -u -p a/reiserfs/xattr_acl.c b/reiserfs/xattr_acl.c
+--- a/reiserfs/xattr_acl.c
++++ b/reiserfs/xattr_acl.c
+@@ -211,10 +211,10 @@ struct posix_acl *reiserfs_get_acl(struc
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -270,7 +270,7 @@ reiserfs_set_acl(struct reiserfs_transac
+ 
+ 	switch (type) {
+ 	case ACL_TYPE_ACCESS:
+-		name = POSIX_ACL_XATTR_ACCESS;
++		name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 		if (acl) {
+ 			mode_t mode = inode->i_mode;
+ 			error = posix_acl_equiv_mode(acl, &mode);
+@@ -284,7 +284,7 @@ reiserfs_set_acl(struct reiserfs_transac
+ 		}
+ 		break;
+ 	case ACL_TYPE_DEFAULT:
+-		name = POSIX_ACL_XATTR_DEFAULT;
++		name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 		if (!S_ISDIR(inode->i_mode))
+ 			return acl ? -EACCES : 0;
+ 		break;
+@@ -494,16 +494,16 @@ static size_t posix_acl_access_list(stru
+ 				    size_t list_size, const char *name,
+ 				    size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_ACCESS);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_ACCESS);
+ 	if (!reiserfs_posixacl(dentry->d_sb))
+ 		return 0;
+ 	if (list && size <= list_size)
+-		memcpy(list, POSIX_ACL_XATTR_ACCESS, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_ACCESS, size);
+ 	return size;
+ }
+ 
+ const struct xattr_handler reiserfs_posix_acl_access_handler = {
+-	.prefix = POSIX_ACL_XATTR_ACCESS,
++	.prefix = XATTR_NAME_POSIX_ACL_ACCESS,
+ 	.flags = ACL_TYPE_ACCESS,
+ 	.get = posix_acl_get,
+ 	.set = posix_acl_set,
+@@ -514,16 +514,16 @@ static size_t posix_acl_default_list(str
+ 				     size_t list_size, const char *name,
+ 				     size_t name_len, int type)
+ {
+-	const size_t size = sizeof(POSIX_ACL_XATTR_DEFAULT);
++	const size_t size = sizeof(XATTR_NAME_POSIX_ACL_DEFAULT);
+ 	if (!reiserfs_posixacl(dentry->d_sb))
+ 		return 0;
+ 	if (list && size <= list_size)
+-		memcpy(list, POSIX_ACL_XATTR_DEFAULT, size);
++		memcpy(list, XATTR_NAME_POSIX_ACL_DEFAULT, size);
+ 	return size;
+ }
+ 
+ const struct xattr_handler reiserfs_posix_acl_default_handler = {
+-	.prefix = POSIX_ACL_XATTR_DEFAULT,
++	.prefix = XATTR_NAME_POSIX_ACL_DEFAULT,
+ 	.flags = ACL_TYPE_DEFAULT,
+ 	.get = posix_acl_get,
+ 	.set = posix_acl_set,
+diff -u -p a/jfs/acl.c b/jfs/acl.c
+--- a/jfs/acl.c
++++ b/jfs/acl.c
+@@ -40,10 +40,10 @@ static struct posix_acl *jfs_get_acl(str
+ 
+ 	switch(type) {
+ 		case ACL_TYPE_ACCESS:
+-			ea_name = POSIX_ACL_XATTR_ACCESS;
++			ea_name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 			break;
+ 		case ACL_TYPE_DEFAULT:
+-			ea_name = POSIX_ACL_XATTR_DEFAULT;
++			ea_name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 			break;
+ 		default:
+ 			return ERR_PTR(-EINVAL);
+@@ -85,10 +85,10 @@ static int jfs_set_acl(tid_t tid, struct
+ 
+ 	switch(type) {
+ 		case ACL_TYPE_ACCESS:
+-			ea_name = POSIX_ACL_XATTR_ACCESS;
++			ea_name = XATTR_NAME_POSIX_ACL_ACCESS;
+ 			break;
+ 		case ACL_TYPE_DEFAULT:
+-			ea_name = POSIX_ACL_XATTR_DEFAULT;
++			ea_name = XATTR_NAME_POSIX_ACL_DEFAULT;
+ 			if (!S_ISDIR(inode->i_mode))
+ 				return acl ? -EACCES : 0;
+ 			break;
+diff -u -p a/jfs/xattr.c b/jfs/xattr.c
+--- a/jfs/xattr.c
++++ b/jfs/xattr.c
+@@ -684,7 +684,7 @@ static int can_set_system_xattr(struct i
+ 	/*
+ 	 * POSIX_ACL_XATTR_ACCESS is tied to i_mode
+ 	 */
+-	if (strcmp(name, POSIX_ACL_XATTR_ACCESS) == 0) {
++	if (strcmp(name, XATTR_NAME_POSIX_ACL_ACCESS) == 0) {
+ 		acl = posix_acl_from_xattr(value, value_len);
+ 		if (IS_ERR(acl)) {
+ 			rc = PTR_ERR(acl);
+@@ -711,7 +711,7 @@ static int can_set_system_xattr(struct i
+ 		forget_cached_acl(inode, ACL_TYPE_ACCESS);
+ 
+ 		return 0;
+-	} else if (strcmp(name, POSIX_ACL_XATTR_DEFAULT) == 0) {
++	} else if (strcmp(name, XATTR_NAME_POSIX_ACL_DEFAULT) == 0) {
+ 		acl = posix_acl_from_xattr(value, value_len);
+ 		if (IS_ERR(acl)) {
+ 			rc = PTR_ERR(acl);

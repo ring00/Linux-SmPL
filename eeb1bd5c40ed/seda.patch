@@ -1,0 +1,62 @@
+diff --git a/fs/afs/rxrpc.c b/fs/afs/rxrpc.c
+index e45a323aebb4..7e600025a057 100644
+--- a/fs/afs/rxrpc.c
++++ b/fs/afs/rxrpc.c
+@@ -78,7 +78,8 @@ int afs_open_socket(void)
+ 		return -ENOMEM;
+ 	}
+ 
+-	ret = sock_create_kern(AF_RXRPC, SOCK_DGRAM, PF_INET, &socket);
++	ret = sock_create_kern(&init_net, AF_RXRPC, SOCK_DGRAM, PF_INET,
++			       &socket);
+ 	if (ret < 0) {
+ 		destroy_workqueue(afs_async_calls);
+ 		_leave(" = %d [socket]", ret);
+diff --git a/fs/dlm/lowcomms.c b/fs/dlm/lowcomms.c
+index 5e2c71f05e46..0d6072db62e9 100644
+--- a/fs/dlm/lowcomms.c
++++ b/fs/dlm/lowcomms.c
+@@ -719,8 +719,8 @@ static int tcp_accept_from_sock(struct connection *con)
+ 	struct connection *addcon;
+ 
+ 	memset(&peeraddr, 0, sizeof(peeraddr));
+-	result = sock_create_kern(dlm_local_addr[0]->ss_family, SOCK_STREAM,
+-				  IPPROTO_TCP, &newsock);
++	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
++				  SOCK_STREAM, IPPROTO_TCP, &newsock);
+ 	if (result < 0)
+ 		return -ENOMEM;
+ 
+@@ -947,8 +947,8 @@ static void tcp_connect_to_sock(struct connection *con)
+ 	}
+ 
+ 	/* Create a socket to communicate with */
+-	result = sock_create_kern(dlm_local_addr[0]->ss_family, SOCK_STREAM,
+-				  IPPROTO_TCP, &sock);
++	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
++				  SOCK_STREAM, IPPROTO_TCP, &sock);
+ 	if (result < 0)
+ 		goto out_err;
+ 
+@@ -1024,8 +1024,8 @@ static struct socket *tcp_create_listen_sock(struct connection *con,
+ 		addr_len = sizeof(struct sockaddr_in6);
+ 
+ 	/* Create a socket to communicate with */
+-	result = sock_create_kern(dlm_local_addr[0]->ss_family, SOCK_STREAM,
+-				  IPPROTO_TCP, &sock);
++	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
++				  SOCK_STREAM, IPPROTO_TCP, &sock);
+ 	if (result < 0) {
+ 		log_print("Can't create listening comms socket");
+ 		goto create_out;
+@@ -1132,8 +1132,8 @@ static int sctp_listen_for_all(void)
+ 
+ 	log_print("Using SCTP for communications");
+ 
+-	result = sock_create_kern(dlm_local_addr[0]->ss_family, SOCK_SEQPACKET,
+-				  IPPROTO_SCTP, &sock);
++	result = sock_create_kern(&init_net, dlm_local_addr[0]->ss_family,
++				  SOCK_SEQPACKET, IPPROTO_SCTP, &sock);
+ 	if (result < 0) {
+ 		log_print("Can't create comms socket, check SCTP is loaded");
+ 		goto out;

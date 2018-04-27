@@ -1,0 +1,356 @@
+diff -u -p a/gfs2/inode.c b/gfs2/inode.c
+--- a/gfs2/inode.c
++++ b/gfs2/inode.c
+@@ -1879,7 +1879,6 @@ const struct inode_operations gfs2_dir_i
+ const struct inode_operations gfs2_symlink_iops = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = gfs2_follow_link,
+-	.put_link = gfs2_put_link,
+ 	.permission = gfs2_permission,
+ 	.setattr = gfs2_setattr,
+ 	.getattr = gfs2_getattr,
+diff -u -p a/proc/base.c b/proc/base.c
+--- a/proc/base.c
++++ b/proc/base.c
+@@ -2605,7 +2605,6 @@ static void proc_self_put_link(struct de
+ static const struct inode_operations proc_self_inode_operations = {
+ 	.readlink	= proc_self_readlink,
+ 	.follow_link	= proc_self_follow_link,
+-	.put_link	= proc_self_put_link,
+ };
+ 
+ /*
+diff -u -p a/affs/symlink.c b/affs/symlink.c
+--- a/affs/symlink.c
++++ b/affs/symlink.c
+@@ -76,6 +76,5 @@ const struct address_space_operations af
+ const struct inode_operations affs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= affs_notify_change,
+ };
+diff -u -p a/exofs/symlink.c b/exofs/symlink.c
+--- a/exofs/symlink.c
++++ b/exofs/symlink.c
+@@ -46,7 +46,6 @@ static void *exofs_follow_link(struct de
+ const struct inode_operations exofs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ };
+ 
+ const struct inode_operations exofs_fast_symlink_inode_operations = {
+diff -u -p a/configfs/symlink.c b/configfs/symlink.c
+--- a/configfs/symlink.c
++++ b/configfs/symlink.c
+@@ -314,7 +314,6 @@ static void configfs_put_link(struct den
+ const struct inode_operations configfs_symlink_inode_operations = {
+ 	.follow_link = configfs_follow_link,
+ 	.readlink = generic_readlink,
+-	.put_link = configfs_put_link,
+ 	.setattr = configfs_setattr,
+ };
+ 
+diff -u -p a/ocfs2/symlink.c b/ocfs2/symlink.c
+--- a/ocfs2/symlink.c
++++ b/ocfs2/symlink.c
+@@ -150,7 +150,6 @@ static void ocfs2_fast_put_link(struct d
+ const struct inode_operations ocfs2_symlink_inode_operations = {
+ 	.readlink	= page_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.getattr	= ocfs2_getattr,
+ 	.setattr	= ocfs2_setattr,
+ 	.setxattr	= generic_setxattr,
+@@ -162,7 +161,6 @@ const struct inode_operations ocfs2_syml
+ const struct inode_operations ocfs2_fast_symlink_inode_operations = {
+ 	.readlink	= ocfs2_readlink,
+ 	.follow_link	= ocfs2_fast_follow_link,
+-	.put_link	= ocfs2_fast_put_link,
+ 	.getattr	= ocfs2_getattr,
+ 	.setattr	= ocfs2_setattr,
+ 	.setxattr	= generic_setxattr,
+diff -u -p a/ext2/symlink.c b/ext2/symlink.c
+--- a/ext2/symlink.c
++++ b/ext2/symlink.c
+@@ -31,7 +31,6 @@ static void *ext2_follow_link(struct den
+ const struct inode_operations ext2_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= ext2_setattr,
+ #ifdef CONFIG_EXT2_FS_XATTR
+ 	.setxattr	= generic_setxattr,
+diff -u -p a/nilfs2/namei.c b/nilfs2/namei.c
+--- a/nilfs2/namei.c
++++ b/nilfs2/namei.c
+@@ -582,7 +582,6 @@ const struct inode_operations nilfs_spec
+ const struct inode_operations nilfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.permission     = nilfs_permission,
+ };
+ 
+diff -u -p a/nfs/symlink.c b/nfs/symlink.c
+--- a/nfs/symlink.c
++++ b/nfs/symlink.c
+@@ -72,7 +72,6 @@ read_failed:
+ const struct inode_operations nfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= nfs_follow_link,
+-	.put_link	= page_put_link,
+ 	.getattr	= nfs_getattr,
+ 	.setattr	= nfs_setattr,
+ };
+diff -u -p a/hppfs/hppfs.c b/hppfs/hppfs.c
+--- a/hppfs/hppfs.c
++++ b/hppfs/hppfs.c
+@@ -667,7 +667,6 @@ static const struct inode_operations hpp
+ static const struct inode_operations hppfs_link_iops = {
+ 	.readlink	= hppfs_readlink,
+ 	.follow_link	= hppfs_follow_link,
+-	.put_link	= hppfs_put_link,
+ };
+ 
+ static struct inode *get_inode(struct super_block *sb, struct dentry *dentry)
+diff -u -p a/sysfs/symlink.c b/sysfs/symlink.c
+--- a/sysfs/symlink.c
++++ b/sysfs/symlink.c
+@@ -295,7 +295,6 @@ const struct inode_operations sysfs_syml
+ 	.setxattr	= sysfs_setxattr,
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= sysfs_follow_link,
+-	.put_link	= sysfs_put_link,
+ 	.setattr	= sysfs_setattr,
+ 	.getattr	= sysfs_getattr,
+ 	.permission	= sysfs_permission,
+diff -u -p a/hostfs/hostfs_kern.c b/hostfs/hostfs_kern.c
+--- a/hostfs/hostfs_kern.c
++++ b/hostfs/hostfs_kern.c
+@@ -908,7 +908,6 @@ static void hostfs_put_link(struct dentr
+ static const struct inode_operations hostfs_link_iops = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= hostfs_follow_link,
+-	.put_link	= hostfs_put_link,
+ };
+ 
+ static int hostfs_fill_sb_common(struct super_block *sb, void *d, int silent)
+diff -u -p a/udf/namei.c b/udf/namei.c
+--- a/udf/namei.c
++++ b/udf/namei.c
+@@ -1335,5 +1335,4 @@ const struct inode_operations udf_dir_in
+ const struct inode_operations udf_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ };
+diff -u -p a/xfs/linux-2.6/xfs_iops.c b/xfs/linux-2.6/xfs_iops.c
+--- a/xfs/linux-2.6/xfs_iops.c
++++ b/xfs/linux-2.6/xfs_iops.c
+@@ -654,7 +654,6 @@ static const struct inode_operations xfs
+ static const struct inode_operations xfs_symlink_inode_operations = {
+ 	.readlink		= generic_readlink,
+ 	.follow_link		= xfs_vn_follow_link,
+-	.put_link		= xfs_vn_put_link,
+ 	.check_acl		= xfs_check_acl,
+ 	.getattr		= xfs_vn_getattr,
+ 	.setattr		= xfs_vn_setattr,
+diff -u -p a/squashfs/symlink.c b/squashfs/symlink.c
+--- a/squashfs/symlink.c
++++ b/squashfs/symlink.c
+@@ -120,7 +120,6 @@ const struct address_space_operations sq
+ const struct inode_operations squashfs_symlink_inode_ops = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = page_follow_link_light,
+-	.put_link = page_put_link,
+ 	.getxattr = generic_getxattr,
+ 	.listxattr = squashfs_listxattr
+ };
+diff -u -p a/namei.c b/namei.c
+--- a/namei.c
++++ b/namei.c
+@@ -3335,7 +3335,6 @@ int page_symlink(struct inode *inode, co
+ const struct inode_operations page_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ };
+ 
+ EXPORT_SYMBOL(user_path_at);
+diff -u -p a/ncpfs/inode.c b/ncpfs/inode.c
+--- a/ncpfs/inode.c
++++ b/ncpfs/inode.c
+@@ -240,7 +240,6 @@ static void ncp_set_attr(struct inode *i
+ static const struct inode_operations ncp_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= ncp_notify_change,
+ };
+ #endif
+diff -u -p a/sysv/inode.c b/sysv/inode.c
+--- a/sysv/inode.c
++++ b/sysv/inode.c
+@@ -161,7 +161,6 @@ static inline void write3byte(struct sys
+ static const struct inode_operations sysv_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.getattr	= sysv_getattr,
+ };
+ 
+diff -u -p a/ext3/symlink.c b/ext3/symlink.c
+--- a/ext3/symlink.c
++++ b/ext3/symlink.c
+@@ -33,7 +33,6 @@ static void * ext3_follow_link(struct de
+ const struct inode_operations ext3_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= ext3_setattr,
+ #ifdef CONFIG_EXT3_FS_XATTR
+ 	.setxattr	= generic_setxattr,
+diff -u -p a/cifs/cifsfs.c b/cifs/cifsfs.c
+--- a/cifs/cifsfs.c
++++ b/cifs/cifsfs.c
+@@ -811,7 +811,6 @@ const struct inode_operations cifs_file_
+ const struct inode_operations cifs_symlink_inode_ops = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = cifs_follow_link,
+-	.put_link = cifs_put_link,
+ 	.permission = cifs_permission,
+ 	/* BB add the following two eventually */
+ 	/* revalidate: cifs_revalidate,
+diff -u -p a/fuse/dir.c b/fuse/dir.c
+--- a/fuse/dir.c
++++ b/fuse/dir.c
+@@ -1611,7 +1611,6 @@ static const struct inode_operations fus
+ static const struct inode_operations fuse_symlink_inode_operations = {
+ 	.setattr	= fuse_setattr,
+ 	.follow_link	= fuse_follow_link,
+-	.put_link	= fuse_put_link,
+ 	.readlink	= generic_readlink,
+ 	.getattr	= fuse_getattr,
+ 	.setxattr	= fuse_setxattr,
+diff -u -p a/coda/cnode.c b/coda/cnode.c
+--- a/coda/cnode.c
++++ b/coda/cnode.c
+@@ -18,7 +18,6 @@ static inline int coda_fideq(struct Coda
+ static const struct inode_operations coda_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= coda_setattr,
+ };
+ 
+diff -u -p a/ext4/symlink.c b/ext4/symlink.c
+--- a/ext4/symlink.c
++++ b/ext4/symlink.c
+@@ -33,7 +33,6 @@ static void *ext4_follow_link(struct den
+ const struct inode_operations ext4_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= ext4_setattr,
+ #ifdef CONFIG_EXT4_FS_XATTR
+ 	.setxattr	= generic_setxattr,
+diff -u -p a/9p/vfs_inode_dotl.c b/9p/vfs_inode_dotl.c
+--- a/9p/vfs_inode_dotl.c
++++ b/9p/vfs_inode_dotl.c
+@@ -885,7 +885,6 @@ const struct inode_operations v9fs_file_
+ const struct inode_operations v9fs_symlink_inode_operations_dotl = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = v9fs_vfs_follow_link_dotl,
+-	.put_link = v9fs_vfs_put_link,
+ 	.getattr = v9fs_vfs_getattr_dotl,
+ 	.setattr = v9fs_vfs_setattr_dotl,
+ 	.setxattr = generic_setxattr,
+diff -u -p a/9p/vfs_inode.c b/9p/vfs_inode.c
+--- a/9p/vfs_inode.c
++++ b/9p/vfs_inode.c
+@@ -1417,7 +1417,6 @@ static const struct inode_operations v9f
+ static const struct inode_operations v9fs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = v9fs_vfs_follow_link,
+-	.put_link = v9fs_vfs_put_link,
+ 	.getattr = v9fs_vfs_getattr,
+ 	.setattr = v9fs_vfs_setattr,
+ };
+diff -u -p a/minix/inode.c b/minix/inode.c
+--- a/minix/inode.c
++++ b/minix/inode.c
+@@ -407,7 +407,6 @@ static const struct address_space_operat
+ static const struct inode_operations minix_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.getattr	= minix_getattr,
+ };
+ 
+diff -u -p a/befs/linuxvfs.c b/befs/linuxvfs.c
+--- a/befs/linuxvfs.c
++++ b/befs/linuxvfs.c
+@@ -81,7 +81,6 @@ static const struct address_space_operat
+ static const struct inode_operations befs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= befs_follow_link,
+-	.put_link	= befs_put_link,
+ };
+ 
+ /* 
+diff -u -p a/ecryptfs/inode.c b/ecryptfs/inode.c
+--- a/ecryptfs/inode.c
++++ b/ecryptfs/inode.c
+@@ -1162,7 +1162,6 @@ out:
+ const struct inode_operations ecryptfs_symlink_iops = {
+ 	.readlink = ecryptfs_readlink,
+ 	.follow_link = ecryptfs_follow_link,
+-	.put_link = ecryptfs_put_link,
+ 	.permission = ecryptfs_permission,
+ 	.setattr = ecryptfs_setattr,
+ 	.getattr = ecryptfs_getattr_link,
+diff -u -p a/btrfs/inode.c b/btrfs/inode.c
+--- a/btrfs/inode.c
++++ b/btrfs/inode.c
+@@ -7444,7 +7444,6 @@ static const struct inode_operations btr
+ static const struct inode_operations btrfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.getattr	= btrfs_getattr,
+ 	.permission	= btrfs_permission,
+ 	.setxattr	= btrfs_setxattr,
+diff -u -p a/reiserfs/namei.c b/reiserfs/namei.c
+--- a/reiserfs/namei.c
++++ b/reiserfs/namei.c
+@@ -1538,7 +1538,6 @@ const struct inode_operations reiserfs_d
+ const struct inode_operations reiserfs_symlink_inode_operations = {
+ 	.readlink = generic_readlink,
+ 	.follow_link = page_follow_link_light,
+-	.put_link = page_put_link,
+ 	.setattr = reiserfs_setattr,
+ 	.setxattr = reiserfs_setxattr,
+ 	.getxattr = reiserfs_getxattr,
+diff -u -p a/jfs/symlink.c b/jfs/symlink.c
+--- a/jfs/symlink.c
++++ b/jfs/symlink.c
+@@ -42,7 +42,6 @@ const struct inode_operations jfs_fast_s
+ const struct inode_operations jfs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= jfs_setattr,
+ 	.setxattr	= jfs_setxattr,
+ 	.getxattr	= jfs_getxattr,
+diff -u -p a/ufs/symlink.c b/ufs/symlink.c
+--- a/ufs/symlink.c
++++ b/ufs/symlink.c
+@@ -48,6 +48,5 @@ const struct inode_operations ufs_fast_s
+ const struct inode_operations ufs_symlink_inode_operations = {
+ 	.readlink	= generic_readlink,
+ 	.follow_link	= page_follow_link_light,
+-	.put_link	= page_put_link,
+ 	.setattr	= ufs_setattr,
+ };

@@ -1,0 +1,88 @@
+diff --git a/fs/btrfs/compression.c b/fs/btrfs/compression.c
+index bfe42b03eaf9..5c554d98a243 100644
+--- a/fs/btrfs/compression.c
++++ b/fs/btrfs/compression.c
+@@ -472,8 +472,7 @@ static noinline int add_ra_bio_pages(struct inode *inode,
+ 			goto next;
+ 		}
+ 
+-		page = __page_cache_alloc(mapping_gfp_mask(mapping) &
+-								~__GFP_FS);
++		page = __page_cache_alloc(mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 		if (!page)
+ 			break;
+ 
+diff --git a/fs/buffer.c b/fs/buffer.c
+index 1a80b048ade8..890b234ee76d 100644
+--- a/fs/buffer.c
++++ b/fs/buffer.c
+@@ -997,7 +997,7 @@ grow_dev_page(struct block_device *bdev, sector_t block,
+ 	struct buffer_head *bh;
+ 
+ 	page = find_or_create_page(inode->i_mapping, index,
+-		(mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS)|__GFP_MOVABLE);
++		(mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS))|__GFP_MOVABLE);
+ 	if (!page)
+ 		return NULL;
+ 
+diff --git a/fs/ext4/inode.c b/fs/ext4/inode.c
+index e3126c051006..f9037575be3b 100644
+--- a/fs/ext4/inode.c
++++ b/fs/ext4/inode.c
+@@ -3945,7 +3945,7 @@ int ext4_block_zero_page_range(handle_t *handle,
+ 	int err = 0;
+ 
+ 	page = find_or_create_page(mapping, from >> PAGE_CACHE_SHIFT,
+-				   mapping_gfp_mask(mapping) & ~__GFP_FS);
++				   mapping_gfp_constraint(mapping, ~__GFP_FS));
+ 	if (!page)
+ 		return -EINVAL;
+ 
+diff --git a/fs/logfs/segment.c b/fs/logfs/segment.c
+index 9d5187353255..2897e625b405 100644
+--- a/fs/logfs/segment.c
++++ b/fs/logfs/segment.c
+@@ -57,7 +57,7 @@ static struct page *get_mapping_page(struct super_block *sb, pgoff_t index,
+ 	filler_t *filler = super->s_devops->readpage;
+ 	struct page *page;
+ 
+-	BUG_ON(mapping_gfp_mask(mapping) & __GFP_FS);
++	BUG_ON(mapping_gfp_constraint(mapping, __GFP_FS));
+ 	if (use_filler)
+ 		page = read_cache_page(mapping, index, filler, sb);
+ 	else {
+diff --git a/fs/namei.c b/fs/namei.c
+index 14ab8d3f2f0c..305bf4870ea4 100644
+--- a/fs/namei.c
++++ b/fs/namei.c
+@@ -3329,7 +3329,7 @@ fail:
+ int page_symlink(struct inode *inode, const char *symname, int len)
+ {
+ 	return __page_symlink(inode, symname, len,
+-			!(mapping_gfp_mask(inode->i_mapping) & __GFP_FS));
++			!(mapping_gfp_constraint(inode->i_mapping, __GFP_FS)));
+ }
+ 
+ const struct inode_operations page_symlink_inode_operations = {
+diff --git a/fs/nilfs2/inode.c b/fs/nilfs2/inode.c
+index b9b45fc2903e..9d761a54d36a 100644
+--- a/fs/nilfs2/inode.c
++++ b/fs/nilfs2/inode.c
+@@ -306,7 +306,7 @@ struct inode *nilfs_new_inode(struct inode *dir, int mode)
+ 		goto failed;
+ 
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ 
+ 	root = NILFS_I(dir)->i_root;
+ 	ii = NILFS_I(inode);
+@@ -384,7 +384,7 @@ void nilfs_set_inode_flags(struct inode *inode)
+ 	if (flags & FS_DIRSYNC_FL)
+ 		inode->i_flags |= S_DIRSYNC;
+ 	mapping_set_gfp_mask(inode->i_mapping,
+-			     mapping_gfp_mask(inode->i_mapping) & ~__GFP_FS);
++			     mapping_gfp_constraint(inode->i_mapping, ~__GFP_FS));
+ }
+ 
+ int nilfs_read_inode_common(struct inode *inode,

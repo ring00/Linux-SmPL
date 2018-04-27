@@ -1,0 +1,12 @@
+diff -u -p a/debugfs/inode.c b/debugfs/inode.c
+--- a/debugfs/inode.c
++++ b/debugfs/inode.c
+@@ -311,7 +311,7 @@ static int __debugfs_remove(struct dentr
+ {
+ 	int ret = 0;
+ 
+-	if (debugfs_positive(dentry)) {
++	if (simple_positive(dentry)) {
+ 		if (dentry->d_inode) {
+ 			dget(dentry);
+ 			switch (dentry->d_inode->i_mode & S_IFMT) {

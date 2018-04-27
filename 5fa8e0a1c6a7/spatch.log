@@ -1,0 +1,72 @@
+diff -u -p a/splice.c b/splice.c
+--- a/splice.c
++++ b/splice.c
+@@ -1002,7 +1002,7 @@ generic_file_splice_write(struct pipe_in
+ 			break;
+ 
+ 		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
+-		ret = file_remove_suid(out);
++		ret = file_remove_privs(out);
+ 		if (!ret) {
+ 			file_update_time(out);
+ 			ret = splice_from_pipe_feed(pipe, &sd, pipe_to_file);
+diff -u -p a/ntfs/file.c b/ntfs/file.c
+--- a/ntfs/file.c
++++ b/ntfs/file.c
+@@ -2094,7 +2094,7 @@ static ssize_t ntfs_file_aio_write_noloc
+ 		goto out;
+ 	if (!count)
+ 		goto out;
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 	file_update_time(file);
+diff -u -p a/xfs/linux-2.6/xfs_file.c b/xfs/linux-2.6/xfs_file.c
+--- a/xfs/linux-2.6/xfs_file.c
++++ b/xfs/linux-2.6/xfs_file.c
+@@ -689,7 +689,7 @@ xfs_file_aio_write_checks(
+ 	 * setgid bits if the process is not being run by root.  This keeps
+ 	 * people from modifying setuid and setgid binaries.
+ 	 */
+-	return file_remove_suid(file);
++	return file_remove_privs(file);
+ 
+ }
+ 
+diff -u -p a/fuse/file.c b/fuse/file.c
+--- a/fuse/file.c
++++ b/fuse/file.c
+@@ -1003,7 +1003,7 @@ static ssize_t fuse_file_aio_write(struc
+ 	if (count == 0)
+ 		goto out;
+ 
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 
+diff -u -p a/ext4/ioctl.c b/ext4/ioctl.c
+--- a/ext4/ioctl.c
++++ b/ext4/ioctl.c
+@@ -256,7 +256,7 @@ setversion_out:
+ 					me.donor_start, me.len, &me.moved_len);
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		if (me.moved_len > 0)
+-			file_remove_suid(donor_filp);
++			file_remove_privs(donor_filp);
+ 
+ 		if (copy_to_user((struct move_extent __user *)arg,
+ 				 &me, sizeof(me)))
+diff -u -p a/btrfs/file.c b/btrfs/file.c
+--- a/btrfs/file.c
++++ b/btrfs/file.c
+@@ -1363,7 +1363,7 @@ static ssize_t btrfs_file_aio_write(stru
+ 		goto out;
+ 	}
+ 
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err) {
+ 		mutex_unlock(&inode->i_mutex);
+ 		goto out;

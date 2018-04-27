@@ -1,0 +1,78 @@
+diff --git a/fs/btrfs/file.c b/fs/btrfs/file.c
+index fa4ef18b66b1..82f901a690c7 100644
+--- a/fs/btrfs/file.c
++++ b/fs/btrfs/file.c
+@@ -1363,7 +1363,7 @@ static ssize_t btrfs_file_aio_write(struct kiocb *iocb,
+ 		goto out;
+ 	}
+ 
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err) {
+ 		mutex_unlock(&inode->i_mutex);
+ 		goto out;
+diff --git a/fs/ext4/ioctl.c b/fs/ext4/ioctl.c
+index 808c554e773f..bd4d10390f33 100644
+--- a/fs/ext4/ioctl.c
++++ b/fs/ext4/ioctl.c
+@@ -256,7 +256,7 @@ setversion_out:
+ 					me.donor_start, me.len, &me.moved_len);
+ 		mnt_drop_write(filp->f_path.mnt);
+ 		if (me.moved_len > 0)
+-			file_remove_suid(donor_filp);
++			file_remove_privs(donor_filp);
+ 
+ 		if (copy_to_user((struct move_extent __user *)arg,
+ 				 &me, sizeof(me)))
+diff --git a/fs/fuse/file.c b/fs/fuse/file.c
+index 82a66466a24c..a2664f415b0b 100644
+--- a/fs/fuse/file.c
++++ b/fs/fuse/file.c
+@@ -1003,7 +1003,7 @@ static ssize_t fuse_file_aio_write(struct kiocb *iocb, const struct iovec *iov,
+ 	if (count == 0)
+ 		goto out;
+ 
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 
+diff --git a/fs/ntfs/file.c b/fs/ntfs/file.c
+index f4b1057abdd2..74f873bea47a 100644
+--- a/fs/ntfs/file.c
++++ b/fs/ntfs/file.c
+@@ -2094,7 +2094,7 @@ static ssize_t ntfs_file_aio_write_nolock(struct kiocb *iocb,
+ 		goto out;
+ 	if (!count)
+ 		goto out;
+-	err = file_remove_suid(file);
++	err = file_remove_privs(file);
+ 	if (err)
+ 		goto out;
+ 	file_update_time(file);
+diff --git a/fs/splice.c b/fs/splice.c
+index aa866d309695..cd3e590cb3df 100644
+--- a/fs/splice.c
++++ b/fs/splice.c
+@@ -1002,7 +1002,7 @@ generic_file_splice_write(struct pipe_inode_info *pipe, struct file *out,
+ 			break;
+ 
+ 		mutex_lock_nested(&inode->i_mutex, I_MUTEX_CHILD);
+-		ret = file_remove_suid(out);
++		ret = file_remove_privs(out);
+ 		if (!ret) {
+ 			file_update_time(out);
+ 			ret = splice_from_pipe_feed(pipe, &sd, pipe_to_file);
+diff --git a/fs/xfs/linux-2.6/xfs_file.c b/fs/xfs/linux-2.6/xfs_file.c
+index 7f782af286bf..8a786c66e277 100644
+--- a/fs/xfs/linux-2.6/xfs_file.c
++++ b/fs/xfs/linux-2.6/xfs_file.c
+@@ -689,7 +689,7 @@ xfs_file_aio_write_checks(
+ 	 * setgid bits if the process is not being run by root.  This keeps
+ 	 * people from modifying setuid and setgid binaries.
+ 	 */
+-	return file_remove_suid(file);
++	return file_remove_privs(file);
+ 
+ }
+ 
