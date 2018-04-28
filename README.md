@@ -37,24 +37,24 @@ https://github.com/duxing2007/ldd3-examples-3.x
 * 3.14 [ ] 56c4ee11a641978c4f51629f085f990b6def68b2
 	- [x] 06eb7193dbe2dfdbd05987d3e34e06f2b95267e2
 * 3.16 [x] a55b0c788e978d3a3a13d2dbaefb8facd23fafd6
-	- [ ] 81ad0b7077cb780e0164eb1c12e9f22e7b5e67e1
-	- [ ] f1dfd0d3a678727bbe5fbf7d26f4783fa5cf9a34
-	- [ ] 9842755e5f74d7147a44c2cae44d200e9a6787f1
-* 3.18 44d5df0a180bd147be7503f86506030595c46491
+	- [x] 81ad0b7077cb780e0164eb1c12e9f22e7b5e67e1 (same as a55b0c788e978d3a3a13d2dbaefb8facd23fafd6)
+	- [x] f1dfd0d3a678727bbe5fbf7d26f4783fa5cf9a34 (same as 06eb7193dbe2dfdbd05987d3e34e06f2b95267e2)
+	- [x] 9842755e5f74d7147a44c2cae44d200e9a6787f1
+* 3.18 [ ] 44d5df0a180bd147be7503f86506030595c46491
 	- [ ] ca72db5c20b536b84f114b44b1b5dbaf22a3bad6
-	- [ ] 3c7ea31326b7b9d7c53d3b65584e7d6bd6f8f6f7
-	- [ ] f6936440fccf4381ee9e61b3bc01de375f807deb
-	- [ ] 3a2fdebbde4050642028b7b914ebcaa5f886f351
-	- [ ] e1080635b06fcb05ac93674c044a80ce4731eede
-	- [ ] 497241ebe903d80f0f370b0c1834fb6ea9a1fb75
-	- [ ] 127869d536f81d8f764a54a2114c8def01b1f8d0
-	- [ ] 774188890569a754edebe178d9c965dc9c9ee07a
-	- [ ] ad04821f7b5cd27debb3bebd2986635c2c1a01a4
-* 4.1 d9ead115eff54fd39c3740e5a44e9dd5011edde8
+	- [x] 3c7ea31326b7b9d7c53d3b65584e7d6bd6f8f6f7
+	- [x] f6936440fccf4381ee9e61b3bc01de375f807deb (same as 3c7ea31326b7b9d7c53d3b65584e7d6bd6f8f6f7)
+	- [x] 3a2fdebbde4050642028b7b914ebcaa5f886f351
+	- [x] e1080635b06fcb05ac93674c044a80ce4731eede
+	- [x] 497241ebe903d80f0f370b0c1834fb6ea9a1fb75
+	- [x] 127869d536f81d8f764a54a2114c8def01b1f8d0 (same pattern of 497241ebe903d80f0f370b0c1834fb6ea9a1fb75)
+	- [x] 774188890569a754edebe178d9c965dc9c9ee07a (same pattern of 497241ebe903d80f0f370b0c1834fb6ea9a1fb75)
+	- [x] ad04821f7b5cd27debb3bebd2986635c2c1a01a4
+* 4.1 [ ] d9ead115eff54fd39c3740e5a44e9dd5011edde8
 	- [ ] 87fccb719e17fbdaee6717f5ee98e500d7695c67
-	- [ ] 4c24080da6e64352e9d952055d7f5247d8dbd598
-* 4.4 edc3a100ef85ce654aef57e2dd7ce8ebb323d107
-	- [ ] 8304521f125ac1820a593f8fc1f485ad649ce2ee
+	- [x] 4c24080da6e64352e9d952055d7f5247d8dbd598
+* 4.4 [ ] edc3a100ef85ce654aef57e2dd7ce8ebb323d107
+	- [x] 8304521f125ac1820a593f8fc1f485ad649ce2ee
 * 4.9 52b506e886c23c2109b948dbc4bc49872e5e40f0
 
 ## 3.0 - 3.2
@@ -1471,9 +1471,1014 @@ index dbb0b8a5ca2d..d77ea2556bb8 100644
 
 ## 3.16 - 3.18
 
+### pattern 1
+
+number of instance: 2
+
+#### commit message
+
+```diff
+commit 9842755e5f74d7147a44c2cae44d200e9a6787f1
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sat Apr 11 15:24:46 2015 +0800
+
+    snull: fix
+    
+    root cause commits in linux-stable:
+    commit c835a677331495cf137a7f8a023463afd9f032f8
+    Author: Tom Gundersen <teg@jklm.no>
+    Date:   Mon Jul 14 16:37:24 2014 +0200
+    
+        net: set name_assign_type in alloc_netdev()
+    
+        Extend alloc_netdev{,_mq{,s}}() to take name_assign_type as argument, and convert
+        all users to pass NET_NAME_UNKNOWN.
+    
+        Coccinelle patch:
+    
+        @@
+        expression sizeof_priv, name, setup, txqs, rxqs, count;
+        @@
+    
+        (
+        -alloc_netdev_mqs(sizeof_priv, name, setup, txqs, rxqs)
+        +alloc_netdev_mqs(sizeof_priv, name, NET_NAME_UNKNOWN, setup, txqs, rxqs)
+        |
+        -alloc_netdev_mq(sizeof_priv, name, setup, count)
+        +alloc_netdev_mq(sizeof_priv, name, NET_NAME_UNKNOWN, setup, count)
+        |
+        -alloc_netdev(sizeof_priv, name, setup)
+        +alloc_netdev(sizeof_priv, name, NET_NAME_UNKNOWN, setup)
+        )
+    
+        v9: move comments here from the wrong commit
+---
+ snull/snull.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/snull/snull.c b/snull/snull.c
+index 82b9935b677c..74ec7ecf509d 100644
+--- a/snull/snull.c
++++ b/snull/snull.c
+@@ -723,9 +723,9 @@ int snull_init_module(void)
+        snull_interrupt = use_napi ? snull_napi_interrupt : snull_regular_interrupt;
+ 
+        /* Allocate the devices */
+-       snull_devs[0] = alloc_netdev(sizeof(struct snull_priv), "sn%d",
++       snull_devs[0] = alloc_netdev(sizeof(struct snull_priv), "sn%d", NET_NAME_UNKNOWN,
+                        snull_init);
+-       snull_devs[1] = alloc_netdev(sizeof(struct snull_priv), "sn%d",
++       snull_devs[1] = alloc_netdev(sizeof(struct snull_priv), "sn%d", NET_NAME_UNKNOWN,
+                        snull_init);
+        if (snull_devs[0] == NULL || snull_devs[1] == NULL)
+                goto out;
+```
+
+
 ## 3.18 - 4.1
+
+### pattern 1
+
+number of instance: 6
+
+#### commit message
+
+```diff
+commit 3c7ea31326b7b9d7c53d3b65584e7d6bd6f8f6f7
+Author: samuelololol <samuelololol@gmail.com>
+Date:   Tue Jul 28 10:54:24 2015 +0800
+
+    porting on linux kernel 4.0.4
+---
+ misc-modules/silly.c | 4 ++--
+ sculld/mmap.c        | 2 +-
+ scullp/mmap.c        | 2 +-
+ short/short.c        | 4 ++--
+ 4 files changed, 6 insertions(+), 6 deletions(-)
+
+diff --git a/misc-modules/silly.c b/misc-modules/silly.c
+index 3b1f8936471f..b708ecc840ae 100644
+--- a/misc-modules/silly.c
++++ b/misc-modules/silly.c
+@@ -77,7 +77,7 @@ enum silly_modes {M_8=0, M_16, M_32, M_memcpy};
+ ssize_t silly_read(struct file *filp, char __user *buf, size_t count, loff_t *f_pos)
+ {
+        int retval;
+-       int mode = iminor(filp->f_dentry->d_inode);
++       int mode = iminor(filp->f_path.dentry->d_inode);
+        void __iomem *add;
+        unsigned long isa_addr = ISA_BASE + *f_pos;
+        unsigned char *kbuf, *ptr;
+@@ -159,7 +159,7 @@ ssize_t silly_write(struct file *filp, const char __user *buf, size_t count,
+                    loff_t *f_pos)
+ {
+        int retval;
+-       int mode = iminor(filp->f_dentry->d_inode);
++       int mode = iminor(filp->f_path.dentry->d_inode);
+        unsigned long isa_addr = ISA_BASE + *f_pos;
+        unsigned char *kbuf, *ptr;
+        void __iomem *add;
+diff --git a/sculld/mmap.c b/sculld/mmap.c
+index d87e46d18859..b56a3c5235b3 100644
+--- a/sculld/mmap.c
++++ b/sculld/mmap.c
+@@ -104,7 +104,7 @@ struct vm_operations_struct sculld_vm_ops = {
+```
+
+### internal interface change
+
+```diff
+commit 0f7fc9e4d03987fe29f6dd4aa67e4c56eb7ecb05
+Author: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+Date:   Fri Dec 8 02:36:35 2006 -0800
+
+    [PATCH] VFS: change struct file to use struct path
+    
+    This patch changes struct file to use struct path instead of having
+    independent pointers to struct dentry and struct vfsmount, and converts all
+    users of f_{dentry,vfsmnt} in fs/ to use f_path.{dentry,mnt}.
+    
+    Additionally, it adds two #define's to make the transition easier for users of
+    the f_dentry and f_vfsmnt.
+    
+    Signed-off-by: Josef "Jeff" Sipek <jsipek@cs.sunysb.edu>
+    Signed-off-by: Andrew Morton <akpm@osdl.org>
+    Signed-off-by: Linus Torvalds <torvalds@osdl.org>
+---
+ fs/binfmt_aout.c         |  8 ++++----
+ fs/binfmt_elf.c          |  2 +-
+ fs/binfmt_elf_fdpic.c    |  4 ++--
+ fs/binfmt_flat.c         |  2 +-
+ fs/binfmt_misc.c         | 10 +++++-----
+ fs/block_dev.c           |  4 ++--
+ fs/compat.c              | 12 ++++++------
+ fs/compat_ioctl.c        |  2 +-
+ fs/dnotify.c             |  4 ++--
+ fs/dquot.c               |  4 ++--
+ fs/eventpoll.c           |  4 ++--
+ fs/exec.c                | 10 +++++-----
+ fs/fcntl.c               |  2 +-
+ fs/file_table.c          | 10 +++++-----
+ fs/inode.c               |  2 +-
+ fs/inotify_user.c        |  6 +++---
+ fs/ioctl.c               | 14 +++++++-------
+ fs/libfs.c               | 14 +++++++-------
+ fs/locks.c               | 32 ++++++++++++++++----------------
+ fs/namei.c               | 10 +++++-----
+ fs/open.c                | 26 +++++++++++++-------------
+ fs/pipe.c                | 28 ++++++++++++++--------------
+ fs/read_write.c          | 20 ++++++++++----------
+ fs/readdir.c             |  2 +-
+ fs/seq_file.c            |  2 +-
+ fs/splice.c              | 18 +++++++++---------
+ fs/stat.c                |  2 +-
+ fs/super.c               |  2 +-
+ fs/sync.c                |  4 ++--
+ fs/xattr.c               |  8 ++++----
+ include/linux/fs.h       | 10 ++++++----
+ include/linux/fsnotify.h |  2 +-
+ 32 files changed, 141 insertions(+), 139 deletions(-)
+
+diff --git a/fs/binfmt_aout.c b/fs/binfmt_aout.c
+index 517e111bb7ef..813a887cd2b3 100644
+--- a/fs/binfmt_aout.c
++++ b/fs/binfmt_aout.c
+@@ -274,7 +274,7 @@ static int load_aout_binary(struct linux_binprm * bprm, struct pt_regs * regs)
+        if ((N_MAGIC(ex) != ZMAGIC && N_MAGIC(ex) != OMAGIC &&
+             N_MAGIC(ex) != QMAGIC && N_MAGIC(ex) != NMAGIC) ||
+            N_TRSIZE(ex) || N_DRSIZE(ex) ||
+-           i_size_read(bprm->file->f_dentry->d_inode) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
++           i_size_read(bprm->file->f_path.dentry->d_inode) < ex.a_text+ex.a_data+N_SYMSIZE(ex)+N_TXTOFF(ex)) {
+                return -ENOEXEC;
+        }
+ 
+@@ -389,7 +389,7 @@ static int load_aout_binary(struct linux_binprm * bprm, struct pt_regs * regs)
+                {
+                        printk(KERN_WARNING 
+                               "fd_offset is not page aligned. Please convert program: %s\n",
+-                              bprm->file->f_dentry->d_name.name);
++                              bprm->file->f_path.dentry->d_name.name);
+                        error_time = jiffies;
+                }
+```
+
+### pattern 2-3
+
+pattern 2
+number of instance: 1
+```diff
+-	IRQF_DISABLED|IRQF_SHARED
++	IRQF_SHARED
+```
+
+pattern 3
+number of instance: 3
+```
+-	IRQF_DISABLED
++	0x0
+```
+
+#### commit message
+
+```
+commit 3a2fdebbde4050642028b7b914ebcaa5f886f351
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sun Feb 21 10:15:45 2016 +0800
+
+    short: fix
+    
+    root cause commits in linux-stable:
+    commit d8bf368d0631d4bc2612d8bf2e4e8e74e620d0cc
+    Author: Valentin Rothberg <valentinrothberg@gmail.com>
+    Date:   Thu Mar 5 15:23:08 2015 +0100
+    
+        genirq: Remove the deprecated 'IRQF_DISABLED' request_irq() flag entirely
+    
+        The IRQF_DISABLED flag is a NOOP and has been scheduled for removal
+        since Linux v2.6.36 by commit 6932bf37bed4 ("genirq: Remove
+        IRQF_DISABLED from core code").
+    
+        According to commit e58aa3d2d0cc ("genirq: Run irq handlers with
+        interrupts disabled"), running IRQ handlers with interrupts
+        enabled can cause stack overflows when the interrupt line of the
+        issuing device is still active.
+    
+        This patch ends the grace period for IRQF_DISABLED (i.e.,
+        SA_INTERRUPT in older versions of Linux) and removes the
+        definition and all remaining usages of this flag.
+    
+        There's still a few non-functional references left in the kernel
+        source:
+    
+          - The bigger hunk in Documentation/scsi/ncr53c8xx.txt is removed entirely
+            as IRQF_DISABLED is gone now; the usage in older kernel versions
+            (including the old SA_INTERRUPT flag) should be discouraged.  The
+            trouble of using IRQF_SHARED is a general problem and not specific to
+            any driver.
+    
+          - I left the reference in Documentation/PCI/MSI-HOWTO.txt untouched since
+            it has already been removed in linux-next.
+    
+          - All remaining references are changelogs that I suggest to keep.
+---
+ short/short.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/short/short.c b/short/short.c
+index 6af3c710931c..ce9e88c4b9c8 100644
+--- a/short/short.c
++++ b/short/short.c
+@@ -510,7 +510,7 @@ void short_selfprobe(void)
+       */
+        for (i = 0; trials[i]; i++)
+                tried[i] = request_irq(trials[i], short_probing,
+-                               IRQF_DISABLED, "short probe", NULL);
++                               0x0, "short probe", NULL);
+ 
+        do {
+                short_irq = 0; /* none got, yet */
+@@ -620,7 +620,7 @@ int short_init(void)
+         */
+        if (short_irq >= 0 && share > 0) {
+                result = request_irq(short_irq, short_sh_interrupt,
+-                               IRQF_SHARED | IRQF_DISABLED,"short",
++                               IRQF_SHARED ,"short",
+                                short_sh_interrupt);
+                if (result) {
+                        printk(KERN_INFO "short: can't get assigned irq %i\n", short_irq);
+@@ -634,7 +634,7 @@ int short_init(void)
+ 
+        if (short_irq >= 0) {
+                result = request_irq(short_irq, short_interrupt,
+-                               IRQF_DISABLED, "short", NULL);
++                               0x0, "short", NULL);
+                if (result) {
+                        printk(KERN_INFO "short: can't get assigned irq %i\n",
+                                        short_irq);
+@@ -654,7 +654,7 @@ int short_init(void)
+                result = request_irq(short_irq,
+                                tasklet ? short_tl_interrupt :
+                                short_wq_interrupt,
+-                               IRQF_DISABLED,"short-bh", NULL);
++                               0x0,"short-bh", NULL);
+                if (result) {
+                        printk(KERN_INFO "short-bh: can't get assigned irq %i\n",
+                                        short_irq);
+```
+
+### pattern 4
+
+number of instance: 1
+can't infer
+
+```diff
+static const struct header_ops dvb_header_ops = {
+ 	.create		= eth_header,
+ 	.parse		= eth_header_parse,
+-	.rebuild	= eth_rebuild_header,
+ };
+
+static const struct header_ops isdn_header_ops = {
+ 	.create = isdn_net_header,
+-	.rebuild = isdn_net_rebuild_header,
+ 	.cache = isdn_header_cache,
+ 	.cache_update = isdn_header_cache_update,
+ };
+
+static const struct header_ops ipvlan_header_ops = {
+ 	.create  	= ipvlan_hard_header,
+-	.rebuild	= eth_rebuild_header,
+ 	.parse		= eth_header_parse,
+ 	.cache		= eth_header_cache,
+ 	.cache_update	= eth_header_cache_update,
+```
+
+#### commit message
+
+```diff
+commit e1080635b06fcb05ac93674c044a80ce4731eede
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sun Feb 21 15:27:45 2016 +0800
+
+    snull: fix
+    
+    root cause commits in linux-stable:
+    commit d476059e77d1af48453a58f9de1e36f2eaff6450
+    Author: Eric W. Biederman <ebiederm@xmission.com>
+    Date:   Mon Mar 2 00:11:09 2015 -0600
+    
+        net: Kill dev_rebuild_header
+    
+        Now that there are no more users kill dev_rebuild_header and all of it's
+        implementations.
+    
+        This is long overdue.
+    
+        Signed-off-by: "Eric W. Biederman" <ebiederm@xmission.com>
+        Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ snull/snull.c      | 16 ----------------
+ snull/snull_load   |  0
+ snull/snull_unload |  0
+ 3 files changed, 16 deletions(-)
+
+diff --git a/snull/snull.c b/snull/snull.c
+index 74ec7ecf509d..a3059bdc5c92 100644
+--- a/snull/snull.c
++++ b/snull/snull.c
+@@ -569,21 +569,6 @@ struct net_device_stats *snull_stats(struct net_device *dev)
+        return &priv->stats;
+ }
+-/*
+- * This function is called to fill up an eth header, since arp is not
+- * available on the interface
+- */
+-int snull_rebuild_header(struct sk_buff *skb)
+-{
+-       struct ethhdr *eth = (struct ethhdr *) skb->data;
+-       struct net_device *dev = skb->dev;
+-    
+-       memcpy(eth->h_source, dev->dev_addr, dev->addr_len);
+-       memcpy(eth->h_dest, dev->dev_addr, dev->addr_len);
+-       eth->h_dest[ETH_ALEN-1]   ^= 0x01;   /* dest is us xor 1 */
+-       return 0;
+-}
+-
+ 
+ int snull_header(struct sk_buff *skb, struct net_device *dev,
+                 unsigned short type, const void *daddr, const void *saddr,
+@@ -637,7 +622,6 @@ static const struct net_device_ops snull_netdev_ops = {
+ 
+ static const struct header_ops snull_header_ops = {
+        .create         = snull_header,
+-       .rebuild        = snull_rebuild_header,
+        .cache          = NULL,
+ };
+```
+
+### pattern 5-6
+
+pattern 5
+```
+-       .aio_read =  E0
+```
+number of instance: 1
+
+pattern 6
+```
+-       .aio_write = E0
+```
+
+#### commit message
+
+```diff
+commit 497241ebe903d80f0f370b0c1834fb6ea9a1fb75
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sun Feb 21 22:41:21 2016 +0800
+
+    sculld: remove aio
+---
+ sculld/main.c | 142 ++++++++++------------------------------------------------------------------------------------------------------------------------------------
+ 1 file changed, 10 insertions(+), 132 deletions(-)
+
+@@ -544,8 +424,6 @@ struct file_operations sculld_fops = {
+        .mmap =      sculld_mmap,
+        .open =      sculld_open,
+        .release =   sculld_release,
+-       .aio_read =  sculld_aio_read,
+-       .aio_write = sculld_aio_write,
+ };
+```
+
+#### internal interface change
+
+```diff
+commit 293bc9822fa9b3c9d4b7893bcb241e085580771a
+Author: Al Viro <viro@zeniv.linux.org.uk>
+Date:   Tue Feb 11 18:37:41 2014 -0500
+
+    new methods: ->read_iter() and ->write_iter()
+    
+    Beginning to introduce those.  Just the callers for now, and it's
+    clumsier than it'll eventually become; once we finish converting
+    aio_read and aio_write instances, the things will get nicer.
+    
+    For now, these guys are in parallel to ->aio_read() and ->aio_write();
+    they take iocb and iov_iter, with everything in iov_iter already
+    validated.  File offset is passed in iocb->ki_pos, iov/nr_segs -
+    in iov_iter.
+    
+    Main concerns in that series are stack footprint and ability to
+    split the damn thing cleanly.
+    
+    [fix from Peter Ujfalusi <peter.ujfalusi@ti.com> folded]
+    
+    Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking |  2 ++
+ Documentation/filesystems/vfs.txt | 10 ++++++++--
+ fs/aio.c                          | 14 ++++++++++++--
+ fs/file_table.c                   |  6 ++++--
+ fs/open.c                         |  6 ++++--
+ fs/read_write.c                   | 90 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----
+ include/linux/fs.h                |  6 ++++++
+ 7 files changed, 121 insertions(+), 13 deletions(-)
+
+diff --git a/Documentation/filesystems/Locking b/Documentation/filesystems/Locking
+index 9b0d5a33c8bf..b18dd1779029 100644
+--- a/Documentation/filesystems/Locking
++++ b/Documentation/filesystems/Locking
+@@ -430,6 +430,8 @@ prototypes:
+        ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+        ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+        ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
++       ssize_t (*read_iter) (struct kiocb *, struct iov_iter *);
++       ssize_t (*write_iter) (struct kiocb *, struct iov_iter *);
+        int (*iterate) (struct file *, struct dir_context *);
+        unsigned int (*poll) (struct file *, struct poll_table_struct *);
+        long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+```
+
+### pattern 5'-6'
+
+same as pattern 5-6 but on a different module
+number of instance: 1 and 1
+
+#### commit message
+
+```diff
+commit 127869d536f81d8f764a54a2114c8def01b1f8d0
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sun Feb 21 22:44:01 2016 +0800
+
+    scullp: remove aio
+---
+ scullp/main.c | 137 ++++++++++-------------------------------------------------------------------------------------------------------------------------------
+ 1 file changed, 10 insertions(+), 127 deletions(-)
+
+@@ -535,8 +420,6 @@ struct file_operations scullp_fops = {
+        .mmap =      scullp_mmap,
+        .open =      scullp_open,
+        .release =   scullp_release,
+-       .aio_read =  scullp_aio_read,
+-       .aio_write = scullp_aio_write,
+ };
+```
+
+### pattern 5''-6''
+
+same as pattern 5-6 but on a different module
+number of instance: 1 and 1
+
+```
+@@ -535,8 +421,6 @@ struct file_operations scullv_fops = {
+ 	.mmap =	     scullv_mmap,
+ 	.open =	     scullv_open,
+ 	.release =   scullv_release,
+-	.aio_read =  scullv_aio_read,
+-	.aio_write = scullv_aio_write,
+ };
+```
+
+### pattern 7-8
+
+pattern 7
+number of instance: 1
+```
++       .read_iter =  scullc_read_iter,
+```
+
+pattern 8
+number of instance: 1
+```
++       .write_iter = scullc_write_iter,
+```
+
+#### commit message
+
+```diff
+commit ad04821f7b5cd27debb3bebd2986635c2c1a01a4
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sun Feb 21 22:51:27 2016 +0800
+
+    scullc: fix
+    
+    The iov_iter interface. URL:
+        https://lwn.net/Articles/625077/
+    
+    root cause commits in linux-stable:
+    commit 8436318205b9f29e45db88850ec60e326327e241
+    Author: Al Viro <viro@zeniv.linux.org.uk>
+    Date:   Sat Apr 4 01:14:53 2015 -0400
+    
+        ->aio_read and ->aio_write removed
+    
+        no remaining users
+---
+ scullc/main.c | 62 ++++++++++++++++++++------------------------------------------
+ 1 file changed, 20 insertions(+), 42 deletions(-)
+
+@@ -429,60 +430,39 @@ struct async_work {
+ static void scullc_do_deferred_op(struct work_struct *p)
+ {
+        struct async_work *stuff = container_of(p, struct async_work, work.work);
+-       aio_complete(stuff->iocb, stuff->result, 0);
++       stuff->iocb->ki_complete(stuff->iocb, stuff->result, 0);
+        kfree(stuff);
+ }
+
+@@ -530,8 +508,8 @@ struct file_operations scullc_fops = {
+        .unlocked_ioctl =     scullc_ioctl,
+        .open =      scullc_open,
+        .release =   scullc_release,
+-       .aio_read =  scullc_aio_read,
+-       .aio_write = scullc_aio_write,
++       .read_iter =  scullc_read_iter,
++       .write_iter = scullc_write_iter,
+ };
+```
+
+#### internal interface change
+
+```diff
+commit 8436318205b9f29e45db88850ec60e326327e241
+Author: Al Viro <viro@zeniv.linux.org.uk>
+Date:   Sat Apr 4 01:14:53 2015 -0400
+
+    ->aio_read and ->aio_write removed
+    
+    no remaining users
+    
+    Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+ Documentation/filesystems/Locking |  2 --
+ Documentation/filesystems/porting |  3 +++
+ Documentation/filesystems/vfs.txt |  6 ------
+ fs/aio.c                          | 13 ++-----------
+ fs/file_table.c                   |  4 ++--
+ fs/open.c                         |  4 ++--
+ fs/read_write.c                   | 29 -----------------------------
+ include/linux/fs.h                |  2 --
+ 8 files changed, 9 insertions(+), 54 deletions(-)
+
+diff --git a/include/linux/fs.h b/include/linux/fs.h
+index 83e122c1a902..f1e3f65255a8 100644
+--- a/include/linux/fs.h
++++ b/include/linux/fs.h
+@@ -1562,8 +1562,6 @@ struct file_operations {
+        loff_t (*llseek) (struct file *, loff_t, int);
+        ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+        ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+-       ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+-       ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+        ssize_t (*read_iter) (struct kiocb *, struct iov_iter *);
+        ssize_t (*write_iter) (struct kiocb *, struct iov_iter *);
+        int (*iterate) (struct file *, struct dir_context *);
+```
 
 ## 4.1 - 4.4
 
+### pattern 1
+
+number of instance: 1
+
+#### commit message
+
+```diff
+commit 4c24080da6e64352e9d952055d7f5247d8dbd598
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sat Feb 18 16:01:46 2017 +0800
+
+    sbull: fix
+    
+    root cause commits in linux-stable:
+    commit dece16353ef47d8d33f5302bc158072a9d65e26f
+    Author: Jens Axboe <axboe@fb.com>
+    Date:   Thu Nov 5 10:41:16 2015 -0700
+    
+        block: change ->make_request_fn() and users to return a queue cookie
+    
+        No functional changes in this patch, but it prepares us for returning
+        a more useful cookie related to the IO that was queued up.
+    
+        Signed-off-by: Jens Axboe <axboe@fb.com>
+        Acked-by: Christoph Hellwig <hch@lst.de>
+        Acked-by: Keith Busch <keith.busch@intel.com>
+    
+    commit 4246a0b63bd8f56a1469b12eafeb875b1041a451
+    Author: Christoph Hellwig <hch@lst.de>
+    Date:   Mon Jul 20 15:29:37 2015 +0200
+    
+        block: add a bi_error field to struct bio
+    
+        Currently we have two different ways to signal an I/O error on a BIO:
+    
+         (1) by clearing the BIO_UPTODATE flag
+         (2) by returning a Linux errno value to the bi_end_io callback
+    
+        The first one has the drawback of only communicating a single possible
+        error (-EIO), and the second one has the drawback of not beeing persistent
+        when bios are queued up, and are not passed along from child to parent
+        bio in the ever more popular chaining scenario.  Having both mechanisms
+        available has the additional drawback of utterly confusing driver authors
+        and introducing bugs where various I/O submitters only deal with one of
+        them, and the others have to add boilerplate code to deal with both kinds
+        of error returns.
+    
+        So add a new bi_error field to store an errno value directly in struct
+        bio and remove the existing mechanisms to clean all this up.
+    
+        Signed-off-by: Christoph Hellwig <hch@lst.de>
+        Reviewed-by: Hannes Reinecke <hare@suse.de>
+        Reviewed-by: NeilBrown <neilb@suse.com>
+        Signed-off-by: Jens Axboe <axboe@fb.com>
+---
+ sbull/sbull.c | 6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/sbull/sbull.c b/sbull/sbull.c
+index d77ea2556bb8..5fcb25551311 100644
+--- a/sbull/sbull.c
++++ b/sbull/sbull.c
+@@ -201,13 +201,15 @@ static void sbull_full_request(struct request_queue *q)
+ /*
+  * The direct make request version.
+  */
+-static void sbull_make_request(struct request_queue *q, struct bio *bio)
++static blk_qc_t sbull_make_request(struct request_queue *q, struct bio *bio)
+ {
+        struct sbull_dev *dev = q->queuedata;
+        int status;
+ 
+        status = sbull_xfer_bio(dev, bio);
+-       bio_endio(bio, status);
++       bio->bi_error = status;
++       bio_endio(bio);
++       return BLK_QC_T_NONE;
+ }
+```
+
+#### internal interface change
+
+```diff
+commit 4246a0b63bd8f56a1469b12eafeb875b1041a451
+Author: Christoph Hellwig <hch@lst.de>
+Date:   Mon Jul 20 15:29:37 2015 +0200
+
+    block: add a bi_error field to struct bio
+    
+    Currently we have two different ways to signal an I/O error on a BIO:
+    
+     (1) by clearing the BIO_UPTODATE flag
+     (2) by returning a Linux errno value to the bi_end_io callback
+    
+    The first one has the drawback of only communicating a single possible
+    error (-EIO), and the second one has the drawback of not beeing persistent
+    when bios are queued up, and are not passed along from child to parent
+    bio in the ever more popular chaining scenario.  Having both mechanisms
+    available has the additional drawback of utterly confusing driver authors
+    and introducing bugs where various I/O submitters only deal with one of
+    them, and the others have to add boilerplate code to deal with both kinds
+    of error returns.
+    
+    So add a new bi_error field to store an errno value directly in struct
+    bio and remove the existing mechanisms to clean all this up.
+    
+    Signed-off-by: Christoph Hellwig <hch@lst.de>
+    Reviewed-by: Hannes Reinecke <hare@suse.de>
+    Reviewed-by: NeilBrown <neilb@suse.com>
+    Signed-off-by: Jens Axboe <axboe@fb.com>
+---
+Documentation/block/biodoc.txt      |  2 +-
+ arch/m68k/emu/nfblock.c             |  2 +-
+ arch/powerpc/sysdev/axonram.c       |  2 +-
+ arch/xtensa/platforms/iss/simdisk.c | 12 +++---------
+ block/bio-integrity.c               | 11 +++++------
+ block/bio.c                         | 43 ++++++++++++++++++-------------------------
+ block/blk-core.c                    | 15 ++++++++-------
+ block/blk-lib.c                     | 30 +++++++++++++-----------------
+ block/blk-map.c                     |  2 +-
+ block/blk-mq.c                      |  6 +++---
+ block/bounce.c                      | 27 ++++++++++++++-------------
+ drivers/block/aoe/aoecmd.c          | 10 +++++-----
+ drivers/block/aoe/aoedev.c          |  2 +-
+ drivers/block/brd.c                 | 13 ++++++++-----
+ drivers/block/drbd/drbd_actlog.c    |  4 ++--
+ drivers/block/drbd/drbd_bitmap.c    | 19 +++++--------------
+ drivers/block/drbd/drbd_int.h       | 11 ++++++-----
+ drivers/block/drbd/drbd_req.c       | 10 ++++++----
+ drivers/block/drbd/drbd_worker.c    | 44 +++++++++++---------------------------------
+ drivers/block/floppy.c              |  7 ++++---
+ drivers/block/null_blk.c            |  2 +-
+ drivers/block/pktcdvd.c             | 32 ++++++++++++++++----------------
+ drivers/block/ps3vram.c             |  3 ++-
+ drivers/block/rsxx/dev.c            |  9 +++++++--
+ drivers/block/umem.c                |  4 ++--
+ drivers/block/xen-blkback/blkback.c |  4 ++--
+ drivers/block/xen-blkfront.c        |  9 +++------
+ drivers/block/zram/zram_drv.c       |  5 ++---
+ drivers/md/bcache/btree.c           | 10 +++++-----
+ drivers/md/bcache/closure.h         |  2 +-
+ drivers/md/bcache/io.c              |  8 ++++----
+ drivers/md/bcache/journal.c         |  8 ++++----
+ drivers/md/bcache/movinggc.c        |  8 ++++----
+ drivers/md/bcache/request.c         | 27 ++++++++++++++-------------
+ drivers/md/bcache/super.c           | 14 +++++++-------
+ drivers/md/bcache/writeback.c       | 10 +++++-----
+ drivers/md/dm-bio-prison.c          |  6 ++++--
+ drivers/md/dm-bufio.c               | 26 ++++++++++++++++----------
+ drivers/md/dm-cache-target.c        | 24 +++++++++++++-----------
+ drivers/md/dm-crypt.c               | 14 ++++++--------
+ drivers/md/dm-flakey.c              |  2 +-
+ drivers/md/dm-io.c                  |  6 +++---
+ drivers/md/dm-log-writes.c          | 11 ++++-------
+ drivers/md/dm-raid1.c               | 24 +++++++++++++-----------
+ drivers/md/dm-snap.c                |  6 +++---
+ drivers/md/dm-stripe.c              |  2 +-
+ drivers/md/dm-thin.c                | 41 +++++++++++++++++++++++------------------
+ drivers/md/dm-verity.c              |  9 +++++----
+ drivers/md/dm-zero.c                |  2 +-
+ drivers/md/dm.c                     | 15 +++++++--------
+ drivers/md/faulty.c                 |  4 ++--
+ drivers/md/linear.c                 |  2 +-
+ drivers/md/md.c                     | 18 +++++++++---------
+ drivers/md/multipath.c              | 12 ++++++------
+ drivers/md/raid0.c                  |  2 +-
+ drivers/md/raid1.c                  | 53 ++++++++++++++++++++++++++---------------------------
+ drivers/md/raid10.c                 | 55 +++++++++++++++++++++++++------------------------------
+ drivers/md/raid5.c                  | 52 ++++++++++++++++++++++++++--------------------------
+ drivers/nvdimm/blk.c                |  5 +++--
+ drivers/nvdimm/btt.c                |  5 +++--
+ drivers/nvdimm/pmem.c               |  2 +-
+ drivers/s390/block/dcssblk.c        |  2 +-
+ drivers/s390/block/xpram.c          |  3 +--
+ drivers/target/target_core_iblock.c | 21 +++++++--------------
+ drivers/target/target_core_pscsi.c  |  6 +++---
+ fs/btrfs/check-integrity.c          | 10 +++++-----
+ fs/btrfs/compression.c              | 24 ++++++++++++++----------
+ fs/btrfs/disk-io.c                  | 35 +++++++++++++++++++----------------
+ fs/btrfs/extent_io.c                | 30 ++++++++++++------------------
+ fs/btrfs/inode.c                    | 50 ++++++++++++++++++++++++++------------------------
+ fs/btrfs/raid56.c                   | 62 ++++++++++++++++++++++++++++----------------------------------
+ fs/btrfs/scrub.c                    | 22 +++++++++++-----------
+ fs/btrfs/volumes.c                  | 23 +++++++++++------------
+ fs/buffer.c                         |  4 ++--
+ fs/direct-io.c                      | 13 ++++++-------
+ fs/ext4/page-io.c                   | 15 ++++++---------
+ fs/ext4/readpage.c                  |  6 +++---
+ fs/f2fs/data.c                      | 10 +++++-----
+ fs/gfs2/lops.c                      | 10 +++++-----
+ fs/gfs2/ops_fstype.c                |  6 +++---
+ fs/jfs/jfs_logmgr.c                 |  8 ++++----
+ fs/jfs/jfs_metapage.c               |  8 ++++----
+ fs/logfs/dev_bdev.c                 | 12 ++++--------
+ fs/mpage.c                          |  4 ++--
+ fs/nfs/blocklayout/blocklayout.c    | 14 ++++++--------
+ fs/nilfs2/segbuf.c                  |  5 ++---
+ fs/ocfs2/cluster/heartbeat.c        |  9 ++++-----
+ fs/xfs/xfs_aops.c                   |  5 ++---
+ fs/xfs/xfs_buf.c                    |  7 +++----
+ include/linux/bio.h                 | 13 +++++++++----
+ include/linux/blk_types.h           |  4 ++--
+ include/linux/swap.h                |  4 ++--
+ kernel/power/swap.c                 | 12 ++++--------
+ kernel/trace/blktrace.c             | 10 +++-------
+ mm/page_io.c                        | 12 +++++-------
+ 95 files changed, 622 insertions(+), 682 deletions(-)
+
+diff --git a/include/linux/bio.h b/include/linux/bio.h
+index 5e963a6d7c14..6b918177002d 100644
+--- a/include/linux/bio.h
++++ b/include/linux/bio.h
+@@ -195,8 +195,6 @@ static inline bool bvec_gap_to_prev(struct bio_vec *bprv, unsigned int offset)
+        return offset || ((bprv->bv_offset + bprv->bv_len) & (PAGE_SIZE - 1));
+ }
+ 
+-#define bio_io_error(bio) bio_endio((bio), -EIO)
+-
+ /*
+  * drivers should _never_ use the all version - the bio may have been split
+  * before it got to the driver and the driver won't own all of it
+@@ -426,7 +424,14 @@ static inline struct bio *bio_clone_kmalloc(struct bio *bio, gfp_t gfp_mask)
+ 
+ }
+ 
+-extern void bio_endio(struct bio *, int);
++extern void bio_endio(struct bio *);
++
++static inline void bio_io_error(struct bio *bio)
++{
++       bio->bi_error = -EIO;
++       bio_endio(bio);
++}
++
+```
+
 ## 4.4 - 4.9
 
+### pattern 1
+
+number of instance: 1
+
+#### commit message
+
+```diff
+commit 8304521f125ac1820a593f8fc1f485ad649ce2ee
+Author: Du Xing <duxing2007@gmail.com>
+Date:   Sat Feb 25 17:04:05 2017 +0800
+
+    snull: fix
+    
+    root cause commits in linux-stable:
+    commit 9b36627acecd5792e81daf1a3bff8eab39ed45fb
+    Author: Florian Westphal <fw@strlen.de>
+    Date:   Tue May 3 16:33:14 2016 +0200
+    
+        net: remove dev->trans_start
+    
+        previous patches removed all direct accesses to dev->trans_start,
+        so change the netif_trans_update helper to update trans_start of
+        netdev queue 0 instead and then remove trans_start from struct net_device.
+    
+        AFAICS a lot of the netif_trans_update() invocations are now useless
+        because they occur in ndo_start_xmit and driver doesn't set LLTX
+        (i.e. stack already took care of the update).
+    
+        As I can't test any of them it seems better to just leave them alone.
+    
+        Signed-off-by: Florian Westphal <fw@strlen.de>
+        Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ snull/snull.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/snull/snull.c b/snull/snull.c
+index a3059bdc5c92..c40176986575 100644
+--- a/snull/snull.c
++++ b/snull/snull.c
+@@ -521,7 +521,6 @@ int snull_tx(struct sk_buff *skb, struct net_device *dev)
+                len = ETH_ZLEN;
+                data = shortpkt;
+        }
+-       dev->trans_start = jiffies; /* save the timestamp */
+ 
+        /* Remember the skb, so we can free it at interrupt time */
+        priv->skb = skb;
+@@ -540,7 +539,7 @@ void snull_tx_timeout (struct net_device *dev)
+        struct snull_priv *priv = netdev_priv(dev);
+ 
+        PDEBUG("Transmit timeout at %ld, latency %ld\n", jiffies,
+-                       jiffies - dev->trans_start);
++                       jiffies - netdev_get_tx_queue(dev, 0)->trans_start);
+         /* Simulate a transmission interrupt to get things moving */
+        priv->status = SNULL_TX_INTR;
+        snull_interrupt(0, dev, NULL);
+```
+
+#### internal interface change
+
+```diff
+commit 9b36627acecd5792e81daf1a3bff8eab39ed45fb
+Author: Florian Westphal <fw@strlen.de>
+Date:   Tue May 3 16:33:14 2016 +0200
+
+    net: remove dev->trans_start
+    
+    previous patches removed all direct accesses to dev->trans_start,
+    so change the netif_trans_update helper to update trans_start of
+    netdev queue 0 instead and then remove trans_start from struct net_device.
+    
+    AFAICS a lot of the netif_trans_update() invocations are now useless
+    because they occur in ndo_start_xmit and driver doesn't set LLTX
+    (i.e. stack already took care of the update).
+    
+    As I can't test any of them it seems better to just leave them alone.
+    
+    Signed-off-by: Florian Westphal <fw@strlen.de>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/ethernet/intel/i40e/i40e_main.c |  2 +-
+ include/linux/netdevice.h                   | 15 +++++----------
+ net/sched/sch_generic.c                     | 10 +++-------
+ 3 files changed, 9 insertions(+), 18 deletions(-)
+
+diff --git a/net/sched/sch_generic.c b/net/sched/sch_generic.c
+index 70182cfe119c..269dd71b3828 100644
+--- a/net/sched/sch_generic.c
++++ b/net/sched/sch_generic.c
+@@ -227,13 +227,12 @@ unsigned long dev_trans_start(struct net_device *dev)
+ 
+        if (is_vlan_dev(dev))
+                dev = vlan_dev_real_dev(dev);
+-       res = dev->trans_start;
+-       for (i = 0; i < dev->num_tx_queues; i++) {
++       res = netdev_get_tx_queue(dev, 0)->trans_start;
++       for (i = 1; i < dev->num_tx_queues; i++) {
+                val = netdev_get_tx_queue(dev, i)->trans_start;
+                if (val && time_after(val, res))
+                        res = val;
+        }
+-       dev->trans_start = res;
+ 
+        return res;
+ }
+```
+
+```diff
+commit e8a0464cc950972824e2e128028ae3db666ec1ed
+Author: David S. Miller <davem@davemloft.net>
+Date:   Thu Jul 17 00:34:19 2008 -0700
+
+    netdev: Allocate multiple queues for TX.
+    
+    alloc_netdev_mq() now allocates an array of netdev_queue
+    structures for TX, based upon the queue_count argument.
+    
+    Furthermore, all accesses to the TX queues are now vectored
+    through the netdev_get_tx_queue() and netdev_for_each_tx_queue()
+    interfaces.  This makes it easy to grep the tree for all
+    things that want to get to a TX queue of a net device.
+    
+    Problem spots which are not really multiqueue aware yet, and
+    only work with one queue, can easily be spotted by grepping
+    for all netdev_get_tx_queue() calls that pass in a zero index.
+    
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/bonding/bond_main.c         |   6 ++--
+ drivers/net/hamradio/bpqether.c         |   6 ++--
+ drivers/net/ifb.c                       |  12 ++++++--
+ drivers/net/macvlan.c                   |   6 ++--
+ drivers/net/wireless/hostap/hostap_hw.c |   6 ++--
+ include/linux/netdevice.h               |  69 ++++++++++++++++++++++++++++++----------------
+ include/net/sch_generic.h               |  37 +++++++++++++++++--------
+ net/8021q/vlan_dev.c                    |  10 ++++---
+ net/core/dev.c                          |  40 +++++++++++++++++++++------
+ net/core/rtnetlink.c                    |   2 +-
+ net/mac80211/main.c                     |   4 +--
+ net/mac80211/wme.c                      |  12 ++++----
+ net/netrom/af_netrom.c                  |   6 ++--
+ net/rose/af_rose.c                      |   6 ++--
+ net/sched/cls_api.c                     |   4 +--
+ net/sched/sch_api.c                     |  32 ++++++++++++++++------
+ net/sched/sch_generic.c                 | 178 +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++--------------------------------
+ net/sched/sch_teql.c                    |  21 +++++++++-----
+ 18 files changed, 320 insertions(+), 137 deletions(-)
+
+@@ -977,7 +998,7 @@ static inline void netif_schedule_queue(struct netdev_queue *txq)
+ 
+ static inline void netif_schedule(struct net_device *dev)
+ {
+-       netif_schedule_queue(&dev->tx_queue);
++       netif_schedule_queue(netdev_get_tx_queue(dev, 0));
+ }
+ 
+ /**
+@@ -993,7 +1014,7 @@ static inline void netif_tx_start_queue(struct netdev_queue *dev_queue)
+ 
+ static inline void netif_start_queue(struct net_device *dev)
+ {
+-       netif_tx_start_queue(&dev->tx_queue);
++       netif_tx_start_queue(netdev_get_tx_queue(dev, 0));
+ }
+```
