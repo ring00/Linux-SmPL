@@ -1,0 +1,12 @@
+diff --git a/scull/main.c b/scull/main.c
+index dbb070490147..8a9bfcb5cc3e 100644
+--- a/scull/main.c
++++ b/scull/main.c
+@@ -28,7 +28,6 @@
+ #include <linux/seq_file.h>
+ #include <linux/cdev.h>
+ 
+-#include <asm/system.h>		/* cli(), *_flags */
+ #include <asm/uaccess.h>	/* copy_*_user */
+ 
+ #include "scull.h"		/* local definitions */

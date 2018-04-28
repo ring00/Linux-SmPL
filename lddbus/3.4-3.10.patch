@@ -1,0 +1,13 @@
+diff --git a/lddbus/Makefile b/lddbus/Makefile
+index 0766b927402e..f8a835abcd81 100644
+--- a/lddbus/Makefile
++++ b/lddbus/Makefile
+@@ -28,7 +28,7 @@ endif
+ 
+ 
+ clean:
+-	rm -rf *.o *.ko *~ core .depend *.mod.c .*.cmd .tmp_versions .*.o.d
++	rm -rf *.o *.ko *~ core .depend *.mod.c .*.cmd .tmp_versions Module.symvers modules.order
+ 
+ depend .depend dep:
+ 	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend

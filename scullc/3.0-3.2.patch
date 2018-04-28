@@ -1,0 +1,12 @@
+diff --git a/scullc/mmap.c b/scullc/mmap.c
+index 4b2f7ab17a14..30d501fe8192 100644
+--- a/scullc/mmap.c
++++ b/scullc/mmap.c
+@@ -82,6 +82,7 @@ int scullc_vma_fault(struct vm_area_struct *vma,
+ 	if (!pageptr) goto out; /* hole or end-of-file */
+ 
+ 	/* got it, now increment the count */
++	page = virt_to_page(pageptr);
+ 	get_page(page);
+   out:
+ 	mutex_unlock(&dev->mutex);

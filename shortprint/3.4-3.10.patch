@@ -1,0 +1,13 @@
+diff --git a/shortprint/Makefile b/shortprint/Makefile
+index 313cc177a1d6..a3a637ec791c 100644
+--- a/shortprint/Makefile
++++ b/shortprint/Makefile
+@@ -20,7 +20,7 @@ endif
+ 
+ 
+ clean:
+-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
++	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+ 
+ depend .depend dep:
+ 	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend

@@ -1,0 +1,12 @@
+diff --git a/sculld/mmap.c b/sculld/mmap.c
+index 550f5699685d..08f156fd4f3d 100644
+--- a/sculld/mmap.c
++++ b/sculld/mmap.c
+@@ -81,6 +81,7 @@ int sculld_vma_fault(struct vm_area_struct *vma,
+ 	}
+ 	if (ptr && ptr->data) pageptr = ptr->data[offset];
+ 	if (!pageptr) goto out; /* hole or end-of-file */
++	page = virt_to_page(pageptr);
+ 
+ 	/* got it, now increment the count */
+ 	get_page(page);

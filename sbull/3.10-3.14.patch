@@ -1,0 +1,97 @@
+diff --git a/sbull/sbull.c b/sbull/sbull.c
+index ffab3c280f63..dbb0b8a5ca2d 100644
+--- a/sbull/sbull.c
++++ b/sbull/sbull.c
+@@ -141,39 +141,21 @@ static void sbull_request(struct request_queue *q)
+  */
+ static int sbull_xfer_bio(struct sbull_dev *dev, struct bio *bio)
+ {
+-	int i;
+-	struct bio_vec *bvec;
+-	sector_t sector = bio->bi_sector;
++	struct bio_vec bvec;
++	struct bvec_iter iter;
++	sector_t sector = bio->bi_iter.bi_sector;
+ 
+ 	/* Do each segment independently. */
+-	bio_for_each_segment(bvec, bio, i) {
+-		char *buffer = __bio_kmap_atomic(bio, i, KM_USER0);
++	bio_for_each_segment(bvec, bio, iter) {
++		char *buffer = __bio_kmap_atomic(bio, iter);
+ 		sbull_transfer(dev, sector,bytes_to_sectors_checked(bio_cur_bytes(bio)),
+ 				buffer, bio_data_dir(bio) == WRITE);
+ 		sector += (bytes_to_sectors_checked(bio_cur_bytes(bio)));
+-		__bio_kunmap_atomic(bio, KM_USER0);
++		__bio_kunmap_atomic(bio);
+ 	}
+ 	return 0; /* Always "succeed" */
+ }
+ 
+-#ifdef XFER_BVEC
+-/*
+- * Transfer a single bio_vec.
+- */
+-static int sbull_xfer_bvec(struct sbull_dev *dev, struct bio_vec *bvec, unsigned long data_dir, sector_t cur_sector)
+-{
+-	char *buffer = kmap_atomic(bvec->bv_page, KM_USER0);
+-	sbull_transfer(dev, cur_sector, bytes_to_sectors_checked(bvec->bv_len),
+-			buffer+bvec->bv_offset, data_dir == WRITE);
+-	kunmap_atomic(buffer, KM_USER0);
+-	return 0; /* Always "succeed" */
+-}
+-#else
+-static int sbull_xfer_bvec(struct sbull_dev *dev, struct bio_vec *bvec, unsigned long data_dir, sector_t cur_sector)
+-{
+-	return -1;
+-}
+-#endif
+ 
+ /*
+  * Transfer a full request.
+@@ -185,7 +167,7 @@ static int sbull_xfer_request(struct sbull_dev *dev, struct request *req)
+     
+ 	__rq_for_each_bio(bio, req) {
+ 		sbull_xfer_bio(dev, bio);
+-		nsect += bio->bi_size/KERNEL_SECTOR_SIZE;
++		nsect += bio->bi_iter.bi_size/KERNEL_SECTOR_SIZE;
+ 	}
+ 	return nsect;
+ }
+@@ -201,8 +183,7 @@ static void sbull_full_request(struct request_queue *q)
+ 	struct sbull_dev *dev = q->queuedata;
+ 	int ret;
+ 
+-	req = blk_fetch_request(q);
+-	while (req) {
++	while ((req = blk_fetch_request(q)) != NULL) {
+ 		if (req->cmd_type != REQ_TYPE_FS) {
+ 			printk (KERN_NOTICE "Skip non-fs request\n");
+ 			ret = -EIO;
+@@ -211,9 +192,7 @@ static void sbull_full_request(struct request_queue *q)
+ 		sbull_xfer_request(dev, req);
+ 		ret = 0;
+ 	done:
+-		if(!__blk_end_request_cur(req, ret)){
+-			req = blk_fetch_request(q);
+-		}
++		__blk_end_request_all(req, ret);
+ 	}
+ }
+ 
+@@ -249,7 +228,7 @@ static int sbull_open(struct block_device *bdev, fmode_t mode)
+ 	return 0;
+ }
+ 
+-static int sbull_release(struct gendisk *disk, fmode_t mode)
++static void sbull_release(struct gendisk *disk, fmode_t mode)
+ {
+ 	struct sbull_dev *dev = disk->private_data;
+ 
+@@ -262,7 +241,6 @@ static int sbull_release(struct gendisk *disk, fmode_t mode)
+ 	}
+ 	spin_unlock(&dev->lock);
+ 
+-	return 0;
+ }
+ 
+ /*

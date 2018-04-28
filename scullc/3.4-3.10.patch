@@ -1,0 +1,133 @@
+diff --git a/scullc/Makefile b/scullc/Makefile
+index 7c132416847c..2e148fbe3699 100644
+--- a/scullc/Makefile
++++ b/scullc/Makefile
+@@ -35,7 +35,7 @@ install:
+ 	install -c $(TARGET).o $(INSTALLDIR)
+ 
+ clean:
+-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
++	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+ 
+ 
+ depend .depend dep:
+diff --git a/scullc/main.c b/scullc/main.c
+index 093a16aadef7..90722db590f4 100644
+--- a/scullc/main.c
++++ b/scullc/main.c
+@@ -26,6 +26,7 @@
+ #include <linux/proc_fs.h>
+ #include <linux/fcntl.h>	/* O_ACCMODE */
+ #include <linux/aio.h>
++#include <linux/seq_file.h>
+ #include <asm/uaccess.h>
+ #include "scullc.h"		/* local definitions */
+ 
+@@ -59,61 +60,54 @@ struct kmem_cache *scullc_cache;
+  * The proc filesystem: function to read and entry
+  */
+ 
+-void scullc_proc_offset(char *buf, char **start, off_t *offset, int *len)
++static int scullc_read_mem_proc_show(struct seq_file *m, void *v)
+ {
+-	if (*offset == 0)
+-		return;
+-	if (*offset >= *len) {
+-		/* Not there yet */
+-		*offset -= *len;
+-		*len = 0;
+-	} else {
+-		/* We're into the interesting stuff now */
+-		*start = buf + *offset;
+-		*offset = 0;
+-	}
+-}
+-
+-/* FIXME: Do we need this here??  It be ugly  */
+-int scullc_read_procmem(char *buf, char **start, off_t offset,
+-                   int count, int *eof, void *data)
+-{
+-	int i, j, quantum, qset, len = 0;
+-	int limit = count - 80; /* Don't print more than this */
++	int i, j, quantum, qset;
++	int limit = m->size - 80; /* Don't print more than this */
+ 	struct scullc_dev *d;
+ 
+-	*start = buf;
+ 	for(i = 0; i < scullc_devs; i++) {
+ 		d = &scullc_devices[i];
+ 		if (mutex_lock_interruptible(&d->mutex))
+ 			return -ERESTARTSYS;
+ 		qset = d->qset;  /* retrieve the features of each device */
+ 		quantum=d->quantum;
+-		len += sprintf(buf+len,"\nDevice %i: qset %i, quantum %i, sz %li\n",
++		seq_printf(m,"\nDevice %i: qset %i, quantum %i, sz %li\n",
+ 				i, qset, quantum, (long)(d->size));
+ 		for (; d; d = d->next) { /* scan the list */
+-			len += sprintf(buf+len,"  item at %p, qset at %p\n",d,d->data);
+-			scullc_proc_offset (buf, start, &offset, &len);
+-			if (len > limit)
++			seq_printf(m,"  item at %p, qset at %p\n",d,d->data);
++			if (m->count > limit)
+ 				goto out;
+ 			if (d->data && !d->next) /* dump only the last item - save space */
+ 				for (j = 0; j < qset; j++) {
+ 					if (d->data[j])
+-						len += sprintf(buf+len,"    % 4i:%8p\n",j,d->data[j]);
+-					scullc_proc_offset (buf, start, &offset, &len);
+-					if (len > limit)
++						seq_printf(m,"    % 4i:%8p\n",j,d->data[j]);
++					if (m->count > limit)
+ 						goto out;
+ 				}
+ 		}
+ 	  out:
+ 		mutex_unlock(&scullc_devices[i].mutex);
+-		if (len > limit)
++		if (m->count > limit)
+ 			break;
+ 	}
+-	*eof = 1;
+-	return len;
++	return 0;
+ }
+ 
++#define DEFINE_PROC_SEQ_FILE(_name) \
++	static int _name##_proc_open(struct inode *inode, struct file *file)\
++	{\
++		return single_open(file, _name##_proc_show, NULL);\
++	}\
++	\
++	static const struct file_operations _name##_proc_fops = {\
++		.open		= _name##_proc_open,\
++		.read		= seq_read,\
++		.llseek		= seq_lseek,\
++		.release	= single_release,\
++	};
++
++DEFINE_PROC_SEQ_FILE(scullc_read_mem)
+ #endif /* SCULLC_USE_PROC */
+ 
+ /*
+@@ -631,7 +625,7 @@ int scullc_init(void)
+ 	}
+ 
+ #ifdef SCULLC_USE_PROC /* only when available */
+-	create_proc_read_entry("scullcmem", 0, NULL, scullc_read_procmem, NULL);
++	proc_create("scullcmem", 0, NULL, &scullc_read_mem_proc_fops);
+ #endif
+ 	return 0; /* succeed */
+ 
+diff --git a/scullc/mmap.c b/scullc/mmap.c
+index 30d501fe8192..998750fad3b0 100644
+--- a/scullc/mmap.c
++++ b/scullc/mmap.c
+@@ -111,7 +111,7 @@ int scullc_mmap(struct file *filp, struct vm_area_struct *vma)
+ 
+ 	/* don't do anything here: "nopage" will set up page table entries */
+ 	vma->vm_ops = &scullc_vm_ops;
+-	vma->vm_flags |= VM_RESERVED;
++	vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
+ 	vma->vm_private_data = filp->private_data;
+ 	scullc_vma_open(vma);
+ 	return 0;

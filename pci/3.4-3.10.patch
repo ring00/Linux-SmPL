@@ -1,0 +1,11 @@
+diff --git a/pci/Makefile b/pci/Makefile
+index 8b6a33346bec..bbb931625fb0 100644
+--- a/pci/Makefile
++++ b/pci/Makefile
+@@ -7,5 +7,5 @@ all:
+ 	$(MAKE) -C $(KERNELDIR) M=$(PWD)
+ 
+ clean:
+-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
++	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+ 

@@ -1,0 +1,26 @@
+diff --git a/simple/Makefile b/simple/Makefile
+index a4e5f0f5f6a4..76085b73139c 100644
+--- a/simple/Makefile
++++ b/simple/Makefile
+@@ -28,7 +28,7 @@ endif
+ 
+ 
+ clean:
+-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
++	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+ 
+ depend .depend dep:
+ 	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend
+diff --git a/simple/simple.c b/simple/simple.c
+index 7f7e3829f879..f8b4a0e3953f 100644
+--- a/simple/simple.c
++++ b/simple/simple.c
+@@ -132,7 +132,7 @@ static int simple_fault_mmap(struct file *filp, struct vm_area_struct *vma)
+ 
+ 	if (offset >= __pa(high_memory) || (filp->f_flags & O_SYNC))
+ 		vma->vm_flags |= VM_IO;
+-	vma->vm_flags |= VM_RESERVED;
++	vma->vm_flags |= (VM_DONTEXPAND | VM_DONTDUMP);
+ 
+ 	vma->vm_ops = &simple_fault_vm_ops;
+ 	simple_vma_open(vma);

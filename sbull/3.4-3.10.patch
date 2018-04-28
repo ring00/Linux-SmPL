@@ -1,0 +1,13 @@
+diff --git a/sbull/Makefile b/sbull/Makefile
+index 960ef42fe7b3..cf75447a2aac 100644
+--- a/sbull/Makefile
++++ b/sbull/Makefile
+@@ -30,7 +30,7 @@ endif
+ 
+ 
+ clean:
+-	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions
++	rm -rf *.o *~ core .depend .*.cmd *.ko *.mod.c .tmp_versions Module.symvers modules.order
+ 
+ depend .depend dep:
+ 	$(CC) $(EXTRA_CFLAGS) -M *.c > .depend

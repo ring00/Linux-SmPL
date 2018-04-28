@@ -1,0 +1,135 @@
+diff --git a/simple/simple.c b/simple/simple.c
+index 82c558822040..f091b1fc2dfe 100644
+--- a/simple/simple.c
++++ b/simple/simple.c
+@@ -95,7 +95,49 @@ static int simple_remap_mmap(struct file *filp, struct vm_area_struct *vma)
+ 
+ 
+ 
++/*
++ * The fault version.
++ */
++int simple_vma_fault(struct vm_area_struct *vma,
++                struct vm_fault *vmf)
++{
++	struct page *pageptr;
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++	unsigned long physaddr = (unsigned long)(vmf->virtual_address - vma->vm_start) + offset;
++	unsigned long pageframe = physaddr >> PAGE_SHIFT;
++
++// Eventually remove these printks
++	printk (KERN_NOTICE "---- fault, off %lx phys %lx\n", offset, physaddr);
++	printk (KERN_NOTICE "VA is %p\n", __va (physaddr));
++	printk (KERN_NOTICE "Page at %p\n", virt_to_page (__va (physaddr)));
++	if (!pfn_valid(pageframe))
++		return VM_FAULT_SIGBUS;
++	pageptr = pfn_to_page(pageframe);
++	printk (KERN_NOTICE "page->index = %ld mapping %p\n", pageptr->index, pageptr->mapping);
++	printk (KERN_NOTICE "Page frame %ld\n", pageframe);
++	get_page(pageptr);
++        vmf->page = pageptr;
++	return 0;
++}
+ 
++static struct vm_operations_struct simple_fault_vm_ops = {
++	.open =   simple_vma_open,
++	.close =  simple_vma_close,
++	.fault = simple_vma_fault,
++};
++
++static int simple_fault_mmap(struct file *filp, struct vm_area_struct *vma)
++{
++	unsigned long offset = vma->vm_pgoff << PAGE_SHIFT;
++
++	if (offset >= __pa(high_memory) || (filp->f_flags & O_SYNC))
++		vma->vm_flags |= VM_IO;
++	vma->vm_flags |= VM_RESERVED;
++
++	vma->vm_ops = &simple_fault_vm_ops;
++	simple_vma_open(vma);
++	return 0;
++}
+ 
+ 
+ /*
+@@ -127,12 +169,20 @@ static struct file_operations simple_remap_ops = {
+ 	.mmap    = simple_remap_mmap,
+ };
+ 
++/* Device 1 uses fault */
++static struct file_operations simple_fault_ops = {
++	.owner   = THIS_MODULE,
++	.open    = simple_open,
++	.release = simple_release,
++	.mmap    = simple_fault_mmap,
++};
+ 
+-#define MAX_SIMPLE_DEV 1
++#define MAX_SIMPLE_DEV 2
+ 
+ #if 0
+ static struct file_operations *simple_fops[MAX_SIMPLE_DEV] = {
+ 	&simple_remap_ops,
++	&simple_fault_ops,
+ };
+ #endif
+ 
+@@ -152,9 +202,9 @@ static int simple_init(void)
+ 
+ 	/* Figure out our device number. */
+ 	if (simple_major)
+-		result = register_chrdev_region(dev, MAX_SIMPLE_DEV, "simple");
++		result = register_chrdev_region(dev, 2, "simple");
+ 	else {
+-		result = alloc_chrdev_region(&dev, 0, MAX_SIMPLE_DEV, "simple");
++		result = alloc_chrdev_region(&dev, 0, 2, "simple");
+ 		simple_major = MAJOR(dev);
+ 	}
+ 	if (result < 0) {
+@@ -166,6 +216,7 @@ static int simple_init(void)
+ 
+ 	/* Now set up two cdevs. */
+ 	simple_setup_cdev(SimpleDevs, 0, &simple_remap_ops);
++	simple_setup_cdev(SimpleDevs + 1, 1, &simple_fault_ops);
+ 	return 0;
+ }
+ 
+@@ -173,7 +224,8 @@ static int simple_init(void)
+ static void simple_cleanup(void)
+ {
+ 	cdev_del(SimpleDevs);
+-	unregister_chrdev_region(MKDEV(simple_major, 0), MAX_SIMPLE_DEV);
++	cdev_del(SimpleDevs + 1);
++	unregister_chrdev_region(MKDEV(simple_major, 0), 2);
+ }
+ 
+ 
+diff --git a/simple/simple_load b/simple/simple_load
+index 71efdf454e8e..5cd004d79815 100755
+--- a/simple/simple_load
++++ b/simple/simple_load
+@@ -19,7 +19,8 @@ major=`cat /proc/devices | awk "\\$2==\"$module\" {print \\$1}"`
+ # Remove stale nodes and replace them, then give gid and perms
+ # Usually the script is shorter, it's simple that has several devices in it.
+ 
+-rm -f /dev/${device}r
++rm -f /dev/${device}[rn]
+ mknod /dev/${device}r c $major 0
+-chgrp $group /dev/${device}r
+-chmod $mode  /dev/${device}r
++mknod /dev/${device}n c $major 1
++chgrp $group /dev/${device}[rn] 
++chmod $mode  /dev/${device}[rn]
+diff --git a/simple/simple_unload b/simple/simple_unload
+index 522a06dbfa07..dca94211ca72 100755
+--- a/simple/simple_unload
++++ b/simple/simple_unload
+@@ -6,7 +6,7 @@ device="simple"
+ /sbin/rmmod $module $* || exit 1
+ 
+ # Remove stale nodes
+-rm -f /dev/${device}r
++rm -f /dev/${device}[rn] 
+ 
+ 
+ 
