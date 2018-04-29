@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set([u'arch/x86/kernel/acpi/../../realmode/rm/wakeup/wakeup.h', 'asm/realmode.h'])
+deleted: set([u'arch/x86/kernel/acpi/realmode/../../../boot/video-bios.c', 'asm/cacheflush.h', u'arch/x86/kernel/acpi/realmode/wakeup.h', 'asm/trampoline.h', 'linux/memblock.h', u'arch/x86/kernel/acpi/realmode/../../../boot/video-vesa.c', u'arch/x86/kernel/acpi/realmode/../../../boot/video-mode.c', u'arch/x86/kernel/acpi/realmode/../../../boot/regs.c', 'asm/pgtable.h', 'linux/io.h', u'arch/x86/kernel/acpi/realmode/../../../boot/video-vga.c', u'arch/x86/kernel/acpi/realmode/boot.h'])

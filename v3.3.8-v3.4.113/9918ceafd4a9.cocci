@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set([])
+deleted: set([u'arch/arm/mach-at91/generic.h', 'linux/dma-mapping.h', 'linux/i2c-gpio.h', 'linux/spi/ads7846.h', u'arch/arm/mach-at91/clock.h', 'linux/gpio.h', 'asm/proc-fns.h', 'asm/setup.h', 'asm/mach/irq.h', 'mach/board.h', 'linux/platform_device.h', 'linux/types.h', 'linux/mtd/physmap.h', 'asm/irq.h', 'mach/system_rev.h', 'linux/spi/spi.h', 'mach/cpu.h', 'video/atmel_lcdc.h', 'mach/at91cap9.h', 'linux/module.h', 'mach/hardware.h', 'asm/mach/arch.h', 'mach/at91sam9_smc.h', 'mach/at91_pmc.h', 'linux/fb.h', 'asm/mach-types.h', 'mach/at91cap9_matrix.h', 'asm/mach/map.h', u'arch/arm/mach-at91/sam9_smc.h', 'linux/init.h', u'arch/arm/mach-at91/soc.h', 'linux/mm.h'])

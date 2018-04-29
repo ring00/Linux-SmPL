@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['media/ov7670.h'])
+deleted: set(['linux/wait.h', 'linux/interrupt.h', 'linux/spinlock.h', 'linux/jiffies.h', 'media/v4l2-device.h', 'linux/delay.h', 'linux/dma-mapping.h', 'linux/module.h', 'linux/list.h', 'asm/uaccess.h', 'linux/videodev2.h', 'media/v4l2-ioctl.h', 'linux/i2c.h', 'asm/io.h', 'linux/device.h', 'linux/vmalloc.h', 'linux/slab.h', u'drivers/media/video/ov7670.h', 'media/v4l2-chip-ident.h', 'linux/kernel.h', 'linux/fs.h', u'drivers/media/video/cafe_ccic-regs.h', 'linux/pci.h', 'linux/mm.h', 'linux/dmi.h', 'linux/init.h'])

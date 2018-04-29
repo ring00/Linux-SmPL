@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set([])
+deleted: set(['linux/in.h', 'linux/interrupt.h', 'linux/string.h', u'drivers/net/ethernet/8390/8390.h', 'asm/uaccess.h', u'drivers/net/ethernet/i825xx/3c527.h', 'asm/io.h', 'asm/dma.h', 'linux/fcntl.h', 'linux/errno.h', 'linux/types.h', 'linux/kernel.h', 'linux/semaphore.h', 'asm/processor.h', 'linux/if_ether.h', 'linux/wait.h', 'linux/netdevice.h', 'linux/skbuff.h', 'linux/jiffies.h', 'linux/ioport.h', 'linux/delay.h', 'linux/module.h', 'linux/mca-legacy.h', 'linux/completion.h', 'linux/slab.h', 'linux/etherdevice.h', u'drivers/net/ethernet/i825xx/3c523.h', 'linux/mca.h', 'linux/bitops.h', 'linux/init.h', 'linux/ethtool.h'])

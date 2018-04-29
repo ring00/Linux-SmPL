@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set([])
+deleted: set(['asm/visws/piix4.h', 'linux/interrupt.h', 'linux/kernel_stat.h', 'asm/irq_vectors.h', 'linux/pci_ids.h', 'linux/platform_device.h', 'asm/reboot.h', 'asm/io.h', 'asm/apic.h', 'asm/setup.h', 'asm/visws/sgivw.h', 'asm/e820.h', 'linux/errno.h', 'linux/kernel.h', 'asm/visws/lithium.h', 'asm/io_apic.h', 'asm/i8259.h', 'linux/pci.h', 'asm/mtrr.h', 'linux/wait.h', 'video/sgivw.h', 'linux/spinlock.h', 'asm/fixmap.h', 'linux/ioport.h', 'linux/delay.h', 'linux/module.h', 'linux/mutex.h', 'linux/smp.h', 'asm/visws/cobalt.h', 'linux/fb.h', u'sound/oss/sound_config.h', 'linux/slab.h', 'asm/pci_x86.h', 'asm/time.h', 'linux/init.h', 'linux/sched.h', 'linux/mm.h'])

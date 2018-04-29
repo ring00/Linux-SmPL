@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['video/imx-ipu-v3.h', u'drivers/staging/imx-drm/video/imx-ipu-v3.h'])
+deleted: set(['linux/interrupt.h', 'linux/spinlock.h', 'linux/err.h', u'drivers/staging/imx-drm/ipu-v3/imx-ipu-v3.h', 'linux/platform_device.h', 'linux/module.h', 'linux/list.h', 'drm/drm_fourcc.h', 'linux/reset.h', 'linux/export.h', 'linux/clk.h', u'drivers/staging/imx-drm/ipu-v3/ipu-prv.h', 'linux/irqchip/chained_irq.h', 'linux/of_device.h', 'linux/errno.h', 'linux/types.h', 'linux/kernel.h', 'linux/irqdomain.h', 'linux/delay.h', 'linux/irq.h', u'drivers/staging/imx-drm/ipu-v3/../imx-drm.h', 'linux/io.h'])
