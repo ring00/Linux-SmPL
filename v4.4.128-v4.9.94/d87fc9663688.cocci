@@ -1,0 +1,5 @@
+//# pattern-2, witnesses: 2
+@@
+@@
+- ESDHC_TUNING_START_TAP
++ ESDHC_TUNING_START_TAP_DEFAULT

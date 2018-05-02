@@ -1,0 +1,5 @@
+//# pattern-4, witnesses: 2
+@@
+@@
+- MLX5E_INLINE_MODE_VPORT_CONTEXT
++ MLX5_CAP_INLINE_MODE_VPORT_CONTEXT

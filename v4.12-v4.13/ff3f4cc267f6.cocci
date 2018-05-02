@@ -1,0 +1,25 @@
+//# pattern-3, witnesses: 5
+@@
+@@
+- I40E_FLAG_VF_MULTICAST_PROMISC
++ FLAG_VF_MULTICAST_PROMISC
+//# pattern-1, witnesses: 3
+@@
+@@
+- I40E_FLAG_VF_UNICAST_PROMISC
++ FLAG_VF_UNICAST_PROMISC
+//# pattern-4, witnesses: 3
+@@
+@@
+- I40E_VSI_SRIOV
++ VIRTCHNL_VSI_SRIOV
+//# pattern-2, witnesses: 2
+@@
+@@
+- I40E_PF_EVENT_SEVERITY_INFO
++ PF_EVENT_SEVERITY_INFO
+//# pattern-5, witnesses: 2
+@@
+@@
+- I40E_PF_EVENT_SEVERITY_CERTAIN_DOOM
++ PF_EVENT_SEVERITY_CERTAIN_DOOM

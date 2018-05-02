@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['media/drv-intf/sh_vou.h', 'media/drv-intf/exynos-fimc.h', 'media/drv-intf/sh_mobile_ceu.h', 'media/drv-intf/cx25840.h', 'media/drv-intf/soc_mediabus.h', 'media/drv-intf/saa7146_vv.h', 'media/drv-intf/msp3400.h', 'media/drv-intf/saa7146.h', 'media/drv-intf/cx2341x.h', 'media/drv-intf/si476x.h', 'media/drv-intf/tea575x.h', 'media/drv-intf/sh_mobile_csi2.h'])
+deleted: set(['media/exynos-fimc.h', 'media/saa7146_vv.h', 'media/sh_vou.h', 'media/cx25840.h', 'media/soc_mediabus.h', 'media/tea575x.h', 'media/cx2341x.h', 'media/sh_mobile_ceu.h', 'media/msp3400.h', 'media/saa7146.h', 'media/sh_mobile_csi2.h', 'media/si476x.h'])

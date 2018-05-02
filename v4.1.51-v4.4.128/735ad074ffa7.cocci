@@ -1,0 +1,6 @@
+//# pattern-3, witnesses: 2
+@@
+expression E0;
+@@
+- E0 & INDIO_BUFFER_TRIGGERED
++ E0 & INDIO_BUFFER_TRIGGERED | INDIO_EVENT_TRIGGERED

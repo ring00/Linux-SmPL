@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/usb/tcpm.h', 'linux/usb/pd.h'])
+deleted: set([u'drivers/staging/typec/pd_bdo.h', 'linux/spinlock.h', u'drivers/staging/typec/fusb302/../pd.h', 'linux/usb/typec.h', 'linux/jiffies.h', 'linux/module.h', u'drivers/staging/typec/fusb302/../tcpm.h', 'linux/proc_fs.h', 'linux/mutex.h', 'linux/sched/clock.h', 'linux/device.h', 'linux/completion.h', 'linux/workqueue.h', 'linux/slab.h', u'drivers/staging/typec/tcpm.h', u'drivers/staging/typec/pd_vdo.h', 'linux/seq_file.h', u'drivers/staging/typec/pd.h', 'linux/kernel.h', 'linux/debugfs.h'])

@@ -1,0 +1,5 @@
+//# pattern-2, witnesses: 14
+@@
+@@
+- MLX4_CQE_VLAN_PRESENT_MASK
++ MLX4_CQE_CVLAN_PRESENT_MASK

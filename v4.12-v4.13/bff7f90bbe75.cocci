@@ -1,0 +1,5 @@
+//# pattern-1, witnesses: 2
+@@
+@@
+- ACPI_TPM2_COMMAND_BUFFER_WITH_SMC
++ ACPI_TPM2_COMMAND_BUFFER_WITH_ARM_SMC

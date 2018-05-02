@@ -1,0 +1,5 @@
+//# pattern-1, witnesses: 3
+@@
+@@
+- IEEE80211_CHAN_GO_CONCURRENT
++ IEEE80211_CHAN_IR_CONCURRENT

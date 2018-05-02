@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['linux/platform_data/media/timb_video.h', 'linux/platform_data/media/si4713.h', 'linux/platform_data/media/sii9234.h', 'linux/platform_data/media/timb_radio.h', 'linux/platform_data/media/omap1_camera.h', 'linux/platform_data/media/mmp-camera.h', 'linux/platform_data/media/gpio-ir-recv.h', 'linux/platform_data/media/s5p_hdmi.h', 'linux/platform_data/media/soc_camera_platform.h', 'linux/platform_data/media/ir-rx51.h'])
+deleted: set(['media/gpio-ir-recv.h', 'media/ir-rx51.h', 'media/timb_video.h', 'media/s5p_hdmi.h', 'media/mmp-camera.h', 'media/omap1_camera.h', 'media/timb_radio.h', 'media/sii9234.h', 'media/si4713.h', 'media/soc_camera_platform.h'])

@@ -1,0 +1,89 @@
+//# pattern-2, witnesses: 18
+@r0@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+identifier r0.fn;
+@@
+- void fn(struct request_queue * q, struct bio * bio)
++ blk_qc_t fn(struct request_queue * q, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-3, witnesses: 6
+@r1@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+identifier r1.fn;
+@@
+ blk_qc_t fn(struct request_queue * q, struct bio * bio)
+ {
+     ...
++ return BLK_QC_T_NONE;
+ }
+//# pattern-9, witnesses: 4
+@r2@
+identifier fn;
+expression P0;
+@@
+blk_queue_make_request(P0, fn)
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier queue;
+identifier r2.fn;
+@@
+ blk_qc_t fn(struct request_queue * queue, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-4, witnesses: 3
+@r3@
+identifier i, fn;
+@@
+struct nvm_tgt_type i = {
+    .make_rq = fn,
+};
+@@
+identifier bio;
+typedef blk_qc_t;
+identifier q;
+@@
+ blk_qc_t rrpc_make_rq(struct request_queue * q, struct bio * bio)
+ {
+     <...
+- return;
++ return BLK_QC_T_NONE;
+     ...>
+ }
+//# pattern-11, witnesses: 2
+@r4@
+identifier i, fn;
+@@
+struct kernel_symbol i = {
+    .value = fn,
+};
+@@
+identifier bio;
+typedef blk_qc_t;
+@@
+- void generic_make_request(struct bio * bio)
++ blk_qc_t generic_make_request(struct bio * bio)
+ { ... }

@@ -1,0 +1,195 @@
+//# pattern-51, witnesses: 25
+@@
+@@
+- I40E_VIRTCHNL_OP_UNKNOWN
++ VIRTCHNL_OP_UNKNOWN
+//# pattern-2, witnesses: 8
+@@
+@@
+- I40E_VIRTCHNL_OP_GET_VF_RESOURCES
++ VIRTCHNL_OP_GET_VF_RESOURCES
+//# pattern-24, witnesses: 8
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_IWARP_IRQ_MAP
++ VIRTCHNL_OP_CONFIG_IWARP_IRQ_MAP
+//# pattern-19, witnesses: 7
+@@
+@@
+- I40E_VIRTCHNL_OP_VERSION
++ VIRTCHNL_OP_VERSION
+//# pattern-1, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_EVENT
++ VIRTCHNL_OP_EVENT
+//# pattern-11, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_IRQ_MAP
++ VIRTCHNL_OP_CONFIG_IRQ_MAP
+//# pattern-15, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_ENABLE_QUEUES
++ VIRTCHNL_OP_ENABLE_QUEUES
+//# pattern-16, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_GET_STATS
++ VIRTCHNL_OP_GET_STATS
+//# pattern-17, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_ADD_VLAN
++ VIRTCHNL_OP_ADD_VLAN
+//# pattern-22, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_IWARP
++ VIRTCHNL_OP_IWARP
+//# pattern-29, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_ADD_ETHER_ADDRESS
++ VIRTCHNL_OP_ADD_ETH_ADDR
+//# pattern-37, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_DISABLE_QUEUES
++ VIRTCHNL_OP_DISABLE_QUEUES
+//# pattern-38, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_DEL_ETHER_ADDRESS
++ VIRTCHNL_OP_DEL_ETH_ADDR
+//# pattern-47, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_GET_RSS_HENA_CAPS
++ VIRTCHNL_OP_GET_RSS_HENA_CAPS
+//# pattern-48, witnesses: 6
+@@
+@@
+- I40E_VIRTCHNL_OP_DEL_VLAN
++ VIRTCHNL_OP_DEL_VLAN
+//# pattern-5, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_OP_SET_RSS_HENA
++ VIRTCHNL_OP_SET_RSS_HENA
+//# pattern-6, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_PROMISCUOUS_MODE
++ VIRTCHNL_OP_CONFIG_PROMISCUOUS_MODE
+//# pattern-14, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_VERSION_MAJOR
++ VIRTCHNL_VERSION_MAJOR
+//# pattern-18, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_VSI_QUEUES
++ VIRTCHNL_OP_CONFIG_VSI_QUEUES
+//# pattern-31, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_RSS_LUT
++ VIRTCHNL_OP_CONFIG_RSS_LUT
+//# pattern-33, witnesses: 5
+@@
+@@
+- I40E_VIRTCHNL_OP_CONFIG_RSS_KEY
++ VIRTCHNL_OP_CONFIG_RSS_KEY
+//# pattern-4, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VERSION_MINOR
++ VIRTCHNL_VERSION_MINOR
+//# pattern-7, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_VLAN
++ VIRTCHNL_VF_OFFLOAD_VLAN
+//# pattern-12, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_RSS_PCTYPE_V2
++ VIRTCHNL_VF_OFFLOAD_RSS_PCTYPE_V2
+//# pattern-30, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_ENCAP_CSUM
++ VIRTCHNL_VF_OFFLOAD_ENCAP_CSUM
+//# pattern-34, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_ENCAP
++ VIRTCHNL_VF_OFFLOAD_ENCAP
+//# pattern-35, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_L2
++ VIRTCHNL_VF_OFFLOAD_L2
+//# pattern-39, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_WB_ON_ITR
++ VIRTCHNL_VF_OFFLOAD_WB_ON_ITR
+//# pattern-49, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_OP_RELEASE_IWARP_IRQ_MAP
++ VIRTCHNL_OP_RELEASE_IWARP_IRQ_MAP
+//# pattern-50, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_OP_RESET_VF
++ VIRTCHNL_OP_RESET_VF
+//# pattern-53, witnesses: 4
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_RSS_PF
++ VIRTCHNL_VF_OFFLOAD_RSS_PF
+//# pattern-3, witnesses: 3
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_RX_POLLING
++ VIRTCHNL_VF_OFFLOAD_RX_POLLING
+//# pattern-23, witnesses: 3
+@@
+@@
+- I40E_VFR_VFACTIVE
++ VIRTCHNL_VFR_VFACTIVE
+//# pattern-40, witnesses: 3
+@@
+@@
+- I40E_VIRTCHNL_EVENT_RESET_IMPENDING
++ VIRTCHNL_EVENT_RESET_IMPENDING
+//# pattern-43, witnesses: 3
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_RSS_AQ
++ VIRTCHNL_VF_OFFLOAD_RSS_AQ
+//# pattern-46, witnesses: 3
+@@
+@@
+- I40E_VIRTCHNL_EVENT_LINK_CHANGE
++ VIRTCHNL_EVENT_LINK_CHANGE
+//# pattern-52, witnesses: 3
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_RSS_REG
++ VIRTCHNL_VF_OFFLOAD_RSS_REG
+//# pattern-10, witnesses: 2
+@@
+@@
+- I40E_VIRTCHNL_VF_OFFLOAD_IWARP
++ VIRTCHNL_VF_OFFLOAD_IWARP
+//# pattern-26, witnesses: 2
+@@
+@@
+- I40E_VFR_COMPLETED
++ VIRTCHNL_VFR_COMPLETED

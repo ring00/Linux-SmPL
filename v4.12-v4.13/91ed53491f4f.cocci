@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set([])
+deleted: set(['trace/events/i2c.h', 'linux/jump_label.h', 'linux/err.h', 'linux/hardirq.h', 'linux/delay.h', 'linux/acpi.h', 'linux/module.h', 'linux/rwsem.h', 'linux/pm_runtime.h', 'linux/of_irq.h', 'linux/irqflags.h', 'linux/completion.h', 'linux/gpio.h', 'linux/pm_domain.h', 'linux/uaccess.h', 'linux/slab.h', 'dt-bindings/i2c/i2c.h', 'linux/clk/clk-conf.h', 'linux/errno.h', 'linux/kernel.h', 'linux/init.h', 'linux/of.h', 'linux/idr.h', 'linux/pm_wakeirq.h', 'linux/property.h', 'linux/i2c.h', u'drivers/i2c/i2c-core.h', 'linux/of_device.h', 'linux/mutex.h'])

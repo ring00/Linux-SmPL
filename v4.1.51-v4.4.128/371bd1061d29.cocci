@@ -1,0 +1,3 @@
+Unable to infer inclusion changes on more than 1 file
+added  : set(['net/protocol.h'])
+deleted: set(['linux/in.h', 'net/ipv6.h', 'net/arp.h', 'net/udp_tunnel.h', 'net/udp.h', 'net/ip6_checksum.h', 'linux/udp.h', 'net/route.h', 'linux/list.h', 'net/ip6_tunnel.h', 'net/netns/generic.h', 'linux/errno.h', 'linux/types.h', 'linux/kernel.h', 'net/geneve.h', 'net/addrconf.h', 'linux/if_ether.h', 'linux/netdevice.h', 'linux/skbuff.h', 'linux/if_vlan.h', 'net/ndisc.h', 'linux/module.h', 'net/ip_tunnels.h', 'net/net_namespace.h', 'linux/mutex.h', 'net/rtnetlink.h', 'net/inet_ecn.h', 'linux/igmp.h', 'linux/ip.h', 'linux/slab.h', 'linux/etherdevice.h', 'net/dsfield.h', 'net/icmp.h', 'net/protocol.h', 'net/ip.h', 'linux/ethtool.h'])
