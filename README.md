@@ -1,6 +1,6 @@
 # Nested Function
 
-```c
+```diff
 @@ -756,9 +761,6 @@ SHOW(__bch_cache)
  					       CACHE_REPLACEMENT(&ca->sb));
  
@@ -26,7 +26,7 @@
 
 # VLA in struct
 
-```c++
+```diff
 @@ -4551,11 +4551,9 @@ static int handle_reshape_read_error(struct mddev *mddev,
  	/* Use sync reads to get the blocks from somewhere else */
  	int sectors = r10_bio->sectors;
